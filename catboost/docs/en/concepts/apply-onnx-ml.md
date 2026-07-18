@@ -11,6 +11,7 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 ## Specifics {#specifics}
 
 - Numerical and categorical features are supported. Text and embedding features will likely never be supported.
+  Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset.
 - Exported ONNX-ML models cannot be currently loaded and applied by {{ product }} libraries/executable. This export format is suitable only for external Machine Learning libraries.
 - {% include [reusage-common-phrases-native-catboost-format-is-faster](../_includes/work_src/reusage-common-phrases/native-catboost-format-is-faster.md) %}
 
@@ -24,7 +25,7 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 
 The numerical input features.
 
-Possible types: Tensor of shape [N_examples] and type {{ python-type--float }}
+Possible types: Tensor of shape [N_examples, number_of_numerical_features] and type {{ python-type--float }}
 
 #### Categorical features
 
@@ -32,7 +33,7 @@ Each categorical feature is exported as a separate input with the name derived f
 - If the feature has a custom `feature_id`, the input name matches that identifier.
 - Otherwise, the input name is `cat_feature_<flat_index>`.
 
-Possible types: Tensor of shape [N_examples] and type {{ python-type--string }}
+Possible types: Tensor of shape [N_examples, 1] and type {{ python-type--string }}
 
 {% note info %}
 
