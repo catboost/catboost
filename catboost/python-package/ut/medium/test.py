@@ -601,6 +601,11 @@ def test_fit_on_ndarray(features_dtype):
     assert _have_equal_features(order_to_pool['C'], order_to_pool['F'])
 
     model = CatBoostClassifier(iterations=5)
+
+    assert not hasattr(model, 'n_features_in_')
+    with pytest.raises(AttributeError):
+        model.n_features_in_
+
     model.fit(order_to_pool['F'])  # order is irrelevant here - they are equal
 
     assert model.n_features_in_ == n_features
