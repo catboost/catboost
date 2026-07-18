@@ -5415,6 +5415,16 @@ cdef class _CatBoost:
     def __ne__(self, _CatBoost other):
         return dereference(self.__model) != dereference(other.__model)
 
+    cdef _replace_model(self, TFullModel* new_model, object new_model_blob):
+        # TFullModel created by ReadZeroCopyModel references the memory held by model_blob,
+        # so model_blob must always be released only after the TFullModel object
+        # that references it has been destroyed.
+        # See https://github.com/catboost/catboost/issues/2905
+        cdef TFullModel* old_model = self.__model
+        self.__model = new_model
+        del old_model
+        self.model_blob = new_model_blob
+
     cpdef _reserve_test_evals(self, size_t num_tests):
         self.__test_evals.resize(num_tests)
         cdef size_t i
@@ -5428,7 +5438,6 @@ cdef class _CatBoost:
             dereference(self.__test_evals[i]).ClearRawValues()
 
     cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool, maybe_init_model):
-        self.model_blob = None
         _input_borders = params.pop("input_borders", None)
         prep_params = _PreprocessParams(params)
         cdef int thread_count = params.get("thread_count", 1)
@@ -5442,6 +5451,7 @@ cdef class _CatBoost:
         cdef TMaybe[TFullModel*] init_model_param
         cdef THolder[TLearnProgress]* init_learn_progress_param
         cdef THolder[TLearnProgress]* dst_learn_progress_param
+        cdef TFullModel* new_model
 
         cdef size_t n_features_in = train_pool.__pool.Get().MetaInfo.GetFeatureCount()
         self.__n_features_in = max(self.__n_features_in, n_features_in)
@@ -5473,26 +5483,35 @@ cdef class _CatBoost:
         else:
             dst_learn_progress_param = <THolder[TLearnProgress]*>nullptr
 
-        with nogil:
-            SetPythonInterruptHandler()
-            try:
-                TrainModel(
-                    prep_params.tree,
-                    quantizedFeaturesInfo,
-                    prep_params.customObjectiveDescriptor,
-                    prep_params.customMetricDescriptor,
-                    prep_params.customCallbackDescriptor,
-                    dataProviders,
-                    init_model_param,
-                    init_learn_progress_param,
-                    TString(<const char*>""),
-                    self.__model,
-                    self.__test_evals,
-                    &self.__metrics_history,
-                    dst_learn_progress_param
-                )
-            finally:
-                ResetPythonInterruptHandler()
+        new_model = new TFullModel()
+        try:
+            with nogil:
+                SetPythonInterruptHandler()
+                try:
+                    TrainModel(
+                        prep_params.tree,
+                        quantizedFeaturesInfo,
+                        prep_params.customObjectiveDescriptor,
+                        prep_params.customMetricDescriptor,
+                        prep_params.customCallbackDescriptor,
+                        dataProviders,
+                        init_model_param,
+                        init_learn_progress_param,
+                        TString(<const char*>""),
+                        new_model,
+                        self.__test_evals,
+                        &self.__metrics_history,
+                        dst_learn_progress_param
+                    )
+                finally:
+                    ResetPythonInterruptHandler()
+        except:
+            del new_model
+            raise
+
+        # release the memory held by model_blob referenced by the previous model
+        # only after that model has been destroyed
+        self._replace_model(new_model, None)
 
     cpdef _set_test_evals(self, test_evals):
         cdef TVector[double] vector
@@ -5789,16 +5808,18 @@ cdef class _CatBoost:
         cdef THolder[TPythonStreamWrapper] wrapper = MakeHolder[TPythonStreamWrapper](python_stream_read_func, <PyObject*>stream)
         cdef TFullModel tmp_model
         tmp_model.Load(wrapper.Get())
-        self.model_blob = None
-        self.__model.Swap(tmp_model)
+        cdef TFullModel* new_model = new TFullModel()
+        new_model[0].Swap(tmp_model)
+        self._replace_model(new_model, None)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         cdef EModelType modelType = string_to_model_type(format)
         tmp_model = ReadModel(to_arcadia_string(fspath(model_file)), modelType)
-        self.model_blob = None
-        self.__model.Swap(tmp_model)
+        cdef TFullModel* new_model = new TFullModel()
+        new_model[0].Swap(tmp_model)
+        self._replace_model(new_model, None)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
@@ -5832,9 +5853,13 @@ cdef class _CatBoost:
     cpdef _deserialize_model(self, serialized_model_blob):
         cdef const unsigned char[::1] buf
         buf = serialized_model_blob
-        self.model_blob = serialized_model_blob
         cdef TFullModel tmp_model = ReadZeroCopyModel(<char*>&buf[0], len(buf))
-        self.__model.Swap(tmp_model)
+        cdef TFullModel* new_model = new TFullModel()
+        new_model[0].Swap(tmp_model)
+        # the new model references the memory of serialized_model_blob, so it must be
+        # stored in model_blob to keep it alive, and the previous model_blob must be
+        # released only after the previous model that may reference it has been destroyed
+        self._replace_model(new_model, serialized_model_blob)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _get_params(self):
@@ -5896,8 +5921,9 @@ cdef class _CatBoost:
             models_vector.push_back((<_CatBoost>models[model_id]).__model)
             weights_vector.push_back(weights[model_id])
         cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, model_prefix_vector, merge_policy)
-        self.model_blob = None
-        self.__model.Swap(tmp_model)
+        cdef TFullModel* new_model = new TFullModel()
+        new_model[0].Swap(tmp_model)
+        self._replace_model(new_model, None)
 
     cpdef _save_borders(self, output_file):
         SaveModelBorders(to_arcadia_string(fspath(output_file)), dereference(self.__model))

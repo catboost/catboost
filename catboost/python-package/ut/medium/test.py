@@ -1,4 +1,5 @@
 from collections import OrderedDict, Counter
+from copy import deepcopy
 import filecmp
 import hashlib
 import math
@@ -11978,3 +11979,52 @@ def test_repr():
     assert (CatBoostRegressor(verbose=False, random_seed=42).__repr__() == r"CatBoostRegressor(loss_function='RMSE', random_seed=42, verbose=False)")
     assert (CatBoostClassifier(verbose=False, random_seed=32).__repr__() == r"CatBoostClassifier(random_seed=32, verbose=False)")
     assert (CatBoostRanker(one_hot_max_size=10, depth=7).__repr__() == r"CatBoostRanker(depth=7, loss_function='YetiRank', one_hot_max_size=10)")
+
+
+def test_deepcopy_fit_predict_with_cat_features():
+    """
+    Regression test for https://github.com/catboost/catboost/issues/2905
+
+    deepcopy() deserializes the model with ReadZeroCopyModel, so the copied model
+    references the memory of the blob stored in it. Refitting the copy must not
+    release that blob while the previous model is still in use: _train used to
+    clear model_blob first, which led to use-after-free and hangs in predict.
+    """
+    n_samples = 5000
+    rng = np.random.RandomState(0)
+    df = pd.DataFrame({
+        'num_1': rng.randn(n_samples),
+        'num_2': rng.rand(n_samples) * 100,
+        'cat_1': rng.choice(['A', 'B', 'C'], n_samples),
+        'cat_2': rng.choice(['X', 'Y'], n_samples),
+    })
+    target = (df['num_1'] + (df['cat_1'] == 'B').astype(int) > 0).astype(int)
+    cat_features = ['cat_1', 'cat_2']
+    params = dict(
+        iterations=10,
+        learning_rate=0.25,
+        depth=4,
+        verbose=False,
+        random_seed=42,
+        thread_count=2,
+    )
+
+    model = CatBoostClassifier(**params)
+    model.fit(df, target, cat_features=cat_features)
+
+    model_copy = deepcopy(model)
+
+    # the copied model must stay valid on its own
+    assert np.array_equal(model_copy.predict(df), model.predict(df))
+
+    # refitting the copy must not corrupt it, the result must be the same as
+    # training a new model from scratch with the same parameters
+    model_copy.fit(df, target, cat_features=cat_features)
+    model_from_scratch = CatBoostClassifier(**params)
+    model_from_scratch.fit(df, target, cat_features=cat_features)
+
+    assert np.array_equal(model_copy.predict(df), model_from_scratch.predict(df))
+    assert np.allclose(
+        model_copy.predict(df, prediction_type='Probability'),
+        model_from_scratch.predict(df, prediction_type='Probability')
+    )
