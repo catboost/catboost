@@ -336,6 +336,49 @@ def _get_features_indices(features, feature_names):
     return features
 
 
+def _is_auto_features(features):
+    return isinstance(features, STRING_TYPES) and features == 'auto'
+
+
+def _resolve_auto_features(features, data, param_name):
+    """
+        Resolve the 'auto' value of a '*_features' parameter into a list of feature indices.
+        'features' is returned unchanged if it is not 'auto'.
+
+        Only 'cat_features' supports 'auto': it is resolved to the pandas categorical columns of
+        'data'. Ordered categoricals are included as well: unlike in other GBDT libraries, a
+        'category' column that is not in 'cat_features' is an error in CatBoost, not a numerical
+        feature, so excluding them would just make 'auto' fail on such datasets.
+
+        Parameters
+        ----------
+        features :
+            the value of the '*_features' parameter
+
+        data :
+            the dataset the features belong to, must be a pandas.DataFrame to resolve 'auto'
+
+        param_name :
+            name of the parameter, used for error messages
+    """
+    if not _is_auto_features(features):
+        return features
+    if param_name != 'cat_features':
+        raise CatBoostError(
+            "'auto' value is supported only for 'cat_features', but it is specified for '{}'".format(param_name)
+        )
+    if not isinstance(data, pd.DataFrame):
+        raise CatBoostError(
+            "cat_features='auto' requires the dataset to be a pandas.DataFrame, but got {}. Specify "
+            "categorical features explicitly.".format(type(data))
+        )
+    return [
+        feature_idx
+        for feature_idx, dtype in enumerate(data.dtypes)
+        if isinstance(dtype, pd.CategoricalDtype)
+    ]
+
+
 def _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
                                  feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
                                  nan_mode, input_borders, task_type, used_ram_limit, random_seed,
@@ -656,10 +699,12 @@ class Pool(_PoolBase):
             If `data` parameter points to a file, Label data is loaded from it as well. This parameter must
               be None in this case.
 
-        cat_features : list or numpy.ndarray, optional (default=None)
+        cat_features : list or numpy.ndarray or string, optional (default=None)
             If not None, giving the list of Categ features indices or names.
             If it contains feature names, Pool's feature names must be defined: either by passing 'feature_names'
               parameter or if data is pandas.DataFrame (feature names are initialized from it's column names)
+            If 'auto', Categ features are detected as the pandas categorical columns of 'data'.
+              'data' must be a pandas.DataFrame in this case.
             Must be None if 'data' parameter has FeaturesData type
 
         text_features : list or numpy.ndarray, optional (default=None)
@@ -794,6 +839,10 @@ class Pool(_PoolBase):
                         )
                     self._read(data, column_description, pairs, graph, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count)
                 else:
+                    cat_features = _resolve_auto_features(cat_features, data, 'cat_features')
+                    text_features = _resolve_auto_features(text_features, data, 'text_features')
+                    embedding_features = _resolve_auto_features(embedding_features, data, 'embedding_features')
+
                     if isinstance(data, FeaturesData):
                         if any(v is not None for v in [cat_features, text_features, embedding_features, embedding_features_data, feature_names]):
                             raise CatBoostError(
@@ -2534,6 +2583,13 @@ def _process_feature_indices(feature_indices, pool, params, param_name):
         raise CatBoostError('Unknown params_name=' + param_name)
 
     if isinstance(pool, Pool):
+        if _is_auto_features(params[param_name]):
+            if param_name != 'cat_features':
+                raise CatBoostError(
+                    "'auto' value is supported only for 'cat_features', but it is specified for '{}'".format(param_name)
+                )
+            # the Pool has already been built with its own feature types, they are the resolution of 'auto'
+            params[param_name] = pool.get_cat_feature_indices()
         feature_indices_from_params = _get_features_indices(params[param_name], pool.get_feature_names())
         if param_name == 'cat_features':
             feature_indices_from_pool = pool.get_cat_feature_indices()
@@ -2551,10 +2607,12 @@ def _process_feature_indices(feature_indices, pool, params, param_name):
         raise CatBoostError(
             "Categorical features are set in the model. It is not allowed to use FeaturesData type for training dataset.")
     else:
-        if feature_indices is not None and set(feature_indices) != set(params[param_name]):
-            raise CatBoostError(feature_type_name + " features in the model are set to " + str(params[param_name]) +
+        feature_indices_from_params = _resolve_auto_features(params[param_name], pool, param_name)
+        feature_indices = _resolve_auto_features(feature_indices, pool, param_name)
+        if feature_indices is not None and set(feature_indices) != set(feature_indices_from_params):
+            raise CatBoostError(feature_type_name + " features in the model are set to " + str(feature_indices_from_params) +
                                 ". " + feature_type_name + " features passed to fit function are set to " + str(feature_indices))
-        feature_indices = params[param_name]
+        feature_indices = feature_indices_from_params
     del params[param_name]
     return feature_indices
 
@@ -2812,8 +2870,10 @@ class CatBoost(_CatBoostBase):
               - class labels (boolean, integer or string) - for classification (including multiclassification) problems
             Use only if X is not catboost.Pool and does not point to a file.
 
-        cat_features : list or numpy.ndarray, optional (default=None)
+        cat_features : list or numpy.ndarray or string, optional (default=None)
             If not None, giving the list of Categ columns indices.
+            If 'auto', Categ columns are detected as the pandas categorical columns of X,
+              which must be a pandas.DataFrame in this case.
             Use only if X is not catboost.Pool and not catboost.FeaturesData
 
         text_features: list or numpy.ndarray, optional (default=None)
@@ -5228,9 +5288,12 @@ class CatBoostClassifier(CatBoost):
     early_stopping_rounds : int
         Synonym for od_wait. Only one of these parameters should be set.
 
-    cat_features : list or numpy.ndarray, [default=None]
+    cat_features : list or numpy.ndarray or string, [default=None]
         If not None, giving the list of Categ features indices or names (names are represented as strings).
         If it contains feature names, feature names must be defined for the training dataset passed to 'fit'.
+        If 'auto', Categ features are detected as the pandas categorical columns of the training
+        dataset, which must be a pandas.DataFrame in this case. Detection is performed on every 'fit' call,
+        so the parameter is preserved as 'auto' by 'get_params' and can be used in sklearn pipelines.
 
     text_features : list or numpy.ndarray, [default=None]
         If not None, giving the list of Text features indices or names (names are represented as strings).
@@ -5486,8 +5549,10 @@ class CatBoostClassifier(CatBoost):
               - class labels (boolean, integer or string)
             Use only if X is not catboost.Pool and does not point to a file.
 
-        cat_features : list or numpy.ndarray, optional (default=None)
+        cat_features : list or numpy.ndarray or string, optional (default=None)
             If not None, giving the list of Categ columns indices.
+            If 'auto', Categ columns are detected as the pandas categorical columns of X,
+              which must be a pandas.DataFrame in this case.
             Use only if X is not catboost.Pool.
 
         text_features : list or numpy.ndarray, optional (default=None)
@@ -6120,8 +6185,10 @@ class CatBoostRegressor(CatBoost):
             If not None, can be a single- or two- dimensional array with numerical values.
             Use only if X is not catboost.Pool and does not point to a file.
 
-        cat_features : list or numpy.ndarray, optional (default=None)
+        cat_features : list or numpy.ndarray or string, optional (default=None)
             If not None, giving the list of Categ columns indices.
+            If 'auto', Categ columns are detected as the pandas categorical columns of X,
+              which must be a pandas.DataFrame in this case.
             Use only if X is not catboost.Pool.
 
         text_features : list or numpy.ndarray, optional (default=None)
@@ -6532,8 +6599,10 @@ class CatBoostRanker(CatBoost):
         group_id : numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
             Ranking groups, 1 dimensional array like.
             Use only if X is not catboost.Pool.
-        cat_features : list or numpy.ndarray, optional (default=None)
+        cat_features : list or numpy.ndarray or string, optional (default=None)
             If not None, giving the list of Categ columns indices.
+            If 'auto', Categ columns are detected as the pandas categorical columns of X,
+              which must be a pandas.DataFrame in this case.
             Use only if X is not catboost.Pool.
         text_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Text columns indices.
@@ -7286,6 +7355,8 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
 
     if 'cat_features' in params:
+        if _is_auto_features(params['cat_features']):
+            params['cat_features'] = pool.get_cat_feature_indices()
         cat_feature_indices_from_params = _get_features_indices(params['cat_features'], pool.get_feature_names())
         if set(pool.get_cat_feature_indices()) != set(cat_feature_indices_from_params):
             raise CatBoostError("categorical features indices in params are different from ones in the dataset "
@@ -7294,6 +7365,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         del params['cat_features']
 
     if 'text_features' in params:
+        _resolve_auto_features(params['text_features'], pool, 'text_features')
         text_feature_indices_from_params = _get_features_indices(params['text_features'], pool.get_feature_names())
         if set(pool.get_text_feature_indices()) != set(text_feature_indices_from_params):
             raise CatBoostError("text features indices in params are different from ones in the dataset "
@@ -7302,6 +7374,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         del params['text_features']
 
     if 'embedding_features' in params:
+        _resolve_auto_features(params['embedding_features'], pool, 'embedding_features')
         embedding_feature_indices_from_params = _get_features_indices(params['embedding_features'], pool.get_feature_names())
         if set(pool.get_embedding_feature_indices()) != set(embedding_feature_indices_from_params):
             raise CatBoostError("embedding features indices in params are different from ones in the dataset "

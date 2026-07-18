@@ -823,6 +823,65 @@ def test_dataframe_with_pandas_categorical_columns(cat_features_specified):
             model.fit(X=df, y=labels)
 
 
+def get_dataframe_with_pandas_categorical_columns():
+    df = pd.DataFrame()
+    df['num_feat_0'] = [0, 1, 0, 2, 3, 1, 2]
+    df['num_feat_1'] = [0.12, 0.8, 0.33, 0.11, 0.0, 1.0, 0.0]
+    df['cat_feat_2'] = pd.Series(['A', 'B', 'A', 'C', 'A', 'A', 'A'], dtype='category')
+    df['cat_feat_3'] = pd.Categorical(
+        ['large', 'small', 'medium', 'large', 'small', 'small', 'medium'],
+        categories=['small', 'medium', 'large'],
+        ordered=True
+    )
+    df['obj_feat_4'] = pd.Series(['0', '1', '0', '2', '3', '1', '2'])
+    return df
+
+
+def test_auto_cat_features():
+    df = get_dataframe_with_pandas_categorical_columns()
+    labels = [0, 1, 1, 0, 1, 0, 1]
+
+    auto_pool = Pool(df, labels, cat_features='auto')
+    assert auto_pool.get_cat_feature_indices() == [2, 3]
+
+    explicit_pool = Pool(df, labels, cat_features=[2, 3])
+    assert _have_equal_features(auto_pool, explicit_pool)
+
+    for model in [CatBoostClassifier(iterations=2, cat_features='auto'),
+                  CatBoostClassifier(iterations=2, cat_features=['cat_feat_2', 'cat_feat_3'])]:
+        model.fit(X=df, y=labels)
+        assert model.get_cat_feature_indices() == [2, 3]
+
+    model = CatBoostClassifier(iterations=2)
+    model.fit(X=df, y=labels, cat_features='auto')
+    assert model.get_cat_feature_indices() == [2, 3]
+
+    model = CatBoostClassifier(iterations=2, cat_features='auto')
+    model.fit(X=df, y=labels)
+    assert model.get_params()['cat_features'] == 'auto'
+    model.fit(X=df.drop(columns=['num_feat_0']), y=labels)
+    assert model.get_cat_feature_indices() == [1, 2]
+
+    assert Pool(df[['num_feat_0', 'num_feat_1']], labels, cat_features='auto').get_cat_feature_indices() == []
+
+
+def test_auto_cat_features_errors():
+    df = get_dataframe_with_pandas_categorical_columns()
+    labels = [0, 1, 1, 0, 1, 0, 1]
+
+    with pytest.raises(CatBoostError):
+        Pool(np.array(df[['num_feat_0', 'num_feat_1']]), labels, cat_features='auto')
+    with pytest.raises(CatBoostError):
+        CatBoostClassifier(iterations=2, cat_features='auto').fit(
+            X=np.array(df[['num_feat_0', 'num_feat_1']]), y=labels
+        )
+
+    with pytest.raises(CatBoostError):
+        Pool(df, labels, cat_features=[2, 3], text_features='auto')
+    with pytest.raises(CatBoostError):
+        Pool(df, labels, cat_features=[2, 3], embedding_features='auto')
+
+
 def test_equivalence_of_pools_from_pandas_dataframe_with_different_cat_features_column_types():
     df = pd.DataFrame()
     df['num_feat_0'] = [0, 1, 0, 2, 3, 1, 2]
