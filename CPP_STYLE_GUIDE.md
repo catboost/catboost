@@ -162,7 +162,7 @@ Our standard indent is 4 spaces.  The indent should be filled with spaces, even 
 
 ### Block style
 
-For block operators, use the 1TBS style:
+For block operators, use [the 1TBS style](https://en.wikipedia.org/wiki/Indentation_style#One_True_Brace):
 
 ```cpp
 if (something) { // K&R style
