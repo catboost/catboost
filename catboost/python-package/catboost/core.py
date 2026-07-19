@@ -1775,6 +1775,8 @@ class _CatBoostBase(object):
     def __getattr__(self, name: str):
         if (name == 'n_features_in_') and self.is_fitted():
             return getattr(self, '_n_features_in')
+        if (name == 'feature_names_in_') and self.is_fitted():
+            return np.array(self._object._get_feature_names(), dtype=object)
         raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, name))
 
     def __getstate__(self):
