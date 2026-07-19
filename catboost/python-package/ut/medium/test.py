@@ -617,6 +617,16 @@ def test_fit_on_ndarray(features_dtype):
     return local_canonical_file(preds_path)
 
 
+def test_attribute_access_on_unfitted_model():
+    # __getattr__ calls is_fitted(), which is an attribute lookup itself, so the
+    # attribute name has to be checked before is_fitted() to avoid infinite recursion
+    model = CatBoostClassifier(iterations=5)
+    for attribute in ('n_features_in_', 'feature_names_in_', 'no_such_attribute'):
+        assert not hasattr(model, attribute)
+        with pytest.raises(AttributeError):
+            getattr(model, attribute)
+
+
 @pytest.mark.parametrize(
     'dataset',
     ['adult', 'adult_nan', 'querywise', 'rotten_tomatoes', 'rotten_tomatoes_small_with_embeddings']
