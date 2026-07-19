@@ -5785,7 +5785,13 @@ def test_feature_names_from_model():
             pool = pools[i]
             model = CatBoost(dict(iterations=10))
             assert model.feature_names_ is None
+            assert not hasattr(model, 'feature_names_in_')
+            with pytest.raises(AttributeError):
+                model.feature_names_in_
             model.fit(pool)
+            assert isinstance(model.feature_names_in_, np.ndarray)
+            assert model.feature_names_in_.dtype == object
+            assert list(model.feature_names_in_) == model.feature_names_
             output.write(str(model.feature_names_) + '\n')
 
     return local_canonical_file(output_file)
@@ -5807,11 +5813,13 @@ def test_feature_names_from_loaded_model(format):
     model = CatBoostRegressor(iterations=10)
     model.fit(pool)
     assert model.feature_names_ == feature_names
+    assert list(model.feature_names_in_) == feature_names
 
     model_file = test_output_path('model')
     model.save_model(model_file, format=format, pool=pool)
     loaded_model = CatBoostRegressor().load_model(model_file, format=format)
     assert loaded_model.feature_names_ == feature_names
+    assert list(loaded_model.feature_names_in_) == feature_names
 
 
 Value_AcceptableAsEmpty = [
@@ -7631,6 +7639,7 @@ def test_set_feature_names():
     names = ["feature_{}".format(x) for x in range(train_pool.num_col())]
     model.set_feature_names(names)
     assert names == model.feature_names_
+    assert names == list(model.feature_names_in_)
 
 
 def test_bad_set_feature_names():

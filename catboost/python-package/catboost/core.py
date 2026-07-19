@@ -1772,6 +1772,11 @@ class _CatBoostBase(object):
         params_str = ", ".join(f"{key}={val!r}" for key, val in sorted(self._init_params.items()))
         return f"{self.__class__.__name__}({params_str})"
 
+    def __getattr__(self, name: str):
+        if (name == 'feature_names_in_') and self.is_fitted():
+            return np.array(self._object._get_feature_names(), dtype=object)
+        raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, name))
+
     def __getstate__(self):
         params = self._init_params.copy()
         test_evals = self._object._get_test_evals()
