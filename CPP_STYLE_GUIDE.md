@@ -160,7 +160,7 @@ Don't use tabs in a text editor. The reason is because this is the only way to e
 
 Our standard indent is 4 spaces.  The indent should be filled with spaces, even if you use the Tab button.
 
-### Block style
+### <a id="formatting-block-style"></a> Block style
 
 For block operators, use [the 1TBS style](https://en.wikipedia.org/wiki/Indentation_style#One_True_Brace):
 
@@ -203,16 +203,26 @@ The style of the curly brackets must be consistent within the same file.
 
 **Short blocks**
 
-Single-line bodies of operators and inline functions must begin with a new line. Bodies of operators and functions declared in the same line make debugging difficult.
+Single-line bodies of operators and inline functions must begin with a new line and be enclosed in curly brackets.
+
+Reason: Bodies of operators and functions declared in the same line make debugging difficult.
 ```cpp
-if (something)
+if (something) {
     A();
+}
 ```
 
 The subordinate operator must not be empty. Not allowed:
 ```cpp
 for (int i = 0; i < 100; i++);
 ```
+
+or
+```cpp
+for (int i = 0; i < 100; i++)
+   ;
+```
+
 The reason is this text looks like a typo that wasn't caught at the compilation stage.
 
 **Operators**
@@ -224,6 +234,8 @@ Don't use more than one operator per line.
 We recommended leaving blank lines between separate logical blocks of code. This greatly improves readability.
 
 ### Spaces
+
+For blocks see [Block style section](#formatting-block-style).
 
 #### Operator symbols
 
@@ -239,13 +251,21 @@ This includes the assignment operator. In other words, write:
 if (!x.a || ~(b->c - e::d) == 0)
     z = 0;
 
-void F() throw () {
+void F() noexcept {
 }
 
 struct T {
-    void F() const throw () {
+    void F() const noexcept {
     }
 };
+```
+
+#### Pointers and references
+
+For reference and pointer types, the ampersand (`&`) and asterisk (`*`) symbols must immediately follow the base type, with no space in between.
+```cpp
+const T& value = Foo();
+void Bar(int* p);
 ```
 
 #### Brackets
@@ -286,9 +306,7 @@ vector<vector<int>> matrix;
 
 There shouldn't be any spaces at the end of a line. Use the options in your text editor to control this.
 
-Settings in text editors
-
-- TextPad: "Strip trailing spaces from lines when saving".
+Settings in text editors:
 
 - Vim
 ```vim
@@ -303,6 +321,15 @@ augroup END
 ```
 (add-hook 'c-mode-common-hook
           (lambda () (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
+```
+
+- VSCode:
+
+Press `cmd+shift+p` on macOS or `ctrl+shift+p` for Linux/Windows, select `Preferences: Open User Settings (JSON)`, add the following:
+```json
+"files.insertFinalNewline": true,
+"files.trimFinalNewlines": true,
+"files.trimTrailingWhitespace": true,
 ```
 
 ## Lambda functions
