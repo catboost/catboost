@@ -11120,6 +11120,179 @@ def test_pandas_integer_array():
     cb.fit(X, y)
 
 
+_PANDAS_VERSION = tuple(map(int, re.findall(r'\d+', pd.__version__)[:2]))
+
+_PANDAS_NULLABLE_INT_DTYPES = ['Int8', 'Int16', 'Int32', 'Int64', 'UInt8', 'UInt16', 'UInt32', 'UInt64']
+# nullable floating point extension dtypes are available only since pandas 1.2.0
+_PANDAS_NULLABLE_FLOAT_DTYPES = ['Float32', 'Float64'] if _PANDAS_VERSION >= (1, 2) else []
+_PANDAS_NULLABLE_NUMERIC_DTYPES = _PANDAS_NULLABLE_INT_DTYPES + _PANDAS_NULLABLE_FLOAT_DTYPES + ['boolean']
+
+requires_pandas_nullable_types = pytest.mark.skipif(
+    _PANDAS_VERSION < (1, 0),
+    reason='pandas nullable types and pandas.NA are available only since pandas 1.0.0'
+)
+
+
+def _nullable_numeric_series_values(dtype):
+    if dtype == 'boolean':
+        return [True, False, pd.NA, True, False, True, False, pd.NA]
+    return [1, 2, pd.NA, 4, 5, 6, 7, pd.NA]
+
+
+def _expected_numeric_feature_values(dtype):
+    if dtype == 'boolean':
+        return [1.0, 0.0, np.nan, 1.0, 0.0, 1.0, 0.0, np.nan]
+    return [1.0, 2.0, np.nan, 4.0, 5.0, 6.0, 7.0, np.nan]
+
+
+def _check_single_feature_values(features, expected):
+    assert features.shape == (len(expected), 1)
+    for got, want in zip(features[:, 0], expected):
+        if np.isnan(want):
+            assert np.isnan(got)
+        else:
+            assert got == want
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', _PANDAS_NULLABLE_NUMERIC_DTYPES)
+def test_pandas_nullable_numeric_feature(dtype):
+    df = pd.DataFrame({'f': pd.Series(_nullable_numeric_series_values(dtype), dtype=dtype)})
+    pool = Pool(df)
+    _check_single_feature_values(pool.get_features(), _expected_numeric_feature_values(dtype))
+
+    y = [0, 1, 0, 1, 0, 1, 0, 1]
+    model = CatBoostRegressor(iterations=2, verbose=0).fit(df, y)
+    assert model.predict(df).shape == (len(y),)
+
+
+@requires_pandas_nullable_types
+def test_pandas_nullable_features_equivalent_to_nan():
+    n_objects = 100
+    rng = np.random.RandomState(0)
+    values = rng.randint(0, 100, n_objects)
+    na_mask = rng.rand(n_objects) < 0.3
+
+    def maybe_na(value, is_na):
+        return pd.NA if is_na else value
+
+    df_nullable = pd.DataFrame({
+        'int': pd.Series([maybe_na(int(v), m) for v, m in zip(values, na_mask)], dtype='Int64'),
+        'float': pd.Series(
+            [maybe_na(float(v) + 0.5, m) for v, m in zip(values, na_mask)],
+            dtype='Float64' if _PANDAS_VERSION >= (1, 2) else 'float64'
+        ),
+        'bool': pd.Series([maybe_na(bool(v % 2), m) for v, m in zip(values, na_mask)], dtype='boolean'),
+    })
+    df_float = pd.DataFrame({
+        'int': [np.nan if m else float(v) for v, m in zip(values, na_mask)],
+        'float': [np.nan if m else float(v) + 0.5 for v, m in zip(values, na_mask)],
+        'bool': [np.nan if m else float(v % 2) for v, m in zip(values, na_mask)],
+    })
+    y = rng.rand(n_objects)
+
+    params = dict(iterations=10, verbose=0, random_seed=0)
+    pred_nullable = CatBoostRegressor(**params).fit(df_nullable, y).predict(df_nullable)
+    pred_float = CatBoostRegressor(**params).fit(df_float, y).predict(df_float)
+    np.testing.assert_allclose(pred_nullable, pred_float, rtol=1e-5, atol=1e-6)
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('na_value', [pd.NA, pd.NaT])
+def test_pandas_na_like_values_in_object_feature(na_value):
+    df = pd.DataFrame({'f': pd.Series([1.5, na_value, 3.5, 2.5], dtype=object)})
+    pool = Pool(df)
+    _check_single_feature_values(pool.get_features(), [1.5, np.nan, 3.5, 2.5])
+
+    CatBoostRegressor(iterations=2, verbose=0).fit(df, [0, 1, 0, 1])
+
+
+@requires_pandas_nullable_types
+def test_pandas_na_in_list_data():
+    data = [[1.5], [pd.NA], [3.5], [2.5]]
+    pool = Pool(data)
+    _check_single_feature_values(pool.get_features(), [1.5, np.nan, 3.5, 2.5])
+
+    CatBoostRegressor(iterations=2, verbose=0).fit(data, [0, 1, 0, 1])
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', _PANDAS_NULLABLE_NUMERIC_DTYPES)
+def test_pandas_nullable_series_data(dtype):
+    data = pd.Series(_nullable_numeric_series_values(dtype), dtype=dtype)
+    pool = Pool(data)
+    _check_single_feature_values(pool.get_features(), _expected_numeric_feature_values(dtype))
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', _PANDAS_NULLABLE_NUMERIC_DTYPES)
+def test_pandas_nullable_label(dtype):
+    X = pd.DataFrame({'f': [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]})
+    if dtype == 'boolean':
+        y_values = [True, False, True, False, True, False]
+    else:
+        y_values = [1, 2, 3, 4, 5, 6]
+    y = pd.Series(y_values, dtype=dtype)
+
+    CatBoostClassifier(iterations=2, verbose=0).fit(X, y)
+    CatBoostRegressor(iterations=2, verbose=0).fit(X, y)
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', _PANDAS_NULLABLE_NUMERIC_DTYPES)
+def test_pandas_nullable_label_with_na(dtype):
+    X = pd.DataFrame({'f': [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]})
+    if dtype == 'boolean':
+        y_values = [True, False, pd.NA, False, True, False]
+    else:
+        y_values = [1, 2, pd.NA, 4, 5, 6]
+    y = pd.Series(y_values, dtype=dtype)
+
+    # missing values are not allowed in labels, but the error must be a CatBoostError
+    with pytest.raises(CatBoostError):
+        CatBoostClassifier(iterations=2, verbose=0).fit(X, y)
+    with pytest.raises(CatBoostError):
+        CatBoostRegressor(iterations=2, verbose=0).fit(X, y)
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', ['string', 'object'])
+def test_pandas_na_in_cat_feature(dtype):
+    df = pd.DataFrame({'f': pd.Series(['a', pd.NA, 'b', 'a'], dtype=dtype)})
+    with pytest.raises(CatBoostError, match='cat_features'):
+        Pool(df, cat_features=[0])
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', ['string', 'object'])
+def test_pandas_na_in_text_feature(dtype):
+    df = pd.DataFrame({'f': pd.Series(['a', pd.NA, 'b', 'a'], dtype=dtype)})
+    with pytest.raises(CatBoostError, match='text_features'):
+        Pool(df, text_features=[0])
+
+
+@requires_pandas_nullable_types
+def test_pandas_nullable_int_as_cat_feature():
+    df_ok = pd.DataFrame({'f': pd.Series([1, 2, 3, 1], dtype='Int64')})
+    Pool(df_ok, cat_features=[0])
+
+    df_na = pd.DataFrame({'f': pd.Series([1, pd.NA, 3, 1], dtype='Int64')})
+    with pytest.raises(CatBoostError, match='cat_features'):
+        Pool(df_na, cat_features=[0])
+
+
+@requires_pandas_nullable_types
+def test_pandas_nullable_predict():
+    rng = np.random.RandomState(0)
+    X_train = pd.DataFrame({'f': rng.rand(20)})
+    y = rng.rand(20)
+    model = CatBoostRegressor(iterations=2, verbose=0).fit(X_train, y)
+
+    X_nullable = pd.DataFrame({'f': pd.Series([1, pd.NA, 3], dtype='Int64')})
+    X_float = pd.DataFrame({'f': [1.0, np.nan, 3.0]})
+    np.testing.assert_allclose(model.predict(X_nullable), model.predict(X_float))
+
+
 def test_pandas_categorical_with_categories_as_string_array():
     X = pd.DataFrame({
         "ints": pd.Series([1, 9, 5]),
