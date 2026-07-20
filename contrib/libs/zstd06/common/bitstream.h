@@ -52,6 +52,7 @@ extern "C" {
 ******************************************/
 #include "mem.h"            /* unaligned access routines */
 #include "error_private.h"  /* error codes and messages */
+#include <assert.h>
 
 
 /*=========================================
@@ -154,6 +155,8 @@ MEM_STATIC size_t BIT_readBitsFast(BIT_DStream_t* bitD, unsigned nbBits);
 ****************************************************************/
 MEM_STATIC unsigned BIT_highbit32 (register U32 val)
 {
+    assert(val != 0);
+    {
 #   if defined(_MSC_VER)   /* Visual */
     unsigned long r=0;
     _BitScanReverse ( &r, val );
@@ -172,6 +175,7 @@ MEM_STATIC unsigned BIT_highbit32 (register U32 val)
     r = DeBruijnClz[ (U32) (v * 0x07C4ACDDU) >> 27];
     return r;
 #   endif
+    }
 }
 
 /*=====    Local Constants   =====*/

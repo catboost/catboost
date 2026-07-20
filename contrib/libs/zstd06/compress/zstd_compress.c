@@ -183,7 +183,8 @@ void ZSTD_adjustCParams(ZSTD_compressionParameters* params, U64 srcSize, size_t 
     {   U32 const minSrcSize = (srcSize==0) ? 500 : 0;
         U64 const rSize = srcSize + dictSize + minSrcSize;
         if (rSize < ((U64)1<<ZSTD_WINDOWLOG_MAX)) {
-            U32 const srcLog = ZSTD_highbit((U32)(rSize)-1) + 1;
+            U32 const srcLog =
+                    MAX(ZSTD_HASHLOG_MIN, (rSize==1) ? 1 : ZSTD_highbit((U32)(rSize)-1) + 1);
             if (params->windowLog > srcLog) params->windowLog = srcLog;
     }   }
     if (params->hashLog > params->windowLog) params->hashLog = params->windowLog;
