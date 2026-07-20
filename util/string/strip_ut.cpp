@@ -8,19 +8,19 @@
 
 Y_UNIT_TEST_SUITE(TStripStringTest) {
     Y_UNIT_TEST(TestConstexprStrip) {
-        static constexpr std::string_view stripped = StripString<std::string_view>("  \n\t abc def \r\n ");
+        constexpr std::string_view stripped = StripString<std::string_view>("  \n\t abc def \r\n ");
         static_assert(stripped == "abc def");
 
-        static constexpr std::string_view strippedLeft = StripStringLeft(std::string_view("  \n abc \n "));
+        constexpr std::string_view strippedLeft = StripStringLeft(std::string_view("  \n abc \n "));
         static_assert(strippedLeft == "abc \n ");
 
-        static constexpr std::string_view strippedRight = StripStringRight(std::string_view("  \n abc \n "));
+        constexpr std::string_view strippedRight = StripStringRight(std::string_view("  \n abc \n "));
         static_assert(strippedRight == "  \n abc");
 
-        static constexpr std::string_view empty = StripString<std::string_view>(" \n\t\r ");
+        constexpr std::string_view empty = StripString<std::string_view>(" \n\t\r ");
         static_assert(empty.empty());
 
-        static constexpr std::string_view unchanged = StripString<std::string_view>("abc");
+        constexpr std::string_view unchanged = StripString<std::string_view>("abc");
         static_assert(unchanged == "abc");
 
         UNIT_ASSERT_VALUES_EQUAL(stripped, "abc def");
@@ -29,13 +29,13 @@ Y_UNIT_TEST_SUITE(TStripStringTest) {
     }
 
     Y_UNIT_TEST(TestConstexprCustomStrip) {
-        static constexpr std::string_view stripped = StripString(std::string_view("//abc//"), EqualsStripAdapter('/'));
+        constexpr std::string_view stripped = StripString(std::string_view("//abc//"), EqualsStripAdapter('/'));
         static_assert(stripped == "abc");
 
-        static constexpr std::string_view strippedLeft = StripStringLeft(std::string_view("//abc//"), EqualsStripAdapter('/'));
+        constexpr std::string_view strippedLeft = StripStringLeft(std::string_view("//abc//"), EqualsStripAdapter('/'));
         static_assert(strippedLeft == "abc//");
 
-        static constexpr std::string_view strippedRight = StripStringRight(std::string_view("//abc//"), EqualsStripAdapter('/'));
+        constexpr std::string_view strippedRight = StripStringRight(std::string_view("//abc//"), EqualsStripAdapter('/'));
         static_assert(strippedRight == "//abc");
 
         UNIT_ASSERT_VALUES_EQUAL(stripped, "abc");
@@ -47,7 +47,7 @@ Y_UNIT_TEST_SUITE(TStripStringTest) {
         TStringBuf StripRightRes;
         TStringBuf StripRes;
     };
-    static constexpr TStripTest StripTests[] = {
+    constexpr TStripTest StripTests[] = {
         {"  012  ", "012  ", "  012", "012"},
         {"  012", "012", "  012", "012"},
         {"012\t\t", "012\t\t", "012", "012"},
