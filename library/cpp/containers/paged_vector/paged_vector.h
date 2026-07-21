@@ -278,6 +278,51 @@ namespace NPagedVector {
             std::swap(CurrentPageSize_, v.CurrentPageSize_);
         }
 
+        // Fast iteration over all elements.
+        template <class Function>
+        void ForEach(Function fn) const {
+            if (Pages_.empty()) {
+                return;
+            }
+
+            const auto currentPageIt = Pages_.end() - 1;
+            for (auto it = Pages_.begin(); it != currentPageIt; ++it) {
+                const TPage& page = **it;
+                for (size_t i = 0; i < PageSize; ++i) {
+                    fn(page[i]);
+                }
+            }
+
+            const TPage& currentPage = **currentPageIt;
+
+            for (size_t i = 0; i < CurrentPageSize_; ++i) {
+                fn(currentPage[i]);
+            }
+        }
+
+        // Fast iteration over all elements in reverse order.
+        template <class Function>
+        void ForEachReverse(Function fn) const {
+            if (Pages_.empty()) {
+                return;
+            }
+
+            const TPage& currentPage = *Pages_.back();
+
+            for (size_t i = CurrentPageSize_; i > 0;) {
+                --i;
+                fn(currentPage[i]);
+            }
+
+            for (auto it = Pages_.rbegin() + 1; it != Pages_.rend(); ++it) {
+                const TPage& page = **it;
+                for (size_t i = PageSize; i > 0;) {
+                    --i;
+                    fn(page[i]);
+                }
+            }
+        }
+
     private:
         static size_t PageNumber(size_t idx) {
             return idx / PageSize;
