@@ -370,10 +370,8 @@ void ThrowErrorExceptionIfFailed(TErrorLike&& error);
     ::NYT::NDetail::ThrowErrorExceptionIfFailed((error) __VA_OPT__(,) __VA_ARGS__) \
 
 #define THROW_ERROR_EXCEPTION_UNLESS(condition, head, ...) \
-    if ((condition)) {\
-    } else { \
-        THROW_ERROR ::NYT::TError(head __VA_OPT__(,) __VA_ARGS__); \
-    }
+    if ((condition)) {} else \
+        THROW_ERROR ::NYT::TError(head __VA_OPT__(,) __VA_ARGS__)
 
 #define THROW_ERROR_EXCEPTION_IF(condition, head, ...) \
     THROW_ERROR_EXCEPTION_UNLESS(!(condition), head, __VA_ARGS__)
