@@ -1,5 +1,6 @@
 from collections import OrderedDict, Counter
 import filecmp
+import gc
 import hashlib
 import math
 import numpy as np
@@ -762,6 +763,40 @@ def test_load_dumps():
     pool2 = Pool(tmp_file)
     assert _check_data(pool1.get_features(), pool2.get_features())
     assert _check_data(pool1.get_label(), [int(label) for label in pool2.get_label()])
+
+
+def test_pool_does_not_leave_numpy_data_read_only():
+    # Only Fortran-contiguous numeric arrays take the zero-copy features-order path that
+    # locks the data read-only, so the arrays below are created in that order.
+    prng = np.random.RandomState(seed=20250223)
+
+    data = np.asfortranarray(prng.normal(size=(50, 10)).astype(np.float32))
+    assert data.flags.writeable
+    pool = Pool(data)
+    assert not data.flags.writeable
+    del pool
+    gc.collect()
+    assert data.flags.writeable
+
+    num_data = np.asfortranarray(prng.normal(size=(50, 3)).astype(np.float32))
+    cat_data = np.asfortranarray(np.array([[b'a', b'b']] * 50, dtype=object))
+    fd = FeaturesData(num_feature_data=num_data, cat_feature_data=cat_data)
+    pool = Pool(fd)
+    assert not num_data.flags.writeable
+    assert not cat_data.flags.writeable
+    del pool, fd
+    gc.collect()
+    assert num_data.flags.writeable
+    assert cat_data.flags.writeable
+
+    # an array that was already read-only must stay read-only, not be wrongly re-enabled
+    ro_data = np.asfortranarray(prng.normal(size=(50, 10)).astype(np.float32))
+    ro_data.setflags(write=0)
+    pool = Pool(ro_data)
+    assert not ro_data.flags.writeable
+    del pool
+    gc.collect()
+    assert not ro_data.flags.writeable
 
 
 @pytest.mark.parametrize(
