@@ -398,8 +398,8 @@ namespace NStatistics {
     }
 
     template <typename InputIterator1, typename InputIterator2>
-    double TTest(InputIterator1 xBegin, InputIterator1 xEnd, InputIterator2 yBegin, InputIterator2 yEnd,
-                 const bool isTailed = false, const bool isLeftTailed = true) {
+    TStatTestResult TTestWithSign(InputIterator1 xBegin, InputIterator1 xEnd, InputIterator2 yBegin, InputIterator2 yEnd,
+                                  const bool isTailed = false, const bool isLeftTailed = true) {
         typedef typename std::iterator_traits<InputIterator1>::value_type ValueType;
         typedef typename std::iterator_traits<InputIterator2>::value_type AnotherValueType;
         static_assert((std::is_same<ValueType, AnotherValueType>::value), "expect (std::is_same<ValueType, AnotherValueType>::value)");
@@ -416,8 +416,15 @@ namespace NStatistics {
         const auto yMeanAndStd = MeanAndStandardDeviation(yBegin, yEnd);
 
         const ValueType precision = sqrt(Sqr(xMeanAndStd.Std) / xSize + Sqr(yMeanAndStd.Std) / ySize);
+        const ValueType meanDiff = xMeanAndStd.Mean - yMeanAndStd.Mean;
 
-        return TTest(xMeanAndStd.Mean - yMeanAndStd.Mean, precision, isTailed, isLeftTailed);
+        return TStatTestResult(TTest(meanDiff, precision, isTailed, isLeftTailed), (meanDiff > 0) - (meanDiff < 0));
+    }
+
+    template <typename InputIterator1, typename InputIterator2>
+    double TTest(InputIterator1 xBegin, InputIterator1 xEnd, InputIterator2 yBegin, InputIterator2 yEnd,
+                 const bool isTailed = false, const bool isLeftTailed = true) {
+        return TTestWithSign(xBegin, xEnd, yBegin, yEnd, isTailed, isLeftTailed).PValue;
     }
 
     //! Kullback–Leibler divergence
