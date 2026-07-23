@@ -36,6 +36,14 @@ struct TErrorMessageHolder {
 
 Y_STATIC_THREAD(TErrorMessageHolder) ErrorMessageHolder;
 
+// Thread-local scratch buffers for CalcModelPredictionFlat.
+// Allocated once per thread, grown on demand, never freed until thread exit.
+// Eliminates per-call heap allocations in the hot inference path.
+struct TFlatInferenceScratch {
+    TVector<TConstArrayRef<float>> FloatFeatureRefs; // [docCount]
+};
+Y_STATIC_THREAD(TFlatInferenceScratch) FlatInferenceScratch;
+
 
 class TFeaturesDataWrapper {
 public:
@@ -381,13 +389,24 @@ CATBOOST_API bool SetPredictionTypeString(ModelCalcerHandle* modelHandle, const 
 CATBOOST_API bool CalcModelPredictionFlatStaged(ModelCalcerHandle* modelHandle, size_t docCount, size_t treeStart, size_t treeEnd, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize) {
     try {
         if (docCount == 1) {
-            FULL_MODEL_PTR(modelHandle)->CalcFlatSingle(TConstArrayRef<float>(*floatFeatures, floatFeaturesSize), treeStart, treeEnd, TArrayRef<double>(result, resultSize));
+            // Fast path: single document — no heap allocation needed.
+            FULL_MODEL_PTR(modelHandle)->CalcFlatSingle(
+                TConstArrayRef<float>(*floatFeatures, floatFeaturesSize),
+                treeStart, treeEnd,
+                TArrayRef<double>(result, resultSize));
         } else {
-            TVector<TConstArrayRef<float>> featuresVec(docCount);
+            // Reuse the thread-local feature-refs vector to avoid a heap
+            // allocation on every call. The vector grows to the high-water
+            // mark of docCount and is reused across calls on the same thread.
+            TVector<TConstArrayRef<float>>& featuresVec =
+                FlatInferenceScratch.Get().FloatFeatureRefs;
+            featuresVec.resize(docCount);
             for (size_t i = 0; i < docCount; ++i) {
                 featuresVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
             }
-            FULL_MODEL_PTR(modelHandle)->CalcFlat(featuresVec, treeStart, treeEnd, TArrayRef<double>(result, resultSize));
+            FULL_MODEL_PTR(modelHandle)->CalcFlat(
+                featuresVec, treeStart, treeEnd,
+                TArrayRef<double>(result, resultSize));
         }
     } catch (...) {
         ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
@@ -430,6 +449,15 @@ CATBOOST_API bool CalcModelPredictionStaged(
         const float** floatFeatures, size_t floatFeaturesSize,
         const char*** catFeatures, size_t catFeaturesSize,
         double* result, size_t resultSize) {
+    // Fast path: no categorical features — route through CalcFlat which
+    // skips all cat-feature bookkeeping and uses the thread-local scratch
+    // buffer to avoid a heap allocation for the feature-refs vector.
+    if (catFeaturesSize == 0) {
+        return CalcModelPredictionFlatStaged(
+            modelHandle, docCount, treeStart, treeEnd,
+            floatFeatures, floatFeaturesSize,
+            result, resultSize);
+    }
     try {
         TVector<TConstArrayRef<float>> floatFeaturesVec(docCount);
         TVector<TVector<TStringBuf>> catFeaturesVec(docCount, TVector<TStringBuf>(catFeaturesSize));
