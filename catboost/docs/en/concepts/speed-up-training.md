@@ -35,7 +35,7 @@ Command-line version parameters|     Python parameters                          
 
 ## Boosting type {#boosting-type}
 
-By default, the boosting type is set to  for small datasets. This prevents overfitting but it is expensive in terms of computation. Try to set the value of this parameter to  to speed up the training.
+By default, the boosting type is set to {{ fit__boosting-type__ordered }} for small datasets. This prevents overfitting but it is expensive in terms of computation. Try to set the value of this parameter to {{ fit__boosting-type__plain }} to speed up the training.
 
 {% cut "{{ dl--parameters }}" %}
 
@@ -48,7 +48,7 @@ Command-line version parameters|Python parameters|R parameters|
 
 ## Bootstrap type {#bootstrap-type}
 
-By default, the method for sampling the weights of objects is set to . The training is performed faster if the  method is set and the value for the sample rate for bagging is smaller than 1.
+By default, the method for sampling the weights of objects is set to {{ fit__bootstrap-type__Bayesian }}. The training is performed faster if the {{ fit__bootstrap-type__Bernoulli }} method is set and the value for the sample rate for bagging is smaller than 1.
 
 {% cut "{{ dl--parameters }}" %}
 
