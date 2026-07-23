@@ -1262,18 +1262,15 @@ def test_predict_and_predict_proba_on_single_object(problem):
         ),
         pytest.param(
             'MultiClassification', 'RawFormulaVal', 'Numeric',
-            id='problem=MultiClassification-prediction_type=RawFormulaVal-feature_types=Numeric',
-            marks=[pytest.mark.xfail]
+            id='problem=MultiClassification-prediction_type=RawFormulaVal-feature_types=Numeric'
         ),
         pytest.param(
             'MultiClassification', 'Class', 'Numeric',
-            id='problem=MultiClassification-prediction_type=Class-feature_types=Numeric',
-            marks=[pytest.mark.xfail]
+            id='problem=MultiClassification-prediction_type=Class-feature_types=Numeric'
         ),
         pytest.param(
             'MultiClassification', 'Probability', 'Numeric',
-            id='problem=MultiClassification-prediction_type=Probability-feature_types=Numeric',
-            marks=[pytest.mark.xfail]
+            id='problem=MultiClassification-prediction_type=Probability-feature_types=Numeric'
         ),
         pytest.param(
             'MultiClassification', 'RawFormulaVal', 'NumericCateg',
