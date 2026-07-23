@@ -4300,14 +4300,36 @@ cdef class _PoolBase:
     # possibly hold reference or list of references to data to allow using views to them in __pool
     cdef object __data_holders
 
+    # numpy arrays whose WRITEABLE flag we cleared, to be restored once the pool no longer references them
+    cdef object __locked_writeable_arrays
+
     def __cinit__(self):
         self.__pool = TDataProviderPtr()
         self.target_type = None
         self.__target_data_holders = None
         self.__data_holders = None
+        self.__locked_writeable_arrays = None
 
     def __dealloc__(self):
+        self._restore_writeable_arrays()
         self.__pool.Drop()
+
+    cdef _lock_writeable_array(self, array):
+        if array.flags.writeable:
+            array.setflags(write=0)
+            if self.__locked_writeable_arrays is None:
+                self.__locked_writeable_arrays = []
+            self.__locked_writeable_arrays.append(array)
+
+    cdef _restore_writeable_arrays(self):
+        if self.__locked_writeable_arrays is not None:
+            for array in self.__locked_writeable_arrays:
+                try:
+                    array.setflags(write=1)
+                except (ValueError, TypeError):
+                    # a view whose base array cannot be made writeable; leave it as-is
+                    pass
+            self.__locked_writeable_arrays = None
 
     def __deepcopy__(self, _):
         raise CatBoostError('Can\'t deepcopy _PoolBase object')
@@ -4520,6 +4542,8 @@ cdef class _PoolBase:
             resource_holders
         )
 
+        self._restore_writeable_arrays()
+
         new_data_holders = []
         callbacks = []
         cdef TVector[future[void]] futures
@@ -4532,11 +4556,11 @@ cdef class _PoolBase:
                 data.cat_feature_data,
                 py_builder_visitor)
 
-            # prevent inadvent modification of pool data
+            # prevent inadvertent modification of pool data
             if data.num_feature_data is not None:
-                data.num_feature_data.setflags(write=0)
+                self._lock_writeable_array(data.num_feature_data)
             if data.cat_feature_data is not None:
-                data.cat_feature_data.setflags(write=0)
+                self._lock_writeable_array(data.cat_feature_data)
         elif isinstance(data, pd.DataFrame):
             new_data_holders = _set_features_order_data_pd_data_frame(
                 data,
@@ -4584,8 +4608,8 @@ cdef class _PoolBase:
                 py_builder_visitor
             )
 
-            # prevent inadvent modification of pool data
-            data.setflags(write=0)
+            # prevent inadvertent modification of pool data
+            self._lock_writeable_array(data)
         else:
             raise CatBoostError(
                 '[Internal error] wrong data type for _init_features_order_layout_pool: ' + type(data)
@@ -4662,6 +4686,8 @@ cdef class _PoolBase:
             resourceHolders=resource_holders
         )
         builder_visitor[0].StartNextBlock(_get_object_count(data))
+
+        self._restore_writeable_arrays()
 
         new_data_holders = _set_data(data, embedding_features_data, feature_names, data_meta_info.FeaturesLayout.Get(), py_builder_visitor)
 
