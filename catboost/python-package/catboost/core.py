@@ -1854,6 +1854,12 @@ class _CatBoostBase(object):
         setattr(self, '_tree_count', self._object._get_tree_count())
         setattr(self, '_n_features_in', self._object._get_n_features_in())
 
+    def _sync_params_from_model(self):
+        self._init_params = {}
+        for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
+            self._init_params[key] = value
+        self._canonized_params = None
+
     def _train(self, train_pool, test_pool, params, allow_clear_pool, init_model):
         self._object._train(train_pool, test_pool, params, allow_clear_pool, init_model._object if init_model else None)
         self._set_trained_model_attributes()
@@ -1976,12 +1982,9 @@ class _CatBoostBase(object):
     def _load_model(self, model_file, format):
         if not isinstance(model_file, PATH_TYPES):
             raise CatBoostError("Invalid fname type={}: must be str or os.PathLike.".format(type(model_file)))
-        self._init_params = {}
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
-        for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
-            self._init_params[key] = value
-        self._canonized_params = None
+        self._sync_params_from_model()
 
     def _serialize_model(self):
         return self._object._serialize_model()
@@ -1993,10 +1996,12 @@ class _CatBoostBase(object):
     def _load_from_blob(self, blob):
         self._deserialize_model(blob)
         self._set_trained_model_attributes()
+        self._sync_params_from_model()
 
     def _load_from_stream(self, stream):
         self._object._load_from_stream(stream)
         self._set_trained_model_attributes()
+        self._sync_params_from_model()
 
     def _sum_models(self, models_base, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
         if weights is None:
@@ -6359,9 +6364,7 @@ class CatBoostRegressor(CatBoost):
                                 "RMSE, MultiRMSE, SurvivalAft, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq, RMSPE or a custom objective object".format(loss_function))
 
     def _get_default_prediction_type(self):
-        # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
-        params = self._get_canonized_params()
-        loss_function = params.get('loss_function')
+        loss_function = self._object._get_loss_function_name() if self.is_fitted() else None
         if loss_function and isinstance(loss_function, str):
             if loss_function.startswith('Poisson') or loss_function.startswith('Tweedie'):
                 return 'Exponent'
