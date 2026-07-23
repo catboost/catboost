@@ -131,6 +131,7 @@ enum class ELossFunction {
     Lq,
     MAE,
     Quantile,
+    PiecewiseQuantile,
     MultiQuantile,
     Expectile,
     LogLinQuantile,

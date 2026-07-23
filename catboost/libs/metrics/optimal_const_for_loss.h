@@ -180,7 +180,8 @@ namespace NCB {
     inline TMaybe<double> CalcOneDimensionalOptimumConstApprox(
         const NCatboostOptions::TLossDescription& lossDescription,
         TConstArrayRef<float> target,
-        TConstArrayRef<float> weights
+        TConstArrayRef<float> weights,
+        TConstArrayRef<float> origTarget = TConstArrayRef<float>()
     ) {
         // TODO(ilyzhin): refactor it (https://a.yandex-team.ru/review/969134/details#comment-1471301)
         auto lossFunction = lossDescription.GetLossFunction();
@@ -192,6 +193,16 @@ namespace NCB {
             {
                 const double bestProbability = CalculateWeightedTargetAverage(target, weights);
                 return Logit(bestProbability);
+            }
+            case ELossFunction::PiecewiseQuantile:
+            {
+                const auto& params = lossDescription.GetLossParamsMap();
+                auto boundaries = NCatboostOptions::GetBoundariesPiecewiseQuantile(params);
+                auto quantiles = NCatboostOptions::GetQuantilesPiecewiseQuantile(params);
+                const TVector<float> defaultWeights(target.size(), 1);
+                const auto weightsRef = weights.empty() ? MakeConstArrayRef(defaultWeights) : weights;
+                const auto origTargetRef = origTarget.empty() ? MakeConstArrayRef(target) : origTarget;
+                return CalcPiecewiseQuantileMinimum(target, weightsRef, origTargetRef, boundaries, quantiles);
             }
             case ELossFunction::Quantile:
             case ELossFunction::GroupQuantile:
