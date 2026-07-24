@@ -371,31 +371,35 @@ int    level,
 int level, array[16], *pValue; // prohibited: mixed types
 ```
 
-### Class and structure declarations
+### Class and structure definitions
 
-- A structure can only contain open members. You don't need to specify `public` for it. If the structure contains anything other than members, a constructor, and a destructor, we recommend that you rename it to a class.
+- A structure can only contain public data members. You don't need to specify `public:` access specifier for it. If the structure contains anything other than data members, a constructor, and a destructor, we recommend that you rename it to a class.
 
-- The scope labels start from the same column where the class declaration begins. Specifying scopes is mandatory, including the first private scope.
+- The access specifier labels start from the same column where the class declaration begins. Specifying access labels is mandatory, including the first private access specifier.
 
-- Members and methods can't be in the same section of scopes. They should be separated by re-specifying the scope. There should be a minimal number of scope labels, reduced to the fewest possible by changing the order of the parts of the class declaration.
+- Methods and data members must not share the same access section. Separate them by explicitly repeating the access specifier. Keep the number of access specifier sections to an absolute minimum, reordering class members where necessary to achieve this.
 
-- Within one scope:
+- Within a single access section:
    * Constructors must precede the destructor.
    * A destructor must precede redefined operators.
    * Redefined operators must precede the rest of the methods.
 
-- A public scope with methods must precede `protected` and `private` scopes with methods.
+- A `public` access section with methods must precede `protected` and `private` access sections with methods.
 
-- Class data members should be placed at the beginning or at the end of the class description. Class type descriptions can precede data descriptions.
+- Data members should be placed at the beginning or at the end of the class definition. Types defined within a class may precede data members definitions.
+
+- Prefer explicit rather then implicit values when using default member initializers. Use `= nullptr` or `= 0` instead of `= {}` whenever possible. Prefer `= {}` rather than `{}`.
 
 ```cpp
 class TClass {
-private:
-    int Member; // comments about Member
 public:
     TClass();
     TClass(const TClass& other);
     ~TClass();
+private:
+    int Member_ = 0; // comments about Member_
+    int* OtherMember_ = nullptr;
+    TString TheString_ = {};
 };
 ```
 
