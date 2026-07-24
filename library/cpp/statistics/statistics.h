@@ -42,6 +42,13 @@ namespace NStatistics {
         return NDetail::Phi(mean, stdDeviation, x, continuity);
     }
 
+    //! Student's t-distribution CDF.
+    /*! More details on: https://en.wikipedia.org/wiki/Student%27s_t-distribution#Cumulative_distribution_function */
+    template <typename ValueType>
+    double TCDF(ValueType t, ValueType nu) {
+        return NDetail::TCDF(t, nu);
+    }
+
     //! The inverse function phi. Also known as the normal quantile function.
     /*! More details on: http://en.wikipedia.org/wiki/Error_function#Related_functions */
     template <typename ValueType>
@@ -381,6 +388,39 @@ namespace NStatistics {
         }
     }
 
+    template <typename ValueType>
+    double TTest(ValueType diffValue, ValueType diffPrecision, ValueType degreesOfFreedom, const bool isTailed = false, const bool isLeftTailed = true) {
+        static const ValueType REL_EPS = 16 * std::numeric_limits<ValueType>::epsilon();
+        const ValueType scale = std::max(std::abs(diffValue), std::abs(diffPrecision));
+        const ValueType eps = REL_EPS * scale;
+
+        if (diffPrecision <= eps) {
+            if (std::abs(diffValue) > eps) {
+                const bool positive = diffValue > ValueType(0);
+
+                if (isTailed) {
+                    if (isLeftTailed) {
+                        return positive ? 1.0 : 0.0;
+                    } else {
+                        return positive ? 0.0 : 1.0;
+                    }
+                } else {
+                    return 0.0;
+                }
+            } else {
+                return 0.5;
+            }
+        }
+
+        if (isTailed) {
+            const double res = TCDF(diffValue / diffPrecision, degreesOfFreedom);
+            return isLeftTailed ? res : (1.0 - res);
+        } else {
+            const double res = TCDF(std::abs(diffValue / diffPrecision), degreesOfFreedom);
+            return (1.0 - res) * 2.0;
+        }
+    }
+
     template <typename InputIterator, typename ValueType>
     double TTest(InputIterator begin, InputIterator end, ValueType expectedMean,
                  const bool isTailed = false, const bool isLeftTailed = true) { // = static_cast<ValueType>(0.0)
@@ -397,34 +437,60 @@ namespace NStatistics {
         return TTest(meanAndStd.Mean - expectedMean, meanAndStd.Std / sqrt(size), isTailed, isLeftTailed);
     }
 
+    /*
+     *  Warning! Use t-distribution flag carefully, because its CDF is calculated iterationally.
+     *  (see library/cpp/statistics/detail.h)
+     *  While Phi calculation takes about 110-120 ns, TCDF takes from 200 to 1200 ns with 650 average.
+     */
     template <typename InputIterator1, typename InputIterator2>
     TStatTestResult TTestWithSign(InputIterator1 xBegin, InputIterator1 xEnd, InputIterator2 yBegin, InputIterator2 yEnd,
-                                  const bool isTailed = false, const bool isLeftTailed = true) {
+                                  const bool isTailed = false, const bool isLeftTailed = true, const bool useTDistribution = false) {
         typedef typename std::iterator_traits<InputIterator1>::value_type ValueType;
         typedef typename std::iterator_traits<InputIterator2>::value_type AnotherValueType;
         static_assert((std::is_same<ValueType, AnotherValueType>::value), "expect (std::is_same<ValueType, AnotherValueType>::value)");
         static_assert(std::is_floating_point<ValueType>::value, "expect std::is_floating_point<ValueType>::value");
 
         if (xBegin == xEnd || yBegin == yEnd) {
-            return static_cast<ValueType>(0.5);
+            return TStatTestResult(static_cast<ValueType>(0.5), 0);
         }
 
         const ValueType xSize = static_cast<ValueType>(std::distance(xBegin, xEnd));
         const ValueType ySize = static_cast<ValueType>(std::distance(yBegin, yEnd));
 
+        if (useTDistribution && (xSize == 1 || ySize == 1)) {
+            return TStatTestResult(static_cast<ValueType>(0.5), 0);
+        }
+
         const auto xMeanAndStd = MeanAndStandardDeviation(xBegin, xEnd);
         const auto yMeanAndStd = MeanAndStandardDeviation(yBegin, yEnd);
 
-        const ValueType precision = sqrt(Sqr(xMeanAndStd.Std) / xSize + Sqr(yMeanAndStd.Std) / ySize);
+        const ValueType xVarNormalized = Sqr(xMeanAndStd.Std) / xSize;
+        const ValueType yVarNormalized = Sqr(yMeanAndStd.Std) / ySize;
+
+        const ValueType precision = sqrt(xVarNormalized + yVarNormalized);
         const ValueType meanDiff = xMeanAndStd.Mean - yMeanAndStd.Mean;
 
-        return TStatTestResult(TTest(meanDiff, precision, isTailed, isLeftTailed), (meanDiff > 0) - (meanDiff < 0));
+        // Welch–Satterthwaite formula for degrees of freedom
+        // https://en.wikipedia.org/wiki/Welch%27s_t-test#Calculations
+        const ValueType degreesOfFreedom = Sqr(xVarNormalized + yVarNormalized) /
+            (Sqr(xVarNormalized) / (xSize - 1.) + Sqr(yVarNormalized) / (ySize - 1.));
+
+        return TStatTestResult(
+            useTDistribution ?
+                TTest(meanDiff, precision, degreesOfFreedom, isTailed, isLeftTailed) :
+                TTest(meanDiff, precision, isTailed, isLeftTailed),
+            (meanDiff > 0) - (meanDiff < 0));
     }
 
+    /*
+     *  Warning! Use t-distribution flag carefully, because its CDF is calculated iterationally.
+     *  (see library/cpp/statistics/detail.h)
+     *  While Phi calculation takes about 110-120 ns, TCDF takes from 200 to 1200 ns with 650 average.
+     */
     template <typename InputIterator1, typename InputIterator2>
     double TTest(InputIterator1 xBegin, InputIterator1 xEnd, InputIterator2 yBegin, InputIterator2 yEnd,
-                 const bool isTailed = false, const bool isLeftTailed = true) {
-        return TTestWithSign(xBegin, xEnd, yBegin, yEnd, isTailed, isLeftTailed).PValue;
+                 const bool isTailed = false, const bool isLeftTailed = true, const bool useTDistribution = false) {
+        return TTestWithSign(xBegin, xEnd, yBegin, yEnd, isTailed, isLeftTailed, useTDistribution).PValue;
     }
 
     //! Kullback–Leibler divergence
