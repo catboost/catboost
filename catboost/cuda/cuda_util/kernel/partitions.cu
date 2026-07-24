@@ -125,8 +125,8 @@ namespace NKernel {
         const ui32 numBlocks = min((size + blockSize - 1) / blockSize, (ui32)TArchProps::MaxBlockCount());
         if (numBlocks)
         {
-            UpdatePartitionOffsets<TPartitionOffsetWriter, false> << < numBlocks, blockSize, 0, stream >> > (parts, partCount, sortedBins, size);
-            UpdatePartitionSizes << < numBlocks, blockSize, 0, stream >> > (parts, partCount, sortedBins, size);
+            UpdatePartitionOffsets<TPartitionOffsetWriter, false> <<< numBlocks, blockSize, 0, stream >>> (parts, partCount, sortedBins, size);
+            UpdatePartitionSizes <<< numBlocks, blockSize, 0, stream >>> (parts, partCount, sortedBins, size);
         } else {
             const ui32 numBlocksClear = (partCount + blockSize - 1) / blockSize;
             ZeroPartitions<<<numBlocksClear, blockSize, 0, stream>>>(parts, partCount);
@@ -168,9 +168,9 @@ namespace NKernel {
             }
             if (skipSuffixBins)
             {
-                UpdatePartitionOffsets<TVecOffsetWriter, true> << < numBlocks, blockSize, 0, stream >>>(partOffsets, partCount, sortedBins, size);
+                UpdatePartitionOffsets<TVecOffsetWriter, true> <<< numBlocks, blockSize, 0, stream >>>(partOffsets, partCount, sortedBins, size);
             } else {
-                UpdatePartitionOffsets<TVecOffsetWriter, false> << < numBlocks, blockSize, 0, stream >>>(partOffsets, partCount, sortedBins, size);
+                UpdatePartitionOffsets<TVecOffsetWriter, false> <<< numBlocks, blockSize, 0, stream >>>(partOffsets, partCount, sortedBins, size);
             }
         } else {
             FillBuffer(partOffsets, static_cast<ui32>(0), partCount, stream);

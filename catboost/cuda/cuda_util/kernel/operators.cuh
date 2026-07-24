@@ -4,6 +4,9 @@
 
 namespace NKernel {
 
+// HIP's HIP_vector_type<unsigned,2> already provides these uint2 operators, so
+// they would be ambiguous on HIP.
+#if !defined(USE_HIP)
     __host__ __device__ __forceinline__ uint2 operator+(const uint2& left, const uint2& right) {
         uint2 res = left;
         res.x += right.x;
@@ -24,6 +27,7 @@ namespace NKernel {
         res.y *= right.y;
         return res;
     }
+#endif
 
 
     template <class T>
