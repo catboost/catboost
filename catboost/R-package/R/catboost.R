@@ -2147,6 +2147,183 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
     return(importances)
 }
 
+catboost._dot_escape <- function(value) {
+    value <- gsub("\\\\", "\\\\\\\\", value)
+    value <- gsub("\"", "\\\\\"", value)
+    value <- gsub("\r\n|\r|\n", "\\\\n", value)
+    return(value)
+}
+
+catboost._tree_split_label <- function(value) {
+    value <- sub("bin=", "value>", value, fixed = TRUE)
+    value <- sub("border=", "value>", value, fixed = TRUE)
+    return(value)
+}
+
+catboost._dot_node <- function(node_id, label, color, shape) {
+    return(sprintf(
+        "  \"%s\" [label=\"%s\", color=\"%s\", shape=\"%s\"];",
+        catboost._dot_escape(node_id),
+        catboost._dot_escape(label),
+        color,
+        shape
+    ))
+}
+
+catboost._dot_edge <- function(from, to, label) {
+    return(sprintf(
+        "  \"%s\" -> \"%s\" [label=\"%s\"];",
+        catboost._dot_escape(from),
+        catboost._dot_escape(to),
+        catboost._dot_escape(label)
+    ))
+}
+
+catboost._plot_oblivious_tree <- function(splits, leaf_values) {
+    lines <- c("digraph {")
+    layer_size <- 1
+    current_size <- 0
+
+    for (split_num in seq(length(splits), 0)) {
+        for (node_num in seq_len(layer_size)) {
+            if (split_num > 0) {
+                node_label <- catboost._tree_split_label(splits[split_num])
+                color <- "black"
+                shape <- "ellipse"
+            } else {
+                node_label <- leaf_values[node_num]
+                color <- "red"
+                shape <- "rect"
+            }
+
+            node_id <- as.character(current_size)
+            lines <- c(lines, catboost._dot_node(node_id, node_label, color, shape))
+
+            if (current_size > 0) {
+                parent <- as.character((current_size - 1) %/% 2)
+                edge_label <- if (current_size %% 2 == 0) "Yes" else "No"
+                lines <- c(lines, catboost._dot_edge(parent, node_id, edge_label))
+            }
+
+            current_size <- current_size + 1
+        }
+
+        layer_size <- layer_size * 2
+    }
+
+    lines <- c(lines, "}")
+    return(paste(lines, collapse = "\n"))
+}
+
+catboost._plot_nonsymmetric_tree <- function(splits, leaf_values, step_nodes, node_to_leaf) {
+    lines <- c("digraph {")
+
+    plot_leaf <- function(node_idx) {
+        leaf_idx <- node_to_leaf[node_idx + 1]
+        leaf_id <- paste0("leaf_", leaf_idx)
+        lines <<- c(lines, catboost._dot_node(leaf_id, leaf_values[leaf_idx + 1], "red", "rect"))
+        return(leaf_id)
+    }
+
+    plot_subtree <- function(node_idx) {
+        left_diff <- step_nodes[node_idx + 1, 1]
+        right_diff <- step_nodes[node_idx + 1, 2]
+
+        if (left_diff == 0 && right_diff == 0) {
+            return(plot_leaf(node_idx))
+        }
+
+        node_id <- paste0("node_", node_idx)
+        node_label <- catboost._tree_split_label(splits[node_idx + 1])
+        lines <<- c(lines, catboost._dot_node(node_id, node_label, "black", "ellipse"))
+
+        if (left_diff == 0) {
+            child_id <- plot_leaf(node_idx)
+        } else {
+            child_id <- plot_subtree(node_idx + left_diff)
+        }
+        lines <<- c(lines, catboost._dot_edge(node_id, child_id, "No"))
+
+        if (right_diff == 0) {
+            child_id <- plot_leaf(node_idx)
+        } else {
+            child_id <- plot_subtree(node_idx + right_diff)
+        }
+        lines <<- c(lines, catboost._dot_edge(node_id, child_id, "Yes"))
+
+        return(node_id)
+    }
+
+    plot_subtree(0)
+    lines <- c(lines, "}")
+    return(paste(lines, collapse = "\n"))
+}
+
+#' @name catboost.plot_tree
+#' @title Export a CatBoost decision tree as Graphviz DOT
+#'
+#' @description Returns a Graphviz DOT representation of a single tree from a CatBoost model.
+#'              Inner vertices correspond to splits and leaf vertices contain raw values predicted by the tree.
+#'
+#' @param model The model obtained as the result of training.
+#' @param tree_idx Zero-based tree index.
+#' @param pool Optional dataset. Required when the tree contains one-hot encoded categorical feature splits,
+#'             and useful for showing external feature indices from the dataset.
+#'
+#' @return A Graphviz DOT string with class \code{catboost.TreePlot}.
+#'
+#' @examples
+#' \dontrun{
+#' pool <- catboost.load_pool(features, target)
+#' model <- catboost.train(pool, params = list(iterations = 2, depth = 2, loss_function = "RMSE"))
+#' tree_dot <- catboost.plot_tree(model, tree_idx = 0, pool = pool)
+#' cat(tree_dot)
+#' writeLines(tree_dot, "tree.dot")
+#' }
+#' @export
+#' @seealso \url{https://catboost.ai/docs/concepts/python-reference_catboost_plot_tree.html}
+catboost.plot_tree <- function(model, tree_idx, pool = NULL) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+
+    catboost.restore_handle(model)
+    tree_count <- catboost.ntrees(model)
+
+    if (!is.null(pool) && !inherits(pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (!is.null(pool) && is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (missing(tree_idx) ||
+        length(tree_idx) != 1 ||
+        !is.numeric(tree_idx) ||
+        is.na(tree_idx) ||
+        !is.finite(tree_idx) ||
+        tree_idx != floor(tree_idx))
+    {
+        stop("tree_idx should be an integer.")
+    }
+
+    if (tree_idx < 0 || tree_idx >= tree_count)
+        stop("tree_idx should be non-negative and less than tree_count.")
+
+    tree_idx <- as.integer(tree_idx)
+    tree <- .Call("CatBoostGetTreeInfo_R", model$cpp_obj$handle, tree_idx, pool)
+    dot <- if (tree$is_oblivious) {
+        catboost._plot_oblivious_tree(tree$splits, tree$leaf_values)
+    } else {
+        catboost._plot_nonsymmetric_tree(tree$splits, tree$leaf_values, tree$step_nodes, tree$node_to_leaf)
+    }
+
+    result <- structure(dot, class = c("catboost.TreePlot", "character"), tree = tree)
+    return(result)
+}
+
+#' @export
+print.catboost.TreePlot <- function(x, ...) {
+    cat(as.character(x), sep = "\n")
+    invisible(x)
+}
+
 
 #' @name catboost.get_object_importance
 #' @title Calculate the object importances
