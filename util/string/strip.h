@@ -9,25 +9,25 @@
 
 template <class It>
 struct TIsAsciiSpaceAdapter {
-    bool operator()(const It& it) const noexcept {
+    constexpr bool operator()(const It& it) const noexcept {
         return IsAsciiSpace(*it);
     }
 };
 
 template <class It>
-TIsAsciiSpaceAdapter<It> IsAsciiSpaceAdapter(It) {
+constexpr TIsAsciiSpaceAdapter<It> IsAsciiSpaceAdapter(It) {
     return {};
 }
 
 template <class TChar>
 struct TEqualsStripAdapter {
-    TEqualsStripAdapter(TChar ch)
+    constexpr TEqualsStripAdapter(TChar ch)
         : Ch(ch)
     {
     }
 
     template <class It>
-    bool operator()(const It& it) const noexcept {
+    constexpr bool operator()(const It& it) const noexcept {
         return *it == Ch;
     }
 
@@ -35,38 +35,38 @@ struct TEqualsStripAdapter {
 };
 
 template <class TChar>
-TEqualsStripAdapter<TChar> EqualsStripAdapter(TChar ch) {
+constexpr TEqualsStripAdapter<TChar> EqualsStripAdapter(TChar ch) {
     return {ch};
 }
 
 template <class It, class TStripCriterion>
-inline void StripRangeBegin(It& b, const It& e, TStripCriterion&& criterion) noexcept {
+constexpr void StripRangeBegin(It& b, const It& e, TStripCriterion&& criterion) noexcept {
     while (b < e && criterion(b)) {
         ++b;
     }
 }
 
 template <class It>
-inline void StripRangeBegin(It& b, const It& e) noexcept {
+constexpr void StripRangeBegin(It& b, const It& e) noexcept {
     StripRangeBegin(b, e, IsAsciiSpaceAdapter(b));
 }
 
 template <class It, class TStripCriterion>
-inline void StripRangeEnd(const It& b, It& e, TStripCriterion&& criterion) noexcept {
+constexpr void StripRangeEnd(const It& b, It& e, TStripCriterion&& criterion) noexcept {
     while (b < e && criterion(e - 1)) {
         --e;
     }
 }
 
 template <class It>
-inline void StripRangeEnd(const It& b, It& e) noexcept {
+constexpr void StripRangeEnd(const It& b, It& e) noexcept {
     StripRangeEnd(b, e, IsAsciiSpaceAdapter(b));
 }
 
 template <bool stripBeg, bool stripEnd>
 struct TStripImpl {
     template <class It, class TStripCriterion>
-    static inline bool StripRange(It& b, It& e, TStripCriterion&& criterion) noexcept {
+    static constexpr bool StripRange(It& b, It& e, TStripCriterion&& criterion) noexcept {
         const size_t oldLen = e - b;
 
         if (stripBeg) {
@@ -82,7 +82,7 @@ struct TStripImpl {
     }
 
     template <class T, class TStripCriterion>
-    static inline bool StripString(const T& from, T& to, TStripCriterion&& criterion) {
+    static constexpr bool StripString(const T& from, T& to, TStripCriterion&& criterion) {
         auto b = from.begin();
         auto e = from.end();
 
@@ -102,30 +102,30 @@ struct TStripImpl {
     }
 
     template <class T, class TStripCriterion>
-    [[nodiscard]] static inline T StripString(const T& from, TStripCriterion&& criterion) {
+    [[nodiscard]] static constexpr T StripString(const T& from, TStripCriterion&& criterion) {
         T ret;
         StripString(from, ret, criterion);
         return ret;
     }
 
     template <class T>
-    [[nodiscard]] static inline T StripString(const T& from) {
+    [[nodiscard]] static constexpr T StripString(const T& from) {
         return StripString(from, IsAsciiSpaceAdapter(from.begin()));
     }
 };
 
 template <class It, class TStripCriterion>
-inline bool StripRange(It& b, It& e, TStripCriterion&& criterion) noexcept {
+constexpr bool StripRange(It& b, It& e, TStripCriterion&& criterion) noexcept {
     return TStripImpl<true, true>::StripRange(b, e, criterion);
 }
 
 template <class It>
-inline bool StripRange(It& b, It& e) noexcept {
+constexpr bool StripRange(It& b, It& e) noexcept {
     return StripRange(b, e, IsAsciiSpaceAdapter(b));
 }
 
 template <class It, class TStripCriterion>
-inline bool Strip(It& b, size_t& len, TStripCriterion&& criterion) noexcept {
+constexpr bool Strip(It& b, size_t& len, TStripCriterion&& criterion) noexcept {
     It e = b + len;
 
     if (StripRange(b, e, criterion)) {
@@ -138,107 +138,107 @@ inline bool Strip(It& b, size_t& len, TStripCriterion&& criterion) noexcept {
 }
 
 template <class It>
-inline bool Strip(It& b, size_t& len) noexcept {
+constexpr bool Strip(It& b, size_t& len) noexcept {
     return Strip(b, len, IsAsciiSpaceAdapter(b));
 }
 
 template <class T, class TStripCriterion>
-static inline bool StripString(const T& from, T& to, TStripCriterion&& criterion) {
+static constexpr bool StripString(const T& from, T& to, TStripCriterion&& criterion) {
     return TStripImpl<true, true>::StripString(from, to, criterion);
 }
 
 template <class T>
-static inline bool StripString(const T& from, T& to) {
+static constexpr bool StripString(const T& from, T& to) {
     return StripString(from, to, IsAsciiSpaceAdapter(from.begin()));
 }
 
 template <class T, class TStripCriterion>
-[[nodiscard]] static inline T StripString(const T& from, TStripCriterion&& criterion) {
+[[nodiscard]] static constexpr T StripString(const T& from, TStripCriterion&& criterion) {
     return TStripImpl<true, true>::StripString(from, criterion);
 }
 
 template <typename TChar, typename TTraits, class TStripCriterion>
-[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripString(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+[[nodiscard]] static constexpr std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripString(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
     return TStripImpl<true, true>::StripString(from, criterion);
 }
 
 template <typename TChar, typename TTraits, class TStripCriterion>
-[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripString(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+[[nodiscard]] static constexpr std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripString(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
     return TStripImpl<true, true>::StripString(from, criterion);
 }
 
 template <class T>
-[[nodiscard]] static inline T StripString(const T& from) {
+[[nodiscard]] static constexpr T StripString(const T& from) {
     return TStripImpl<true, true>::StripString(from);
 }
 
 template <typename TChar, typename TTraits>
-[[nodiscard]] static inline TBasicStringBuf<TChar, TTraits> StripString(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
+[[nodiscard]] static constexpr TBasicStringBuf<TChar, TTraits> StripString(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
     return TStripImpl<true, true>::StripString(from);
 }
 
 template <typename TChar, typename TTraits>
-[[nodiscard]] static inline std::basic_string_view<TChar, TTraits> StripString(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
+[[nodiscard]] static constexpr std::basic_string_view<TChar, TTraits> StripString(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
     return TStripImpl<true, true>::StripString(from);
 }
 
 template <class T>
-[[nodiscard]] static inline T StripStringLeft(const T& from) {
+[[nodiscard]] static constexpr T StripStringLeft(const T& from) {
     return TStripImpl<true, false>::StripString(from);
 }
 
 template <typename TChar, typename TTraits>
-[[nodiscard]] static inline TBasicStringBuf<TChar, TTraits> StripStringLeft(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
+[[nodiscard]] static constexpr TBasicStringBuf<TChar, TTraits> StripStringLeft(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
     return TStripImpl<true, false>::StripString(from);
 }
 
 template <typename TChar, typename TTraits>
-[[nodiscard]] static inline std::basic_string_view<TChar, TTraits> StripStringLeft(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
+[[nodiscard]] static constexpr std::basic_string_view<TChar, TTraits> StripStringLeft(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
     return TStripImpl<true, false>::StripString(from);
 }
 
 template <class T>
-[[nodiscard]] static inline T StripStringRight(const T& from) {
+[[nodiscard]] static constexpr T StripStringRight(const T& from) {
     return TStripImpl<false, true>::StripString(from);
 }
 
 template <typename TChar, typename TTraits>
-[[nodiscard]] static inline TBasicStringBuf<TChar, TTraits> StripStringRight(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
+[[nodiscard]] static constexpr TBasicStringBuf<TChar, TTraits> StripStringRight(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
     return TStripImpl<false, true>::StripString(from);
 }
 
 template <typename TChar, typename TTraits>
-[[nodiscard]] static inline std::basic_string_view<TChar, TTraits> StripStringRight(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
+[[nodiscard]] static constexpr std::basic_string_view<TChar, TTraits> StripStringRight(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
     return TStripImpl<false, true>::StripString(from);
 }
 
 template <class T, class TStripCriterion>
-[[nodiscard]] static inline T StripStringLeft(const T& from, TStripCriterion&& criterion) {
+[[nodiscard]] static constexpr T StripStringLeft(const T& from, TStripCriterion&& criterion) {
     return TStripImpl<true, false>::StripString(from, criterion);
 }
 
 template <typename TChar, typename TTraits, class TStripCriterion>
-[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripStringLeft(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+[[nodiscard]] static constexpr std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripStringLeft(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
     return TStripImpl<true, false>::StripString(from, criterion);
 }
 
 template <typename TChar, typename TTraits, class TStripCriterion>
-[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripStringLeft(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+[[nodiscard]] static constexpr std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripStringLeft(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
     return TStripImpl<true, false>::StripString(from, criterion);
 }
 
 template <class T, class TStripCriterion>
-[[nodiscard]] static inline T StripStringRight(const T& from, TStripCriterion&& criterion) {
+[[nodiscard]] static constexpr T StripStringRight(const T& from, TStripCriterion&& criterion) {
     return TStripImpl<false, true>::StripString(from, criterion);
 }
 
 template <typename TChar, typename TTraits, class TStripCriterion>
-[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripStringRight(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+[[nodiscard]] static constexpr std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripStringRight(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
     return TStripImpl<false, true>::StripString(from, criterion);
 }
 
 template <typename TChar, typename TTraits, class TStripCriterion>
-[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripStringRight(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+[[nodiscard]] static constexpr std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripStringRight(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
     return TStripImpl<false, true>::StripString(from, criterion);
 }
 

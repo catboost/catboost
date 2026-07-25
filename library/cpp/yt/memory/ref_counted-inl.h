@@ -124,6 +124,10 @@ Y_FORCE_INLINE void DestroyRefCountedImpl(T* obj)
     // No virtual call when T is final.
     obj->~T();
 
+    // The ref-counter is a base subobject of *obj, so obj->~T() above poisons it
+    // under -fsanitize-memory-use-after-dtor. Unpoison before accessing it.
+    NSan::Unpoison(refCounter, sizeof(TRefCounter));
+
     // Fast path. Weak refs cannot appear if there are neither strong nor weak refs.
     if (refCounter->GetWeakRefCount() == 1) {
         NYT::NDetail::TMemoryReleaser<T>::Do(obj, offset);

@@ -29,6 +29,8 @@ class TPagedVectorTest: public TTestBase {
     UNIT_TEST(TestClear)
     UNIT_TEST(TestBack)
     UNIT_TEST(TestIterator)
+    UNIT_TEST(TestForEach)
+    UNIT_TEST(TestForEachReverse)
     UNIT_TEST_SUITE_END();
 
 private:
@@ -644,6 +646,224 @@ private:
 
         UNIT_ASSERT_VALUES_EQUAL(it.GetIndex(), 6);
         UNIT_ASSERT_VALUES_EQUAL(*it, "7");
+    }
+
+    void TestForEach() {
+        using NPagedVector::TPagedVector;
+
+        // Empty vector: the callback must not be invoked at all.
+        {
+            TPagedVector<int, 3> v;
+            size_t calls = 0;
+            v.ForEach([&](int) {
+                ++calls;
+            });
+            UNIT_ASSERT_VALUES_EQUAL(calls, 0u);
+        }
+
+        // Single element: the only element is visited once.
+        {
+            TPagedVector<int, 3> v;
+            v.push_back(42);
+            TVector<int> visited;
+            v.ForEach([&](int x) {
+                visited.push_back(x);
+            });
+            TVector<int> expected{42};
+            UNIT_ASSERT_VALUES_EQUAL(visited, expected);
+        }
+
+        // Several elements within a single (partially filled) page.
+        {
+            TPagedVector<int, 3> v;
+            for (int i = 0; i < 2; ++i) {
+                v.push_back(i);
+            }
+            TVector<int> visited;
+            int expectedElement = 0;
+            v.ForEach([&](int x) {
+                UNIT_ASSERT_VALUES_EQUAL(x, expectedElement);
+                ++expectedElement;
+                visited.push_back(x);
+            });
+            TVector<int> expected{0, 1};
+            UNIT_ASSERT_VALUES_EQUAL(visited, expected);
+        }
+
+        // A single exactly full page (3 elements): the visit order must be
+        // strictly forward.
+        {
+            TPagedVector<int, 3> v;
+            for (int i = 0; i < 3; ++i) {
+                v.push_back(i);
+            }
+            TVector<int> visited;
+            int expectedElement = 0;
+            v.ForEach([&](int x) {
+                UNIT_ASSERT_VALUES_EQUAL(x, expectedElement);
+                ++expectedElement;
+                visited.push_back(x);
+            });
+            TVector<int> expected{0, 1, 2};
+            UNIT_ASSERT_VALUES_EQUAL(visited, expected);
+        }
+
+        // Multiple pages with a partially filled last page: the visit order
+        // must be strictly forward (from the first element to the last).
+        {
+            TPagedVector<int, 3> v;
+            const int n = 10; // spans 4 pages of size 3: [0..2][3..5][6..8][9]
+            for (int i = 0; i < n; ++i) {
+                v.push_back(i);
+            }
+            TVector<int> visited;
+            visited.reserve(n);
+            int expectedElement = 0;
+            v.ForEach([&](int x) {
+                UNIT_ASSERT_VALUES_EQUAL(x, expectedElement);
+                ++expectedElement;
+                visited.push_back(x);
+            });
+            TVector<int> expected;
+            expected.reserve(n);
+            for (int i = 0; i < n; ++i) {
+                expected.push_back(i);
+            }
+            UNIT_ASSERT_VALUES_EQUAL(visited, expected);
+        }
+
+        // Exactly full pages (no partial tail): every element is visited,
+        // last page is completely filled.
+        {
+            TPagedVector<int, 3> v;
+            const int n = 9; // exactly 3 full pages of size 3
+            for (int i = 0; i < n; ++i) {
+                v.push_back(i);
+            }
+            TVector<int> visited;
+            visited.reserve(n);
+            int expectedElement = 0;
+            v.ForEach([&](int x) {
+                UNIT_ASSERT_VALUES_EQUAL(x, expectedElement);
+                ++expectedElement;
+                visited.push_back(x);
+            });
+            TVector<int> expected;
+            expected.reserve(n);
+            for (int i = 0; i < n; ++i) {
+                expected.push_back(i);
+            }
+            UNIT_ASSERT_VALUES_EQUAL(visited, expected);
+        }
+    }
+
+    void TestForEachReverse() {
+        using NPagedVector::TPagedVector;
+
+        // Empty vector: the callback must not be invoked at all.
+        {
+            TPagedVector<int, 3> v;
+            size_t calls = 0;
+            v.ForEachReverse([&](int) {
+                ++calls;
+            });
+            UNIT_ASSERT_VALUES_EQUAL(calls, 0u);
+        }
+
+        // Single element: the only element is visited once.
+        {
+            TPagedVector<int, 3> v;
+            v.push_back(42);
+            TVector<int> visited;
+            v.ForEachReverse([&](int x) {
+                visited.push_back(x);
+            });
+            TVector<int> expected{42};
+            UNIT_ASSERT_VALUES_EQUAL(visited, expected);
+        }
+
+        // Several elements within a single (partially filled) page.
+        {
+            TPagedVector<int, 3> v;
+            for (int i = 0; i < 2; ++i) {
+                v.push_back(i);
+            }
+            TVector<int> visited;
+            int expectedElement = 1;
+            v.ForEachReverse([&](int x) {
+                UNIT_ASSERT_VALUES_EQUAL(x, expectedElement);
+                --expectedElement;
+                visited.push_back(x);
+            });
+            TVector<int> expected{1, 0};
+            UNIT_ASSERT_VALUES_EQUAL(visited, expected);
+        }
+
+        // A single exactly full page (3 elements): the visit order must be
+        // strictly reverse.
+        {
+            TPagedVector<int, 3> v;
+            for (int i = 0; i < 3; ++i) {
+                v.push_back(i);
+            }
+            TVector<int> visited;
+            int expectedElement = 2;
+            v.ForEachReverse([&](int x) {
+                UNIT_ASSERT_VALUES_EQUAL(x, expectedElement);
+                --expectedElement;
+                visited.push_back(x);
+            });
+            TVector<int> expected{2, 1, 0};
+            UNIT_ASSERT_VALUES_EQUAL(visited, expected);
+        }
+
+        // Multiple pages with a partially filled last page: the visit order
+        // must be strictly reverse (from the last element to the first).
+        {
+            TPagedVector<int, 3> v;
+            const int n = 10; // spans 4 pages of size 3: [0..2][3..5][6..8][9]
+            for (int i = 0; i < n; ++i) {
+                v.push_back(i);
+            }
+            TVector<int> visited;
+            visited.reserve(n);
+            int expectedElement = n - 1;
+            v.ForEachReverse([&](int x) {
+                UNIT_ASSERT_VALUES_EQUAL(x, expectedElement);
+                --expectedElement;
+                visited.push_back(x);
+            });
+            TVector<int> expected;
+            expected.reserve(n);
+            for (int i = n - 1; i >= 0; --i) {
+                expected.push_back(i);
+            }
+            UNIT_ASSERT_VALUES_EQUAL(visited, expected);
+        }
+
+        // Exactly full pages (no partial tail): every element is visited,
+        // last page is completely filled.
+        {
+            TPagedVector<int, 3> v;
+            const int n = 9; // exactly 3 full pages of size 3
+            for (int i = 0; i < n; ++i) {
+                v.push_back(i);
+            }
+            TVector<int> visited;
+            visited.reserve(n);
+            int expectedElement = n - 1;
+            v.ForEachReverse([&](int x) {
+                UNIT_ASSERT_VALUES_EQUAL(x, expectedElement);
+                --expectedElement;
+                visited.push_back(x);
+            });
+            TVector<int> expected;
+            expected.reserve(n);
+            for (int i = n - 1; i >= 0; --i) {
+                expected.push_back(i);
+            }
+            UNIT_ASSERT_VALUES_EQUAL(visited, expected);
+        }
     }
 };
 

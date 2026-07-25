@@ -34,6 +34,7 @@ The interface mirrors a subset of `std::vector`:
 | Iterators | `begin()/end()`, `rbegin()/rend()` + const versions; random-access iterators |
 | Capacity | `size()`, `empty()`, `explicit operator bool()` (true when non-empty) |
 | Modifiers | `push_back()`, `emplace_back()` (returns a reference), `pop_back()`, `append(b, e)`, `erase(it)`, `erase(b, e)`, `resize()`, `clear()` |
+| Iteration helpers | `ForEach(fn)`, `ForEachReverse(fn)` |
 | Comparison | `operator==`, `operator<` (lexicographical) |
 
 Notable differences from `std::vector`:
@@ -48,6 +49,37 @@ Iterators are random-access and are implemented as an *(owner pointer, offset)* 
 - Dereferencing goes through the vector, so an iterator is only valid while its source container is alive.
 - To get the current index of an element from an iterator, call `it.GetIndex()` — it returns the offset of the pointed-to element within the container (equivalent to `it - begin()`).
 
+## Iteration helpers
+
+```cpp
+template <class Function>
+void ForEach(Function fn) const;
+
+template <class Function>
+void ForEachReverse(Function fn) const;
+```
+
+`ForEach` applies `fn` to every element **from the first to the last**; `ForEachReverse` applies `fn` **from the last to the first**.
+
+These are faster than iterating with `begin()/end()` or `rbegin()/rend()`: they walk the pages directly through raw pointers, avoiding the two levels of indirection that the offset-based iterators go through on each dereference. This matters for containers with a large `PageSize` (the default is 1M elements per page), where the inner per-page loop is tight.
+
+```cpp
+TPagedVector<int, 1024> v;
+// ... fill v ...
+
+long long sum = 0;
+v.ForEach([&](int x) { sum += x; });
+
+// process elements back-to-front, e.g. for a stack-like traversal
+v.ForEachReverse([&](int x) {
+    // ...
+});
+```
+
+Notes:
+
+- The order is well-defined and contiguous: `ForEach` visits element `0, 1, ..., size()-1`; `ForEachReverse` visits `size()-1, ..., 1, 0`.
+- Both are O(n) and do not allocate.
 
 ## Complexity
 
@@ -58,6 +90,7 @@ Iterators are random-access and are implemented as an *(owner pointer, offset)* 
 | `pop_back` | O(1) |
 | `erase` | O(n) — shifts all following elements |
 | `clear` | O(n) for non-trivially destructible `T`, O(pages) otherwise |
+| `ForEach` / `ForEachReverse` | O(n), no allocations |
 
 ## Notes
 

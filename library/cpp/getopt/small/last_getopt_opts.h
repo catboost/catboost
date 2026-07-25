@@ -463,6 +463,24 @@ namespace NLastGetopt {
         }
 
         /**
+         * Add section with examples.
+         *
+         * @param examples text of this section
+         */
+        void SetExamples(std::string_view examples) {
+            SetExamples(TString(examples));
+        }
+
+        /**
+         * Add section with examples.
+         *
+         * @param examples text of this section
+         */
+        void SetExamples(const char* examples) {
+            SetExamples(TString(examples));
+        }
+
+        /**
          * Set minimal number of free args
          *
          * @param min        new value

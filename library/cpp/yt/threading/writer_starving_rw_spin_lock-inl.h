@@ -4,7 +4,6 @@
 // For the sake of sane code completion.
 #include "writer_starving_rw_spin_lock.h"
 #endif
-#undef WRITER_STARVING_RW_SPIN_LOCK_INL_H_
 
 #include "spin_wait.h"
 

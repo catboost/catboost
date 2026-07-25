@@ -2,6 +2,55 @@
 Cython Changelog
 ================
 
+3.2.8 (2026-06-30)
+==================
+
+Bugs fixed
+----------
+
+* Assigning a Python 3.14+ ``.__annotate__`` function to a Cython compiled function no longer
+  evaluates annotations eagerly.  Fixes a regression with ``@functools.wraps()`` in Cython 3.2.6.
+  Patch by Jelle Zijlstra.  (Github issue :issue:`7767`)
+
+* In freethreading Python, the necessary object keep-alive while executing user code in
+  ``.__dealloc__()`` uses a safer scheme.
+  Patch by Yaxing Cai.  (Github issue :issue:`7769`)
+
+* The local function state used by ``sys.monitoring`` read from uninitialised memory.
+  (Github issue :issue:`7774`)
+
+* The ``.ag_running`` flag attribute of async generators was always false on big-endian systems.
+
+
+3.2.6 (2026-06-24)
+==================
+
+Bugs fixed
+----------
+
+* ``@functools.wraps()`` was broken in Py3.14+ for Cython compiled functions.
+  (Github issue :issue:`7675`)
+
+* A double-free in the t-string code was fixed.
+  (Github issue :issue:`7712`)
+
+* The ``-`` operator declarations for iterators in ``libcpp.vector`` we corrected.
+  Patch by Vadim Markovtsev.  (Github issue :issue:`7717`)
+
+* The shared utility code module no longer uses a temporary file path that
+  changed the C code on each generation.
+  (Github issue :issue:`7723`)
+
+* On 32 bit platforms, cached constants are no longer made immortal during module import.
+  (Github issue :issue:`7744`)
+
+Other changes
+-------------
+
+* Binary wheels are now built with ``-DNDEBUG`` to discard runtime assertions from CPython's
+  inline functions.
+
+
 3.2.5 (2026-05-23)
 ==================
 

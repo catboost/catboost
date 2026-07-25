@@ -7,6 +7,7 @@
                                  |_| XML parser
 
    Copyright (c) 2026 Sebastian Pipping <sebastian@pipping.org>
+   Copyright (c) 2026 Matthew Fernandez <matthew.fernandez@gmail.com>
    Licensed under the MIT license:
 
    Permission is  hereby granted,  free of charge,  to any  person obtaining
@@ -35,9 +36,12 @@
 #  define _DEFAULT_SOURCE 1 /* for glibc */
 #endif
 
+#include "memory_sanitizer.h"
 #include <stdlib.h> // for arc4random_buf
 
 void
 writeRandomBytes_arc4random_buf(void *target, size_t count) {
   arc4random_buf(target, count);
+  // MSan does not understand `arc4random_buf`, so explain its effects
+  MSAN_UNPOISON(target, count);
 }

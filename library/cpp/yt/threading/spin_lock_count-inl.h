@@ -2,7 +2,6 @@
 #ifndef SPIN_LOCK_COUNT_INL_H_
 #error "Direct inclusion of this file is not allowed, include spin_lock_count.h"
 #endif
-#undef SPIN_LOCK_COUNT_INL_H_
 
 #include <util/system/compiler.h>
 

@@ -4,6 +4,8 @@
 #include "weak_ptr.h"
 #endif
 
+#include <util/system/sanitizers.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -16,8 +18,13 @@ template <class T>
 TWeakPtr<T>::TWeakPtr(T* p) noexcept
     : T_(p)
 {
-#if defined(_tsan_enabled_)
+#if defined(_tsan_enabled_) || defined(_msan_enabled_)
     if (T_) {
+        // p may legitimately point to an object whose destructor has already run
+        // while its ref-counter is still alive (weak count > 0). When T derives
+        // from TRefCounted virtually, the upcast below reads p's vptr, poisoned
+        // by -fsanitize-memory-use-after-dtor. Unpoison it (no-op for a live object).
+        NSan::Unpoison(T_, sizeof(void*));
         RefCounter_ = GetRefCounter(T_);
     }
 #endif
@@ -42,7 +49,7 @@ TWeakPtr<T>::TWeakPtr(const TIntrusivePtr<U>& ptr) noexcept
 template <class T>
 TWeakPtr<T>::TWeakPtr(const TWeakPtr& other) noexcept
     : T_(other.T_)
-#if defined(_tsan_enabled_)
+#if defined(_tsan_enabled_) || defined(_msan_enabled_)
     , RefCounter_(other.RefCounter_)
 #endif
 {
@@ -77,7 +84,7 @@ TWeakPtr<T>::TWeakPtr(TWeakPtr<U>&& other) noexcept
         T_ = other.T_;
         other.T_ = nullptr;
 
-#if defined(_tsan_enabled_)
+#if defined(_tsan_enabled_) || defined(_msan_enabled_)
         RefCounter_ = other.RefCounter_;
         other.RefCounter_ = nullptr;
 #endif
@@ -163,7 +170,7 @@ template <class T>
 void TWeakPtr<T>::Swap(TWeakPtr& other) noexcept
 {
     DoSwap(T_, other.T_);
-#if defined(_tsan_enabled_)
+#if defined(_tsan_enabled_) || defined(_msan_enabled_)
     DoSwap(RefCounter_, other.RefCounter_);
 #endif
 }
@@ -208,12 +215,17 @@ void TWeakPtr<T>::ReleaseRef()
     if (T_) {
         // Support incomplete type.
         if (GetRefCounterImpl()->WeakUnref()) {
+            // The object's destructor has fully completed at this point
+            // and has poisoned T_'s vptr word under -fsanitize-memory-use-after-dtor.
+            // The upcast inside DeallocateRefCounted still needs that word
+            // to locate the virtual base.
+            NSan::Unpoison(T_, sizeof(void*));
             DeallocateRefCounted(T_);
         }
     }
 }
 
-#if defined(_tsan_enabled_)
+#if defined(_tsan_enabled_) || defined(_msan_enabled_)
 template <class T>
 const TRefCounter* TWeakPtr<T>::GetRefCounterImpl() const
 {

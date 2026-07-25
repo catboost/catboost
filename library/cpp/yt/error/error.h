@@ -253,9 +253,6 @@ private:
     void EnrichFromException(const std::exception& exception);
 
     friend class TErrorAttributes;
-
-    static TEnricher Enricher_;
-    static TFromExceptionEnricher FromExceptionEnricher_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -373,10 +370,8 @@ void ThrowErrorExceptionIfFailed(TErrorLike&& error);
     ::NYT::NDetail::ThrowErrorExceptionIfFailed((error) __VA_OPT__(,) __VA_ARGS__) \
 
 #define THROW_ERROR_EXCEPTION_UNLESS(condition, head, ...) \
-    if ((condition)) {\
-    } else { \
-        THROW_ERROR ::NYT::TError(head __VA_OPT__(,) __VA_ARGS__); \
-    }
+    if ((condition)) {} else \
+        THROW_ERROR ::NYT::TError(head __VA_OPT__(,) __VA_ARGS__)
 
 #define THROW_ERROR_EXCEPTION_IF(condition, head, ...) \
     THROW_ERROR_EXCEPTION_UNLESS(!(condition), head, __VA_ARGS__)
@@ -478,10 +473,15 @@ void FormatValue(TStringBuilderBase* builder, const TErrorOr<T>& error, TStringB
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class F, class... As>
-auto RunNoExcept(F&& functor, As&&... args) noexcept -> decltype(functor(std::forward<As>(args)...))
-{
-    return functor(std::forward<As>(args)...);
-}
+auto RunNoExcept(F&& functor, As&&... args) noexcept -> decltype(functor(std::forward<As>(args)...));
+
+////////////////////////////////////////////////////////////////////////////////
+
+//! Registers errors as a well-known logging tag (ADL customization point for
+//! library/cpp/yt/logging), so that |YT_TLOG_*(...).With(error)| attaches them under
+//! the "Error" key, rendered after the message in plain text.
+TStringBuf GetWellKnownLoggingTag(const std::exception&);
+TStringBuf GetWellKnownLoggingTag(const TError&);
 
 ////////////////////////////////////////////////////////////////////////////////
 

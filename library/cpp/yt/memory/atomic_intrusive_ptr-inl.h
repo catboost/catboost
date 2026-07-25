@@ -3,7 +3,6 @@
 // For the sake of sane code completion.
 #include "atomic_intrusive_ptr.h"
 #endif
-#undef ATOMIC_INTRUSIVE_PTR_INL_H_
 
 #include <util/system/spinlock.h>
 

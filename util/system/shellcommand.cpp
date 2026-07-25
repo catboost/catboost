@@ -780,11 +780,16 @@ void TShellCommand::TImpl::Run() {
     qargv.push_back(nullptr);
 
     TVector<TString> envHolder;
+    envHolder.reserve(Options_.Environment.size());
+    for (const auto& [name, value] : Options_.Environment) {
+        envHolder.emplace_back(name + '=' + value);
+    }
+
     TVector<char*> envp;
-    if (!Options_.Environment.empty()) {
-        for (auto& env : Options_.Environment) {
-            envHolder.emplace_back(env.first + '=' + env.second);
-            envp.push_back(const_cast<char*>(envHolder.back().data()));
+    if (!envHolder.empty()) {
+        envp.reserve(envHolder.size() + 1);
+        for (auto& env : envHolder) {
+            envp.push_back(const_cast<char*>(env.data()));
         }
         envp.push_back(nullptr);
     }

@@ -6,11 +6,14 @@ This guide describes the conventions for formatting C/C++ code. Consistent code 
 
 **The point is that you don't write a program for a computer ("But it works!") or for yourself ("Just ask and I'll tell you how it works"), but for all developers who are reading, modifying, and debugging it, and their needs should be respected.**
 
-Please be aware that use of imperative, object-oriented C++ (version C++14) is assumed. This means:
+Please be aware that use of imperative, object-oriented C++ is assumed.
+CUDA-compatible code must compile under C++17 or C++20, whereas all other code must compile under C++20.
+
+This means:
 - Don't use plain C. Use the new operator, not malloc. Assume that the new operator can throw an exception and doesn't return "0" for unsuccessful memory allocation.
 - Use C++ as an imperative language, not as a functional language. You can use templates, but not for things like compile-time calculations. Use range-based for, not for_each.
-- Don't use boost, and limit use of STL (Use optimized counterparts available in /util instead of some of the parts that are poorly implemented in STL, such as std::string -> TString, std::streams -> TInputStream, TOutputStream). We don't encourage reinventing the wheel (we've already invented everything and just check the /util).
-- A restricted subset of the new C++14 syntax is in use that works with all supported compilers (see [*C++14 features* below](#c-14-features)) .
+- Don't use boost, and limit use of STL (Use optimized counterparts available in /util instead of some of the parts that are poorly implemented in STL, such as std::streams -> TInputStream, TOutputStream). We don't encourage reinventing the wheel (we've already invented everything and just check the /util).
+- [Guide for modern C++ features](#modern-cpp-features)
 
 Currently, there is a small subset of code in the source tree that doesn't conform to the standards outlined below (partly because some of these code blocks were written about 15+ years ago). Nevertheless, this standard must be followed when writing new code.
 
@@ -18,17 +21,13 @@ Currently, there is a small subset of code in the source tree that doesn't confo
 
 - The general rule for fixing the style in old code is "one file – one style." In other words, if you are fixing an error and this involves changes to just a few lines, follow the original style in the file. If the fixed code is written in the new style, then you need to change all the code in the entire file for consistency, and in some cases even the entire code for the class (for example, if fields or methods are renamed).
 - If the author of the code doesn't agree with the style of the fixes, they can rewrite it, but the author's changes must match the style described in this guide (including the previous point).
-- Commits that fix style should be differentiated from commits that change functionality.
+- Commits that fix style should be separate from commits that change functionality.
 - Don't change the style in files that you aren't modifying, and don't change the line formatting if it follows the recommendations in this guide. Don't forget that every line has an author, and this is tracked in the VCS (e.g. svn, git, hg, etc.) log. When you change someone else's formatting, you become the author of that line without reason for it.
 
 ### Corrections to this guide
 
 - Like any other document that describes the preferences of a group of people, this set of conventions is the result of lengthy debates and mutual compromise. So before fixing anything in it, please approve the changes with everyone involved. If you don’t know who to go to for approval, please refrain from making changes.
 - When putting together this guide, the authors tried to streamline it as much as possible and only specify the issues that negatively affect code readability, since any additional rules do little more than upset the people who have to learn new habits. For this reason, when proposing a correction or addition, always use the following algorithm: a) justify why this issue is an eyesore for the majority of people, and therefore must be specified; b) if you have proven the first point, then suggest exactly how this issue should be specified; C) explain how the proposed specification minimizes the collective re-learning efforts of the entire team.
-
-### Tools
-
-To automatically format C++ files, use the `ya style` command. It is based on clang-format with the correct config (located at devtools/ya/handlers/style/config), which can be used separately if your editor uses clang-format directly.
 
 ## Names
 
@@ -46,11 +45,13 @@ A name should reflect the essence of the data, the type, or the action that it n
 
 - Function arguments begin with a lowercase letter.
 
-- Class members begin with an uppercase letter.
+- Variables in a lambda capture list begin with a lowercase letter.
 
-- Class methods begin with an uppercase letter.
+- Class data members begin with an uppercase letter. `private` and `protected` data members must end with an underscore, whereas `public` data members must not.
 
-- Class names and type definitions (typedefs) are preceded by the prefix T, followed by the name of the class beginning with an uppercase letter. The names of virtual interfaces start with 'I'.
+- Class function members begin with an uppercase letter and must not end with an underscore or other special suffix regardless of their access specifier.
+
+- Class names and type definitions (typedefs) are preceded by the prefix T, followed by the name of the class beginning with an uppercase letter. The names of virtual interfaces start with 'I'. Virtual interface is a class that contains at least one pure virtual method (including inherited) and does not contain any data members (including inherited).
 
 - All global constants and defines are fully capitalized.
 
@@ -73,7 +74,10 @@ int GetValue();
 void SetValue(int val);
 ```
 
-*Exception:* The names of functions, classes, and so on that mimic or extend functions of standard libraries (libc, stl, etc.) should follow the library's naming convention. Examples are TVector, fget, autoarray, sprintf, equivalents of the main function. These classes and functions are usually located in /util.
+*Exception:* For interoperability with external code, identifiers may follow the naming conventions required by that code. For example:
+  - `.begin()` and `.end()` methods for containers to use STL iterator conventions.
+  - `.data()` and `.size()` methods for internal buffer access.
+  - `swap` function
 
 #### Macros
 
@@ -156,9 +160,9 @@ Don't use tabs in a text editor. The reason is because this is the only way to e
 
 Our standard indent is 4 spaces.  The indent should be filled with spaces, even if you use the Tab button.
 
-### Block style
+### <a id="formatting-block-style"></a> Block style
 
-For block operators, use the 1TBS style:
+For block operators, use [the 1TBS style](https://en.wikipedia.org/wiki/Indentation_style#One_True_Brace):
 
 ```cpp
 if (something) { // K&R style
@@ -199,16 +203,26 @@ The style of the curly brackets must be consistent within the same file.
 
 **Short blocks**
 
-Single-line bodies of operators and inline functions must begin with a new line. Bodies of operators and functions declared in the same line make debugging difficult.
+Single-line bodies of operators and inline functions must begin with a new line and be enclosed in curly brackets.
+
+Reason: Bodies of operators and functions declared in the same line make debugging difficult.
 ```cpp
-if (something)
+if (something) {
     A();
+}
 ```
 
 The subordinate operator must not be empty. Not allowed:
 ```cpp
 for (int i = 0; i < 100; i++);
 ```
+
+or
+```cpp
+for (int i = 0; i < 100; i++)
+   ;
+```
+
 The reason is this text looks like a typo that wasn't caught at the compilation stage.
 
 **Operators**
@@ -220,6 +234,8 @@ Don't use more than one operator per line.
 We recommended leaving blank lines between separate logical blocks of code. This greatly improves readability.
 
 ### Spaces
+
+For blocks see [Block style section](#formatting-block-style).
 
 #### Operator symbols
 
@@ -235,13 +251,21 @@ This includes the assignment operator. In other words, write:
 if (!x.a || ~(b->c - e::d) == 0)
     z = 0;
 
-void F() throw () {
+void F() noexcept {
 }
 
 struct T {
-    void F() const throw () {
+    void F() const noexcept {
     }
 };
+```
+
+#### Pointers and references
+
+For reference and pointer types, the ampersand (`&`) and asterisk (`*`) symbols must immediately follow the base type, with no space in between.
+```cpp
+const T& value = Foo();
+void Bar(int* p);
 ```
 
 #### Brackets
@@ -282,9 +306,7 @@ vector<vector<int>> matrix;
 
 There shouldn't be any spaces at the end of a line. Use the options in your text editor to control this.
 
-Settings in text editors
-
-- TextPad: "Strip trailing spaces from lines when saving".
+Settings in text editors:
 
 - Vim
 ```vim
@@ -299,6 +321,15 @@ augroup END
 ```
 (add-hook 'c-mode-common-hook
           (lambda () (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
+```
+
+- VSCode:
+
+Press `cmd+shift+p` on macOS or `ctrl+shift+p` for Linux/Windows, select `Preferences: Open User Settings (JSON)`, add the following:
+```json
+"files.insertFinalNewline": true,
+"files.trimFinalNewlines": true,
+"files.trimTrailingWhitespace": true,
 ```
 
 ## Lambda functions
@@ -340,31 +371,35 @@ int    level,
 int level, array[16], *pValue; // prohibited: mixed types
 ```
 
-### Class and structure declarations
+### Class and structure definitions
 
-- A structure can only contain open members. You don't need to specify `public` for it. If the structure contains anything other than members, a constructor, and a destructor, we recommend that you rename it to a class.
+- A structure can only contain public data members. You don't need to specify `public:` access specifier for it. If the structure contains anything other than data members, a constructor, and a destructor, we recommend that you rename it to a class.
 
-- The scope labels start from the same column where the class declaration begins. Specifying scopes is mandatory, including the first private scope.
+- The access specifier labels start from the same column where the class declaration begins. Specifying access labels is mandatory, including the first private access specifier.
 
-- Members and methods can't be in the same section of scopes. They should be separated by re-specifying the scope. There should be a minimal number of scope labels, reduced to the fewest possible by changing the order of the parts of the class declaration.
+- Methods and data members must not share the same access section. Separate them by explicitly repeating the access specifier. Keep the number of access specifier sections to an absolute minimum, reordering class members where necessary to achieve this.
 
-- Within one scope:
+- Within a single access section:
    * Constructors must precede the destructor.
    * A destructor must precede redefined operators.
    * Redefined operators must precede the rest of the methods.
 
-- A public scope with methods must precede `protected` and `private` scopes with methods.
+- A `public` access section with methods must precede `protected` and `private` access sections with methods.
 
-- Class data members should be placed at the beginning or at the end of the class description. Class type descriptions can precede data descriptions.
+- Data members should be placed at the beginning or at the end of the class definition. Types defined within a class may precede data members definitions.
+
+- Prefer explicit rather then implicit values when using default member initializers. Use `= nullptr` or `= 0` instead of `= {}` whenever possible. Prefer `= {}` rather than `{}`.
 
 ```cpp
 class TClass {
-private:
-    int Member; // comments about Member
 public:
     TClass();
     TClass(const TClass& other);
     ~TClass();
+private:
+    int Member_ = 0; // comments about Member_
+    int* OtherMember_ = nullptr;
+    TString TheString_ = {};
 };
 ```
 
@@ -401,7 +436,7 @@ struct T {
     int X;
     double Y;
 
-    T() //this implementation can also be in a .cpp file 
+    T() //this implementation can also be in a .cpp file
         : X(0)
         , Y(1.0)
     {
@@ -425,15 +460,7 @@ namespace NStl {
 }
 ```
 
-## C++14 features
-
-### Constexpr
-
-Only constexpr from C++11 is allowed, because constexpr for non-constant methods is not supported by MSVC.
-
-### Variable templates
-
-Variable templates can be used because MSVC 2015 Update 3 or newer is in use and supports that.
+## <a id="modern-cpp-features"></a> Modern C++ features
 
 ### Alternative function syntax
 ```cpp

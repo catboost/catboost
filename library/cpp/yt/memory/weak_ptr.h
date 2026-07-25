@@ -101,7 +101,7 @@ private:
     friend class TWeakPtr;
 
     T* T_ = nullptr;
-#if defined(_tsan_enabled_)
+#if defined(_tsan_enabled_) || defined(_msan_enabled_)
     const TRefCounter* RefCounter_ = nullptr;
 #endif
 

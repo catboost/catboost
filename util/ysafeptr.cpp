@@ -1,5 +1,7 @@
 #include "ysafeptr.h"
 
+#include <util/system/sanitizers.h>
+
 #ifdef CHECK_YPTR2
 Y_POD_THREAD(bool)
 IObjectBase::DisableThreadCheck;
@@ -22,6 +24,11 @@ void IObjectBase::ReleaseObjComplete(int nMask) {
         ObjData &= ~0x40000000;
         ReleaseRef();
     }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void IObjectBase::UnpoisonCounters() noexcept {
+    NSan::Unpoison(&ObjData, sizeof(ObjData));
+    NSan::Unpoison(&RefData, sizeof(RefData));
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void IObjectBase::ReleaseRefComplete() {
