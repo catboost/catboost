@@ -4314,7 +4314,7 @@ cdef class _PoolBase:
         self._restore_writeable_arrays()
         self.__pool.Drop()
 
-    cdef _lock_writeable_array(self, array):
+    cdef _lock_writeable_array(self, np.ndarray array):
         if array.flags.writeable:
             array.setflags(write=0)
             if self.__locked_writeable_arrays is None:
@@ -4542,8 +4542,6 @@ cdef class _PoolBase:
             resource_holders
         )
 
-        self._restore_writeable_arrays()
-
         new_data_holders = []
         callbacks = []
         cdef TVector[future[void]] futures
@@ -4686,8 +4684,6 @@ cdef class _PoolBase:
             resourceHolders=resource_holders
         )
         builder_visitor[0].StartNextBlock(_get_object_count(data))
-
-        self._restore_writeable_arrays()
 
         new_data_holders = _set_data(data, embedding_features_data, feature_names, data_meta_info.FeaturesLayout.Get(), py_builder_visitor)
 
