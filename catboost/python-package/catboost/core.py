@@ -1773,7 +1773,10 @@ class _CatBoostBase(object):
         return f"{self.__class__.__name__}({params_str})"
 
     def __getattr__(self, name: str):
-        if (name == 'feature_names_in_') and self.is_fitted():
+        # the name check must precede is_fitted(), which itself goes through __getattr__
+        if name in ('n_features_in_', 'feature_names_in_') and self.is_fitted():
+            if name == 'n_features_in_':
+                return getattr(self, '_n_features_in')
             return np.array(self._object._get_feature_names(), dtype=object)
         raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, name))
 
@@ -2108,10 +2111,6 @@ class _CatBoostBase(object):
         return getattr(self, '_learning_rate') if self.is_fitted() else None
 
     @property
-    def n_features_in_(self):
-        return getattr(self, '_n_features_in') if self.is_fitted() else None
-
-    @property
     def feature_names_(self):
         return self._object._get_feature_names() if self.is_fitted() else None
 
@@ -2239,9 +2238,6 @@ class _CatBoostBase(object):
             'check_fit2d_predict1d':
                 'TODO: CatBoost API allows to pass 1d array for prediction for a single sample,'
                 ' maybe this behavior should be tunable in the future',
-            'check_n_features_in':
-                'TODO: n_features_in_ must not be defined until fit is called. '
-                'https://github.com/catboost/catboost/issues/3004',
             'check_n_features_in_after_fitting':
                 'TODO: 1) raise ValueError instead of generic CatBoostError.'
                 ' https://github.com/catboost/catboost/issues/2996; '

@@ -601,6 +601,11 @@ def test_fit_on_ndarray(features_dtype):
     assert _have_equal_features(order_to_pool['C'], order_to_pool['F'])
 
     model = CatBoostClassifier(iterations=5)
+
+    assert not hasattr(model, 'n_features_in_')
+    with pytest.raises(AttributeError):
+        model.n_features_in_
+
     model.fit(order_to_pool['F'])  # order is irrelevant here - they are equal
 
     assert model.n_features_in_ == n_features
@@ -610,6 +615,16 @@ def test_fit_on_ndarray(features_dtype):
     preds_path = test_output_path(PREDS_TXT_PATH)
     np.savetxt(preds_path, np.array(preds))
     return local_canonical_file(preds_path)
+
+
+def test_attribute_access_on_unfitted_model():
+    # __getattr__ calls is_fitted(), which is an attribute lookup itself, so the
+    # attribute name has to be checked before is_fitted() to avoid infinite recursion
+    model = CatBoostClassifier(iterations=5)
+    for attribute in ('n_features_in_', 'feature_names_in_', 'no_such_attribute'):
+        assert not hasattr(model, attribute)
+        with pytest.raises(AttributeError):
+            getattr(model, attribute)
 
 
 @pytest.mark.parametrize(
