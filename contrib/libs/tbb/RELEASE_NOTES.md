@@ -14,6 +14,33 @@
 * limitations under the License.
 *******************************************************************************/-->
 
+# oneTBB 2023.1 Release Notes
+
+## :rocket: Preview Features
+- NUMA Optimization: Use new interleaved memory allocation APIs to explicitly control memory placement across NUMA nodes. The ``allocate_numa_interleaved`` and ``deallocate_numa_interleaved`` functions allocate and deallocate memory across multiple NUMA nodes, helping increase bandwidth and avoid bottlenecks from single-node allocation.
+- C++20 Modules: This release adds experimental support for C++20 modules with the introduction of ``include/oneapi/tbb.cppm``. Developers can use this instead of traditional headers to reduce compilation times and improve encapsulation.
+
+## :tada: New Features
+- oneTBB repository now contains Thread Composability Manager (TCM) source code - a project that helps in limiting oversubscription that can arise when multiple parallel runtimes are used within an application. More information is available at https://uxlfoundation.github.io/oneTBB/main/tbb_userguide/appendix_B.html#avoid-cpu-overutilization
+
+## :rotating_light: Known Limitations
+- The ``oneapi::tbb::info`` namespace interfaces might unexpectedly change the process affinity mask on Windows* OS systems (see https://github.com/open-mpi/hwloc/issues/366 for details) when using hwloc version lower than 2.5.
+- Using a hwloc version other than 1.11, 2.0, or 2.5 may cause an undefined behavior on Windows OS. See https://github.com/open-mpi/hwloc/issues/477 for details.
+- The NUMA topology may be detected incorrectly on Windows* OS machines where the number of NUMA node threads exceeds the size of 1 processor group.
+- On Windows OS on ARM64*, when compiling an application using oneTBB with the Microsoft* Compiler, the compiler issues a warning C4324 that a structure was padded due to the alignment specifier. Consider suppressing the warning by specifying /wd4324 to the compiler command line.
+- When CPU resource coordination is enabled by setting the TCM_ENABLE environment variable to 1, tasks from a lower-priority ``task_arena`` might be executed before tasks from a higher-priority ``task_arena``.
+- Using oneTBB on WASM* may cause applications to run in a single thread. See [Limitations of WASM Support](https://github.com/uxlfoundation/oneTBB/blob/master/WASM_Support.md#limitations).
+
+> **_NOTE:_**  To see known limitations that impact all versions of oneTBB, refer to [oneTBB Documentation](https://uxlfoundation.github.io/oneTBB/main/intro/limitations.html).
+
+## :hammer: Issues Fixed
+- Added IPO build support for modern Intel compilers with old CMake under Linux*.
+
+## :octocat: Open-Source Contributions Integrated
+- Improved support for GNU* Hurd*. Contributed by Petter Reinholdtsen (https://github.com/uxlfoundation/oneTBB/pull/2028, https://github.com/uxlfoundation/oneTBB/pull/2038, https://github.com/uxlfoundation/oneTBB/pull/2026).
+- Fixed Windows* build on ARM64* when using MSVC. contributed by navvyswethgraphics (https://github.com/uxlfoundation/oneTBB/pull/2030).
+
+
 # oneTBB 2023.0 Release Notes
 
 ## :rocket: Preview Features

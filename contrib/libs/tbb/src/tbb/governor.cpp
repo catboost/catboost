@@ -623,6 +623,11 @@ int __TBB_EXPORTED_FUNC constraints_threads_per_core(const d1::constraints&, int
     return system_topology::automatic;
 }
 
+const int* get_numa_nodes_indexes() {
+    system_topology::initialize();
+    return system_topology::numa_nodes_indexes;
+}
+
 } // namespace r1
 } // namespace detail
 } // namespace tbb

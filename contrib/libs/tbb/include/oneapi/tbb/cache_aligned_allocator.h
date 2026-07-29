@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2026 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -126,7 +127,7 @@ private:
         __TBB_ASSERT(base != 0, "Upstream resource returned nullptr.");
 
         // Round up to the next cache line (align the base address)
-        std::uintptr_t result = (base + cache_line_alignment) & ~(cache_line_alignment - 1);
+        std::uintptr_t result = align_to_greater(base, cache_line_alignment);
         __TBB_ASSERT((result - base) >= sizeof(std::uintptr_t), "Can`t store a base pointer to the header");
         __TBB_ASSERT(space - (result - base) >= bytes, "Not enough space for the storage");
 

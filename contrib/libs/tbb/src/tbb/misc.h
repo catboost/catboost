@@ -221,6 +221,8 @@ void apply_affinity_mask(binding_handler* handler_ptr, int slot_num);
 void restore_affinity_mask(binding_handler* handler_ptr, int slot_num);
 tcm_cpu_mask_t get_affinity_mask(binding_handler* handler_ptr);
 
+const int* get_numa_nodes_indexes();
+
 // RTM specific section
 // abort code for mutexes that detect a conflict with another thread.
 enum {

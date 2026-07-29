@@ -459,7 +459,7 @@ namespace d2 {
 
 class task_group;
 class structured_task_group;
-#if TBB_PREVIEW_ISOLATED_TASK_GROUP
+#if __TBB_PREVIEW_ISOLATED_TASK_GROUP
 class isolated_task_group;
 #endif
 
@@ -738,7 +738,7 @@ public:
 };
 #endif
 
-#if TBB_PREVIEW_ISOLATED_TASK_GROUP
+#if __TBB_PREVIEW_ISOLATED_TASK_GROUP
 class spawn_delegate : public d1::delegate_base {
     d1::task* task_to_spawn;
     d1::task_group_context& context;
@@ -806,14 +806,14 @@ public:
         return result;
     }
 }; // class isolated_task_group
-#endif // TBB_PREVIEW_ISOLATED_TASK_GROUP
+#endif // __TBB_PREVIEW_ISOLATED_TASK_GROUP
 } // namespace d2
 } // namespace detail
 
 inline namespace v1 {
 using detail::d1::task_group_context;
 using detail::d2::task_group;
-#if TBB_PREVIEW_ISOLATED_TASK_GROUP
+#if __TBB_PREVIEW_ISOLATED_TASK_GROUP
 using detail::d2::isolated_task_group;
 #endif
 
