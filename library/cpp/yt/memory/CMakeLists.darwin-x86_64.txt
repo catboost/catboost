@@ -32,6 +32,7 @@ target_link_libraries(cpp-yt-memory PUBLIC
   cpp-yt-assert
   cpp-yt-exception
   cpp-yt-misc
+  cpp-yt-mpl
   cpp-yt-malloc
   cpp-yt-system
 )

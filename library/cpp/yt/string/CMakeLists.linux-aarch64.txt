@@ -32,6 +32,7 @@ target_link_libraries(cpp-yt-string PUBLIC
   cpp-yt-assert
   cpp-yt-exception
   cpp-yt-misc
+  cpp-yt-mpl
 )
 
 target_sources(cpp-yt-string PRIVATE

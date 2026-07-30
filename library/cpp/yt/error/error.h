@@ -164,9 +164,9 @@ public:
     void ThrowOnError(TErrorCode code, TFormatString<TArgs...> format, TArgs&&... args) &&;
     inline void ThrowOnError() &&;
 
-    template <CInvocable<bool(const TError&)> TFilter>
+    template <NMpl::CInvocable<bool(const TError&)> TFilter>
     std::optional<TError> FindMatching(const TFilter& filter) const;
-    template <CInvocable<bool(TErrorCode)> TFilter>
+    template <NMpl::CInvocable<bool(TErrorCode)> TFilter>
     std::optional<TError> FindMatching(const TFilter& filter) const;
     std::optional<TError> FindMatching(TErrorCode code) const;
     std::optional<TError> FindMatching(const THashSet<TErrorCode>& codes) const;

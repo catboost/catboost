@@ -2,7 +2,7 @@
 
 #include "concepts.h"
 
-namespace NYT {
+namespace NYT::NMpl {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -36,7 +36,7 @@ struct TFn
 
 // Inline namespace is required so that there is no conflict with
 // customizations of TagInvoke defined as friend function definition
-// inside a class from namespace NYT.
+// inside a class from namespace NYT::NMpl.
 inline namespace NTagInvokeCPO {
 
 inline constexpr NTagInvokeDetail::TFn TagInvoke = {};
@@ -48,7 +48,7 @@ inline constexpr NTagInvokeDetail::TFn TagInvoke = {};
 // Some helpful concepts and aliases.
 template <class TTag, class... TArgs>
 concept CTagInvocable = requires (TTag&& tag, TArgs&&... args) {
-    NYT::TagInvoke(std::forward<TTag>(tag), std::forward<TArgs>(args)...);
+    NYT::NMpl::TagInvoke(std::forward<TTag>(tag), std::forward<TArgs>(args)...);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,13 +57,13 @@ template <class TTag, class... TArgs>
 concept CNothrowTagInvocable =
     CTagInvocable<TTag, TArgs...> &&
     requires (TTag&& tag, TArgs&&... args) {
-        { NYT::TagInvoke(std::forward<TTag>(tag), std::forward<TArgs>(args)...) } noexcept;
+        { NYT::NMpl::TagInvoke(std::forward<TTag>(tag), std::forward<TArgs>(args)...) } noexcept;
     };
 
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class TTag, class... TArgs>
-using TTagInvokeResult = std::invoke_result_t<decltype(NYT::TagInvoke), TTag, TArgs...>;
+using TTagInvokeResult = std::invoke_result_t<decltype(NYT::NMpl::TagInvoke), TTag, TArgs...>;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -80,7 +80,7 @@ struct TTagInvokeTraitsHelper;
 template <class TTag, class TReturn, bool NoExcept, class... TArgs>
 struct TTagInvokeTraitsHelper<TTag, TReturn(TArgs...) noexcept(NoExcept)>
 {
-    static constexpr bool IsInvocable = NYT::CInvocable<decltype(NYT::TagInvoke), TReturn(TTag, TArgs...) noexcept(NoExcept)>;
+    static constexpr bool IsInvocable = NYT::NMpl::CInvocable<decltype(NYT::NMpl::TagInvoke), TReturn(TTag, TArgs...) noexcept(NoExcept)>;
 };
 
 } // namespace NDetail
@@ -92,4 +92,4 @@ concept CTagInvocableS = NDetail::TTagInvokeTraitsHelper<TTag, TSignature>::IsIn
 
 ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYT
+} // namespace NYT::NMpl
