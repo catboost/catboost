@@ -5447,6 +5447,11 @@ cdef class _CatBoost:
         del old_model
         self.model_blob = new_model_blob
 
+    cdef _replace_model_ref(self, TFullModel& new_model_ref, object new_model_blob):
+        cdef TFullModel* new_model = new TFullModel()
+        new_model[0].Swap(new_model_ref)
+        self._replace_model(new_model, new_model_blob)
+
     cpdef _reserve_test_evals(self, size_t num_tests):
         self.__test_evals.resize(num_tests)
         cdef size_t i
@@ -5830,18 +5835,14 @@ cdef class _CatBoost:
         cdef THolder[TPythonStreamWrapper] wrapper = MakeHolder[TPythonStreamWrapper](python_stream_read_func, <PyObject*>stream)
         cdef TFullModel tmp_model
         tmp_model.Load(wrapper.Get())
-        cdef TFullModel* new_model = new TFullModel()
-        new_model[0].Swap(tmp_model)
-        self._replace_model(new_model, None)
+        self._replace_model_ref(tmp_model, None)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         cdef EModelType modelType = string_to_model_type(format)
         tmp_model = ReadModel(to_arcadia_string(fspath(model_file)), modelType)
-        cdef TFullModel* new_model = new TFullModel()
-        new_model[0].Swap(tmp_model)
-        self._replace_model(new_model, None)
+        self._replace_model_ref(tmp_model, None)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
@@ -5876,12 +5877,10 @@ cdef class _CatBoost:
         cdef const unsigned char[::1] buf
         buf = serialized_model_blob
         cdef TFullModel tmp_model = ReadZeroCopyModel(<char*>&buf[0], len(buf))
-        cdef TFullModel* new_model = new TFullModel()
-        new_model[0].Swap(tmp_model)
         # the new model references the memory of serialized_model_blob, so it must be
         # stored in model_blob to keep it alive, and the previous model_blob must be
         # released only after the previous model that may reference it has been destroyed
-        self._replace_model(new_model, serialized_model_blob)
+        self._replace_model_ref(tmp_model, serialized_model_blob)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _get_params(self):
@@ -5943,9 +5942,7 @@ cdef class _CatBoost:
             models_vector.push_back((<_CatBoost>models[model_id]).__model)
             weights_vector.push_back(weights[model_id])
         cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, model_prefix_vector, merge_policy)
-        cdef TFullModel* new_model = new TFullModel()
-        new_model[0].Swap(tmp_model)
-        self._replace_model(new_model, None)
+        self._replace_model_ref(tmp_model, None)
 
     cpdef _save_borders(self, output_file):
         SaveModelBorders(to_arcadia_string(fspath(output_file)), dereference(self.__model))
