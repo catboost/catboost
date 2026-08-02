@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: Cython
-Version: 3.2.8
+Version: 3.2.9
 Summary: The Cython compiler for writing C extensions in the Python language.
 Home-page: https://cython.org/
 Author: Robert Bradshaw, Stefan Behnel, David Woods, Greg Ewing, et al.
@@ -64,21 +64,32 @@ to install an uncompiled (slower) version of Cython with::
 
 .. _Pyrex: https://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/
 
-3.2.8 (2026-06-30)
+3.2.9 (2026-07-23)
 ==================
 
 Bugs fixed
 ----------
 
-* Assigning a Python 3.14+ ``.__annotate__`` function to a Cython compiled function no longer
-  evaluates annotations eagerly.  Fixes a regression with ``@functools.wraps()`` in Cython 3.2.6.
-  Patch by Jelle Zijlstra.  (Github issue https://github.com/cython/cython/issues/7767)
+* Indexing into freshly created lists with an out-of-bounds index could crash.
+  (Github issue https://github.com/cython/cython/issues/7793)
 
-* In freethreading Python, the necessary object keep-alive while executing user code in
-  ``.__dealloc__()`` uses a safer scheme.
-  Patch by Yaxing Cai.  (Github issue https://github.com/cython/cython/issues/7769)
+* Function arguments with default values could end up uninitialised in closures, leading to crashes.
+  Patch by Anthony Donlon.  (Github issue https://github.com/cython/cython/issues/7782)
 
-* The local function state used by ``sys.monitoring`` read from uninitialised memory.
-  (Github issue https://github.com/cython/cython/issues/7774)
+* ``bytearray.append(None)`` could crash. The optimised code was also lacking concurrency guards.
+  (Github issue https://github.com/cython/cython/issues/7796)
 
-* The ``.ag_running`` flag attribute of async generators was always false on big-endian systems.
+* Some rare corner cases when concatenating text strings were resolved.
+  (Github issue https://github.com/cython/cython/issues/7799)
+
+* Assignments of builtin string types to typedefs of `object` could erroneously be rejected.
+  (Github issue https://github.com/cython/cython/issues/7789)
+
+* Subscripting ``type`` failed with a ``TypeError``.
+  (Github issue https://github.com/cython/cython/issues/5563)
+
+* Manually disabling ``CYTHON_VECTORCALL`` in CPython could lead to invalid C code.
+  Patch by Florent Gallaire.  (Github issue https://github.com/cython/cython/issues/7807)
+
+* Some internal Limited API version checks for Py3.12 were corrected.
+  (Github issue https://github.com/cython/cython/issues/7845)

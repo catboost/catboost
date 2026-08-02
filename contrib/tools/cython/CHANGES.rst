@@ -2,6 +2,37 @@
 Cython Changelog
 ================
 
+3.2.9 (2026-07-23)
+==================
+
+Bugs fixed
+----------
+
+* Indexing into freshly created lists with an out-of-bounds index could crash.
+  (Github issue :issue:`7793`)
+
+* Function arguments with default values could end up uninitialised in closures, leading to crashes.
+  Patch by Anthony Donlon.  (Github issue :issue:`7782`)
+
+* ``bytearray.append(None)`` could crash. The optimised code was also lacking concurrency guards.
+  (Github issue :issue:`7796`)
+
+* Some rare corner cases when concatenating text strings were resolved.
+  (Github issue :issue:`7799`)
+
+* Assignments of builtin string types to typedefs of `object` could erroneously be rejected.
+  (Github issue :issue:`7789`)
+
+* Subscripting ``type`` failed with a ``TypeError``.
+  (Github issue :issue:`5563`)
+
+* Manually disabling ``CYTHON_VECTORCALL`` in CPython could lead to invalid C code.
+  Patch by Florent Gallaire.  (Github issue :issue:`7807`)
+
+* Some internal Limited API version checks for Py3.12 were corrected.
+  (Github issue :issue:`7845`)
+
+
 3.2.8 (2026-06-30)
 ==================
 
