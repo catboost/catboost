@@ -448,16 +448,19 @@ The reason is that if you mix two types of initialization, it's much easier to f
 
 ## Namespaces
 
-Namespaces should be formatted like classes, except for the name. Namespaces must begin with a capital letter N:
+Namespaces should be formatted like classes, except for the name and the comment after the closing brace.
+Namespaces names must begin with a capital letter `N`.
+The line with the closing brace must contain the comment `// namespace {name}`
+(`// namespace` or `// anonymous namespace` for anonymous namespaces).
 ```cpp
 namespace NStl {
     namespace NPrivate {
         //the namespace nesting level is restricted to two
     }
 
-    class TVectorType {
+    class TVector {
     };
-}
+} // namespace NStl
 ```
 
 ## <a id="modern-cpp-features"></a> Modern C++ features
