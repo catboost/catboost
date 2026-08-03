@@ -43,4 +43,19 @@ Y_UNIT_TEST_SUITE(TestSingleton) {
         }
         UNIT_ASSERT_VALUES_EQUAL(Default<TWithParams>().Data1, 0);
     }
+
+    Y_UNIT_TEST(TestReferAnotherSingletonInDestructor) {
+        struct TReferAnotherSingletonInDestructor {
+            constexpr TReferAnotherSingletonInDestructor() noexcept = default;
+            constexpr ~TReferAnotherSingletonInDestructor() noexcept {
+                if (Engaged) {
+                    Cerr << "World!\n";
+                }
+            }
+            mutable bool Engaged = false;
+        };
+        Cerr << "Hello, ";
+        Default<TReferAnotherSingletonInDestructor>().Engaged = true;
+        // Nothing to ASSERT here yet. Rely on sanitizers to detect lifetime errors
+    }
 } // Y_UNIT_TEST_SUITE(TestSingleton)
