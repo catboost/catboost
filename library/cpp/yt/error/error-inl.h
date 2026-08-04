@@ -154,6 +154,79 @@ TError TError::Wrap(TErrorCode code, TFormatString<TArgs...> format, TArgs&&... 
 #undef IMPLEMENT_COPY_WRAP
 #undef IMPLEMENT_MOVE_WRAP
 
+template <CConvertibleToAttributeValue TValue>
+TError TError::With(const TErrorAttribute::TKey& key, const TValue& value) const &
+{
+    auto result = TError(*this);
+    result.AddAttribute(TErrorAttribute(key, value));
+    return result;
+}
+
+template <CConvertibleToAttributeValue TValue>
+TError&& TError::With(const TErrorAttribute::TKey& key, const TValue& value) &&
+{
+    AddAttribute(TErrorAttribute(key, value));
+    return std::move(*this);
+}
+
+template <CErrorAttributeRange TRange>
+TError TError::With(TRange&& attributes) const &
+{
+    auto result = TError(*this);
+    result.AddAttributes(std::forward<TRange>(attributes));
+    return result;
+}
+
+template <CErrorAttributeRange TRange>
+TError&& TError::With(TRange&& attributes) &&
+{
+    AddAttributes(std::forward<TRange>(attributes));
+    return std::move(*this);
+}
+
+template <CErrorAttributeRange TRange>
+void TError::AddAttributes(TRange&& attributes)
+{
+    for (const auto& attribute : attributes) {
+        AddAttribute(attribute);
+    }
+}
+
+template <CErrorRange TRange>
+TError TError::With(TRange&& innerErrors) const &
+{
+    auto result = TError(*this);
+    result.AddInnerErrors(std::forward<TRange>(innerErrors));
+    return result;
+}
+
+template <CErrorRange TRange>
+TError&& TError::With(TRange&& innerErrors) &&
+{
+    AddInnerErrors(std::forward<TRange>(innerErrors));
+    return std::move(*this);
+}
+
+template <CErrorRange TRange>
+void TError::AddInnerErrors(TRange&& innerErrors)
+{
+    if constexpr (std::ranges::sized_range<TRange>) {
+        auto* result = MutableInnerErrors();
+        result->reserve(result->size() + std::ranges::size(innerErrors));
+    }
+
+    for (auto&& innerError : innerErrors) {
+        if constexpr (
+            std::is_rvalue_reference_v<TRange&&> &&
+            !std::ranges::view<std::remove_cvref_t<TRange>>)
+        {
+            AddInnerError(std::move(innerError));
+        } else {
+            AddInnerError(std::forward<decltype(innerError)>(innerError));
+        }
+    }
+}
+
 template <CErrorNestable TValue>
 TError&& TError::operator << (TValue&& rhs) &&
 {
