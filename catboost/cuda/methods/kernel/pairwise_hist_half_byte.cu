@@ -349,7 +349,7 @@ namespace NKernel {
             numBlocks.x *= blockPerFeatureMultiplier;
 
             #define NB_HIST(IS_FULL)   \
-            ComputeSplitPropertiesHalfBytePairs < blockSize, IS_FULL > << <numBlocks, blockSize, 0, stream>>>(\
+            ComputeSplitPropertiesHalfBytePairs < blockSize, IS_FULL > <<<numBlocks, blockSize, 0, stream>>>(\
                                                   features, featureCount, compressedIndex,  pairs,\
                                                   weight, partition, histLineSize, histogram);
 

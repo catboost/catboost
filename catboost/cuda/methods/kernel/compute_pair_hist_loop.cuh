@@ -126,7 +126,9 @@ namespace NKernel {
                 pairs += stripeSize;
                 weight += stripeSize;
 
-                hist.AddPairs<N>(localBins1, localBins2, localWeights);
+                // `template` disambiguator: AddPairs is a template member of the
+                // dependent THist type; clang/hipcc requires it where nvcc does not.
+                hist.template AddPairs<N>(localBins1, localBins2, localWeights);
             }
         }
 

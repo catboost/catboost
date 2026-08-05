@@ -11,6 +11,34 @@ void __cdecl _dosmaperr(unsigned long);
 static void SetErrno() {
     _dosmaperr(GetLastError());
 }
+    #elif defined(__clang__)
+// clang-cl with the dynamic UCRT does not provide
+// the static CRT internal __acrt_errno_map_os_error (referenced directly, not as
+// dllimport), so map the last Win32 error to errno here without it.
+        #include <errno.h>
+static void SetErrno() {
+    switch (GetLastError()) {
+        case ERROR_FILE_NOT_FOUND:
+        case ERROR_PATH_NOT_FOUND:
+        case ERROR_INVALID_DRIVE:
+            errno = ENOENT;
+            break;
+        case ERROR_ACCESS_DENIED:
+        case ERROR_SHARING_VIOLATION:
+            errno = EACCES;
+            break;
+        case ERROR_NOT_ENOUGH_MEMORY:
+        case ERROR_OUTOFMEMORY:
+            errno = ENOMEM;
+            break;
+        case ERROR_TOO_MANY_OPEN_FILES:
+            errno = EMFILE;
+            break;
+        default:
+            errno = EINVAL;
+            break;
+    }
+}
     #else
 void __cdecl __acrt_errno_map_os_error(unsigned long const oserrno);
 
