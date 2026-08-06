@@ -260,7 +260,7 @@ CATBOOST_API DataProviderHandle* BuildDataProvider(DataWrapperHandle* dataWrappe
     return DATA_WRAPPER_PTR(dataWrapperHandle)->BuildDataProvider().Get();
 }
 
-CATBOOST_API ModelCalcerHandle* ModelCalcerCreate() {
+CATBOOST_API ModelCalcerHandle* ModelCalcerCreate(void) {
     try {
         auto* fullModel = new TFullModel;
         return new TModelHandleContent{.FullModel = THolder(fullModel)};
@@ -271,7 +271,7 @@ CATBOOST_API ModelCalcerHandle* ModelCalcerCreate() {
     return nullptr;
 }
 
-CATBOOST_API const char* GetErrorString() {
+CATBOOST_API const char* GetErrorString(void) {
     return ErrorMessageHolder.Get().Message.data();
 }
 
