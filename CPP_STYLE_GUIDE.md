@@ -512,6 +512,21 @@ class B: public A {
 
 Comments are for explaining the code where they are located. Do not use comments to remove an unnecessary function or block, especially if this is the old version of a function you corrected. Simply delete any unnecessary parts of the code – you can always go to VCS (e.g. svn, git, hg, etc.) to retrieve the deleted section if you suddenly realize how useful it was. The main harm from commenting previous versions of the code, instead of removing them, is that VCS diff won't work correctly.
 
+Text in a single line comment should be separated from `//` using exactly one space:
+```cpp
+// Single comment
+
+void Function() { // Another single comment
+    ...
+}
+```
+When formatting multi-line comments as a series of single-line comments, preserve the relative indentation as needed. However, the absolute indentation at the beginning of each line must always be a single space.
+
+```cpp
+// List:
+//  - Foo
+//    - Bar
+
 Comments should be written in English with correct spelling and grammar.
 
 It is useful to explain the purpose of each class member in the class description. MSVC editor displays this line in the tooltip in "smart editing" mode.
