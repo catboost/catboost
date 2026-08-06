@@ -570,7 +570,7 @@ With a preprocessing conditional in the middle of the file, we start in the firs
 ```cpp
 func A() {
     int x;
-#ifdef TEST_func_A // ifndef + else = schisophrenia
+#ifdef TEST_func_A // ifndef + else = schizophrenia
     x = 0;
 #else
     x = 1;
