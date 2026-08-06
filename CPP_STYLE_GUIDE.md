@@ -578,6 +578,8 @@ func A() {
 }
 ```
 
+Avoid using the preprocessor whenever possible. Instead, prefer templates, `if constexpr`, virtual functions, etc.
+
 ### include
 
 The include files should not be interdependent, meaning an include file must be compileable by itself as a separate compilation unit. If the include file contains references to types that are not described in it:
