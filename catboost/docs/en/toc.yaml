@@ -918,6 +918,14 @@ items:
                 name: getUsedNumericFeatureCount
               - href: concepts/java-reference_catboostmodel__predict.md
                 name: predict
+              - href: concepts/java-reference_catboostmodel__predictproba.md
+                name: predictProba
+              - href: >-
+                  concepts/java-reference_catboostmodel__getlossfunctionname.md
+                name: getLossFunctionName
+              - href: >-
+                  concepts/java-reference_catboostmodel__isclassificationmodel.md
+                name: isClassificationModel
               - href: concepts/java-reference_catboostmodel__close.md
                 name: close
             name: CatBoostModel
