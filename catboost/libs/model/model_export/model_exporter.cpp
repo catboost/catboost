@@ -83,17 +83,14 @@ namespace NCB {
     void SerializeFullModelToOnnxStream(
         const TFullModel& model,
         const TString& userParametersJson,
-        IOutputStream* oStream) {
+        IOutputStream* oStream,
+        const THashMap<ui32, TString>* catFeaturesHashToString) {
 
         TStringInput is(userParametersJson);
         NJson::TJsonValue userParameters;
         NJson::ReadJsonTree(&is, &userParameters);
         CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
 
-        CB_ENSURE(
-            !model.HasCategoricalFeatures(),
-            "ONNX-ML format export does yet not support categorical features"
-        );
         CB_ENSURE(
             !model.HasTextFeatures(),
             "ONNX-ML format export does not support text features"
@@ -102,6 +99,17 @@ namespace NCB {
             !model.HasEmbeddingFeatures(),
             "ONNX-ML format export does not support embedding features"
         );
+        CB_ENSURE(
+            model.ModelTrees->GetOneHotFeatures().empty() || catFeaturesHashToString,
+            "catFeaturesHashToString has to be specified if the model contains one hot features"
+        );
+
+        for (const auto& split : model.ModelTrees->GetBinFeatures()) {
+            CB_ENSURE(
+                split.Type == ESplitType::FloatFeature || split.Type == ESplitType::OneHotFeature,
+                "ONNX-ML format export only supports FloatFeature and OneHotFeature splits"
+            );
+        }
 
         onnx::ModelProto outModel;
 
@@ -112,7 +120,7 @@ namespace NCB {
             graphName = userParameters["onnx_graph_name"].GetStringSafe();
         }
 
-        NCB::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph());
+        NCB::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph(), catFeaturesHashToString);
 
         TString data = outModel.SerializeAsStringOrThrow();
         oStream->Write(data);
@@ -120,24 +128,23 @@ namespace NCB {
 
     TString ConvertTreeToOnnxProto(
         const TFullModel& model,
-        const TString& userParametersJson) {
+        const TString& userParametersJson,
+        const THashMap<ui32, TString>* catFeaturesHashToString) {
 
         TString data;
         TStringOutput out(data);
-        SerializeFullModelToOnnxStream(model, userParametersJson, &out);
+        SerializeFullModelToOnnxStream(model, userParametersJson, &out, catFeaturesHashToString);
         return data;
         }
 
     void OutputModelOnnx(
         const TFullModel& model,
         const TString& modelFile,
-        const TString& userParametersJson) {
+        const TString& userParametersJson,
+        const THashMap<ui32, TString>* catFeaturesHashToString) {
 
-        /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
-        * could be interpreted as nans so that equality comparison won't work for such splits
-        */
         TOFStream out(modelFile);
-        SerializeFullModelToOnnxStream(model, userParametersJson, &out);
+        SerializeFullModelToOnnxStream(model, userParametersJson, &out, catFeaturesHashToString);
     }
 
     void ExportModel(
@@ -192,7 +199,7 @@ namespace NCB {
                 break;
             case EModelType::Onnx:
                 {
-                    OutputModelOnnx(model, modelFileName, userParametersJson);
+                    OutputModelOnnx(model, modelFileName, userParametersJson, catFeaturesHashToString);
                 }
                 break;
             case EModelType::Pmml:

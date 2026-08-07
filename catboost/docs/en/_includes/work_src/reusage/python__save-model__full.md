@@ -80,7 +80,7 @@ None
 
 The dataset previously used for training.
 
-This parameter is required if the model contains categorical features and the output format is {{ fitpython__model-format_cpp }}, {{ fitpython__model-format_python }}, or {{ cli__metadata__dump_format__json }}.
+This parameter is required if the model contains categorical features and the output format is {{ fitpython__model-format_cpp }}, {{ fitpython__model-format_python }}, `onnx`, or {{ cli__metadata__dump_format__json }}.
 
 {% note info %}
 
