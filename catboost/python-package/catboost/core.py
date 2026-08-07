@@ -103,6 +103,14 @@ FLOAT_TYPES = (float, np.floating)
 STRING_TYPES = (string_types,)
 ARRAY_TYPES = (list, np.ndarray, pd.DataFrame, pd.Series, pl.DataFrame, pl.Series)
 
+# names of pandas nullable extension dtypes for numeric and boolean data
+_PANDAS_NULLABLE_NUMERIC_DTYPE_NAMES = frozenset([
+    'Int8', 'Int16', 'Int32', 'Int64',
+    'UInt8', 'UInt16', 'UInt32', 'UInt64',
+    'Float32', 'Float64',
+    'boolean'
+])
+
 if sys.version_info >= (3, 6):
     PATH_TYPES = STRING_TYPES + (os.PathLike,)
 elif sys.version_info >= (3, 4):
@@ -1328,7 +1336,12 @@ class Pool(_PoolBase):
 
     def _label_if_pandas_to_numpy(self, label):
         if isinstance(label, pd.Series):
-            label = label.values
+            if label.dtype.name in _PANDAS_NULLABLE_NUMERIC_DTYPE_NAMES:
+                # pandas nullable numeric/boolean extension dtypes:
+                # convert to float64 with missing values (pandas.NA) represented as NaN
+                label = label.to_numpy(dtype=np.float64, na_value=np.nan)
+            else:
+                label = label.values
         if isinstance(label, pd.DataFrame):
             label = label.values
         return label
