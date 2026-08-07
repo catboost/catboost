@@ -9,6 +9,7 @@ use std::path::Path;
 
 pub struct Model {
     handle: *mut catboost_sys::ModelCalcerHandle,
+    zero_copy_buffer: Option<Box<dyn AsRef<[u8]> + Send + Sync>>,
 }
 
 unsafe impl Send for Model {}
@@ -19,6 +20,7 @@ impl Model {
         let model_handle = unsafe { catboost_sys::ModelCalcerCreate() };
         Model {
             handle: model_handle,
+            zero_copy_buffer: None,
         }
     }
 
@@ -42,6 +44,27 @@ impl Model {
                 buffer.as_ref().len(),
             )
         })?;
+        Ok(model)
+    }
+
+    /// Load a model directly from an owned buffer without copying it.
+    ///
+    /// The buffer is retained by the model because the native model references its memory.
+    pub fn load_zero_copy<P>(buffer: P) -> CatBoostResult<Self>
+    where
+        P: AsRef<[u8]> + Send + Sync + 'static,
+    {
+        let zero_copy_buffer = Box::new(buffer);
+        let bytes: &[u8] = zero_copy_buffer.as_ref().as_ref();
+        let mut model = Model::new();
+        CatBoostError::check_return_value(unsafe {
+            catboost_sys::LoadFullModelZeroCopy(
+                model.handle,
+                bytes.as_ptr() as *const std::os::raw::c_void,
+                bytes.len(),
+            )
+        })?;
+        model.zero_copy_buffer = Some(zero_copy_buffer);
         Ok(model)
     }
 
@@ -279,6 +302,25 @@ mod tests {
         let buffer: Vec<u8> = read_fast("tmp/model.bin").unwrap();
         let model = Model::load_buffer(buffer);
         assert!(model.is_ok());
+    }
+
+    #[test]
+    fn load_model_zero_copy_mmap() {
+        let file = std::fs::File::open("tmp/model.bin").expect("test model not found");
+        let buffer = unsafe {
+            memmap2::MmapOptions::new()
+                .map(&file)
+                .expect("failed to map file")
+        };
+        let model = Model::load_zero_copy(buffer).expect("failed to load model");
+        assert!(model.get_tree_count() > 0);
+    }
+
+    #[test]
+    fn load_model_zero_copy_vec() {
+        let buffer: Vec<u8> = read_fast("tmp/model.bin").unwrap();
+        let model = Model::load_zero_copy(buffer).expect("failed to load model");
+        assert!(model.get_tree_count() > 0);
     }
 
     fn test_calc_prediction(on_gpu: bool) {
