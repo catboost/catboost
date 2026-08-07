@@ -1,0 +1,34 @@
+# This file was generated for the CatBoost Bazel/CMake build.
+# Tests for the CalcModelPredictionFlat / CalcModelPrediction optimizations.
+
+add_executable(c_api_flat_inference_ut)
+
+target_link_libraries(c_api_flat_inference_ut PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  yutil
+  build-cow-on
+  library-cpp-cpuid_check
+  cpp-testing-unittest_main
+  catboostmodel
+)
+
+target_link_options(c_api_flat_inference_ut PRIVATE
+  -ldl
+  -lrt
+  -Wl,--no-as-needed
+  -fPIC
+  -fPIC
+  -lrt
+  -ldl
+)
+
+target_sources(c_api_flat_inference_ut PRIVATE
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model_interface/ut/c_api_flat_inference_ut.cpp
+)
+
+add_test(
+  NAME c_api_flat_inference_ut
+  COMMAND c_api_flat_inference_ut
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
