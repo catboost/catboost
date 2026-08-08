@@ -10,9 +10,9 @@ Please be aware that use of imperative, object-oriented C++ is assumed.
 CUDA-compatible code must compile under C++17 or C++20, whereas all other code must compile under C++20.
 
 This means:
-- Don't use plain C. Use the new operator, not malloc. Assume that the new operator can throw an exception and doesn't return "0" for unsuccessful memory allocation.
-- Use C++ as an imperative language, not as a functional language. You can use templates, but not for things like compile-time calculations. Use range-based for, not for_each.
-- Don't use boost, and limit use of STL (Use optimized counterparts available in /util instead of some of the parts that are poorly implemented in STL, such as std::streams -> TInputStream, TOutputStream). We don't encourage reinventing the wheel (we've already invented everything and just check the /util).
+- Don't use plain C. Use the `new` operator, not `malloc`. Assume that the `new` operator can throw an exception and doesn't return "0" for unsuccessful memory allocation.
+- Use C++ as an imperative language, not as a functional language. You can use templates, but not for things like compile-time calculations. Use range-based for, not `for_each`.
+- Don't use boost, and limit use of STL (Use optimized counterparts available in `/util` instead of some of the parts that are poorly implemented in STL, such as `std::streams` -> `TInputStream`, `TOutputStream`). We don't encourage reinventing the wheel (we've already invented everything and just check the `/util`).
 - [Guide for modern C++ features](#modern-cpp-features)
 
 Currently, there is a small subset of code in the source tree that doesn't conform to the standards outlined below (partly because some of these code blocks were written about 15+ years ago). Nevertheless, this standard must be followed when writing new code.
@@ -31,7 +31,7 @@ Currently, there is a small subset of code in the source tree that doesn't confo
 
 ## Names
 
-A name should reflect the essence of the data, the type, or the action that it names. Only commonly-used abbreviations are allowed in names. Conventional single-letter names (i, j, k) are only allowed for counters and iterators. Structures are also classes, and everything related to classes also applies to structures (unless explicitly stated otherwise).
+A name should reflect the essence of the data, the type, or the action that it names. Only commonly-used abbreviations are allowed in names. Conventional single-letter names (`i`, `j`, `k`) are only allowed for counters and iterators. Structures are also classes, and everything related to classes also applies to structures (unless explicitly stated otherwise).
 
 ### Variables
 
@@ -51,7 +51,7 @@ A name should reflect the essence of the data, the type, or the action that it n
 
 - Class function members begin with an uppercase letter and must not end with an underscore or other special suffix regardless of their access specifier.
 
-- Class names and type definitions (typedefs) are preceded by the prefix T, followed by the name of the class beginning with an uppercase letter. The names of virtual interfaces start with 'I'. Virtual interface is a class that contains at least one pure virtual method (including inherited) and does not contain any data members (including inherited).
+- Class names and type definitions (typedefs) are preceded by the prefix '`T`', followed by the name of the class beginning with an uppercase letter. The names of virtual interfaces start with '`I`'. Virtual interface is a class that contains at least one pure virtual method (including inherited) and does not contain any data members (including inherited).
 
 - All global constants and defines are fully capitalized.
 
@@ -81,11 +81,11 @@ void SetValue(int val);
 
 #### Macros
 
-If you do have to use a macro, you need to make sure that it is unique (for example, it should match the hierarchy of directories in the path to this file). If the macro is intended to be used as part of your library's API, then the macro must have the Y_ prefix (for example, see the macros in util/system/compiler.h).
+If you do have to use a macro, you need to make sure that it is unique (for example, it should match the hierarchy of directories in the path to this file). If the macro is intended to be used as part of your library's API, then the macro must have the `Y_` prefix (for example, see the macros in `util/system/compiler.h`).
 
 #### Enumerations
 
-Global enums should be named using the same rules as for classes, but with a capital letter E. The members of these enums should be named using all capital letters, just as for global constants, which is what they actually are. Names must have a prefix formed by the first letters of the enum.
+Global enums should be named using the same rules as for classes, but with a capital letter '`E`'. The members of these enums should be named using all capital letters, just as for global constants, which is what they actually are. Names must have a prefix formed by the first letters of the enum.
 
 ```cpp
 enum EFetchType {
@@ -137,7 +137,7 @@ enum class EStatus {
 };
 ```
 
-Do not create your own constructions for converting enums to TString and back. Use GENERATE_ENUM_SERIALIZATION.
+Do not create your own constructions for converting enums to `TString` and back. Use `GENERATE_ENUM_SERIALIZATION`.
 
 Instead of the last field with the number of fields in the enum, you can use `GENERATE_ENUM_SERIALIZATION_WITH_HEADER`.
 
@@ -345,7 +345,7 @@ Sort(a.begin(), a.end(), [](int x, int y) -> bool {int z = x - y; return z < 0;}
 
 In all other cases, they should be formatted as follows:
 ```cpp
-auto f = [](int x, int y) -> bool { //K&R style, the same as for for/if/while
+auto f = [](int x, int y) -> bool { // K&R style, the same as for for/if/while
     return x < y;
 };
 
@@ -436,7 +436,7 @@ struct T {
     int X;
     double Y;
 
-    T() //this implementation can also be in a .cpp file
+    T() // this implementation can also be in a .cpp file
         : X(0)
         , Y(1.0)
     {
@@ -455,7 +455,7 @@ The line with the closing brace must contain the comment `// namespace {name}`
 ```cpp
 namespace NStl {
     namespace NPrivate {
-        //the namespace nesting level is restricted to two
+        // the namespace nesting level is restricted to two
     }
 
     class TVector {
@@ -590,7 +590,7 @@ The include files should not be interdependent, meaning an include file must be 
 
 The `using namespace` declaration is not allowed inside include files.
 
-Include files should be specified in the order of less general to more general (regardless of whether it's in cpp or another include), so that a more specific file is included before a more general file. This order allows you to once again check the independence of the other included header files. For example, for the library/cpp/json/some_program/some_class.cpp file, the order of inclusion is:
+Include files should be specified in the order of less general to more general (regardless of whether it's in cpp or another include), so that a more specific file is included before a more general file. This order allows you to once again check the independence of the other included header files. For example, for the `library/cpp/json/some_program/some_class.cpp` file, the order of inclusion is:
 
 - The paired header file. Always in quotation marks.
 ```cpp
@@ -693,5 +693,5 @@ Calling platform-dependent system functions is allowed only in `/util`. In order
 
 ### contrib
 
-The /contrib folder contains libraries and programs from 3rd parties. Obviously, they use their own style of writing code. If there is a need to add something to contrib that isn't there yet, create a ticket for discussion and decision making.
+The `/contrib` folder contains libraries and programs from 3rd parties. Obviously, they use their own style of writing code. If there is a need to add something to `contrib` that isn't there yet, create a ticket for discussion and decision making.
 
