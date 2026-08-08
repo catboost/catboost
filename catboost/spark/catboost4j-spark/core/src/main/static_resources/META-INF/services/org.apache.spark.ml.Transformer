@@ -1,0 +1,2 @@
+ai.catboost.spark.CatBoostClassificationModel
+ai.catboost.spark.CatBoostRegressionModel
