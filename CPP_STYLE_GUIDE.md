@@ -584,11 +584,11 @@ Avoid using the preprocessor whenever possible. Instead, prefer templates, `if c
 
 The include files should not be interdependent, meaning an include file must be compileable by itself as a separate compilation unit. If the include file contains references to types that are not described in it:
 
-- If this is a standard type, include the minimum standard include file, such as cstddef or cstdio.
+- If this is a standard type, include the minimum standard include file, such as `cstddef` or `cstdio`.
 - If this is the name of a class, structure, or enumeration, and it is used by a reference or pointer, write a forward declaration directly in the include file.
 - In all other cases, include a file with the declaration of the corresponding class.
 
-The using namespace declaration is not allowed inside include files.
+The `using namespace` declaration is not allowed inside include files.
 
 Include files should be specified in the order of less general to more general (regardless of whether it's in cpp or another include), so that a more specific file is included before a more general file. This order allows you to once again check the independence of the other included header files. For example, for the library/cpp/json/some_program/some_class.cpp file, the order of inclusion is:
 
@@ -683,11 +683,11 @@ is prohibited everywhere except in specially stipulated cases:
 
 ### Invariant verification
 
-To test various kinds of compile-time invariants (for example, sizeof(int) == 4), use static_assert. To test run-time invariants, instead of assert(), use the Y_ASSERT() macro, since it is better integrated into Visual Studio.
+To test various kinds of compile-time invariants (for example, `sizeof(int) == 4`), use `static_assert`. To test run-time invariants, instead of `assert()`, use the `Y_ASSERT()` macro, since it is better integrated into Visual Studio.
 
 ## Cross-platform wrappers
 
-Calling platform-dependent system functions is allowed only in /util. In order to use specific system primitives, use the cross-platform wrappers from /util. If the necessary wrapper does not exist, you can write one (preferably using OOP) and add it to util (don't forget the code review).
+Calling platform-dependent system functions is allowed only in `/util`. In order to use specific system primitives, use the cross-platform wrappers from `/util`. If the necessary wrapper does not exist, you can write one (preferably using OOP) and add it to `util` (don't forget the code review).
 
 ## Exceptions to the general rules
 
