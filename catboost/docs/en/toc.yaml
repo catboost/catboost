@@ -393,6 +393,12 @@ items:
             name: get_best_score
           - href: concepts/python-reference_catboostclassifier_get_borders.md
             name: get_borders
+          - href: concepts/python-reference_catboostclassifier_get_cat_feature_indices.md
+            name: get_cat_feature_indices
+          - href: concepts/python-reference_catboostclassifier_get_embedding_feature_indices.md
+            name: get_embedding_feature_indices
+          - href: concepts/python-reference_catboostclassifier_get_text_feature_indices.md
+            name: get_text_feature_indices
           - href: >-
               concepts/python-reference_catboostclassifier_get_evals_result.md
             name: get_evals_result
@@ -482,6 +488,12 @@ items:
             name: get_best_score
           - href: concepts/python-reference_catboostranker_get_borders.md
             name: get_borders
+          - href: concepts/python-reference_catboostranker_get_cat_feature_indices.md
+            name: get_cat_feature_indices
+          - href: concepts/python-reference_catboostranker_get_embedding_feature_indices.md
+            name: get_embedding_feature_indices
+          - href: concepts/python-reference_catboostranker_get_text_feature_indices.md
+            name: get_text_feature_indices
           - href: concepts/python-reference_catboostranker_get_evals_result.md
             name: get_evals_result
           - href: concepts/python-reference_catboostranker_get_feature_importance.md
@@ -560,6 +572,12 @@ items:
             name: get_best_score
           - href: concepts/python-reference_catboostregressor_get_borders.md
             name: get_borders
+          - href: concepts/python-reference_catboostregressor_get_cat_feature_indices.md
+            name: get_cat_feature_indices
+          - href: concepts/python-reference_catboostregressor_get_embedding_feature_indices.md
+            name: get_embedding_feature_indices
+          - href: concepts/python-reference_catboostregressor_get_text_feature_indices.md
+            name: get_text_feature_indices
           - href: concepts/python-reference_catboostregressor_get_evals_result.md
             name: get_evals_result
           - href: >-
