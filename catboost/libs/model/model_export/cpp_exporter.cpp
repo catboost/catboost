@@ -2,14 +2,19 @@
 
 #include "export_helpers.h"
 
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/ctr_helpers.h>
 #include <catboost/libs/model/enums.h>
 #include <catboost/libs/model/static_ctr_provider.h>
 
 #include <library/cpp/resource/resource.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/map.h>
 #include <util/generic/set.h>
+#include <util/generic/strbuf.h>
+#include <util/generic/algorithm.h>
+#include <util/string/ascii.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/stream/input.h>
@@ -144,6 +149,105 @@ namespace NCB {
         out << --indent << "};" << '\n';
     }
 
+    static bool IsValidCPPIdentifier(const TString& identifier, TString* reason = nullptr) {
+        // should be non-empty
+        if (identifier.empty()) {
+            if (reason) {
+              *reason = "identifier cannot be empty";
+            }
+            return false;
+        }
+
+        // first character is alpha 
+        unsigned char firstChar = static_cast<unsigned char>(identifier[0]);
+        if (!IsAsciiAlpha(firstChar) && firstChar != '_') {
+            if (reason) { 
+              *reason = "identifier must start with an alphabetic";
+            }
+            return false;
+        }
+
+        // remaining characters are alpha, num, or '_'
+        for (size_t i = 1; i < identifier.length(); ++i) {
+            unsigned char c = static_cast<unsigned char>(identifier[i]);
+            if(!IsAsciiAlnum(c) && c != '_') {
+                if (reason) { 
+                  *reason = "each character in identifier body must be alphanumeric or \'_\'";
+                }
+                return false;
+            }
+        }
+
+        // C++ reserved keywords (as listed on https://cppreference.com/cpp/keyword)
+        // NOTE: Binary search requires this list is in ascending order. Any edits made must preserve the order
+        static constexpr TStringBuf CPP_KEYWORDS[] = {
+            "alignas"sv, "alignof"sv, "and"sv, "and_eq"sv, "asm"sv, "atomic_cancel"sv,
+            "atomic_commit"sv, "atomic_noexcept"sv, "auto"sv, "bitand"sv, "bitor"sv, "bool"sv,
+            "break"sv, "case"sv, "catch"sv, "char"sv, "char16_t"sv, "char32_t"sv,
+            "char8_t"sv, "class"sv, "co_await"sv, "co_return"sv, "co_yield"sv, "compl"sv,
+            "concept"sv, "const"sv, "const_cast"sv, "consteval"sv, "constexpr"sv, "constinit"sv,
+            "continue"sv, "contract_assert"sv, "decltype"sv, "default"sv, "delete"sv, "do"sv,
+            "double"sv, "dynamic_cast"sv, "else"sv, "enum"sv, "explicit"sv, "export"sv,
+            "extern"sv, "false"sv, "float"sv, "for"sv, "friend"sv, "goto"sv,
+            "if"sv, "inline"sv, "int"sv, "long"sv, "mutable"sv, "namespace"sv,
+            "new"sv, "noexcept"sv, "not"sv, "not_eq"sv, "nullptr"sv, "operator"sv,
+            "or"sv, "or_eq"sv, "private"sv, "protected"sv, "public"sv, "reflexpr"sv,
+            "register"sv, "reinterpret_cast"sv, "requires"sv, "return"sv, "short"sv, "signed"sv,
+            "sizeof"sv, "static"sv, "static_assert"sv, "static_cast"sv, "struct"sv, "switch"sv,
+            "synchronized"sv, "template"sv, "this"sv, "thread_local"sv, "throw"sv, "true"sv,
+            "try"sv, "typedef"sv, "typeid"sv, "typename"sv, "union"sv, "unsigned"sv,
+            "using"sv, "virtual"sv, "void"sv, "volatile"sv, "wchar_t"sv, "while"sv,
+            "xor"sv, "xor_eq"sv
+        };
+
+        // check if identifier is a keyword
+        if (BinarySearch(std::begin(CPP_KEYWORDS), std::end(CPP_KEYWORDS), identifier)) {
+            if (reason) { 
+              *reason = "identifier cannot be a C++ keyword";
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    TCatboostModelToCppConverter::TCatboostModelToCppConverter(const TString& modelFile, bool addFileFormatExtension, const TString& userParametersJson)
+        : Out(modelFile + (addFileFormatExtension ? ".cpp" : "")) {
+        if (userParametersJson.empty()) 
+            return;
+
+        // parse namespace using json_reader
+        NJson::TJsonValue params;
+        CB_ENSURE(
+            NJson::ReadJsonTree(userParametersJson, &params), "Can't parse JSON user params for exporting model to C++");
+        if (params.Has("namespace")) {
+            const TString ns = params["namespace"].GetStringSafe();
+            TString reason;
+            CB_ENSURE(IsValidCPPIdentifier(ns, &reason), "Invalid CPP identifier used for namespace (" << reason << "): " << "\'" << ns << "\'");
+            Namespace = ns;
+        }
+    }
+
+    void TCatboostModelToCppConverter::Write(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
+        if (model.HasCategoricalFeatures()) {
+            CB_ENSURE(catFeaturesHashToString != nullptr,
+                      "Need to use training dataset Pool to save mapping {categorical feature value -> hash value} "
+                      "due to the absence of a hash function in the model");
+            WriteHeader(/*forCatFeatures*/true);
+            WriteNamespaceBegin();
+            WriteCTRStructs();
+            WriteModel(/*forCatFeatures*/true, model, catFeaturesHashToString);
+            WriteApplicator(/*forCatFeatures*/true);
+            WriteNamespaceEnd();
+        } else {
+            WriteHeader(/*forCatFeatures*/false);
+            WriteNamespaceBegin();
+            WriteModel(/*forCatFeatures*/false, model, nullptr);
+            WriteApplicator(/*forCatFeatures*/false);
+            WriteNamespaceEnd();
+        }
+    }
+
     void TCatboostModelToCppConverter::WriteApplicator(bool forCatFeatures) {
         if (forCatFeatures) {
             Out << NResource::Find("catboost_model_export_cpp_ctr_calcer");
@@ -268,34 +372,12 @@ namespace NCB {
     }
 
     void TCatboostModelToCppConverter::WriteNamespaceBegin() {
-        if (!(Namespace.empty())) 
+        if (!Namespace.empty()) 
             Out << "namespace " << Namespace << " {" << "\n"; 
     }
 
     void TCatboostModelToCppConverter::WriteNamespaceEnd() {
-        if (!(Namespace.empty()))
+        if (!Namespace.empty())
             Out << "}";
-    }
-
-    bool TCatboostModelToCppConverter::IsValidCPPIdentifier(const TString& identifier)
-    {
-        // should be non-empty
-        if (identifier.empty())
-            return false;
-
-        // first character is alpha
-        unsigned char firstChar = static_cast<unsigned char>(identifier[0]);
-        if (!std::isalpha(firstChar) && firstChar != '_')
-            return false;
-
-        // remaining characters are alpha, num, or '_'
-        for (size_t i = 1; i < identifier.length(); ++i) {
-            unsigned char c = static_cast<unsigned char>(identifier[i]);
-            if(!std::isalnum(c) && c != '_')
-                return false;
-        }
-
-        // Note: Omitted keyword checks as the list of words is dependent on CPP standard
-        return true;
     }
 }
