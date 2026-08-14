@@ -2,10 +2,9 @@
 
 #include "model_exporter.h"
 
-#include <library/cpp/json/json_reader.h>
-
 #include <catboost/libs/helpers/exception.h>
 
+#include <util/generic/string.h>
 #include <util/stream/file.h>
 
 namespace NCB {

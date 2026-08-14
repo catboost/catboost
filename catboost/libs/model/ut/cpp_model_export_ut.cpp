@@ -5,21 +5,13 @@
 #include <library/cpp/json/json_writer.h>
 #include <library/cpp/testing/unittest/registar.h>
 
-#include <util/stream/file.h>
-
-using namespace std;
 using namespace NCB;
-using namespace NFs;
 
 namespace {
     TString BuildUserParams(const TString& Namespace) {
         NJson::TJsonValue params;
         params["namespace"] = Namespace;
         return NJson::WriteJson(params);
-    }
-
-    TString ReadFile(const TString& path) {
-        return TFileInput(path).ReadAll();
     }
 }
 
