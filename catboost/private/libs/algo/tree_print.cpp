@@ -131,9 +131,9 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TSplit& featu
     result << BuildDescription(layout, static_cast<const TSplitCandidate&>(feature));
 
     if (feature.Type == ESplitType::OnlineCtr) {
-        result << ", border=" << FloatToString(feature.BinBorder);
+        result << ", border=" << feature.BinBorder;
     } else if ((feature.Type == ESplitType::FloatFeature) || (feature.Type == ESplitType::EstimatedFeature)) {
-        result << ", bin=" << FloatToString(feature.BinBorder);
+        result << ", bin=" << feature.BinBorder;
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);
         result << ", value=" << feature.BinBorder;
