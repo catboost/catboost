@@ -3,6 +3,7 @@ from copy import deepcopy
 import logging
 import sys
 import os
+import tempfile
 
 if sys.version_info >= (3, 3):
     from collections.abc import Iterable, Sequence, Mapping, MutableMapping
@@ -599,6 +600,17 @@ def plot_features_selection_loss_graphs(summary):
 
     return result
 
+        class ColumnDescription:
+    def __init__(self):
+        self.lines = []
+
+    def load(self, path):
+        with open(path, 'r') as f:
+            self.lines = f.readlines()
+
+    def save(self, path):
+        with open(path, 'w') as f:
+            f.writelines(self.lines)
 
 class Pool(_PoolBase):
     """
@@ -680,7 +692,7 @@ class Pool(_PoolBase):
             If dict - dict containing 2d arrays (lists or numpy.ndarrays or scipy.sparse.spmatrix) with [n_data_size x embedding_size] elements
                 Dict keys must be the same as specified in 'embedding_features' parameter
 
-        column_description : string or os.PathLike, optional (default=None)
+        column_description : string, os.PathLike or ColumnDescription (default=None)
             ColumnsDescription parameter.
             There are several columns description types: Label, Categ, Num, Auxiliary, DocId, Weight, Baseline, GroupId, Timestamp.
             All columns are Num as default, it's not necessary to specify
@@ -882,13 +894,15 @@ class Pool(_PoolBase):
             raise CatBoostError("Invalid delimiter type={} : must be str.".format(type(delimiter)))
         if len(delimiter) < 1:
             raise CatBoostError("Invalid delimiter length={} : must be > 0.".format(len(delimiter)))
-
-    def _check_column_description_type(self, column_description):
-        """
-        Check type of column_description parameter.
-        """
-        if not isinstance(column_description, PATH_TYPES):
-            raise CatBoostError("Invalid column_description type={}: must be str or os.PathLike.".format(type(column_description)))
+            
+def _check_column_description_type(self, column_description):
+    """
+    Check type of column_description parameter.
+    """
+    if not isinstance(column_description, PATH_TYPES + (ColumnDescription,)):
+        raise CatBoostError(
+            "Invalid column_description type={}: must be str, os.PathLike or ColumnDescription.".format(type(column_description))
+        )
 
     def _check_string_feature_type(self, features, features_name):
         """
@@ -1355,10 +1369,21 @@ class Pool(_PoolBase):
         with log_fixup(log_cout, log_cerr):
             self._check_files(pool_file, column_description, pairs, graph)
             self._check_delimiter(delimiter)
-            if column_description is None:
-                column_description = ''
-            else:
-                self._check_column_description_type(column_description)
+          if column_description is None:
+    column_description = ''
+else:
+    if isinstance(column_description, ColumnDescription):
+        tmp = tempfile.NamedTemporaryFile(
+            mode='w',
+            suffix='.cd',
+            delete=False
+        )
+        tmp.close()
+
+        column_description.save(tmp.name)
+        column_description = tmp.name
+
+    self._check_column_description_type(column_description)
             for item in [pairs, feature_names_path, graph]:
                 if item is None:
                     item = ''
