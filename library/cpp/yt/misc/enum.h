@@ -60,7 +60,12 @@ struct TEnumTraitsWithKnownDomain<T, /*DomainSizeKnown*/ true>
     static constexpr int GetDomainSize();
 
     static constexpr const std::array<TStringBuf, GetDomainSize()>& GetDomainNames();
+    template <bool AllowAmbiguousValues = false>
     static constexpr const std::array<T, GetDomainSize()>& GetDomainValues();
+
+    //! Returns the domain with duplicates dropped: the first declared alias of each value
+    //! wins and declaration order is preserved.
+    static constexpr const auto& GetUniqueDomainValues();
 
     // For non-bit enums only.
     static constexpr T GetMinValue()

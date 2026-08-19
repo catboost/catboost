@@ -69,6 +69,47 @@ constexpr bool CheckValuesUnique(const TValues& values)
     return true;
 }
 
+template <typename TValues>
+constexpr bool IsFirstOccurrence(const TValues& values, size_t index)
+{
+    auto prefixEnd = values.begin() + index;
+    return std::find(values.begin(), prefixEnd, values[index]) == prefixEnd;
+}
+
+template <typename TValues>
+constexpr int CountUniqueValues(const TValues& values)
+{
+    int result = 0;
+    for (size_t index = 0; index < std::size(values); ++index) {
+        if (IsFirstOccurrence(values, index)) {
+            ++result;
+        }
+    }
+    return result;
+}
+
+template <int UniqueValueCount, typename TValues>
+constexpr auto MakeUniqueValues(const TValues& values)
+{
+    using TValue = typename TValues::value_type;
+
+    std::array<TValue, UniqueValueCount> result{};
+    int resultIndex = 0;
+    for (size_t index = 0; index < std::size(values); ++index) {
+        if (IsFirstOccurrence(values, index)) {
+            result[resultIndex++] = values[index];
+        }
+    }
+    return result;
+}
+
+template <class T>
+struct TUniqueEnumDomain
+{
+    static constexpr int Size = CountUniqueValues(TEnumTraitsImpl<T>::GetDomainValues());
+    static constexpr auto Values = MakeUniqueValues<Size>(TEnumTraitsImpl<T>::GetDomainValues());
+};
+
 template <typename TNames>
 constexpr bool CheckDomainNames(const TNames& names)
 {
@@ -248,9 +289,25 @@ constexpr auto TEnumTraitsWithKnownDomain<T, true>::GetDomainNames() -> const st
 }
 
 template <class T>
+template <bool AllowAmbiguousValues>
 constexpr auto TEnumTraitsWithKnownDomain<T, true>::GetDomainValues() -> const std::array<T, GetDomainSize()>&
 {
-    return TEnumTraitsImpl<T>::GetDomainValues();
+    constexpr const auto& values = TEnumTraitsImpl<T>::GetDomainValues();
+    static_assert(
+        AllowAmbiguousValues || NDetail::CheckValuesUnique(values),
+        "GetDomainValues cannot be used with duplicate enumeration values unless AllowAmbiguousValues is true");
+    return values;
+}
+
+template <class T>
+constexpr const auto& TEnumTraitsWithKnownDomain<T, true>::GetUniqueDomainValues()
+{
+    constexpr const auto& values = TEnumTraitsImpl<T>::GetDomainValues();
+    if constexpr (NDetail::CheckValuesUnique(values)) {
+        return values;
+    } else {
+        return NDetail::TUniqueEnumDomain<T>::Values;
+    }
 }
 
 template <class T>
@@ -261,7 +318,7 @@ constexpr T TEnumTraitsWithKnownDomain<T, true>::GetMinValue()
     // a runtime context is not guaranteed to be constant-folded. Without binding the result to
     // a constexpr local, clang (at -O2/-O3) emits a runtime std::min_element scan over the whole
     // domain on every call -- which is hot, e.g. in TEnumIndexedArray::operator[] bounds checks.
-    constexpr auto values = GetDomainValues();
+    constexpr const auto& values = GetDomainValues</*AllowAmbiguousValues*/ true>();
     static_assert(!values.empty());
     constexpr T result = *std::min_element(std::begin(values), std::end(values));
     return result;
@@ -271,7 +328,7 @@ template <class T>
 constexpr T TEnumTraitsWithKnownDomain<T, true>::GetMaxValue()
     requires (!TEnumTraitsImpl<T>::IsBitEnum)
 {
-    constexpr auto values = GetDomainValues();
+    constexpr const auto& values = GetDomainValues</*AllowAmbiguousValues*/ true>();
     static_assert(!values.empty());
     constexpr T result = *std::max_element(std::begin(values), std::end(values));
     return result;
@@ -289,7 +346,7 @@ std::vector<T> TEnumTraitsWithKnownDomain<T, true>::Decompose(T value)
     requires (TEnumTraitsImpl<T>::IsBitEnum)
 {
     std::vector<T> result;
-    for (auto domainValue : GetDomainValues()) {
+    for (auto domainValue : GetDomainValues</*AllowAmbiguousValues*/ true>()) {
         if (Any(value & domainValue)) {
             result.push_back(domainValue);
         }
