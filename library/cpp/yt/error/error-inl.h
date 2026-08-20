@@ -685,16 +685,4 @@ auto RunNoExcept(F&& functor, As&&... args) noexcept -> decltype(functor(std::fo
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline TStringBuf GetWellKnownLoggingTag(const std::exception&)
-{
-    return "Error"_sb;
-}
-
-inline TStringBuf GetWellKnownLoggingTag(const TError&)
-{
-    return "Error"_sb;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 } // namespace NYT

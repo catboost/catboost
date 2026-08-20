@@ -9,6 +9,8 @@
 #include <library/cpp/yt/yson_string/convert.h>
 #include <library/cpp/yt/yson_string/string.h>
 
+#include <library/cpp/yt/logging/tag.h>
+
 #include <library/cpp/yt/misc/property.h>
 
 #include <util/system/compiler.h>
@@ -16,6 +18,8 @@
 
 #include <util/generic/size_literals.h>
 
+#include <concepts>
+#include <exception>
 #include <ranges>
 #include <type_traits>
 
@@ -526,11 +530,19 @@ auto RunNoExcept(F&& functor, As&&... args) noexcept -> decltype(functor(std::fo
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//! Registers errors as a well-known logging tag (ADL customization point for
-//! library/cpp/yt/logging), so that |YT_TLOG_*(...).With(error)| attaches them under
-//! the "Error" key, rendered after the message in plain text.
-TStringBuf GetWellKnownLoggingTag(const std::exception&);
-TStringBuf GetWellKnownLoggingTag(const TError&);
+template <class T>
+    requires std::derived_from<T, TError>
+struct NLogging::TWellKnownLoggingTagTraits<T>
+{
+    static constexpr TStringBuf Key = "Error";
+};
+
+template <class T>
+    requires std::derived_from<T, std::exception>
+struct NLogging::TWellKnownLoggingTagTraits<T>
+{
+    static constexpr TStringBuf Key = "Error";
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
