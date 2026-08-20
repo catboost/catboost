@@ -1,4 +1,5 @@
 #pragma once
+#include <library/cpp/cuda/wrappers/warp_mask.cuh>
 #include <cub/thread/thread_load.cuh>
 #include <cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
@@ -84,7 +85,7 @@ namespace NKernel {
         __syncwarp();
         #pragma unroll
         for (int s = reduceSize >> 1; s > 0; s >>= 1) {
-            val = op(val, __shfl_down_sync(0xFFFFFFFF, val, s));
+            val = op(val, __shfl_down_sync(CB_FULL_WARP_MASK, val, s));
         }
         return val;
     }
@@ -92,7 +93,23 @@ namespace NKernel {
     template <class T, class TOp = TCudaAdd<T> >
     __forceinline__ __device__ T WarpReduce(int x, volatile T* data, int reduceSize, TOp op = TOp()) {
         __syncwarp();
-        #if __CUDA_ARCH__ >= 350
+        #if defined(USE_HIP)
+        // wave64: a shuffle-based reduce over <=32 lanes packed into a 64-lane
+        // wavefront reads inactive lanes; do the reduce through shared memory
+        // with a barrier between steps. data[x] holds this lane's value on entry
+        // and data[0] holds the result on exit, matching the CUDA contract for
+        // x==0 consumers.
+        #pragma unroll
+        for (int s = reduceSize >> 1; s > 0; s >>= 1) {
+            if (x < s) {
+                const T tmp1 = data[x];
+                const T tmp2 = data[x + s];
+                data[x] = op(tmp1, tmp2);
+            }
+            __syncwarp();
+        }
+        return data[0];
+        #elif __CUDA_ARCH__ >= 350
         T val = data[x];
 
         #pragma unroll
@@ -138,9 +155,22 @@ namespace NKernel {
 
     template <class T,  class TOp = TCudaAdd<T>>
     __forceinline__ __device__ T FastInBlockReduce(int x, volatile T* data, int reduceSize) {
+        TOp op;
+#if defined(USE_HIP)
+        // wave64: run the __syncthreads tree to size 1 instead of a 32-lane
+        // warp-synchronous tail. Result in data[0] for the x==0 consumer.
+        #pragma unroll
+        for (int s = reduceSize >> 1; s > 0; s >>= 1) {
+            if (x < s) {
+                T tmp1 = data[x];
+                T tmp2 = data[x + s];
+                data[x] = op(tmp1, tmp2);
+            }
+            __syncthreads();
+        }
+        return data[0];
+#else
         if (reduceSize > 32) {
-            TOp op;
-
             #pragma  unroll
             for (int s = reduceSize >> 1; s >= 32; s >>= 1) {
                 if (x < s) {
@@ -156,6 +186,7 @@ namespace NKernel {
         } else {
             return 0;
         }
+#endif
     }
 
 
