@@ -2,6 +2,7 @@ import numpy as np
 import os
 import pytest
 import re
+import catboost.pytest.lib  # noqa
 import yatest
 
 from catboost import Pool, CatBoost, CatBoostClassifier
