@@ -2,11 +2,18 @@ import numpy as np
 import os
 import pytest
 import re
-import catboost.pytest.lib  # noqa
 import yatest
 
 from catboost import Pool, CatBoost, CatBoostClassifier
-from catboost_pytest_lib import data_file, load_pool_features_as_df
+
+try:
+    import catboost_pytest_lib as lib
+    pytest_plugins = "list_plugin"
+except ImportError:
+    import lib
+
+data_file = lib.data_file
+load_pool_features_as_df = lib.load_pool_features_as_df
 
 CATBOOST_APP_PATH = yatest.common.binary_path('catboost/app/catboost')
 APPROXIMATE_DIFF_PATH = yatest.common.binary_path('catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff')
