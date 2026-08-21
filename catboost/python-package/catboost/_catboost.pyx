@@ -51,6 +51,18 @@ except ImportError:
 
 _polars_is_series_of_list_to_numpy_correct = _polars_version >= (1, 9)
 
+# pandas.NA singleton is available only since pandas 1.0.0
+_pandas_NA = getattr(pd, 'NA', None)
+_pandas_NaT = getattr(pd, 'NaT', None)
+
+# names of pandas nullable extension dtypes for numeric and boolean data
+_pandas_nullable_numeric_dtype_names = frozenset([
+    'Int8', 'Int16', 'Int32', 'Int64',
+    'UInt8', 'UInt16', 'UInt32', 'UInt64',
+    'Float32', 'Float64',
+    'boolean'
+])
+
 np.import_array()
 
 cimport cython
@@ -1284,6 +1296,8 @@ cdef inline float _FloatOrNan(object obj) except *:
     cdef type obj_type = type(obj)
     if obj is None:
         return _FLOAT_NAN
+    elif obj is _pandas_NA or obj is _pandas_NaT:
+        return _FLOAT_NAN
     elif obj_type is float:
         return <float>obj
     elif obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npbytes_ or obj_type is _npunicode_ or isinstance(obj, string_types + (_npbytes_, _npunicode_)):
@@ -2184,6 +2198,8 @@ cdef inline get_id_object_bytes_string_representation(
             # for some reason Cython does not allow assignment to dereferenced pointer, so use this trick instead
             bytes_string_buf_representation[0] = to_arcadia_string(id_object)
         else:
+            if id_object is _pandas_NA or id_object is _pandas_NaT:
+                raise CatBoostError("bad object for id: {}".format(id_object))
             if isnan(id_object) or int(id_object) != id_object:
                 raise CatBoostError("bad object for id: {}".format(id_object))
             bytes_string_buf_representation[0] = ToString[i64](int(id_object))
@@ -3186,6 +3202,10 @@ cdef object _set_features_order_data_pd_data_frame(
                     new_data_holders
                 )
             else:
+                if column_data.dtype.name in _pandas_nullable_numeric_dtype_names:
+                    # pandas nullable numeric/boolean extension dtypes:
+                    # missing values (pandas.NA) are converted to NaN in a vectorized way
+                    column_values = column_data.to_numpy(dtype=np.float32, na_value=np.nan)
                 new_data_holders += create_num_factor_data(
                     flat_feature_idx,
                     column_values,
