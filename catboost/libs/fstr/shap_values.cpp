@@ -1034,7 +1034,7 @@ void CalcShapValuesForDocumentMulti(
             }
         }
     }
-    const TVector<double>& bias = model.GetScaleAndBias().GetBiasRef();
+    const auto& scaleAndBias = model.GetScaleAndBias();
     if (isIndependent) {
         Y_ASSERT(independentTreeShapParams);
         PostProcessingIndependent(
@@ -1045,12 +1045,17 @@ void CalcShapValuesForDocumentMulti(
             featuresCount,
             documentIdx,
             preparedTrees.CalcInternalValues,
-            bias,
+            scaleAndBias,
             shapValues
         );
     } else {
         for (int dimension = 0; dimension < approxDimension; ++dimension) {
-            (*shapValues)[dimension][featuresCount] += bias[dimension];
+            for (int featureIdx = 0; featureIdx < featuresCount; ++featureIdx) {
+                (*shapValues)[dimension][featureIdx] *= scaleAndBias.Scale;
+            }
+            (*shapValues)[dimension][featuresCount] =
+                (*shapValues)[dimension][featuresCount] * scaleAndBias.Scale +
+                scaleAndBias.GetBiasRef()[dimension];
         }
     }
 }
@@ -1617,7 +1622,6 @@ void CalcAndOutputShapValues(
         calcType
     );
 
-    CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "SHAP values");
     const int flatFeatureCount = SafeIntegerCast<int>(dataset.MetaInfo.GetFeatureCount());
 
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
@@ -1660,4 +1664,3 @@ void CalcAndOutputShapValues(
         documentsLogger.Log(profileResults);
     }
 }
-
