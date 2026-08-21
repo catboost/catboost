@@ -184,6 +184,20 @@ TError&& TError::With(TRange&& attributes) &&
     return std::move(*this);
 }
 
+template <CConvertibleToAttributeValue TValue>
+TError& TError::Add(const TErrorAttribute::TKey& key, const TValue& value) &
+{
+    AddAttribute(TErrorAttribute(key, value));
+    return *this;
+}
+
+template <CErrorAttributeRange TRange>
+TError& TError::Add(TRange&& attributes) &
+{
+    AddAttributes(std::forward<TRange>(attributes));
+    return *this;
+}
+
 template <CErrorAttributeRange TRange>
 void TError::AddAttributes(TRange&& attributes)
 {
@@ -205,6 +219,29 @@ TError&& TError::With(TRange&& innerErrors) &&
 {
     AddInnerErrors(std::forward<TRange>(innerErrors));
     return std::move(*this);
+}
+
+template <class... TArgs>
+TError TError::WithIf(bool condition, TArgs&&... args) const &
+{
+    return condition
+        ? With(std::forward<TArgs>(args)...)
+        : *this;
+}
+
+template <class... TArgs>
+TError&& TError::WithIf(bool condition, TArgs&&... args) &&
+{
+    return condition
+        ? std::move(*this).With(std::forward<TArgs>(args)...)
+        : std::move(*this);
+}
+
+template <CErrorRange TRange>
+TError& TError::Add(TRange&& innerErrors) &
+{
+    AddInnerErrors(std::forward<TRange>(innerErrors));
+    return *this;
 }
 
 template <CErrorRange TRange>

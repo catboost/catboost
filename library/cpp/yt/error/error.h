@@ -233,6 +233,9 @@ public:
     template <CErrorAttributeRange TRange>
     [[nodiscard]] TError&& With(TRange&& attributes) &&;
 
+    [[nodiscard]] TError With(TAnyMergeableDictionaryRef attributes) const &;
+    [[nodiscard]] TError&& With(TAnyMergeableDictionaryRef attributes) &&;
+
     [[nodiscard]] TError With(const TError& innerError) const &;
     [[nodiscard]] TError&& With(const TError& innerError) &&;
     [[nodiscard]] TError With(TError&& innerError) const &;
@@ -242,6 +245,30 @@ public:
     [[nodiscard]] TError With(TRange&& innerErrors) const &;
     template <CErrorRange TRange>
     [[nodiscard]] TError&& With(TRange&& innerErrors) &&;
+
+    //! Forwards to #With only when #condition holds.
+    //! NB: the operands are evaluated either way; pass a functor to defer a costly value.
+    template <class... TArgs>
+    [[nodiscard]] TError WithIf(bool condition, TArgs&&... args) const &;
+    template <class... TArgs>
+    [[nodiscard]] TError&& WithIf(bool condition, TArgs&&... args) &&;
+
+    //! In-place counterparts of #With.
+    template <CConvertibleToAttributeValue TValue>
+    TError& Add(const TErrorAttribute::TKey& key, const TValue& value) &;
+
+    TError& Add(const TErrorAttribute& attribute) &;
+
+    template <CErrorAttributeRange TRange>
+    TError& Add(TRange&& attributes) &;
+
+    TError& Add(TAnyMergeableDictionaryRef attributes) &;
+
+    TError& Add(const TError& innerError) &;
+    TError& Add(TError&& innerError) &;
+
+    template <CErrorRange TRange>
+    TError& Add(TRange&& innerErrors) &;
 
     TError& operator <<= (const TErrorAttribute& attribute) &;
     TError& operator <<= (const std::vector<TErrorAttribute>& attributes) &;
@@ -298,6 +325,8 @@ private:
 
     template <CErrorAttributeRange TRange>
     void AddAttributes(TRange&& attributes);
+
+    void AddAttributes(TAnyMergeableDictionaryRef attributes);
 
     void AddInnerError(const TError& innerError);
     void AddInnerError(TError&& innerError);
