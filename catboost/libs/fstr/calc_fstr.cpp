@@ -485,7 +485,7 @@ TVector<TVector<double>> GetFeatureImportances(
     if (dataset) {
         CheckModelAndDatasetCompatibility(model, *dataset->ObjectsData.Get());
     }
-    if (fstrType != EFstrType::PredictionValuesChange) {
+    if (fstrType != EFstrType::PredictionValuesChange && fstrType != EFstrType::ShapValues) {
         CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "feature importance");
     }
     switch (fstrType) {
@@ -653,4 +653,3 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
     }
     return GetMaybeGeneratedModelFeatureIds(model, std::move(datasetFeaturesLayout));
 }
-
