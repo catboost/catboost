@@ -1,5 +1,6 @@
 package ai.catboost;
 
+import ai.catboost.common.CatBoostError;
 import junit.framework.TestCase;
 
 import org.junit.jupiter.api.Assertions;

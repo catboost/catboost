@@ -14,7 +14,7 @@ import org.apache.hadoop.fs.{Path => HadoopFsPath, FileSystem => HadoopFileSyste
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame,SaveMode}
 
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 
 import ai.catboost.spark.impl.SerializationHelpers
 
