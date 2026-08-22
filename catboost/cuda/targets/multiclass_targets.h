@@ -152,10 +152,9 @@ namespace NCatboostCuda {
                         NumClasses >= tmp.size(),
                         "Number of classes (" << NumClasses << ") should be >= number of unique labels (" << tmp.size() << ")");
                 }
-            } else if (
-                targetOptions.GetLossFunction() == ELossFunction::MultiRMSE || 
-                targetOptions.GetLossFunction() == ELossFunction::MultiRMSEWithMissingValues
-            ) {
+            } else if (EqualToOneOf(targetOptions.GetLossFunction(),
+                                    ELossFunction::MultiRMSE,
+                                    ELossFunction::MultiRMSEWithMissingValues)) {
                 NumClasses = dataProvider.TargetData->GetTargetDimension();
             } else {
                 CB_ENSURE_INTERNAL(targetOptions.GetLossFunction() == ELossFunction::RMSEWithUncertainty,

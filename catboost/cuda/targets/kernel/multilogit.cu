@@ -689,7 +689,7 @@ namespace NKernel {
     void MultiRMSEWithMissingValuesValueAndDer(
         ui32 targetCount,
         ui32 size,
-        const float* target, ui32 tragetAlignSize,
+        const float* target, ui32 targetAlignSize,
         const float* weights,
         const float* predictions, ui32 predictionsAlignSize,
         const ui32* loadPredictionsIndices,
@@ -707,7 +707,7 @@ namespace NKernel {
             MultiRMSEWithMissingValuesValueAndDerImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(
                 targetCount,
                 size,
-                target, tragetAlignSize,
+                target, targetAlignSize,
                 weights,
                 predictions, predictionsAlignSize,
                 loadPredictionsIndices,
