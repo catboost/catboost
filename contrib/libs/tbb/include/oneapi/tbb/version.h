@@ -30,7 +30,7 @@
 // Product version
 #define TBB_VERSION_MAJOR 2023
 // Update version
-#define TBB_VERSION_MINOR 0
+#define TBB_VERSION_MINOR 1
 // "Patch" version for custom releases
 #define TBB_VERSION_PATCH 0
 // Suffix string
@@ -45,7 +45,7 @@
 // OneAPI oneTBB specification version
 #define ONETBB_SPEC_VERSION 104
 // Full interface version
-#define TBB_INTERFACE_VERSION 12180
+#define TBB_INTERFACE_VERSION 12190
 // Major interface version
 #define TBB_INTERFACE_VERSION_MAJOR (TBB_INTERFACE_VERSION/1000)
 // Minor interface version

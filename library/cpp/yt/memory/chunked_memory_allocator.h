@@ -2,6 +2,8 @@
 
 #include "ref.h"
 
+#include <library/cpp/yt/mpl/type_traits.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +34,7 @@ public:
             maxSmallBlockSizeRatio,
             GetRefCountedTypeCookie<TTag>())
     {
-        static_assert(IsEmptyClass<TTag>());
+        static_assert(NMpl::IsEmptyClass<TTag>());
     }
 
     //! Allocates #sizes bytes without any alignment.

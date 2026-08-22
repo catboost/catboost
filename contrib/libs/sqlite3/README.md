@@ -25,7 +25,28 @@ If you pulled your SQLite source code from a secondary source and want to
 verify its integrity, there are hints on how to do that in the
 [Verifying Code Authenticity](#vauth) section below.
 
-## Obtaining The Code
+## Contacting The SQLite Developers
+
+The preferred way to ask questions or make comments about SQLite or to
+report bugs against SQLite is to visit the 
+[SQLite Forum](https://sqlite.org/forum) at <https://sqlite.org/forum/>.
+Anonymous postings are permitted.
+
+If you think you have found a bug that has security implications and
+you do not want to report it on the public forum, you can send a private
+email to drh at sqlite dot org.
+
+## Public Domain
+
+The SQLite source code is in the public domain.  See
+<https://sqlite.org/copyright.html> for details. 
+
+Because SQLite is in the public domain, we do not normally accept pull
+requests, because if we did take a pull request, the changes in that
+pull request might carry a copyright and the SQLite source code would
+then no longer be fully in the public domain.
+
+## Obtaining The SQLite Source Code
 
 If you do not want to use Fossil, you can download tarballs or ZIP
 archives or [SQLite archives](https://sqlite.org/cli.html#sqlar) as follows:
@@ -82,9 +103,9 @@ For example:
         mkdir bld                ;#  Build will occur in a sibling directory
         cd bld                   ;#  Change to the build directory
         ../sqlite/configure      ;#  Run the configure script
-        make                     ;#  Run the makefile.
+        make                     ;#  Builds the "sqlite3" command-line tool
         make sqlite3.c           ;#  Build the "amalgamation" source file
-        make test                ;#  Run some tests (requires Tcl)
+        make devtest             ;#  Run some tests (requires Tcl)
 
 See the makefile for additional targets.
 
@@ -94,32 +115,33 @@ script does not work out for you, there is a generic makefile named
 can copy and edit to suit your needs.  Comments on the generic makefile
 show what changes are needed.
 
-## Using MSVC for Windows systems
+## Compiling for Windows Using MSVC
 
 On Windows, all applicable build products can be compiled with MSVC.
-First open the command prompt window associated with the desired compiler
-version (e.g. "Developer Command Prompt for VS2013").  Next, use NMAKE
-with the provided "Makefile.msc" to build one of the supported targets.
+You will also need a working installation of TCL.
+See the [compile-for-windows.md](doc/compile-for-windows.md) document for
+additional information about how to install MSVC and TCL and configure your
+build environment.
 
-For example, from the parent directory of the source subtree named "sqlite":
+If you want to run tests, you need to let SQLite know the location of your
+TCL library, using a command like this:
 
-        mkdir bld
-        cd bld
-        nmake /f ..\sqlite\Makefile.msc TOP=..\sqlite
-        nmake /f ..\sqlite\Makefile.msc sqlite3.c TOP=..\sqlite
-        nmake /f ..\sqlite\Makefile.msc sqlite3.dll TOP=..\sqlite
-        nmake /f ..\sqlite\Makefile.msc sqlite3.exe TOP=..\sqlite
-        nmake /f ..\sqlite\Makefile.msc test TOP=..\sqlite
+        set TCLDIR=c:\Tcl
 
-There are several build options that can be set via the NMAKE command
-line.  For example, to build for WinRT, simply add "FOR_WINRT=1" argument
-to the "sqlite3.dll" command line above.  When debugging into the SQLite
-code, adding the "DEBUG=1" argument to one of the above command lines is
-recommended.
+SQLite uses "tclsh.exe" as part of the build process, and so that utility
+program will need to be somewhere on your %PATH%.  The finished SQLite library
+does not contain any TCL code, but it does use TCL to help with the build process
+and to run tests.
 
-SQLite does not require [Tcl](http://www.tcl.tk/) to run, but a Tcl installation
-is required by the makefiles (including those for MSVC).  SQLite contains
-a lot of generated code and Tcl is used to do much of that code generation.
+Build using Makefile.msc.  Example:
+
+        nmake /f Makefile.msc
+        nmake /f Makefile.msc sqlite3.c
+        nmake /f Makefile.msc devtest
+        nmake /f Makefile.msc releasetest
+ 
+There are many other makefile targets.  See comments in Makefile.msc for
+details.
 
 ## Source Code Tour
 
@@ -290,15 +312,12 @@ Key files:
      is not part of the core SQLite library.  But as most of the tests in this
      repository are written in Tcl, the Tcl language bindings are important.
 
-  *  **test*.c** - Files in the src/ folder that begin with "test" go into
+  *  **test\*.c** - Files in the src/ folder that begin with "test" go into
      building the "testfixture.exe" program.  The testfixture.exe program is
      an enhanced Tcl shell.  The testfixture.exe program runs scripts in the
      test/ folder to validate the core SQLite code.  The testfixture program
      (and some other test programs too) is built and run when you type
      "make test".
-
-  *  **ext/misc/json1.c** - This file implements the various JSON functions
-     that are built into SQLite.
 
 There are many other source files.  Each has a succinct header comment that
 describes its purpose and role within the larger system.
@@ -307,8 +326,8 @@ describes its purpose and role within the larger system.
 ## Verifying Code Authenticity
 
 The `manifest` file at the root directory of the source tree
-contains either a SHA3-256 hash (for newer files) or a SHA1 hash (for
-older files) for every source file in the repository.
+contains either a SHA3-256 hash or a SHA1 hash
+for every source file in the repository.
 The name of the version of the entire source tree is just the
 SHA3-256 hash of the `manifest` file itself, possibly with the
 last line of that file omitted if the last line begins with
@@ -316,14 +335,25 @@ last line of that file omitted if the last line begins with
 The `manifest.uuid` file should contain the SHA3-256 hash of the
 `manifest` file. If all of the above hash comparisons are correct, then
 you can be confident that your source tree is authentic and unadulterated.
+Details on the format for the `manifest` files are available
+[on the Fossil website](https://fossil-scm.org/fossil/doc/trunk/www/fileformat.wiki#manifest).
 
-The format of the `manifest` file should be mostly self-explanatory, but
-if you want details, they are available
-[here](https://fossil-scm.org/fossil/doc/trunk/www/fileformat.wiki#manifest).
+The process of checking source code authenticity is automated by the 
+makefile:
+
+>   make verify-source
+
+Or on windows:
+
+>   nmake /f Makefile.msc verify-source
+
+Using the makefile to verify source integrity is good for detecting
+accidental changes to the source tree, but malicious changes could be
+hidden by also modifying the makefiles.
 
 ## Contacts
 
-The main SQLite website is [http://www.sqlite.org/](http://www.sqlite.org/)
+The main SQLite website is [http:/sqlite.org/](http://sqlite.org/)
 with geographically distributed backups at
 [http://www2.sqlite.org/](http://www2.sqlite.org) and
 [http://www3.sqlite.org/](http://www3.sqlite.org).

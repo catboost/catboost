@@ -5,7 +5,7 @@
 #include <concepts>
 #include <utility>
 
-namespace NYT {
+namespace NYT::NMpl {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -82,7 +82,7 @@ concept CNonTrivialWrapper =
 
 ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYT
+} // namespace NYT::NMpl
 
 #define WRAPPER_TRAITS_INL_H_
 #include "wrapper_traits-inl.h"

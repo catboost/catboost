@@ -10,7 +10,7 @@ namespace {
 // This overload should be visible by direct call
 // from namespaces enclosing ns NYT
 // but invisible to any template code
-// therefore it must not affect CTagInvocable concept.
+// therefore it must not affect NMpl::CTagInvocable concept.
 template <class T, class U>
 int TagInvoke(const T&, const U&)
 {
@@ -42,7 +42,7 @@ struct TUniquelyTaggedForTagInvokeImplUt
 // Actual includes start.
 #include <library/cpp/testing/gtest/gtest.h>
 
-#include <library/cpp/yt/misc/tag_invoke.h>
+#include <library/cpp/yt/mpl/tag_invoke.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -53,7 +53,7 @@ namespace {
 
 TEST(TTagInvokeCompileTests, UnqualidTemplate)
 {
-    static_assert(!CTagInvocable<int, int>);
+    static_assert(!NMpl::CTagInvocable<int, int>);
     // Unqualified finds overload defined above
     // and never the CPO since constraints fail.
     EXPECT_EQ(TagInvoke(42, 42), 42);
@@ -61,9 +61,9 @@ TEST(TTagInvokeCompileTests, UnqualidTemplate)
 
 TEST(TTagInvokeCompileTests, HiddenFriend)
 {
-    static_assert(CTagInvocable<TUniquelyTaggedForTagInvokeImplUt, int>);
+    static_assert(NMpl::CTagInvocable<TUniquelyTaggedForTagInvokeImplUt, int>);
     EXPECT_EQ(TagInvoke(TUniquelyTaggedForTagInvokeImplUt{}, 42), 44);
-    EXPECT_EQ(NYT::TagInvoke(TUniquelyTaggedForTagInvokeImplUt{}, 42), 44);
+    EXPECT_EQ(NYT::NMpl::TagInvoke(TUniquelyTaggedForTagInvokeImplUt{}, 42), 44);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

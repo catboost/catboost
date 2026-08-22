@@ -63,7 +63,7 @@ Contains basic information about the training.
 Property | Type | Description
 ----- | ----- | -----
 `launch_mode` | {{ json__string }} | The specified launch mode.<br/><br/>Possible values:<br/>- Train — Training launch mode.<br/>- CV — Cross-validation launch mode (for the Python [cv](python-reference_cv.md) method only).<br/><br/>The command-line implementation of the [Cross-validation](cli-reference_cross-validation.md) feature returns the Train value in this parameter.<br/><br/>{% endnote %}
-`name` | {{ json__string }} | The experiment name.<br/><br/>The value can be set in the `--name` (`--name`) training parameter. The default name is .
+`name` | {{ json__string }} | The experiment name.<br/><br/>The value can be set in the `--name` (`--name`) training parameter. The default name is {{ fit--name }}.
 `iteration_count` | {{ json__int }} | The maximum number of trees that can be built when solving machine learning problems.<br>The final number of iterations may be less than the output in this property.
 `learn_metrics` | {{ json__array }} | A list of metrics calculated for the learning dataset and information regarding the optimization method.
 `test_sets` | {{ json__array }} | The names of the arrays within the [iterations](#iterations__array) array that contain the calculated values of metrics for the validation datasets.

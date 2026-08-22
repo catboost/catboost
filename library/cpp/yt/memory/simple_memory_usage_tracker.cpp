@@ -12,7 +12,7 @@ class TNullSimpleMemoryUsageTracker
 public:
     bool Acquire(i64 /*size*/) override
     {
-        return false;
+        return true;
     }
 
     void Release(i64 /*size*/) override

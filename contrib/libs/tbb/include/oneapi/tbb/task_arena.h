@@ -690,7 +690,7 @@ inline void start_parallel_phase() {
     r1::enter_parallel_phase(nullptr, /*reserved*/0);
 }
 
-inline void end_parallel_phase(bool with_fast_leave) {
+inline void end_parallel_phase(bool with_fast_leave = false) {
     // It is guaranteed by the standard that conversion of boolean to integral type will result in either 0 or 1
     r1::exit_parallel_phase(nullptr, static_cast<std::uintptr_t>(with_fast_leave));
 }

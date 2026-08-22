@@ -336,6 +336,27 @@ def _get_features_indices(features, feature_names):
     return features
 
 
+def _check_polars_categorical_features_have_no_nulls(data, cat_features):
+    """Raise an informative error for null values in polars Categorical/Enum cat_features.
+
+        Null values in categorical columns are not supported. For a polars.String column
+        (or for pandas) this is reported with a clear message, but for a polars.Enum or
+        polars.Categorical column the nulls used to reach the compiled layer and surface
+        as an opaque ``TypeError: No matching signature found`` (see issue #3106). Detect
+        the nulls here and report them the same way as the other backends.
+    """
+    if (not isinstance(data, pl.DataFrame)) or (not cat_features):
+        return
+    for feature_idx in cat_features:
+        dtype = data.dtypes[feature_idx]
+        if (dtype == pl.Categorical) or isinstance(dtype, pl.Enum):
+            if data.to_series(feature_idx).null_count() > 0:
+                raise CatBoostError(
+                    "Data with nulls is not supported for categorical columns, but categorical "
+                    "column '{}' contains null values".format(data.columns[feature_idx])
+                )
+
+
 def _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
                                  feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
                                  nan_mode, input_borders, task_type, used_ram_limit, random_seed,
@@ -1471,6 +1492,7 @@ class Pool(_PoolBase):
             cat_features = _get_features_indices(cat_features, feature_names)
             self._check_string_feature_type(cat_features, 'cat_features')
             self._check_string_feature_value(cat_features, features_count, 'cat_features')
+            _check_polars_categorical_features_have_no_nulls(data, cat_features)
         if text_features is not None:
             text_features = _get_features_indices(text_features, feature_names)
             self._check_string_feature_type(text_features, 'text_features')
@@ -1773,7 +1795,10 @@ class _CatBoostBase(object):
         return f"{self.__class__.__name__}({params_str})"
 
     def __getattr__(self, name: str):
-        if (name == 'feature_names_in_') and self.is_fitted():
+        # the name check must precede is_fitted(), which itself goes through __getattr__
+        if name in ('n_features_in_', 'feature_names_in_') and self.is_fitted():
+            if name == 'n_features_in_':
+                return getattr(self, '_n_features_in')
             return np.array(self._object._get_feature_names(), dtype=object)
         raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, name))
 
@@ -2108,10 +2133,6 @@ class _CatBoostBase(object):
         return getattr(self, '_learning_rate') if self.is_fitted() else None
 
     @property
-    def n_features_in_(self):
-        return getattr(self, '_n_features_in') if self.is_fitted() else None
-
-    @property
     def feature_names_(self):
         return self._object._get_feature_names() if self.is_fitted() else None
 
@@ -2239,9 +2260,6 @@ class _CatBoostBase(object):
             'check_fit2d_predict1d':
                 'TODO: CatBoost API allows to pass 1d array for prediction for a single sample,'
                 ' maybe this behavior should be tunable in the future',
-            'check_n_features_in':
-                'TODO: n_features_in_ must not be defined until fit is called. '
-                'https://github.com/catboost/catboost/issues/3004',
             'check_n_features_in_after_fitting':
                 'TODO: 1) raise ValueError instead of generic CatBoostError.'
                 ' https://github.com/catboost/catboost/issues/2996; '

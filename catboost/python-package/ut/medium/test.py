@@ -1,5 +1,7 @@
 from collections import OrderedDict, Counter
+from copy import deepcopy
 import filecmp
+import gc
 import hashlib
 import math
 import numpy as np
@@ -601,6 +603,11 @@ def test_fit_on_ndarray(features_dtype):
     assert _have_equal_features(order_to_pool['C'], order_to_pool['F'])
 
     model = CatBoostClassifier(iterations=5)
+
+    assert not hasattr(model, 'n_features_in_')
+    with pytest.raises(AttributeError):
+        model.n_features_in_
+
     model.fit(order_to_pool['F'])  # order is irrelevant here - they are equal
 
     assert model.n_features_in_ == n_features
@@ -610,6 +617,16 @@ def test_fit_on_ndarray(features_dtype):
     preds_path = test_output_path(PREDS_TXT_PATH)
     np.savetxt(preds_path, np.array(preds))
     return local_canonical_file(preds_path)
+
+
+def test_attribute_access_on_unfitted_model():
+    # __getattr__ calls is_fitted(), which is an attribute lookup itself, so the
+    # attribute name has to be checked before is_fitted() to avoid infinite recursion
+    model = CatBoostClassifier(iterations=5)
+    for attribute in ('n_features_in_', 'feature_names_in_', 'no_such_attribute'):
+        assert not hasattr(model, attribute)
+        with pytest.raises(AttributeError):
+            getattr(model, attribute)
 
 
 @pytest.mark.parametrize(
@@ -762,6 +779,48 @@ def test_load_dumps():
     pool2 = Pool(tmp_file)
     assert _check_data(pool1.get_features(), pool2.get_features())
     assert _check_data(pool1.get_label(), [int(label) for label in pool2.get_label()])
+
+
+def test_pool_does_not_leave_numpy_ndarray_data_read_only():
+    # Only Fortran-contiguous numeric arrays take the zero-copy features-order path that
+    # locks the data read-only, so the array below is created in that order.
+    prng = np.random.RandomState(seed=20250223)
+
+    data = np.asfortranarray(prng.normal(size=(50, 10)).astype(np.float32))
+    assert data.flags.writeable
+    pool = Pool(data)
+    assert not data.flags.writeable
+    del pool
+    gc.collect()
+    assert data.flags.writeable
+
+
+def test_pool_does_not_leave_numpy_features_data_read_only():
+    prng = np.random.RandomState(seed=20250223)
+
+    num_data = np.asfortranarray(prng.normal(size=(50, 3)).astype(np.float32))
+    cat_data = np.asfortranarray(np.array([[b'a', b'b']] * 50, dtype=object))
+    fd = FeaturesData(num_feature_data=num_data, cat_feature_data=cat_data)
+    pool = Pool(fd)
+    assert not num_data.flags.writeable
+    assert not cat_data.flags.writeable
+    del pool, fd
+    gc.collect()
+    assert num_data.flags.writeable
+    assert cat_data.flags.writeable
+
+
+def test_pool_keeps_already_read_only_numpy_data_read_only():
+    prng = np.random.RandomState(seed=20250223)
+
+    # an array that was already read-only must stay read-only, not be wrongly re-enabled
+    ro_data = np.asfortranarray(prng.normal(size=(50, 10)).astype(np.float32))
+    ro_data.setflags(write=0)
+    pool = Pool(ro_data)
+    assert not ro_data.flags.writeable
+    del pool
+    gc.collect()
+    assert not ro_data.flags.writeable
 
 
 @pytest.mark.parametrize(
@@ -11987,3 +12046,52 @@ def test_repr():
     assert (CatBoostRegressor(verbose=False, random_seed=42).__repr__() == r"CatBoostRegressor(loss_function='RMSE', random_seed=42, verbose=False)")
     assert (CatBoostClassifier(verbose=False, random_seed=32).__repr__() == r"CatBoostClassifier(random_seed=32, verbose=False)")
     assert (CatBoostRanker(one_hot_max_size=10, depth=7).__repr__() == r"CatBoostRanker(depth=7, loss_function='YetiRank', one_hot_max_size=10)")
+
+
+def test_deepcopy_fit_predict_with_cat_features():
+    """
+    Regression test for https://github.com/catboost/catboost/issues/2905
+
+    deepcopy() deserializes the model with ReadZeroCopyModel, so the copied model
+    references the memory of the blob stored in it. Refitting the copy must not
+    release that blob while the previous model is still in use: _train used to
+    clear model_blob first, which led to use-after-free and hangs in predict.
+    """
+    n_samples = 5000
+    rng = np.random.RandomState(0)
+    df = pd.DataFrame({
+        'num_1': rng.randn(n_samples),
+        'num_2': rng.rand(n_samples) * 100,
+        'cat_1': rng.choice(['A', 'B', 'C'], n_samples),
+        'cat_2': rng.choice(['X', 'Y'], n_samples),
+    })
+    target = (df['num_1'] + (df['cat_1'] == 'B').astype(int) > 0).astype(int)
+    cat_features = ['cat_1', 'cat_2']
+    params = dict(
+        iterations=10,
+        learning_rate=0.25,
+        depth=4,
+        verbose=False,
+        random_seed=42,
+        thread_count=2,
+    )
+
+    model = CatBoostClassifier(**params)
+    model.fit(df, target, cat_features=cat_features)
+
+    model_copy = deepcopy(model)
+
+    # the copied model must stay valid on its own
+    assert np.array_equal(model_copy.predict(df), model.predict(df))
+
+    # refitting the copy must not corrupt it, the result must be the same as
+    # training a new model from scratch with the same parameters
+    model_copy.fit(df, target, cat_features=cat_features)
+    model_from_scratch = CatBoostClassifier(**params)
+    model_from_scratch.fit(df, target, cat_features=cat_features)
+
+    assert np.array_equal(model_copy.predict(df), model_from_scratch.predict(df))
+    assert np.allclose(
+        model_copy.predict(df, prediction_type='Probability'),
+        model_from_scratch.predict(df, prediction_type='Probability')
+    )

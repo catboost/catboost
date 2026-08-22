@@ -42,6 +42,11 @@ namespace {
                     const int ret = mallctl("prof.dump", nullptr, nullptr, nullptr, 0);
                     return ret == 0;
                 }
+                if (strncmp(value, "dump_to:", 8) == 0) {
+                    const char* path = value + 8;
+                    const int ret = mallctl("prof.dump", nullptr, nullptr, &path, sizeof(path));
+                    return ret == 0;
+                }
             }
             if (strcmp(param, "j:bg_threads") == 0) {
                 if (strcmp(value, "start") == 0) {

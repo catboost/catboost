@@ -22,6 +22,7 @@ except (ImportError, ModuleNotFoundError):
     # Python 3
     import urllib.request as urllib_request
     from urllib.error import HTTPError, URLError
+
     # Explicitly enable local imports
     # Don't forget to add imported scripts to inputs of the calling command!
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -226,9 +227,10 @@ def size_printer(display_name, size):
         now = dt.datetime.now()
         if last_stamp[0] + dt.timedelta(seconds=10) < now:
             if size:
-                print("##status##{} - [[imp]]{:.1f}%[[rst]]".format(
-                    display_name, 100.0 * sz[0] / size if size else 0
-                ), file=sys.stderr)
+                print(
+                    "##status##{} - [[imp]]{:.1f}%[[rst]]".format(display_name, 100.0 * sz[0] / size if size else 0),
+                    file=sys.stderr,
+                )
             last_stamp[0] = now
 
     return printer
@@ -275,7 +277,7 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
     logging.info('File sha1 %s (expected %s)', real_sha1, expected_sha1)
 
     if expected_md5 and real_md5 != expected_md5:
-        report_to_snowden({'headers': req.headers.headers, 'expected_md5': expected_md5, 'real_md5': real_md5})
+        report_to_snowden({'headers': dict(req.headers.items()), 'expected_md5': expected_md5, 'real_md5': real_md5})
 
         raise BadChecksumFetchError(
             'Downloaded {}, but expected {} for {}'.format(
@@ -286,7 +288,9 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
         )
 
     if expected_sha1 and real_sha1 != expected_sha1:
-        report_to_snowden({'headers': req.headers.headers, 'expected_sha1': expected_sha1, 'real_sha1': real_sha1})
+        report_to_snowden(
+            {'headers': dict(req.headers.items()), 'expected_sha1': expected_sha1, 'real_sha1': real_sha1}
+        )
 
         raise BadChecksumFetchError(
             'Downloaded {}, but expected {} for {}'.format(
@@ -297,7 +301,7 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
         )
 
     if expected_file_size and expected_file_size != real_file_size:
-        report_to_snowden({'headers': req.headers.headers, 'file_size': real_file_size})
+        report_to_snowden({'headers': dict(req.headers.items()), 'file_size': real_file_size})
 
         raise IncompleteFetchError(
             'Downloaded {}, but expected {} for {}'.format(

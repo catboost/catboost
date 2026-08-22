@@ -48,25 +48,29 @@ inline TString DLLERR() {
 
 class TDynamicLibrary::TImpl {
 private:
-    inline TImpl(const char* path, int flags)
-        : Module(DLLOPEN(path, flags))
+    inline TImpl()
+        : Module(nullptr)
         , Unloadable(true)
     {
-        (void)flags;
-
-        if (!Module) {
-            ythrow yexception() << DLLERR().data();
-        }
     }
 
     class TCreateMutex: public TMutex {
     };
 
 public:
-    static inline TImpl* SafeCreate(const char* path, int flags) {
-        auto guard = Guard(*Singleton<TCreateMutex>());
-
-        return new TImpl(path, flags);
+    static inline THolder<TImpl> TryCreate(const char* path, int flags, TString* errorMessage) {
+        (void)flags;
+        auto impl = THolder<TImpl>(new TImpl);
+        const auto guard = Guard(*Singleton<TCreateMutex>());
+        impl->Module = DLLOPEN(path, flags);
+        if (!impl->Module) {
+            auto error = DLLERR(); // unconditionally reset state of dlerror
+            if (errorMessage != nullptr) {
+                *errorMessage = std::move(error);
+            }
+            return nullptr;
+        }
+        return impl;
     }
 
     inline ~TImpl() {
@@ -107,8 +111,19 @@ TDynamicLibrary::TDynamicLibrary(const TString& path, int flags) {
 
 TDynamicLibrary::~TDynamicLibrary() = default;
 
+bool TDynamicLibrary::TryOpen(const char* path, int flags, TString* errorMessage) {
+    auto impl = TImpl::TryCreate(path, flags, errorMessage);
+    if (impl != nullptr) {
+        Impl_ = std::move(impl);
+        return true;
+    }
+    return false;
+}
+
 void TDynamicLibrary::Open(const char* path, int flags) {
-    Impl_.Reset(TImpl::SafeCreate(path, flags));
+    TString errorMessage;
+    const bool success = TryOpen(path, flags, &errorMessage);
+    Y_ENSURE(success, errorMessage);
 }
 
 void TDynamicLibrary::Close() noexcept {

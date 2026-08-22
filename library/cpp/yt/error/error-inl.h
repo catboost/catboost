@@ -79,7 +79,7 @@ TError::TErrorOr(TErrorCode code, TFormatString<TArgs...> format, TArgs&&... arg
     : TErrorOr(code, NYT::NDetail::FormatErrorMessage(format.Get(), std::forward<TArgs>(args)...), DisableFormat)
 { }
 
-template <CInvocable<bool(const TError&)> TFilter>
+template <NMpl::CInvocable<bool(const TError&)> TFilter>
 std::optional<TError> TError::FindMatching(const TFilter& filter) const
 {
     if (!Impl_) {
@@ -99,7 +99,7 @@ std::optional<TError> TError::FindMatching(const TFilter& filter) const
     return {};
 }
 
-template <CInvocable<bool(TErrorCode)> TFilter>
+template <NMpl::CInvocable<bool(TErrorCode)> TFilter>
 std::optional<TError> TError::FindMatching(const TFilter& filter) const
 {
     return FindMatching([&] (const TError& error) { return filter(error.GetCode()); });
@@ -153,6 +153,116 @@ TError TError::Wrap(TErrorCode code, TFormatString<TArgs...> format, TArgs&&... 
 
 #undef IMPLEMENT_COPY_WRAP
 #undef IMPLEMENT_MOVE_WRAP
+
+template <CConvertibleToAttributeValue TValue>
+TError TError::With(const TErrorAttribute::TKey& key, const TValue& value) const &
+{
+    auto result = TError(*this);
+    result.AddAttribute(TErrorAttribute(key, value));
+    return result;
+}
+
+template <CConvertibleToAttributeValue TValue>
+TError&& TError::With(const TErrorAttribute::TKey& key, const TValue& value) &&
+{
+    AddAttribute(TErrorAttribute(key, value));
+    return std::move(*this);
+}
+
+template <CErrorAttributeRange TRange>
+TError TError::With(TRange&& attributes) const &
+{
+    auto result = TError(*this);
+    result.AddAttributes(std::forward<TRange>(attributes));
+    return result;
+}
+
+template <CErrorAttributeRange TRange>
+TError&& TError::With(TRange&& attributes) &&
+{
+    AddAttributes(std::forward<TRange>(attributes));
+    return std::move(*this);
+}
+
+template <CConvertibleToAttributeValue TValue>
+TError& TError::Add(const TErrorAttribute::TKey& key, const TValue& value) &
+{
+    AddAttribute(TErrorAttribute(key, value));
+    return *this;
+}
+
+template <CErrorAttributeRange TRange>
+TError& TError::Add(TRange&& attributes) &
+{
+    AddAttributes(std::forward<TRange>(attributes));
+    return *this;
+}
+
+template <CErrorAttributeRange TRange>
+void TError::AddAttributes(TRange&& attributes)
+{
+    for (const auto& attribute : attributes) {
+        AddAttribute(attribute);
+    }
+}
+
+template <CErrorRange TRange>
+TError TError::With(TRange&& innerErrors) const &
+{
+    auto result = TError(*this);
+    result.AddInnerErrors(std::forward<TRange>(innerErrors));
+    return result;
+}
+
+template <CErrorRange TRange>
+TError&& TError::With(TRange&& innerErrors) &&
+{
+    AddInnerErrors(std::forward<TRange>(innerErrors));
+    return std::move(*this);
+}
+
+template <class... TArgs>
+TError TError::WithIf(bool condition, TArgs&&... args) const &
+{
+    return condition
+        ? With(std::forward<TArgs>(args)...)
+        : *this;
+}
+
+template <class... TArgs>
+TError&& TError::WithIf(bool condition, TArgs&&... args) &&
+{
+    return condition
+        ? std::move(*this).With(std::forward<TArgs>(args)...)
+        : std::move(*this);
+}
+
+template <CErrorRange TRange>
+TError& TError::Add(TRange&& innerErrors) &
+{
+    AddInnerErrors(std::forward<TRange>(innerErrors));
+    return *this;
+}
+
+template <CErrorRange TRange>
+void TError::AddInnerErrors(TRange&& innerErrors)
+{
+    if constexpr (std::ranges::sized_range<TRange>) {
+        auto* result = MutableInnerErrors();
+        result->reserve(result->size() + std::ranges::size(innerErrors));
+    }
+
+    for (auto&& innerError : innerErrors) {
+        if constexpr (
+            std::is_rvalue_reference_v<TRange&&> &&
+            !std::ranges::view<std::remove_cvref_t<TRange>>)
+        {
+            AddInnerError(std::move(innerError));
+        } else {
+            AddInnerError(std::forward<decltype(innerError)>(innerError));
+        }
+    }
+}
 
 template <CErrorNestable TValue>
 TError&& TError::operator << (TValue&& rhs) &&
@@ -608,18 +718,6 @@ template <class F, class... As>
 auto RunNoExcept(F&& functor, As&&... args) noexcept -> decltype(functor(std::forward<As>(args)...))
 {
     return functor(std::forward<As>(args)...);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-inline TStringBuf GetWellKnownLoggingTag(const std::exception&)
-{
-    return "Error"_sb;
-}
-
-inline TStringBuf GetWellKnownLoggingTag(const TError&)
-{
-    return "Error"_sb;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -270,7 +270,10 @@ jobs:
 
           python -m pip install pytest numpy pandas
           python -m pip uninstall -y catboost
-          python -m pip install ${{ inputs.catboost_package_name }} --pre -f ${{ github.workspace }}/catboost_python_package_dist/
+
+          $WheelPath = (Get-ChildItem -Path ${{ github.workspace }}/catboost_python_package_dist/ -Filter "*.whl" | Select-Object -First 1).FullName
+          python -m pip install $WheelPath
+
           $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
           $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
           $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
@@ -286,7 +289,10 @@ jobs:
 
           python -m pip install pytest numpy pandas ipywidgets scikit-learn polars
           python -m pip uninstall -y catboost
-          python -m pip install ${{ inputs.catboost_package_name }} --pre -f ${{ github.workspace }}/catboost_python_package_dist/
+
+          $WheelPath = (Get-ChildItem -Path ${{ github.workspace }}/catboost_python_package_dist/ -Filter "*.whl" | Select-Object -First 1).FullName
+          python -m pip install $WheelPath
+
           $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
           $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
           $Env:PORT_SYNC_PATH = Join-Path ${{ github.workspace }} port_sync

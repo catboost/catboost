@@ -12,7 +12,7 @@
 
 #include <library/cpp/yt/containers/enum_indexed_array.h>
 
-#include <library/cpp/yt/misc/concepts.h>
+#include <library/cpp/yt/mpl/concepts.h>
 #include <library/cpp/yt/misc/enum.h>
 #include <library/cpp/yt/misc/source_location.h>
 
@@ -875,7 +875,7 @@ void FormatValue(TStringBuilderBase* builder, const TEnumIndexedArray<E, T>& col
 {
     builder->AppendChar('{');
     bool firstItem = true;
-    for (const auto& index : TEnumTraits<E>::GetDomainValues()) {
+    for (const auto& index : TEnumTraits<E>::template GetDomainValues</*AllowAmbiguousValues*/ true>()) {
         if (!firstItem) {
             builder->AppendString(DefaultJoinToStringDelimiter);
         }
@@ -1019,7 +1019,7 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
-concept CFormatter = CInvocable<T, void(size_t, TStringBuilderBase*, TStringBuf)>;
+concept CFormatter = NMpl::CInvocable<T, void(size_t, TStringBuilderBase*, TStringBuf)>;
 
 ////////////////////////////////////////////////////////////////////////////////
 

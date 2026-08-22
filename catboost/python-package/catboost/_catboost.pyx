@@ -4300,14 +4300,36 @@ cdef class _PoolBase:
     # possibly hold reference or list of references to data to allow using views to them in __pool
     cdef object __data_holders
 
+    # numpy arrays whose WRITEABLE flag we cleared, to be restored once the pool no longer references them
+    cdef object __locked_writeable_arrays
+
     def __cinit__(self):
         self.__pool = TDataProviderPtr()
         self.target_type = None
         self.__target_data_holders = None
         self.__data_holders = None
+        self.__locked_writeable_arrays = None
 
     def __dealloc__(self):
+        self._restore_writeable_arrays()
         self.__pool.Drop()
+
+    cdef _lock_writeable_array(self, np.ndarray array):
+        if array.flags.writeable:
+            array.setflags(write=0)
+            if self.__locked_writeable_arrays is None:
+                self.__locked_writeable_arrays = []
+            self.__locked_writeable_arrays.append(array)
+
+    cdef _restore_writeable_arrays(self):
+        if self.__locked_writeable_arrays is not None:
+            for array in self.__locked_writeable_arrays:
+                try:
+                    array.setflags(write=1)
+                except (ValueError, TypeError):
+                    # a view whose base array cannot be made writeable; leave it as-is
+                    pass
+            self.__locked_writeable_arrays = None
 
     def __deepcopy__(self, _):
         raise CatBoostError('Can\'t deepcopy _PoolBase object')
@@ -4532,11 +4554,11 @@ cdef class _PoolBase:
                 data.cat_feature_data,
                 py_builder_visitor)
 
-            # prevent inadvent modification of pool data
+            # prevent inadvertent modification of pool data
             if data.num_feature_data is not None:
-                data.num_feature_data.setflags(write=0)
+                self._lock_writeable_array(data.num_feature_data)
             if data.cat_feature_data is not None:
-                data.cat_feature_data.setflags(write=0)
+                self._lock_writeable_array(data.cat_feature_data)
         elif isinstance(data, pd.DataFrame):
             new_data_holders = _set_features_order_data_pd_data_frame(
                 data,
@@ -4584,8 +4606,8 @@ cdef class _PoolBase:
                 py_builder_visitor
             )
 
-            # prevent inadvent modification of pool data
-            data.setflags(write=0)
+            # prevent inadvertent modification of pool data
+            self._lock_writeable_array(data)
         else:
             raise CatBoostError(
                 '[Internal error] wrong data type for _init_features_order_layout_pool: ' + type(data)
@@ -5415,6 +5437,21 @@ cdef class _CatBoost:
     def __ne__(self, _CatBoost other):
         return dereference(self.__model) != dereference(other.__model)
 
+    cdef _replace_model(self, TFullModel* new_model, object new_model_blob):
+        # TFullModel created by ReadZeroCopyModel references the memory held by model_blob,
+        # so model_blob must always be released only after the TFullModel object
+        # that references it has been destroyed.
+        # See https://github.com/catboost/catboost/issues/2905
+        cdef TFullModel* old_model = self.__model
+        self.__model = new_model
+        del old_model
+        self.model_blob = new_model_blob
+
+    cdef _replace_model_ref(self, TFullModel& new_model_ref, object new_model_blob):
+        cdef TFullModel* new_model = new TFullModel()
+        new_model[0].Swap(new_model_ref)
+        self._replace_model(new_model, new_model_blob)
+
     cpdef _reserve_test_evals(self, size_t num_tests):
         self.__test_evals.resize(num_tests)
         cdef size_t i
@@ -5428,7 +5465,6 @@ cdef class _CatBoost:
             dereference(self.__test_evals[i]).ClearRawValues()
 
     cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool, maybe_init_model):
-        self.model_blob = None
         _input_borders = params.pop("input_borders", None)
         prep_params = _PreprocessParams(params)
         cdef int thread_count = params.get("thread_count", 1)
@@ -5442,6 +5478,7 @@ cdef class _CatBoost:
         cdef TMaybe[TFullModel*] init_model_param
         cdef THolder[TLearnProgress]* init_learn_progress_param
         cdef THolder[TLearnProgress]* dst_learn_progress_param
+        cdef TFullModel* new_model
 
         cdef size_t n_features_in = train_pool.__pool.Get().MetaInfo.GetFeatureCount()
         self.__n_features_in = max(self.__n_features_in, n_features_in)
@@ -5473,26 +5510,35 @@ cdef class _CatBoost:
         else:
             dst_learn_progress_param = <THolder[TLearnProgress]*>nullptr
 
-        with nogil:
-            SetPythonInterruptHandler()
-            try:
-                TrainModel(
-                    prep_params.tree,
-                    quantizedFeaturesInfo,
-                    prep_params.customObjectiveDescriptor,
-                    prep_params.customMetricDescriptor,
-                    prep_params.customCallbackDescriptor,
-                    dataProviders,
-                    init_model_param,
-                    init_learn_progress_param,
-                    TString(<const char*>""),
-                    self.__model,
-                    self.__test_evals,
-                    &self.__metrics_history,
-                    dst_learn_progress_param
-                )
-            finally:
-                ResetPythonInterruptHandler()
+        new_model = new TFullModel()
+        try:
+            with nogil:
+                SetPythonInterruptHandler()
+                try:
+                    TrainModel(
+                        prep_params.tree,
+                        quantizedFeaturesInfo,
+                        prep_params.customObjectiveDescriptor,
+                        prep_params.customMetricDescriptor,
+                        prep_params.customCallbackDescriptor,
+                        dataProviders,
+                        init_model_param,
+                        init_learn_progress_param,
+                        TString(<const char*>""),
+                        new_model,
+                        self.__test_evals,
+                        &self.__metrics_history,
+                        dst_learn_progress_param
+                    )
+                finally:
+                    ResetPythonInterruptHandler()
+        except:
+            del new_model
+            raise
+
+        # release the memory held by model_blob referenced by the previous model
+        # only after that model has been destroyed
+        self._replace_model(new_model, None)
 
     cpdef _set_test_evals(self, test_evals):
         cdef TVector[double] vector
@@ -5789,16 +5835,14 @@ cdef class _CatBoost:
         cdef THolder[TPythonStreamWrapper] wrapper = MakeHolder[TPythonStreamWrapper](python_stream_read_func, <PyObject*>stream)
         cdef TFullModel tmp_model
         tmp_model.Load(wrapper.Get())
-        self.model_blob = None
-        self.__model.Swap(tmp_model)
+        self._replace_model_ref(tmp_model, None)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         cdef EModelType modelType = string_to_model_type(format)
         tmp_model = ReadModel(to_arcadia_string(fspath(model_file)), modelType)
-        self.model_blob = None
-        self.__model.Swap(tmp_model)
+        self._replace_model_ref(tmp_model, None)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
@@ -5832,9 +5876,11 @@ cdef class _CatBoost:
     cpdef _deserialize_model(self, serialized_model_blob):
         cdef const unsigned char[::1] buf
         buf = serialized_model_blob
-        self.model_blob = serialized_model_blob
         cdef TFullModel tmp_model = ReadZeroCopyModel(<char*>&buf[0], len(buf))
-        self.__model.Swap(tmp_model)
+        # the new model references the memory of serialized_model_blob, so it must be
+        # stored in model_blob to keep it alive, and the previous model_blob must be
+        # released only after the previous model that may reference it has been destroyed
+        self._replace_model_ref(tmp_model, serialized_model_blob)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _get_params(self):
@@ -5896,8 +5942,7 @@ cdef class _CatBoost:
             models_vector.push_back((<_CatBoost>models[model_id]).__model)
             weights_vector.push_back(weights[model_id])
         cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, model_prefix_vector, merge_policy)
-        self.model_blob = None
-        self.__model.Swap(tmp_model)
+        self._replace_model_ref(tmp_model, None)
 
     cpdef _save_borders(self, output_file):
         SaveModelBorders(to_arcadia_string(fspath(output_file)), dereference(self.__model))
