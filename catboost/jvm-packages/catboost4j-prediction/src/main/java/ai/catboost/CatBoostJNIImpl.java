@@ -1,170 +1,145 @@
 package ai.catboost;
 
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 class CatBoostJNIImpl {
-    final static void checkCall(@Nullable String message) throws CatBoostError {
+    @Contract("!null -> fail")
+    static void checkCall(@Nullable String message) throws CatBoostError {
         if (message != null) {
             throw new CatBoostError(message);
         }
     }
 
-    @Nullable
-    final static native String catBoostHashCatFeature(
-            @NotNull String catFeature,
-            @NotNull int[] hash);
+    static native @Nullable String catBoostHashCatFeature(
+            String catFeature,
+            int[] hash);
 
-    @Nullable
-    final static native String catBoostHashCatFeatures(
-            @NotNull String[] catFeatures,
-            @NotNull int[] hashes);
+    static native @Nullable String catBoostHashCatFeatures(
+            String[] catFeatures,
+            int[] hashes);
 
-    @Nullable
-    final static native String catBoostLoadModelFromFile(
-            @NotNull String fname,
-            @NotNull long[] handle,
+    static native @Nullable String catBoostLoadModelFromFile(
+            String fname,
+            long[] handle,
             @Nullable String formatName);
 
-    @Nullable
-    final static native String catBoostLoadModelFromArray(
-            @NotNull byte[] data,
-            @NotNull long[] handle,
+    static native @Nullable String catBoostLoadModelFromArray(
+            byte[] data,
+            long[] handle,
             @Nullable String formatName);
 
-    @Nullable
-    final static native String catBoostFreeModel(long handle);
+    static native @Nullable String catBoostFreeModel(long handle);
 
-    @Nullable
-    final static native String catBoostModelGetSupportedEvaluatorTypes(
+    static native @Nullable String catBoostModelGetSupportedEvaluatorTypes(
             long handle,
-            @NotNull String[][] evaluatorTypes);
+            String[][] evaluatorTypes);
 
-    @Nullable
-    final static native String catBoostModelSetEvaluatorType(
+    static native @Nullable String catBoostModelSetEvaluatorType(
             long handle,
-            @NotNull String evaluatorType);
+            String evaluatorType);
 
-    @Nullable
-    final static native String catBoostModelGetEvaluatorType(
+    static native @Nullable String catBoostModelGetEvaluatorType(
             long handle,
-            @NotNull String[] evaluatorType);
+            String[] evaluatorType);
 
-    @Nullable
-    final static native String catBoostModelGetPredictionDimension(
+    static native @Nullable String catBoostModelGetPredictionDimension(
             long handle,
-            @NotNull int[] classesCount);
+            int[] classesCount);
 
-    @Nullable
-    final static native String catBoostModelGetUsedNumericFeatureCount(
+    static native @Nullable String catBoostModelGetUsedNumericFeatureCount(
             long handle,
-            @NotNull int[] numericFeatureCount);
+            int[] numericFeatureCount);
 
-    @Nullable
-    final static native String catBoostModelGetUsedCategoricalFeatureCount(
+    static native @Nullable String catBoostModelGetUsedCategoricalFeatureCount(
             long handle,
-            @NotNull int[] catFeatureCount);
+            int[] catFeatureCount);
 
-    @Nullable
-    final static native String catBoostModelGetUsedTextFeatureCount(
+    static native @Nullable String catBoostModelGetUsedTextFeatureCount(
             long handle,
-            @NotNull int[] textFeatureCount);
+            int[] textFeatureCount);
 
-    @Nullable
-    final static native String catBoostModelGetUsedEmbeddingFeatureCount(
+    static native @Nullable String catBoostModelGetUsedEmbeddingFeatureCount(
             long handle,
-            @NotNull int[] embeddingFeatureCount);
+            int[] embeddingFeatureCount);
 
-    @Nullable
-    final static native String catBoostModelGetFlatFeatureVectorExpectedSize(
+    static native @Nullable String catBoostModelGetFlatFeatureVectorExpectedSize(
             long handle,
-            @NotNull int[] featureVectorExpectedSize);
+            int[] featureVectorExpectedSize);
 
-    @Nullable
-    final static native String catBoostModelGetMetadata(
+    static native @Nullable String catBoostModelGetMetadata(
             long handle,
-            @NotNull String[][] keys,
-            @NotNull String[][] values);
+            String[][] keys,
+            String[][] values);
 
-    @Nullable
-    final static native String catBoostModelGetFloatFeatures(
+    static native @Nullable String catBoostModelGetFloatFeatures(
             long handle,
-            @NotNull String[][] names,
-            @NotNull int[][] flat_feature_index,
-            @NotNull int[][] feature_index,
-            @NotNull int[][] has_nans,
-            @NotNull String[][] nan_value_treatment);
+            String[][] names,
+            int[][] flat_feature_index,
+            int[][] feature_index,
+            int[][] has_nans,
+            String[][] nan_value_treatment);
 
-    @Nullable
-    final static native String catBoostModelGetCatFeatures(
+    static native @Nullable String catBoostModelGetCatFeatures(
             long handle,
-            @NotNull String[][] names,
-            @NotNull int[][] flat_feature_index,
-            @NotNull int[][] feature_index);
+            String[][] names,
+            int[][] flat_feature_index,
+            int[][] feature_index);
 
-    @Nullable
-    final static native String catBoostModelGetTextFeatures(
+    static native @Nullable String catBoostModelGetTextFeatures(
             long handle,
-            @NotNull String[][] names,
-            @NotNull int[][] flat_feature_index,
-            @NotNull int[][] feature_index);
+            String[][] names,
+            int[][] flat_feature_index,
+            int[][] feature_index);
 
-    @Nullable
-    final static native String catBoostModelGetEmbeddingFeatures(
+    static native @Nullable String catBoostModelGetEmbeddingFeatures(
             long handle,
-            @NotNull String[][] names,
-            @NotNull int[][] flat_feature_index,
-            @NotNull int[][] feature_index);
+            String[][] names,
+            int[][] flat_feature_index,
+            int[][] feature_index);
 
-    @Nullable
-    final static native String catBoostModelGetUsedFeatureIndices(
+    static native @Nullable String catBoostModelGetUsedFeatureIndices(
             long handle,
-            @NotNull int[][] featureIndices);
+            int[][] featureIndices);
 
-    @Nullable
-    final static native String catBoostModelGetTreeCount(
+    static native @Nullable String catBoostModelGetTreeCount(
             long handle,
-            @NotNull int[] treeCount);
+            int[] treeCount);
 
-    @Nullable
-    final static native String catBoostModelPredict(
+    static native @Nullable String catBoostModelPredict(
             long handle,
-            @Nullable float[] numericFeatures,
-            @Nullable String[] catFeatures,
-            @Nullable String[] textFeatures,
-            @Nullable float[][] embeddingFeatures,
-            @NotNull double[] predictions);
+            float @Nullable [] numericFeatures,
+            String @Nullable [] catFeatures,
+            String @Nullable [] textFeatures,
+            float @Nullable [][] embeddingFeatures,
+            double[] predictions);
 
-    @Nullable
-    final static native String catBoostModelPredict(
+    static native @Nullable String catBoostModelPredict(
             long handle,
-            @Nullable float[] numericFeatures,
-            @Nullable int[] catFeatureHashes,
-            @Nullable String[] textFeatures,
-            @Nullable float[][] embeddingFeatures,
-            @NotNull double[] predictions);
+            float @Nullable [] numericFeatures,
+            int @Nullable [] catFeatureHashes,
+            String @Nullable [] textFeatures,
+            float @Nullable [][] embeddingFeatures,
+            double[] predictions);
 
-    @Nullable
-    final static native String catBoostModelPredict(
+    static native @Nullable String catBoostModelPredict(
             long handle,
-            @Nullable float[][] numericFeatures,
-            @Nullable String[][] catFeatures,
-            @Nullable String[][] textFeatures,
-            @Nullable float[][][] embeddingFeatures,
-            @NotNull double[] predictions);
+            float @Nullable [][] numericFeatures,
+            String @Nullable [][] catFeatures,
+            String @Nullable [][] textFeatures,
+            float @Nullable [][][] embeddingFeatures,
+            double[] predictions);
 
-    @Nullable
-    final static native String catBoostModelPredict(
+    static native @Nullable String catBoostModelPredict(
             long handle,
-            @Nullable float[][] numericFeatures,
-            @Nullable int[][] catFeatureHashes,
-            @Nullable String[][] textFeatures,
-            @Nullable float[][][] embeddingFeatures,
-            @NotNull double[] predictions);
+            float @Nullable [][] numericFeatures,
+            int @Nullable [][] catFeatureHashes,
+            String @Nullable [][] textFeatures,
+            float @Nullable [][][] embeddingFeatures,
+            double[] predictions);
 
-    @Nullable
-    final static native String catBoostModelPredictTransposed(
+    static native @Nullable String catBoostModelPredictTransposed(
             long handle,
-            @NotNull float[][] numericFeatures,
-            @NotNull double[] predictions);
+            float[][] numericFeatures,
+            double[] predictions);
 }
