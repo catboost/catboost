@@ -301,17 +301,18 @@ namespace NCatboostCuda {
                     return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
                 case ELossFunction::MultiRMSEWithMissingValues: {
-                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
-                    MultiRMSEWithMissingValuesValueAndDer(
-                        target,
-                        weights,
-                        cursor,
-                        (const TCudaBuffer<ui32, TMapping>*)nullptr,
-                        &tmp,
-                        (TVec*)nullptr);
-                    const double sum = ReadReduce(tmp)[0];
-                    // TODO: check if totalWeight should be masked too
-                    return MakeSimpleAdditiveStatistic(-sum, totalWeight);
+                    //objects with a missing target are excluded from the weight sum of that
+                    //dimension only, so the metric keeps (sum of errors, sum of weights) per
+                    //target dimension, see TMultiRMSEWithMissingValues on CPU
+                    const int statCount = static_cast<int>(2 * target.GetColumnCount());
+                    auto stats = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(statCount));
+                    MultiRMSEWithMissingValuesStats(target, weights, cursor, &stats);
+                    const TVector<float> statsCpu = ReadReduce(stats);
+                    TMetricHolder result(statCount);
+                    for (int i = 0; i < statCount; ++i) {
+                        result.Stats[i] = statsCpu[i];
+                    }
+                    return result;
                 }
                 case ELossFunction::MCC: {
                     return BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache);

@@ -425,6 +425,47 @@ namespace NKernelHost {
         }
     };
 
+    class TMultiRMSEWithMissingValuesStatsKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> Target;
+        TCudaBufferPtr<const float> Weights;
+        TCudaBufferPtr<const float> Predictions;
+        TCudaBufferPtr<float> Stats;
+
+    public:
+        TMultiRMSEWithMissingValuesStatsKernel() = default;
+
+        TMultiRMSEWithMissingValuesStatsKernel(
+            TCudaBufferPtr<const float> target,
+            TCudaBufferPtr<const float> weights,
+            TCudaBufferPtr<const float> predictions,
+            TCudaBufferPtr<float> stats
+        )
+            : Target(target)
+            , Weights(weights)
+            , Predictions(predictions)
+            , Stats(stats)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Target, Weights, Predictions, Stats);
+
+        void Run(const TCudaStream& stream) const {
+            const auto approxDim = Predictions.GetColumnCount();
+            const auto targetDim = Target.GetColumnCount();
+            CB_ENSURE(approxDim == targetDim, LabeledOutput(approxDim, targetDim));
+            CB_ENSURE(Stats.Size() == 2 * targetDim, LabeledOutput(Stats.Size(), targetDim));
+            NKernel::MultiRMSEWithMissingValuesStats(
+                targetDim,
+                Target.Size(),
+                Target.Get(), Target.AlignedColumnSize(),
+                Weights.Get(),
+                Predictions.Get(), Predictions.AlignedColumnSize(),
+                Stats.Get(),
+                stream.GetStream());
+        }
+    };
+
     class TMultiClassOneVsAllValueAndDerKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> TargetClasses;
@@ -731,6 +772,24 @@ inline void MultiRMSEWithMissingValuesSecondDerRow(
         weights,
         rowIdx,
         weightedDer2Row);
+}
+
+template <class TMapping, class TFloat>
+inline void MultiRMSEWithMissingValuesStats(
+    const TCudaBuffer<TFloat, TMapping>& target,
+    const TCudaBuffer<TFloat, TMapping>& weights,
+    const TCudaBuffer<TFloat, TMapping>& approx,
+    TCudaBuffer<float, TMapping>* stats,
+    ui32 stream = 0
+) {
+    using TKernel = NKernelHost::TMultiRMSEWithMissingValuesStatsKernel;
+    LaunchKernels<TKernel>(
+        target.NonEmptyDevices(),
+        stream,
+        target,
+        weights,
+        approx,
+        stats);
 }
 
 template <class TMapping, class TFloat>

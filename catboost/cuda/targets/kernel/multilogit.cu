@@ -739,6 +739,81 @@ namespace NKernel {
 
     template <int BlockSize, int ElementsPerThread>
     __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
+    __global__ void MultiRMSEWithMissingValuesStatsImpl(
+        ui32 targetCount,
+        ui32 size,
+        const float* targets, ui32 targetAlignSize,
+        const float* weights,
+        const float* predictions, ui32 predictionsAlignSize,
+        float* stats
+    ) {
+        const ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
+        __shared__ float tmpStats[BlockSize];
+
+        for (int dim = 0; dim < (int)targetCount; ++dim) {
+            float sumErrors = 0;
+            float sumWeights = 0;
+
+            #pragma unroll
+            for (int j = 0; j < ElementsPerThread; ++j) {
+                const ui32 idx = tid + j * BlockSize;
+                if (idx >= size) {
+                    continue;
+                }
+                const float target = __ldg(targets + idx + dim * targetAlignSize);
+                if (isnan(target)) {
+                    continue;
+                }
+                const float weight = weights ? __ldg(weights + idx) : 1.0f;
+                const float diff = target - __ldg(predictions + idx + dim * predictionsAlignSize);
+                sumErrors += weight * diff * diff;
+                sumWeights += weight;
+            }
+
+            __syncthreads();
+            tmpStats[threadIdx.x] = sumErrors;
+            __syncthreads();
+            const float blockErrors = FastInBlockReduce<float>(threadIdx.x, tmpStats, BlockSize);
+            if (threadIdx.x == 0) {
+                atomicAdd(stats + 2 * dim, blockErrors);
+            }
+
+            __syncthreads();
+            tmpStats[threadIdx.x] = sumWeights;
+            __syncthreads();
+            const float blockWeights = FastInBlockReduce<float>(threadIdx.x, tmpStats, BlockSize);
+            if (threadIdx.x == 0) {
+                atomicAdd(stats + 2 * dim + 1, blockWeights);
+            }
+        }
+    }
+
+    void MultiRMSEWithMissingValuesStats(
+        ui32 targetCount,
+        ui32 size,
+        const float* target, ui32 targetAlignSize,
+        const float* weights,
+        const float* predictions, ui32 predictionsAlignSize,
+        float* stats,
+        TCudaStream stream
+    ) {
+        const ui32 blockSize = 256;
+        const ui32 elementsPerThreads = 4;
+        const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
+        FillBuffer(stats, 0.0f, 2 * targetCount, stream);
+        if (numBlocks) {
+            MultiRMSEWithMissingValuesStatsImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(
+                targetCount,
+                size,
+                target, targetAlignSize,
+                weights,
+                predictions, predictionsAlignSize,
+                stats);
+        }
+    }
+
+    template <int BlockSize, int ElementsPerThread>
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiClassOneVsAllValAndFirstDerImpl(const float* targetClasses, int numClasses, ui32 size,
                                                          const float* weights,
                                                          const float* predictions,
