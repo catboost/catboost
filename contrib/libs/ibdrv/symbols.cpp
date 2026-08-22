@@ -13,21 +13,25 @@
 #define SET_L_TRYING_PATHS(_paths, _do_some) \
     auto lib = std::make_unique<TDynamicLibrary>(); \
     TVector<TString> paths = _paths; \
-    TVector<TString> catchedExceptions; \
+    TVector<TString> errorMessages; \
     for (auto path : paths) { \
         try { \
-            lib->Open(path.c_str()); \
+            TString libOpenErrorMessage; \
+            if (!lib->TryOpen(path.c_str(), DEFAULT_DLLOPEN_FLAGS, &libOpenErrorMessage)) { \
+                errorMessages.emplace_back(std::move(libOpenErrorMessage)); \
+                continue; \
+            } \
             L.Reset(lib.release()); \
             _do_some \
             return; \
         } catch (std::exception& ex) { \
-            catchedExceptions.emplace_back(ex.what()); \
+            errorMessages.emplace_back(ex.what()); \
         } \
     } \
-    Y_ABORT_UNLESS(paths.size() == catchedExceptions.size()); \
+    Y_ABORT_UNLESS(paths.size() == errorMessages.size()); \
     TStringBuilder builder; \
     builder << "Cannot open any shared library. Reasons:\n"; \
-    for (const auto& [reason, path] : Zip(catchedExceptions, paths)) { \
+    for (const auto& [reason, path] : Zip(errorMessages, paths)) { \
         builder << "Path: " << path << " Reason: " << reason << "\n"; \
     } \
     ythrow yexception() << builder;
