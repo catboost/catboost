@@ -342,14 +342,6 @@ namespace NCatboostCuda {
                     trainingData.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData().end()
                 );
             }
-
-            // if loss is MultiRMSEWithMissingValues, set target binarization options
-            // TODO: why having BorderCount == 1 is ok for CPU but not for GPU?
-            if (lossFunction == ELossFunction::MultiRMSEWithMissingValues) {
-                updatedCatboostOptions.CatFeatureParams->TargetBinarization->NanMode = ENanMode::Min;
-                updatedCatboostOptions.CatFeatureParams->TargetBinarization->BorderCount = 128;
-            }
-
             ui32 objectsCount = trainingData.Learn->GetObjectCount();
             if (!trainingData.Test.empty()) {
                 objectsCount += trainingData.Test[0]->GetObjectCount();
@@ -376,10 +368,19 @@ namespace NCatboostCuda {
             }
 
             NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
+            TConstArrayRef<float> targetForBorders = (*trainingData.Learn->TargetData->GetTarget())[0]; // esp: fix for multi-target
+            TVector<float> targetWithoutNans;
+            if (lossFunction == ELossFunction::MultiRMSEWithMissingValues) {
+                //missing target values are not a part of the target distribution, so they are dropped
+                //before border selection (BuildTargetClassifier does the same on CPU) and end up in
+                //the lowest bin when the target is binarized
+                targetWithoutNans = NCB::CheckedCopyWithoutNans(targetForBorders, ENanMode::Min);
+                targetForBorders = targetWithoutNans;
+            }
             featuresManager.SetTargetBorders(
                 NCB::TBordersBuilder(
                     gridBuilderFactory,
-                    (*trainingData.Learn->TargetData->GetTarget())[0])(featuresManager.GetTargetBinarizationDescription())); // esp: fix for multi-target
+                    targetForBorders)(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
 

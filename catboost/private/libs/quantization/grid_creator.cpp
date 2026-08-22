@@ -8,8 +8,8 @@ namespace NCB {
         template <EBorderSelectionType type>
         class TGridBuilderBase: public IGridBuilder {
         public:
-            TVector<float> BuildBorders(TConstArrayRef<float> sortedFeature, ui32 borderCount, ENanMode nanMode) const override {
-                TVector<float> copy = CheckedCopyWithoutNans(sortedFeature, nanMode);
+            TVector<float> BuildBorders(TConstArrayRef<float> sortedFeature, ui32 borderCount) const override {
+                TVector<float> copy = CheckedCopyWithoutNans(sortedFeature, ENanMode::Forbidden);
                 auto quantization
                     = Binarizer->BestSplit(NSplitSelection::TFeatureValues(std::move(copy), true), borderCount);
 
@@ -28,7 +28,7 @@ namespace NCB {
                                      ENanMode nanMode) override {
                 TVector<float> sortedFeature = CheckedCopyWithoutNans(feature, nanMode);
                 Sort(sortedFeature.begin(), sortedFeature.end());
-                auto borders = TGridBuilderBase<type>::BuildBorders(sortedFeature, borderCount, nanMode);
+                auto borders = TGridBuilderBase<type>::BuildBorders(sortedFeature, borderCount);
                 Result.push_back(std::move(borders));
                 return *this;
             }
