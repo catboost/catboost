@@ -247,7 +247,7 @@ public:
     [[nodiscard]] TError&& With(TRange&& innerErrors) &&;
 
     //! Forwards to #With only when #condition holds.
-    //! NB: the operands are evaluated either way; pass a functor to defer a costly value.
+    //! NB: The operands are evaluated either way.
     template <class... TArgs>
     [[nodiscard]] TError WithIf(bool condition, TArgs&&... args) const &;
     template <class... TArgs>
