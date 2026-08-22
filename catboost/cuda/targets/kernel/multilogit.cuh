@@ -109,7 +109,6 @@ namespace NKernel {
         TCudaStream stream);
 
     void MultiRMSEWithMissingValuesSecondDer(
-        ui32 targetCount,
         ui32 size,
         const float* target, ui32 targetAlignSize,
         const float* weights,

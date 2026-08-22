@@ -664,7 +664,6 @@ namespace NKernel {
     template <int BlockSize, int ElementsPerThread>
     __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiRMSEWithMissingValuesSecondDerImpl(
-        ui32 targetCount,
         ui32 size,
         const float* targets, ui32 targetAlignSize,
         const float* weights,
@@ -672,22 +671,17 @@ namespace NKernel {
         int der2Row, ui32 der2AlignSize
     ) {
         ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
-        for (int dim = 0; dim < (int)targetCount; ++dim) {
-            #pragma unroll
-            for (int j = 0; j < ElementsPerThread; ++j) {
-                const ui32 idx = tid + j * BlockSize;
-                if (idx < size) {
-                    for (int k = 0; k < der2Row; ++k) {
-                        der2[idx + k * der2AlignSize] = 0.0f;
-                    }
-                    const float t = __ldg(targets + idx + dim * targetAlignSize);
-                    const float weight = weights ? __ldg(weights + idx) : 1.0f;
-                    if (isnan(t)) {
-                        der2[idx + dim * der2AlignSize] = 0.0f;
-                    } else {
-                        der2[idx + dim * der2AlignSize] = weight;
-                    }
+        #pragma unroll
+        for (int j = 0; j < ElementsPerThread; ++j) {
+            const ui32 idx = tid + j * BlockSize;
+            if (idx < size) {
+                for (int k = 0; k < der2Row; ++k) {
+                    der2[idx + k * der2AlignSize] = 0.0f;
                 }
+                const float target = __ldg(targets + idx + der2Row * targetAlignSize);
+                const float weight = weights ? __ldg(weights + idx) : 1.0f;
+                //hessian is diagonal, missing target gives zero second derivative
+                der2[idx + der2Row * der2AlignSize] = isnan(target) ? 0.0f : weight;
             }
         }
     }
@@ -723,9 +717,8 @@ namespace NKernel {
     }
 
     void MultiRMSEWithMissingValuesSecondDer(
-        ui32 targetCount,
         ui32 size,
-        const float* target, ui32 tragetAlignSize,
+        const float* target, ui32 targetAlignSize,
         const float* weights,
         float* der2,
         ui32 der2Row, ui32 der2AlignSize,
@@ -736,9 +729,8 @@ namespace NKernel {
         const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
         if (numBlocks) {
             MultiRMSEWithMissingValuesSecondDerImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(
-                targetCount,
                 size,
-                target, tragetAlignSize,
+                target, targetAlignSize,
                 weights,
                 der2,
                 der2Row, der2AlignSize);

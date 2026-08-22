@@ -410,13 +410,12 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(Weights, RowIdx, Der2);
+        Y_SAVELOAD_DEFINE(Target, Weights, RowIdx, Der2);
 
         void Run(const TCudaStream& stream) const {
-            CB_ENSURE(RowIdx <= Der2.GetColumnCount(), LabeledOutput(RowIdx, Der2.GetColumnCount()));
-            const auto targetDim = Target.GetColumnCount();
+            CB_ENSURE(RowIdx < Target.GetColumnCount(), LabeledOutput(RowIdx, Target.GetColumnCount()));
+            CB_ENSURE(RowIdx < Der2.GetColumnCount(), LabeledOutput(RowIdx, Der2.GetColumnCount()));
             NKernel::MultiRMSEWithMissingValuesSecondDer(
-                targetDim,
                 Weights.Size(),
                 Target.Get(), Target.AlignedColumnSize(),
                 Weights.Get(),
