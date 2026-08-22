@@ -4,6 +4,8 @@
 #include "tag.h"
 #endif
 
+#include "tagged_payload.h"
+
 #include <library/cpp/yt/string/string_builder.h>
 
 #include <utility>
@@ -61,9 +63,9 @@ TLoggingTagList& TLoggingTagList::Add(TLoggingTagKey key, const TValue& value)
 template <class... TArgs>
 TLoggingTagList& TLoggingTagList::AddFormat(TLoggingTagKey key, TFormatString<TArgs...> format, TArgs&&... args)
 {
-    TStringBuilder builder;
-    Format(&builder, format, std::forward<TArgs>(args)...);
-    DoAdd(key, builder.GetBuffer());
+    TTaggedPayloadWriter::AppendTag(&Payload_, key.Get(), [&] (TStringBuilderBase* builder) {
+        Format(builder, format, std::forward<TArgs>(args)...);
+    });
     return *this;
 }
 
@@ -120,9 +122,9 @@ inline const TLoggingTagListPayload& TLoggingTagList::GetPayload() const
 template <class TValue>
 void TLoggingTagList::DoAdd(TLoggingTagKey key, const TValue& value, TStringBuf spec)
 {
-    TStringBuilder builder;
-    FormatValue(&builder, value, spec);
-    DoAdd(key, builder.GetBuffer());
+    TTaggedPayloadWriter::AppendTag(&Payload_, key.Get(), [&] (TStringBuilderBase* builder) {
+        FormatValue(builder, value, spec);
+    });
 }
 
 ////////////////////////////////////////////////////////////////////////////////

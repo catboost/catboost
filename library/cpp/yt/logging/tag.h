@@ -56,7 +56,6 @@ private:
 
     template <class TValue>
     void DoAdd(TLoggingTagKey key, const TValue& value, TStringBuf spec);
-    void DoAdd(TLoggingTagKey key, TStringBuf value);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
