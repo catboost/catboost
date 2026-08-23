@@ -152,18 +152,14 @@ namespace NCB {
     static bool IsValidCPPIdentifier(const TString& identifier, TString* reason) {
         // should be non-empty
         if (identifier.empty()) {
-            if (reason) {
-              *reason = "an identifier cannot be empty";
-            }
+            *reason = "an identifier cannot be empty";
             return false;
         }
 
         // first character is alpha or '_'
         unsigned char firstChar = static_cast<unsigned char>(identifier[0]);
         if (!IsAsciiAlpha(firstChar) && firstChar != '_') {
-            if (reason) { 
-              *reason = "an identifier must start with an alphabetic character or '_'";
-            }
+            *reason = "an identifier must start with an alphabetic character or '_'";
             return false;
         }
 
@@ -171,9 +167,7 @@ namespace NCB {
         for (size_t i = 1; i < identifier.length(); ++i) {
             unsigned char c = static_cast<unsigned char>(identifier[i]);
             if (!IsAsciiAlnum(c) && c != '_') {
-                if (reason) { 
-                  *reason = "each non-first character in an identifier must be alphanumeric or '_'";
-                }
+                *reason = "each non-first character in an identifier must be alphanumeric or '_'";
                 return false;
             }
         }
@@ -202,9 +196,7 @@ namespace NCB {
 
         // check if identifier is a keyword
         if (BinarySearch(std::begin(CPP_KEYWORDS), std::end(CPP_KEYWORDS), identifier)) {
-            if (reason) { 
-              *reason = "an identifier cannot be a C++ keyword";
-            }
+            *reason = "an identifier cannot be a C++ keyword";
             return false;
         }
 
