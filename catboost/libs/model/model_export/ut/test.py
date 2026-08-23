@@ -88,6 +88,7 @@ def test_cpp_export(dataset, parameters):
     is_multiclass_model = __get_train_loss_function(dataset) == 'MultiClass'
 
     if os.name == 'posix':
+        # note that 'g++' on macOS is an alias to 'clang++' so this will work on macOS as well
         compile_cmd = ['g++', '-std=c++14', '-o', applicator_exe]
     else:
         compile_cmd = ['cl.exe', '-Fe' + applicator_exe]
