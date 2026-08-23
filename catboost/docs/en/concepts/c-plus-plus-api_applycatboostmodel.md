@@ -92,6 +92,12 @@ The result is identical to the code below but does not require the library linki
 
 - {% include [reusage-common-phrases-for-datasets-that-contain-both-numerical-and-categorical-features](../_includes/work_src/reusage-common-phrases/for-datasets-that-contain-both-numerical-and-categorical-features.md) %}
 
-    C++14 compiler with aggregate member initialization support. Tested with the following compilers:
+    Compiler with a designated member initialization support.
+    This is C++20 feature, but `g++` and `clang` compilers support it as an extension even when `std` is specified as `c++14` or `c++17`.
+
+    Tested with the following compilers:
     - Clang++ 3.8
     - g++ 5.4.1 20160904
+    - MSVC toolsets 14.29, 14.40, 14.42, 14.46, 14.50
+
+    [Issue about lowering this standard requirement](https://github.com/catboost/catboost/issues/3172)

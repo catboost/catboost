@@ -91,7 +91,10 @@ def test_cpp_export(dataset, parameters):
         # note that 'g++' on macOS is an alias to 'clang++' so this will work on macOS as well
         compile_cmd = ['g++', '-std=c++14', '-o', applicator_exe]
     else:
-        compile_cmd = ['cl.exe', '-Fe' + applicator_exe]
+        # Generated code for models with categorical features requires C++20 because it uses designated initializers.
+        # Issue to allow older standards: https://github.com/catboost/catboost/issues/3172
+        cpp_standard_arg = '/std:c++14' if dataset == 'higgs' else '/std:c++20'
+        compile_cmd = ['cl.exe', cpp_standard_arg, '-Fe' + applicator_exe]
     compile_cmd += [applicator_cpp, model_cpp]
     apply_cmd = [applicator_exe, test_path, cd_path, predictions_path]
     if is_multiclass_model:
