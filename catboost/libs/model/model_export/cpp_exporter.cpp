@@ -204,7 +204,7 @@ namespace NCB {
     }
 
     TCatboostModelToCppConverter::TCatboostModelToCppConverter(const TString& modelFile, bool addFileFormatExtension, const TString& userParametersJson)
-        : Out(modelFile + (addFileFormatExtension ? ".cpp" : "")) 
+        : Out(modelFile + (addFileFormatExtension ? ".cpp" : ""))
     {
         if (userParametersJson.empty()) {
             return;
@@ -367,7 +367,7 @@ namespace NCB {
 
     void TCatboostModelToCppConverter::WriteNamespaceBegin() {
         if (!Namespace.empty()) {
-            Out << "namespace " << Namespace << " {" << "\n"; 
+            Out << "namespace " << Namespace << " {" << "\n";
         }
     }
 

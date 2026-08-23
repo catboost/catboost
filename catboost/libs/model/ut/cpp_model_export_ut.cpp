@@ -26,9 +26,9 @@ Y_UNIT_TEST_SUITE(TCppModelExportNamespace) {
             yexception);
         UNIT_ASSERT_EXCEPTION(
             ExportModel(model, "model_invalid_ns.cpp", EModelType::Cpp, BuildUserParams("abc$")),
-            yexception);    
+            yexception);
         UNIT_ASSERT_EXCEPTION(
             ExportModel(model, "model_invalid_ns.cpp", EModelType::Cpp, BuildUserParams("const")),
-            yexception);    
+            yexception);
     }
 }

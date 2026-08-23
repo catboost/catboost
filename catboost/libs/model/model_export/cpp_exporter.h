@@ -15,7 +15,7 @@ namespace NCB {
 
     public:
         TCatboostModelToCppConverter(const TString& modelFile, bool addFileFormatExtension, const TString& userParametersJson);
-        void Write(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString = nullptr) override; 
+        void Write(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString = nullptr) override;
 
     private:
         void WriteApplicator(bool forCatFeatures);
