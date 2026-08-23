@@ -69,7 +69,7 @@ def _check_data(data1, data2, rtol=0.001):
     'dataset,parameters,with_namespace',
     [
         ('adult', [], False),
-        ('adult', [], True), # test namespace export
+        ('adult', [], True),    # test namespace export
         ('adult', ['-I', '3'], False),
         ('higgs', [], False),
         ('covertype', [], False),
@@ -80,8 +80,15 @@ def test_cpp_export(dataset, parameters, with_namespace):
     train_path, test_path, cd_path = _get_train_test_cd_path(dataset)
     if with_namespace:
         model = CatBoost()
-        model.load_model(model_cbm) # load same cb binary model to test export
-        model.save_model(model_cpp, format="cpp", export_parameters={"namespace": "TestNamespace"}, pool=Pool(train_path, column_description=cd_path)) # overwrite CLI model with one having namespace
+        model.load_model(model_cbm)     # load same cb binary model to test export
+
+        # overwrite CLI model with one having namespace
+        model.save_model(
+            model_cpp,
+            format="cpp",
+            export_parameters={"namespace": "TestNamespace"},
+            pool=Pool(train_path, column_description=cd_path)
+        )
 
     # form the commands we are going to run
 
@@ -104,7 +111,7 @@ def test_cpp_export(dataset, parameters, with_namespace):
         compile_cmd = ['cl.exe', cpp_standard_arg, '-Fe' + applicator_exe]
         if with_namespace:
             compile_cmd += ['/DWITH_CPP_NAMESPACE=TestNamespace']
- 
+
     compile_cmd += [applicator_cpp, model_cpp]
     apply_cmd = [applicator_exe, test_path, cd_path, predictions_path]
     if is_multiclass_model:
