@@ -14,5 +14,9 @@ catboost-sys = { path = "catboost-sys", version = "0.1"}
 # catboost-sys = "0.1"
 approx = "0.5.1"
 
+[dev-dependencies]
+# Newer memmap2 versions require libc >=0.2.143, but this package uses libc 0.2.122.
+memmap2 = "=0.6.2"
+
 [features]
 gpu = ["catboost-sys/gpu"]

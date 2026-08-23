@@ -818,9 +818,9 @@ public:
     TBasicString& AppendNoAlias(const TCharType* pc, size_t len) Y_LIFETIME_BOUND {
         if (len) {
             auto s = this->size();
-
-            ReserveAndResize(s + len);
-            memcpy(&*(begin() + s), pc, len * sizeof(*pc));
+            auto& ref = MutRef();
+            ::ResizeUninitialized(ref, s + len);
+            memcpy(ref.data() + s, pc, len * sizeof(*pc));
         }
 
         return *this;

@@ -875,7 +875,7 @@ void FormatValue(TStringBuilderBase* builder, const TEnumIndexedArray<E, T>& col
 {
     builder->AppendChar('{');
     bool firstItem = true;
-    for (const auto& index : TEnumTraits<E>::GetDomainValues()) {
+    for (const auto& index : TEnumTraits<E>::template GetDomainValues</*AllowAmbiguousValues*/ true>()) {
         if (!firstItem) {
             builder->AppendString(DefaultJoinToStringDelimiter);
         }

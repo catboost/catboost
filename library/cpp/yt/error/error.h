@@ -9,6 +9,8 @@
 #include <library/cpp/yt/yson_string/convert.h>
 #include <library/cpp/yt/yson_string/string.h>
 
+#include <library/cpp/yt/logging/tag.h>
+
 #include <library/cpp/yt/misc/property.h>
 
 #include <util/system/compiler.h>
@@ -16,6 +18,8 @@
 
 #include <util/generic/size_literals.h>
 
+#include <concepts>
+#include <exception>
 #include <ranges>
 #include <type_traits>
 
@@ -229,6 +233,9 @@ public:
     template <CErrorAttributeRange TRange>
     [[nodiscard]] TError&& With(TRange&& attributes) &&;
 
+    [[nodiscard]] TError With(TAnyMergeableDictionaryRef attributes) const &;
+    [[nodiscard]] TError&& With(TAnyMergeableDictionaryRef attributes) &&;
+
     [[nodiscard]] TError With(const TError& innerError) const &;
     [[nodiscard]] TError&& With(const TError& innerError) &&;
     [[nodiscard]] TError With(TError&& innerError) const &;
@@ -238,6 +245,30 @@ public:
     [[nodiscard]] TError With(TRange&& innerErrors) const &;
     template <CErrorRange TRange>
     [[nodiscard]] TError&& With(TRange&& innerErrors) &&;
+
+    //! Forwards to #With only when #condition holds.
+    //! NB: The operands are evaluated either way.
+    template <class... TArgs>
+    [[nodiscard]] TError WithIf(bool condition, TArgs&&... args) const &;
+    template <class... TArgs>
+    [[nodiscard]] TError&& WithIf(bool condition, TArgs&&... args) &&;
+
+    //! In-place counterparts of #With.
+    template <CConvertibleToAttributeValue TValue>
+    TError& Add(const TErrorAttribute::TKey& key, const TValue& value) &;
+
+    TError& Add(const TErrorAttribute& attribute) &;
+
+    template <CErrorAttributeRange TRange>
+    TError& Add(TRange&& attributes) &;
+
+    TError& Add(TAnyMergeableDictionaryRef attributes) &;
+
+    TError& Add(const TError& innerError) &;
+    TError& Add(TError&& innerError) &;
+
+    template <CErrorRange TRange>
+    TError& Add(TRange&& innerErrors) &;
 
     TError& operator <<= (const TErrorAttribute& attribute) &;
     TError& operator <<= (const std::vector<TErrorAttribute>& attributes) &;
@@ -294,6 +325,8 @@ private:
 
     template <CErrorAttributeRange TRange>
     void AddAttributes(TRange&& attributes);
+
+    void AddAttributes(TAnyMergeableDictionaryRef attributes);
 
     void AddInnerError(const TError& innerError);
     void AddInnerError(TError&& innerError);
@@ -526,11 +559,19 @@ auto RunNoExcept(F&& functor, As&&... args) noexcept -> decltype(functor(std::fo
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//! Registers errors as a well-known logging tag (ADL customization point for
-//! library/cpp/yt/logging), so that |YT_TLOG_*(...).With(error)| attaches them under
-//! the "Error" key, rendered after the message in plain text.
-TStringBuf GetWellKnownLoggingTag(const std::exception&);
-TStringBuf GetWellKnownLoggingTag(const TError&);
+template <class T>
+    requires std::derived_from<T, TError>
+struct NLogging::TWellKnownLoggingTagTraits<T>
+{
+    static constexpr TStringBuf Key = "Error";
+};
+
+template <class T>
+    requires std::derived_from<T, std::exception>
+struct NLogging::TWellKnownLoggingTagTraits<T>
+{
+    static constexpr TStringBuf Key = "Error";
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 

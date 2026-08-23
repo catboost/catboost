@@ -18,15 +18,15 @@ TRefCountedTypeCookie GetTestTagCookie()
     return GetRefCountedTypeCookie<TTestStreamTag>();
 }
 
-//! Reserve sizes are rounded up to a page, so chunk layouts are page-relative.
+// Reserve sizes are rounded up to a page, so chunk layouts are page-relative.
 size_t GetTestPageSize()
 {
     return NSystemInfo::GetPageSize();
 }
 
-TString Concatenate(const std::vector<TSharedRef>& chunks)
+std::string Concatenate(const std::vector<TSharedRef>& chunks)
 {
-    TString result;
+    std::string result;
     for (const auto& chunk : chunks) {
         result.append(chunk.Begin(), chunk.Size());
     }
@@ -42,9 +42,9 @@ std::vector<size_t> GetSizes(const std::vector<TSharedRef>& chunks)
     return result;
 }
 
-TString MakePayload(size_t size)
+std::string MakePayload(size_t size)
 {
-    TString result;
+    std::string result;
     result.reserve(size);
     for (size_t index = 0; index < size; ++index) {
         result.push_back(static_cast<char>('a' + index % 26));
@@ -184,7 +184,7 @@ TEST(TChunkedOutputStreamTest, PreallocateLargerThanChunk)
     stream.Advance(payload.size());
 
     EXPECT_EQ(stream.GetSize(), 4 + payload.size());
-    EXPECT_EQ(Concatenate(stream.Finish()), TString("head") + payload);
+    EXPECT_EQ(Concatenate(stream.Finish()), "head" + payload);
 }
 
 TEST(TChunkedOutputStreamTest, NextAndUndo)
@@ -200,7 +200,7 @@ TEST(TChunkedOutputStreamTest, NextAndUndo)
     ::memset(buffer, 'x', 10);
     stream.Undo(size - 10);
     EXPECT_EQ(stream.GetSize(), 10u);
-    EXPECT_EQ(Concatenate(stream.Finish()), TString(10, 'x'));
+    EXPECT_EQ(Concatenate(stream.Finish()), std::string(10, 'x'));
 }
 
 TEST(TChunkedOutputStreamTest, FinishResetsStream)

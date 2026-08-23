@@ -9,7 +9,7 @@ namespace {
 
 TSharedRef MakeBlock(TStringBuf data)
 {
-    return TSharedRef::FromString(TString(data));
+    return TSharedRef::FromString(std::string(data));
 }
 
 std::vector<TSharedRef> MakeBlocks(const std::vector<TStringBuf>& parts)
@@ -21,9 +21,9 @@ std::vector<TSharedRef> MakeBlocks(const std::vector<TStringBuf>& parts)
     return result;
 }
 
-TString ReadAll(IZeroCopyInput* input)
+std::string ReadAll(IZeroCopyInput* input)
 {
-    TString result;
+    std::string result;
     const void* ptr = nullptr;
     while (auto size = input->Next(&ptr)) {
         result.append(static_cast<const char*>(ptr), size);

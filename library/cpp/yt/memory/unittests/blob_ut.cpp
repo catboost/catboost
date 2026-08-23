@@ -69,8 +69,8 @@ TEST(TBlobTest, Append)
 TEST(TBlobTest, AppendGrowth)
 {
     TBlob blob(GetRefCountedTypeCookie<TTestBlobTag>());
-    TString expected;
-    for (int index = 0; index < 10000; ++index) {
+    std::string expected;
+    for (int index = 0; index < 10'000; ++index) {
         char ch = 'a' + index % 26;
         blob.Append(ch);
         expected.push_back(ch);
@@ -227,7 +227,7 @@ TEST(TBlobTest, PageAligned)
         /*pageAligned*/ true);
     EXPECT_EQ(reinterpret_cast<uintptr_t>(blob.Begin()) % NSystemInfo::GetPageSize(), 0u);
 
-    blob.Resize(100000);
+    blob.Resize(100'000);
     EXPECT_EQ(reinterpret_cast<uintptr_t>(blob.Begin()) % NSystemInfo::GetPageSize(), 0u);
 }
 

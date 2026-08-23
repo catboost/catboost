@@ -5,7 +5,15 @@ import re
 import yatest
 
 from catboost import Pool, CatBoost, CatBoostClassifier
-from catboost_pytest_lib import data_file, load_pool_features_as_df
+
+try:
+    import catboost_pytest_lib as lib
+    pytest_plugins = "list_plugin"
+except ImportError:
+    import lib
+
+data_file = lib.data_file
+load_pool_features_as_df = lib.load_pool_features_as_df
 
 CATBOOST_APP_PATH = yatest.common.binary_path('catboost/app/catboost')
 APPROXIMATE_DIFF_PATH = yatest.common.binary_path('catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff')
@@ -85,13 +93,18 @@ def test_cpp_export(dataset, parameters, with_namespace):
     is_multiclass_model = __get_train_loss_function(dataset) == 'MultiClass'
 
     if os.name == 'posix':
+        # note that 'g++' on macOS is an alias to 'clang++' so this will work on macOS as well
         compile_cmd = ['g++', '-std=c++14', '-o', applicator_exe]
         if with_namespace:
             compile_cmd += ['-DWITH_CPP_NAMESPACE=TestNamespace']
     else:
-        compile_cmd = ['cl.exe', '-Fe' + applicator_exe]
+        # Generated code for models with categorical features requires C++20 because it uses designated initializers.
+        # Issue to allow older standards: https://github.com/catboost/catboost/issues/3172
+        cpp_standard_arg = '/std:c++14' if dataset == 'higgs' else '/std:c++20'
+        compile_cmd = ['cl.exe', cpp_standard_arg, '-Fe' + applicator_exe]
         if with_namespace:
             compile_cmd += ['/DWITH_CPP_NAMESPACE=TestNamespace']
+ 
     compile_cmd += [applicator_cpp, model_cpp]
     apply_cmd = [applicator_exe, test_path, cd_path, predictions_path]
     if is_multiclass_model:

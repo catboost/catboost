@@ -42,6 +42,12 @@ def main():
     except ValueError:
         skip_nocxxinc = False
 
+    try:
+        sys.argv.remove('--y_skip_compressed_debug_info')
+        skip_compressed_debug_info = True
+    except ValueError:
+        skip_compressed_debug_info = False
+
     sanitize = False
     if '--y_sanitize' in sys.argv:
         sanitize = True
@@ -106,6 +112,8 @@ def main():
 
     if skip_nocxxinc:
         skip_list.append('-nostdinc++')
+    if skip_compressed_debug_info:
+        skip_list.append('-gz=zstd')
 
     skip_list = tuple(skip_list)
     cflags = [x for x in cflags if x not in skip_list]
