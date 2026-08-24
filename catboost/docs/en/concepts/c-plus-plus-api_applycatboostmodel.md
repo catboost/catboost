@@ -6,7 +6,7 @@ Apply the model in C++ format. The method is available within the output C++ fil
 
 {% note info %}
 
-- {% include [reusage-common-phrases-cplusplus_apply_catboost_model__performance](../_includes/work_src/reusage-common-phrases/cplusplus_apply_catboost_model__performance.md) %}
+{% include [reusage-common-phrases-cplusplus_apply_catboost_model__performance](../_includes/work_src/reusage-common-phrases/cplusplus_apply_catboost_model__performance.md) %}
 
 {% endnote %}
 
