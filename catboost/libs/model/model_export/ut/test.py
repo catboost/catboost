@@ -1,7 +1,6 @@
 import numpy as np
 import os
 import pytest
-import re
 import yatest
 
 from catboost import Pool, CatBoost, CatBoostClassifier
@@ -122,7 +121,7 @@ def test_cpp_export(dataset, parameters):
         yatest.common.execute(calc_cmd)
         yatest.common.execute(compare_cmd)
     except OSError as e:
-        if re.search(r"No such file or directory.*'{}'".format(re.escape(compile_cmd[0])), str(e)):
+        if isinstance(e, FileNotFoundError) and e.filename == compile_cmd[0]:
             pytest.xfail(reason='We ignore `compiler not found` error: {}\n'.format(str(e)))
         else:
             raise
