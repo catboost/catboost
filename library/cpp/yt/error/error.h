@@ -64,12 +64,6 @@ void FormatValue(TStringBuilderBase* builder, TErrorCode code, TStringBuf spec);
 // Forward declaration.
 class TErrorException;
 
-template <class TValue>
-concept CErrorNestable = requires (TError& error, TValue&& operand)
-{
-    { error <<= std::forward<TValue>(operand) } -> std::same_as<TError&>;
-};
-
 template <class TRange>
 concept CErrorAttributeRange =
     std::ranges::input_range<TRange> &&
@@ -269,26 +263,6 @@ public:
 
     template <CErrorRange TRange>
     TError& Add(TRange&& innerErrors) &;
-
-    TError& operator <<= (const TErrorAttribute& attribute) &;
-    TError& operator <<= (const std::vector<TErrorAttribute>& attributes) &;
-    TError& operator <<= (const TError& innerError) &;
-    TError& operator <<= (TError&& innerError) &;
-    TError& operator <<= (const std::vector<TError>& innerErrors) &;
-    TError& operator <<= (std::vector<TError>&& innerErrors) &;
-    TError& operator <<= (TAnyMergeableDictionaryRef attributes) &;
-
-    template <CErrorNestable TValue>
-    TError&& operator << (TValue&& operand) &&;
-
-    template <CErrorNestable TValue>
-    TError operator << (TValue&& operand) const &;
-
-    template <CErrorNestable TValue>
-    TError&& operator << (const std::optional<TValue>& rhs) &&;
-
-    template <CErrorNestable TValue>
-    TError operator << (const std::optional<TValue>& rhs) const &;
 
     // The |enricher| is called during TError initial construction and before TErrorOr<> construction. Meant
     // to enrich the error, e.g. by setting generic attributes. Copying TError from another TError or TErrorException

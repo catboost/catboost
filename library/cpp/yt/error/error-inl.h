@@ -105,12 +105,13 @@ std::optional<TError> TError::FindMatching(const TFilter& filter) const
     return FindMatching([&] (const TError& error) { return filter(error.GetCode()); });
 }
 
+//! NB: wrapping an OK error yields a bare wrapper; #AddInnerError rejects OK operands.
 #define IMPLEMENT_COPY_WRAP(...) \
-    return TError(__VA_ARGS__) << *this; \
+    return TError(__VA_ARGS__).WithIf(!IsOK(), *this); \
     static_assert(true)
 
 #define IMPLEMENT_MOVE_WRAP(...) \
-    return TError(__VA_ARGS__) << std::move(*this); \
+    return TError(__VA_ARGS__).WithIf(!IsOK(), std::move(*this)); \
     static_assert(true)
 
 template <class U>
@@ -261,38 +262,6 @@ void TError::AddInnerErrors(TRange&& innerErrors)
         } else {
             AddInnerError(std::forward<decltype(innerError)>(innerError));
         }
-    }
-}
-
-template <CErrorNestable TValue>
-TError&& TError::operator << (TValue&& rhs) &&
-{
-    return std::move(*this <<= std::forward<TValue>(rhs));
-}
-
-template <CErrorNestable TValue>
-TError TError::operator << (TValue&& rhs) const &
-{
-    return TError(*this) << std::forward<TValue>(rhs);
-}
-
-template <CErrorNestable TValue>
-TError&& TError::operator << (const std::optional<TValue>& rhs) &&
-{
-    if (rhs) {
-        return std::move(*this <<= *rhs);
-    } else {
-        return std::move(*this);
-    }
-}
-
-template <CErrorNestable TValue>
-TError TError::operator << (const std::optional<TValue>& rhs) const &
-{
-    if (rhs) {
-        return TError(*this) << *rhs;
-    } else {
-        return *this;
     }
 }
 
