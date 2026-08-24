@@ -65,6 +65,7 @@ namespace {
 
         inline ~TServices() override {
             LF_.Destroy();
+            RR_.Reset();
         }
 
         inline void Add(const TString& service, IServiceRef srv) {
