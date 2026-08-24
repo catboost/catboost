@@ -41,3 +41,10 @@ EXPORT __mysetjmp
         mov [eax + MJB_BP*4], ebp
         xor eax, eax
         ret
+
+EXPORT YContextStackTrampoline
+        ; Keep esp 16-byte-aligned before the call.
+        sub esp, 12
+        push edi
+        call esi
+        ud2

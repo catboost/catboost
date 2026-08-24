@@ -43,15 +43,23 @@ void ITrampoLine::DoRunNaked() {
     abort();
 }
 
-static inline void Run(void* arg) {
-    ((ITrampoLine*)arg)->DoRunNaked();
+Y_NO_SANITIZE("address")
+Y_NO_SANITIZE("memory") extern "C" Y_HIDDEN void
+ContextTrampolineMain(void* arg) {
+    static_cast<ITrampoLine*>(arg)->DoRunNaked();
 }
 
 #if defined(USE_JUMP_CONT)
 extern "C" void __mylongjmp(__myjmp_buf env, int val) __attribute__((__noreturn__));
 extern "C" int __mysetjmp(__myjmp_buf env) __attribute__((__returns_twice__));
+extern "C" Y_HIDDEN void YContextStackTrampoline(void) __attribute__((__noreturn__));
+    #if defined(JUMP_LINK)
+extern "C" Y_HIDDEN void YContextStackTrampolineFinish(void) __attribute__((__noreturn__));
+    #endif
 
 namespace {
+    static_assert(STACK_ALIGN >= 16 && STACK_ALIGN % 16 == 0);
+
     class TStackType {
     public:
         inline TStackType(TArrayRef<char> range) noexcept
@@ -68,17 +76,6 @@ namespace {
 
         inline void ReAlign() noexcept {
             Data_ = AlignStackPtr(Data_);
-        }
-
-        template <class T>
-        inline void Push(T t) noexcept {
-    #if defined(STACK_GROW_DOWN)
-            Data_ -= sizeof(T);
-            *((T*)Data_) = t;
-    #else
-            *((T*)Data_) = t;
-            Data_ += sizeof(T);
-    #endif
         }
 
         inline char* StackPtr() noexcept {
@@ -114,22 +111,17 @@ namespace {
         return JmpBufReg(buf, FRAME_CNT);
     }
 
-    #if defined(_x86_64_)
-    // not sure if Y_NO_SANITIZE is needed
-    Y_NO_SANITIZE("address")
-    Y_NO_SANITIZE("memory") extern "C" void
-    ContextTrampoLine(void*, void*, void*, void*, void*, void*, // register arguments, no defined value
-                      /* first argument passed through the stack */ void* t1,
-                      /* second argument passed through the stack */ void* t2) {
-        Y_ASSERT(t1 == t2);
-        Run(t1);
+    static inline void*& JmpBufFunction(__myjmp_buf& buf) noexcept {
+        return JmpBufReg(buf, JUMP_FUNCTION);
     }
-    #else
-    Y_NO_SANITIZE("address")
-    Y_NO_SANITIZE("memory") static void
-    ContextTrampoLine() {
-        void** argPtr = (void**)((char*)AlignUp(&argPtr + EXTRA_PUSH_ARGS, STACK_ALIGN) + STACK_ALIGN);
-        Run(*(argPtr - 1));
+
+    static inline void*& JmpBufArgument(__myjmp_buf& buf) noexcept {
+        return JmpBufReg(buf, JUMP_ARGUMENT);
+    }
+
+    #if defined(JUMP_LINK)
+    static inline void*& JmpBufLink(__myjmp_buf& buf) noexcept {
+        return JmpBufReg(buf, JUMP_LINK);
     }
     #endif
 } // namespace
@@ -161,40 +153,22 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
 {
     TStackType stack(c.Stack);
 
-    /*
-     * arg, and align data
-     */
-
     #if defined(USE_SANITIZER_CONTEXT)
-    auto trampoline = &San_;
+    ITrampoLine* trampoline = static_cast<ITrampoLine*>(&San_);
     #else
-    auto trampoline = c.TrampoLine;
-    #endif
-
-    #if defined(_x86_64_)
-    stack.ReAlign();
-    // push twice to preserve alignment by 16
-    stack.Push(trampoline); // second stack argument
-    stack.Push(trampoline); // first stack argument
-
-    stack.Push(nullptr); // fake return address
-    #else
-    stack.Push(trampoline);
-    stack.Push(trampoline);
-    stack.ReAlign();
-    /*
-     * fake return address
-     */
-    for (size_t i = 0; i < EXTRA_PUSH_ARGS; ++i) {
-        stack.Push(nullptr);
-    }
+    ITrampoLine* trampoline = c.TrampoLine;
     #endif
 
     __mysetjmp(Buf_);
 
-    JmpBufProgrReg(Buf_) = reinterpret_cast<void*>(ContextTrampoLine);
+    JmpBufProgrReg(Buf_) = reinterpret_cast<void*>(YContextStackTrampoline);
     JmpBufStackReg(Buf_) = stack.StackPtr();
     JmpBufFrameReg(Buf_) = nullptr;
+    JmpBufFunction(Buf_) = reinterpret_cast<void*>(ContextTrampolineMain);
+    JmpBufArgument(Buf_) = static_cast<void*>(trampoline);
+    #if defined(JUMP_LINK)
+    JmpBufLink(Buf_) = reinterpret_cast<void*>(YContextStackTrampolineFinish);
+    #endif
 }
 
 void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
@@ -211,11 +185,11 @@ void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
 }
 #elif defined(_win_) && defined(_32_)
 void __stdcall ContextTrampoLine(void* arg) {
-    Run(arg);
+    ContextTrampolineMain(arg);
 }
 #else
 void ContextTrampoLine(void* arg) {
-    Run(arg);
+    ContextTrampolineMain(arg);
 }
 #endif
 
