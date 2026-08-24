@@ -12,6 +12,7 @@
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/generic/queue.h>
+#include <util/generic/yexception.h>
 #include <util/memory/blob.h>
 #include <util/system/compiler.h>
 
@@ -42,6 +43,20 @@ namespace NHnsw {
      * This class uses ItemStorage created outside successor of this class.
      * If you don't need separate ItemStorage see index_item_storage_base.h.
      */
+
+    namespace NPrivate {
+        /**
+         * @brief Reports that this index does not store raw ui32 rows.
+         *
+         * Separate from GetNeighbors so that the message is built only on the failing path.
+         */
+        [[noreturn]] inline void ThrowRawRowsUnavailable(ENeighborIdFormat format) {
+            ythrow yexception()
+                << "raw neighbor rows are available only for the ui32 neighbor id format, "
+                   "but this index is stored in format "
+                << format;
+        }
+    }
 
     class THnswIndexBase {
     public:
@@ -89,7 +104,7 @@ namespace NHnsw {
             TFilter&& filter = {},
             TSearchContext&& context = {}) const
         {
-            if (Levels.empty() || params.SearchNeighborhoodSize == 0 || params.StopSearchSize == 0) {
+            if (Layout.Levels.empty() || params.SearchNeighborhoodSize == 0 || params.StopSearchSize == 0) {
                 return {};
             }
 
@@ -98,10 +113,12 @@ namespace NHnsw {
                 itemStorage, distance, params.DistanceCalcLimit);
             auto entryDist = distanceAdapter.Calc(query, entryId);
             const ui32 minLevel = params.UseBaseLevelForEntryInit ? 0 : 1;
+            TVector<ui32> entryRowScratch = MakeRowScratch();
             for (ui32 level = GetNumLevels(); level-- > minLevel && !distanceAdapter.IsLimitReached(); ) {
+                const TLevelRows rows = GetLevelRows(level);
                 for (bool entryChanged = true; entryChanged && !distanceAdapter.IsLimitReached(); ) {
                     entryChanged = false;
-                    const TNeighborsView neighbors(GetNeighbors(level, entryId), GetNumNeighbors(level));
+                    const TNeighborsView neighbors = rows.GetRow(entryId, entryRowScratch);
                     distanceAdapter.Prefetch(neighbors);
                     for (ui32 id: neighbors) {
                         if (distanceAdapter.IsLimitReached()) {
@@ -287,31 +304,85 @@ namespace NHnsw {
         template <class TIndexReader>
         void Reset(const TBlob& blob, const TIndexReader& indexReader) {
             Data = blob;
-            indexReader.ReadIndex(Data, &NumNeighborsInLevels, &Levels);
+            if constexpr (requires { indexReader.ReadIndex(Data, &Layout); }) {
+                indexReader.ReadIndex(Data, &Layout);
+            } else {
+                TVector<ui32> numNeighborsInLevels;
+                TVector<const ui32*> levels;
+                indexReader.ReadIndex(Data, &numNeighborsInLevels, &levels);
+                Layout = MakeUi32Layout(numNeighborsInLevels, levels);
+            }
         }
 
         const ui32* GetNeighbors(ui32 level, ui32 id) const {
-            return Levels[level] + id * NumNeighborsInLevels[level];
-        }
-        size_t GetNumLevels() const {
-            return Levels.size();
-        }
-        size_t GetNumNeighbors(ui32 level) const {
-            return NumNeighborsInLevels[level];
+            if (Y_UNLIKELY(Layout.Format != ENeighborIdFormat::Ui32)) {
+                NPrivate::ThrowRawRowsUnavailable(Layout.Format);
+            }
+            return GetUi32Row(level, id);
         }
 
+        /**
+         * @brief Neighbor row of item @p id at @p level, in whichever id format the index holds.
+         *
+         * @p scratch is only touched for the packed formats, and the returned view stays valid
+         * only until the next call made with the same buffer. See TLevelRows::GetRow.
+         */
+        TNeighborsView GetNeighborsView(ui32 level, ui32 id, TVector<ui32>& scratch) const {
+            return GetLevelRows(level).GetRow(id, scratch);
+        }
+
+        size_t GetNumLevels() const {
+            return Layout.Levels.size();
+        }
+        size_t GetNumNeighbors(ui32 level) const {
+            return Layout.Levels[level].NumNeighbors;
+        }
+
+        /**
+         * @brief Neighbors getter for the base level, letting the filter supply its own.
+         *
+         * A filter is asked for a getter over TLevelRows, which reads rows in any id format. The
+         * older overload taking a raw ui32 level pointer is still honoured, but a getter built on
+         * it can only walk an index in the ui32 format, so a packed one is refused rather than
+         * answered by a traversal the caller did not ask for.
+         */
         template <typename TFilter, typename TSearchContext>
         THolder<INeighborsGetter> CreateNeighborsGetter(TFilter& filter, TSearchContext& context) const {
-            if constexpr (requires { filter.CreateNeighborsGetter(Levels[0], GetNumNeighbors(0), context); }) {
-                return filter.CreateNeighborsGetter(Levels[0], GetNumNeighbors(0), context);
+            const TLevelRows rows = GetLevelRows(0);
+            if constexpr (requires { filter.CreateNeighborsGetter(rows, context); }) {
+                return filter.CreateNeighborsGetter(rows, context);
+            } else if constexpr (requires { filter.CreateNeighborsGetter(GetUi32Row(0, 0), GetNumNeighbors(0), context); }) {
+                Y_ENSURE(
+                    Layout.Format == ENeighborIdFormat::Ui32,
+                    "a neighbors getter over raw ui32 rows cannot read packed hnsw neighbor ids"
+                );
+                return filter.CreateNeighborsGetter(GetUi32Row(0, 0), GetNumNeighbors(0), context);
+            } else {
+                return MakeNeighborsGetter<TSearchContext>(rows, context);
             }
-            return MakeHolder<TNeighborsGetterBase<TSearchContext>>(Levels[0], GetNumNeighbors(0), context);
         }
 
     private:
+        TLevelRows GetLevelRows(ui32 level) const {
+            return TLevelRows(Layout.Format, Layout.Payload, Layout.BitsPerId, Layout.Levels[level]);
+        }
+
+        const ui32* GetUi32Row(ui32 level, ui32 id) const {
+            const auto& levelLayout = Layout.Levels[level];
+            return reinterpret_cast<const ui32*>(Layout.Payload + (levelLayout.BitOffset >> 3))
+                + size_t(id) * levelLayout.NumNeighbors;
+        }
+
+        TVector<ui32> MakeRowScratch() const {
+            TVector<ui32> scratch;
+            if (Layout.Format != ENeighborIdFormat::Ui32) {
+                scratch.reserve(Layout.Levels[0].NumNeighbors);
+            }
+            return scratch;
+        }
+
         TBlob Data;
-        TVector<ui32> NumNeighborsInLevels;
-        TVector<const ui32*> Levels;
+        THnswIndexLayout Layout;
     };
 
 } // namespace NHnsw
