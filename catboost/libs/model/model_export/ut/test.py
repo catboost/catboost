@@ -66,17 +66,29 @@ def _check_data(data1, data2, rtol=0.001):
 
 
 @pytest.mark.parametrize(
-    'dataset,parameters',
+    'dataset,parameters,with_namespace',
     [
-        ('adult', []),
-        ('adult', ['-I', '3']),
-        ('higgs', []),
-        ('covertype', [])
+        ('adult', [], False),
+        ('adult', [], True),    # test namespace export
+        ('adult', ['-I', '3'], False),
+        ('higgs', [], False),
+        ('covertype', [], False),
     ]
 )
-def test_cpp_export(dataset, parameters):
+def test_cpp_export(dataset, parameters, with_namespace):
     model_cpp, _, model_cbm = _get_cpp_py_cbm_model(dataset, parameters)
-    _, test_path, cd_path = _get_train_test_cd_path(dataset)
+    train_path, test_path, cd_path = _get_train_test_cd_path(dataset)
+    if with_namespace:
+        model = CatBoost()
+        model.load_model(model_cbm)     # load same cb binary model to test export
+
+        # overwrite CLI model with one having namespace
+        model.save_model(
+            model_cpp,
+            format="cpp",
+            export_parameters={"namespace": "TestNamespace"},
+            pool=Pool(train_path, column_description=cd_path)
+        )
 
     # form the commands we are going to run
 
@@ -90,11 +102,16 @@ def test_cpp_export(dataset, parameters):
     if os.name == 'posix':
         # note that 'g++' on macOS is an alias to 'clang++' so this will work on macOS as well
         compile_cmd = ['g++', '-std=c++14', '-o', applicator_exe]
+        if with_namespace:
+            compile_cmd += ['-DWITH_CPP_NAMESPACE=TestNamespace']
     else:
         # Generated code for models with categorical features requires C++20 because it uses designated initializers.
         # Issue to allow older standards: https://github.com/catboost/catboost/issues/3172
         cpp_standard_arg = '/std:c++14' if dataset == 'higgs' else '/std:c++20'
         compile_cmd = ['cl.exe', cpp_standard_arg, '-Fe' + applicator_exe]
+        if with_namespace:
+            compile_cmd += ['/DWITH_CPP_NAMESPACE=TestNamespace']
+
     compile_cmd += [applicator_cpp, model_cpp]
     apply_cmd = [applicator_exe, test_path, cd_path, predictions_path]
     if is_multiclass_model:
