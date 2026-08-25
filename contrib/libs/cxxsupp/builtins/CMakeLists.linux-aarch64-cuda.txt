@@ -16,6 +16,7 @@ add_library(libs-cxxsupp-builtins)
 
 
 target_compile_options(libs-cxxsupp-builtins PRIVATE
+  -DCOMPILER_RT_HAS_FLOAT16
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
