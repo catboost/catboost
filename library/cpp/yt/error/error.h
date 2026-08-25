@@ -230,6 +230,9 @@ public:
     [[nodiscard]] TError With(TAnyMergeableDictionaryRef attributes) const &;
     [[nodiscard]] TError&& With(TAnyMergeableDictionaryRef attributes) &&;
 
+    //! NB: OK errors are dropped as they carry no diagnostics and cannot become inner ones.
+    //! This makes the overloads usable with an operand that is only sometimes a failure,
+    //! e.g. a cancelation error, which #TFuture::Cancel may well be passed as OK.
     [[nodiscard]] TError With(const TError& innerError) const &;
     [[nodiscard]] TError&& With(const TError& innerError) &&;
     [[nodiscard]] TError With(TError&& innerError) const &;

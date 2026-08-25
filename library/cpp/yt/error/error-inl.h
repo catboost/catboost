@@ -105,13 +105,13 @@ std::optional<TError> TError::FindMatching(const TFilter& filter) const
     return FindMatching([&] (const TError& error) { return filter(error.GetCode()); });
 }
 
-//! NB: wrapping an OK error yields a bare wrapper; #AddInnerError rejects OK operands.
+//! NB: wrapping an OK error yields a bare wrapper; since #AddInnerError drops OK operands.
 #define IMPLEMENT_COPY_WRAP(...) \
-    return TError(__VA_ARGS__).WithIf(!IsOK(), *this); \
+    return TError(__VA_ARGS__).With(*this); \
     static_assert(true)
 
 #define IMPLEMENT_MOVE_WRAP(...) \
-    return TError(__VA_ARGS__).WithIf(!IsOK(), std::move(*this)); \
+    return TError(__VA_ARGS__).With(std::move(*this)); \
     static_assert(true)
 
 template <class U>
