@@ -14,8 +14,6 @@ ___mysetjmp:
     stp x25, x26, [x0,#48]
     stp x27, x28, [x0,#64]
     stp x29, x30, [x0,#80]
-    // Fresh contexts replace this PC with YContextStackTrampoline and keep LR.
-    str x30, [x0,#96]
     mov x2, sp
     str x2, [x0,#104]
     stp  d8,  d9, [x0,#112]
@@ -41,7 +39,6 @@ ___mylongjmp:
     ldp x25, x26, [x0,#48]
     ldp x27, x28, [x0,#64]
     ldp x29, x30, [x0,#80]
-    ldr x3, [x0,#96]
     ldr x2, [x0,#104]
     mov sp, x2
     ldp d8 , d9, [x0,#112]
@@ -52,46 +49,4 @@ ___mylongjmp:
     mov x0, x1
     cbnz x1, 1f
     mov x0, #1
-1:    ret x3
-
-.p2align 2
-#if !(defined __darwin__) && !(defined __arm64__)
-.global YContextStackTrampoline
-.hidden YContextStackTrampoline
-.type YContextStackTrampoline,@function
-YContextStackTrampoline:
-#else
-.global _YContextStackTrampoline
-.private_extern _YContextStackTrampoline
-_YContextStackTrampoline:
-#endif
-    .cfi_startproc
-    .cfi_undefined x29
-    .cfi_undefined x30
-    mov x0, x20
-    // x16 permits a tail branch to a BTI-protected function.
-    mov x16, x19
-    br x16
-    .cfi_endproc
-#if !(defined __darwin__) && !(defined __arm64__)
-.size YContextStackTrampoline, .-YContextStackTrampoline
-#endif
-
-#if !(defined __darwin__) && !(defined __arm64__)
-.global YContextStackTrampolineFinish
-.hidden YContextStackTrampolineFinish
-.type YContextStackTrampolineFinish,@function
-YContextStackTrampolineFinish:
-#else
-.global _YContextStackTrampolineFinish
-.private_extern _YContextStackTrampolineFinish
-_YContextStackTrampolineFinish:
-#endif
-    .cfi_startproc
-    .cfi_undefined x29
-    .cfi_undefined x30
-    udf #0
-    .cfi_endproc
-#if !(defined __darwin__) && !(defined __arm64__)
-.size YContextStackTrampolineFinish, .-YContextStackTrampolineFinish
-#endif
+1:    br x30

@@ -179,22 +179,7 @@ static inline size_t MachineContextSize() noexcept {
     #undef USE_UCONTEXT_CONT
     #undef PROGR_CNT
     #undef STACK_CNT
-    #undef FRAME_CNT
-    #undef JUMP_FUNCTION
-    #undef JUMP_ARGUMENT
-    #undef JUMP_LINK
-    #undef MJB_X19
-    #undef MJB_X20
-    #undef MJB_LR
-    #undef MJB_R12
-    #undef MJB_R13
-    #undef MJB_SI
-    #undef MJB_DI
-    #undef MJB_RBP
-    #undef MJB_RSP
-    #undef MJB_BP
-    #undef MJB_SP
-    #undef MJB_PC
+    #undef EXTRA_PUSH_ARGS
 #endif
 
 #if defined(_darwin_) && defined(thread_sanitizer_enabled)

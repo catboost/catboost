@@ -38,8 +38,3 @@ EXPORT __mysetjmp
         mov [rdi + MJB_PC * 8], rax
         mov eax, 0
         ret
-
-EXPORT YContextStackTrampoline
-        mov rdi, r13
-        call r12
-        ud2
