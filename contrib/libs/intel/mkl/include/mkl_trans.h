@@ -1,27 +1,20 @@
 /*******************************************************************************
-* Copyright 2007-2017 Intel Corporation All Rights Reserved.
+* Copyright 2007-2022 Intel Corporation.
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+* This software and the related documents are Intel copyrighted  materials,  and
+* your use of  them is  governed by the  express license  under which  they were
+* provided to you (License).  Unless the License provides otherwise, you may not
+* use, modify, copy, publish, distribute,  disclose or transmit this software or
+* the related documents without Intel's prior written permission.
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
+* This software and the related documents  are provided as  is,  with no express
+* or implied  warranties,  other  than those  that are  expressly stated  in the
+* License.
 *******************************************************************************/
 
 /*
 !  Content:
-!      Intel(R) Math Kernel Library (Intel(R) MKL) include for transposition routines
+!      Intel(R) oneAPI Math Kernel Library (oneMKL) include for transposition routines
 !******************************************************************************/
 
 #if !defined(_MKL_TRANS_H)
@@ -30,6 +23,17 @@
 /* for size_t */
 #include <stddef.h>
 #include "mkl_types.h"
+#include "mkl_trans_names.h"
+
+#ifdef __cplusplus
+#if __cplusplus > 199711L
+#define NOTHROW noexcept
+#else
+#define NOTHROW throw()
+#endif
+#else
+#define NOTHROW
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,29 +41,25 @@ extern "C" {
 
 /* In-place transposition routines */
 
-#define mkl_simatcopy MKL_Simatcopy
-void MKL_Simatcopy(
+void mkl_simatcopy(
     const char ordering, const char trans,
     size_t rows, size_t cols,
     const float alpha,
     float * AB, size_t lda, size_t ldb);
 
-#define mkl_dimatcopy MKL_Dimatcopy
-void MKL_Dimatcopy(
+void mkl_dimatcopy(
     const char ordering, const char trans,
     size_t rows, size_t cols,
     const double alpha,
     double * AB, size_t lda, size_t ldb);
 
-#define mkl_cimatcopy MKL_Cimatcopy
-void MKL_Cimatcopy(
+void mkl_cimatcopy(
     const char ordering, const char trans,
     size_t rows, size_t cols,
     const MKL_Complex8 alpha,
     MKL_Complex8 * AB, size_t lda, size_t ldb);
 
-#define mkl_zimatcopy MKL_Zimatcopy
-void MKL_Zimatcopy(
+void mkl_zimatcopy(
     const char ordering, const char trans,
     size_t rows, size_t cols,
     const MKL_Complex16 alpha,
@@ -67,32 +67,28 @@ void MKL_Zimatcopy(
 
 /* Out-of-place transposition routines */
 
-#define mkl_somatcopy MKL_Somatcopy
-void MKL_Somatcopy(
+void mkl_somatcopy(
     char ordering, char trans,
     size_t rows, size_t cols,
     const float alpha,
     const float * A, size_t lda,
     float * B, size_t ldb);
 
-#define mkl_domatcopy MKL_Domatcopy
-void MKL_Domatcopy(
+void mkl_domatcopy(
     char ordering, char trans,
     size_t rows, size_t cols,
     const double alpha,
     const double * A, size_t lda,
     double * B, size_t ldb);
 
-#define mkl_comatcopy MKL_Comatcopy
-void MKL_Comatcopy(
+void mkl_comatcopy(
     char ordering, char trans,
     size_t rows, size_t cols,
     const MKL_Complex8 alpha,
     const MKL_Complex8 * A, size_t lda,
     MKL_Complex8 * B, size_t ldb);
 
-#define mkl_zomatcopy MKL_Zomatcopy
-void MKL_Zomatcopy(
+void mkl_zomatcopy(
     char ordering, char trans,
     size_t rows, size_t cols,
     const MKL_Complex16 alpha,
@@ -101,32 +97,28 @@ void MKL_Zomatcopy(
 
 /* Out-of-place transposition routines (all-strided case) */
 
-#define mkl_somatcopy2 MKL_Somatcopy2
-void MKL_Somatcopy2(
+void mkl_somatcopy2(
     char ordering, char trans,
     size_t rows, size_t cols,
     const float alpha,
     const float * A, size_t lda, size_t stridea,
     float * B, size_t ldb, size_t strideb);
 
-#define mkl_domatcopy2 MKL_Domatcopy2
-void MKL_Domatcopy2(
+void mkl_domatcopy2(
     char ordering, char trans,
     size_t rows, size_t cols,
     const double alpha,
     const double * A, size_t lda, size_t stridea,
     double * B, size_t ldb, size_t strideb);
 
-#define mkl_comatcopy2 MKL_Comatcopy2
-void MKL_Comatcopy2(
+void mkl_comatcopy2(
     char ordering, char trans,
     size_t rows, size_t cols,
     const MKL_Complex8 alpha,
     const MKL_Complex8 * A, size_t lda, size_t stridea,
     MKL_Complex8 * B, size_t ldb, size_t strideb);
 
-#define mkl_zomatcopy2 MKL_Zomatcopy2
-void MKL_Zomatcopy2(
+void mkl_zomatcopy2(
     char ordering, char trans,
     size_t rows, size_t cols,
     const MKL_Complex16 alpha,
@@ -135,8 +127,7 @@ void MKL_Zomatcopy2(
 
 /* Out-of-place memory movement routines */
 
-#define mkl_somatadd MKL_Somatadd
-void MKL_Somatadd(
+void mkl_somatadd(
     char ordering, char transa, char transb,
     size_t rows, size_t cols,
     const float alpha,
@@ -145,8 +136,7 @@ void MKL_Somatadd(
     const float * B, size_t ldb,
     float * C, size_t ldc);
 
-#define mkl_domatadd MKL_Domatadd
-void MKL_Domatadd(
+void mkl_domatadd(
     char ordering, char transa, char transb,
     size_t rows, size_t cols,
     const double alpha,
@@ -155,8 +145,7 @@ void MKL_Domatadd(
     const double * B, size_t ldb,
     double * C, size_t ldc);
 
-#define mkl_comatadd MKL_Comatadd
-void MKL_Comatadd(
+void mkl_comatadd(
     char ordering, char transa, char transb,
     size_t rows, size_t cols,
     const MKL_Complex8 alpha,
@@ -165,8 +154,7 @@ void MKL_Comatadd(
     const MKL_Complex8 * B, size_t ldb,
     MKL_Complex8 * C, size_t ldc);
 
-#define mkl_zomatadd MKL_Zomatadd
-void MKL_Zomatadd(
+void mkl_zomatadd(
     char ordering, char transa, char transb,
     size_t rows, size_t cols,
     const MKL_Complex16 alpha,
@@ -174,6 +162,153 @@ void MKL_Zomatadd(
     const MKL_Complex16 beta,
     const MKL_Complex16 * B, size_t ldb,
     MKL_Complex16 * C, size_t ldc);
+
+
+/* Batch routines */
+
+void mkl_simatcopy_batch_strided(
+    const char ordering, const char trans,
+    size_t rows, size_t cols,
+    const float alpha,
+    float * AB, size_t lda, size_t ldb,
+    size_t stride, size_t batch_size) NOTHROW;
+
+void mkl_dimatcopy_batch_strided(
+    const char ordering, const char trans,
+    size_t rows, size_t cols,
+    const double alpha,
+    double * AB, size_t lda, size_t ldb,
+    size_t stride, size_t batch_size) NOTHROW;
+
+void mkl_cimatcopy_batch_strided(
+    const char ordering, const char trans,
+    size_t rows, size_t cols,
+    const MKL_Complex8 alpha,
+    MKL_Complex8 * AB, size_t lda, size_t ldb,
+    size_t stride, size_t batch_size) NOTHROW;
+
+void mkl_zimatcopy_batch_strided(
+    const char ordering, const char trans,
+    size_t rows, size_t cols,
+    const MKL_Complex16 alpha,
+    MKL_Complex16 * AB, size_t lda, size_t ldb,
+    size_t stride, size_t batch_size) NOTHROW;
+
+void mkl_somatcopy_batch_strided(
+    char ordering, char trans,
+    size_t rows, size_t cols,
+    const float alpha,
+    const float * A, size_t lda, size_t stridea,
+    float * B, size_t ldb, size_t strideb, size_t batch_size) NOTHROW;
+
+void mkl_domatcopy_batch_strided(
+    char ordering, char trans,
+    size_t rows, size_t cols,
+    const double alpha,
+    const double * A, size_t lda, size_t stridea,
+    double * B, size_t ldb, size_t strideb, size_t batch_size) NOTHROW;
+
+void mkl_comatcopy_batch_strided(
+    char ordering, char trans,
+    size_t rows, size_t cols,
+    const MKL_Complex8 alpha,
+    const MKL_Complex8 * A, size_t lda, size_t stridea,
+    MKL_Complex8 * B, size_t ldb, size_t strideb, size_t batch_size) NOTHROW;
+
+void mkl_zomatcopy_batch_strided(
+    char ordering, char trans,
+    size_t rows, size_t cols,
+    const MKL_Complex16 alpha,
+    const MKL_Complex16 * A, size_t lda, size_t stridea,
+    MKL_Complex16 * B, size_t ldb, size_t strideb, size_t batch_size) NOTHROW;
+
+void mkl_simatcopy_batch(
+    char ordering, const char * trans_array,
+    const size_t * rows_array, const size_t * cols_array,
+    const float * alpha_array,
+    float ** AB_array, const size_t * lda_array, const size_t * ldb_array,
+    size_t group_count, const size_t * group_size) NOTHROW;
+
+void mkl_dimatcopy_batch(
+    char ordering, const char * trans_array,
+    const size_t * rows_array, const size_t * cols_array,
+    const double * alpha_array,
+    double ** AB_array, const size_t * lda_array, const size_t * ldb_array,
+    size_t group_count, const size_t * group_size) NOTHROW;
+
+void mkl_cimatcopy_batch(
+    char ordering, const char * trans_array,
+    const size_t * rows_array, const size_t * cols_array,
+    const MKL_Complex8 * alpha_array,
+    MKL_Complex8 ** AB_array, const size_t * lda_array, const size_t * ldb_array,
+    size_t group_count, const size_t * group_size) NOTHROW;
+
+void mkl_zimatcopy_batch(
+    char ordering, const char * trans_array,
+    const size_t * rows_array, const size_t * cols_array,
+    const MKL_Complex16 * alpha_array,
+    MKL_Complex16 ** AB_array, const size_t * lda_array, const size_t * ldb_array,
+    size_t group_count, const size_t * group_size) NOTHROW;
+
+void mkl_somatcopy_batch(
+    char ordering, const char * trans_array,
+    const size_t * rows_array, const size_t * cols_array,
+    const float * alpha_array,
+    const float ** A_array, const size_t * lda_array,
+    float ** B, const size_t * ldb_array, size_t group_count,
+    const size_t * group_size) NOTHROW;
+
+void mkl_domatcopy_batch(
+    char ordering, const char * trans_array,
+    const size_t * rows_array, const size_t * cols_array,
+    const double * alpha_array,
+    const double ** A_array, const size_t * lda_array,
+    double ** B_array, const size_t * ldb_array, size_t group_count,
+    const size_t * group_size) NOTHROW;
+
+void mkl_comatcopy_batch(
+    char ordering, const char * trans_array,
+    const size_t * rows_array, const size_t * cols_array,
+    const MKL_Complex8 * alpha_array,
+    const MKL_Complex8 ** A_array, const size_t * lda_array,
+    MKL_Complex8 ** B, const size_t * ldb_array, size_t group_count,
+    const size_t * group_size) NOTHROW;
+
+void mkl_zomatcopy_batch(
+    char ordering, const char * trans_array,
+    const size_t * rows_array, const size_t * cols_array,
+    const MKL_Complex16 * alpha_array,
+    const MKL_Complex16 ** A_array, const size_t * lda_array,
+    MKL_Complex16 ** B, const size_t * ldb_array, size_t group_count,
+    const size_t * group_size) NOTHROW;
+
+void mkl_somatadd_batch_strided(
+    char ordering, char transa, char transb,
+    size_t rows, size_t cols,
+    const float alpha, const float * A, size_t lda, size_t stridea,
+    const float beta, const float * B, size_t ldb, size_t strideb,
+    float * C, size_t ldc, size_t stridec, size_t batch_size) NOTHROW;
+
+void mkl_domatadd_batch_strided(
+    char ordering, char transa, char transb,
+    size_t rows, size_t cols,
+    const double alpha, const double * A, size_t lda, size_t stridea,
+    const double beta, const double * B, size_t ldb, size_t strideb,
+    double * C, size_t ldc, size_t stridec, size_t batch_size) NOTHROW;
+
+void mkl_comatadd_batch_strided(
+    char ordering, char transa, char transb,
+    size_t rows, size_t cols,
+    const MKL_Complex8 alpha, const MKL_Complex8 * A, size_t lda, size_t stridea,
+    const MKL_Complex8 beta, const MKL_Complex8 * B, size_t ldb, size_t strideb,
+    MKL_Complex8 * C, size_t ldc, size_t stridec, size_t batch_size) NOTHROW;
+
+void mkl_zomatadd_batch_strided(
+    char ordering, char transa, char transb,
+    size_t rows, size_t cols,
+    const MKL_Complex16 alpha, const MKL_Complex16 * A, size_t lda, size_t stridea,
+    const MKL_Complex16 beta, const MKL_Complex16 * B, size_t ldb, size_t strideb,
+    MKL_Complex16 * C, size_t ldc, size_t stridec, size_t batch_size) NOTHROW;
 
 #ifdef __cplusplus
 }

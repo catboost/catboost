@@ -1,27 +1,20 @@
 /*******************************************************************************
-* Copyright 1999-2017 Intel Corporation All Rights Reserved.
+* Copyright 1999-2022 Intel Corporation.
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+* This software and the related documents are Intel copyrighted  materials,  and
+* your use of  them is  governed by the  express license  under which  they were
+* provided to you (License).  Unless the License provides otherwise, you may not
+* use, modify, copy, publish, distribute,  disclose or transmit this software or
+* the related documents without Intel's prior written permission.
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
+* This software and the related documents  are provided as  is,  with no express
+* or implied  warranties,  other  than those  that are  expressly stated  in the
+* License.
 *******************************************************************************/
 
 /*
 ! Content:
-!      Intel(R) Math Kernel Library (Intel(R) MKL) types definition
+!      Intel(R) oneAPI Math Kernel Library (oneMKL) types definition
 !****************************************************************************/
 
 #ifndef _MKL_TYPES_H_
@@ -31,7 +24,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/* Intel(R) MKL Complex type for single precision */
+/* oneMKL Complex type for single precision */
 #ifndef MKL_Complex8
 typedef
 struct _MKL_Complex8 {
@@ -40,7 +33,7 @@ struct _MKL_Complex8 {
 } MKL_Complex8;
 #endif
 
-/* Intel(R) MKL Complex type for double precision */
+/* oneMKL Complex type for double precision */
 #ifndef MKL_Complex16
 typedef
 struct _MKL_Complex16 {
@@ -49,7 +42,7 @@ struct _MKL_Complex16 {
 } MKL_Complex16;
 #endif
 
-/* Intel(R) MKL Version type */
+/* oneMKL Version type */
 typedef
 struct {
     int    MajorVersion;
@@ -61,7 +54,7 @@ struct {
     char * Platform;
 } MKLVersion;
 
-/* Intel(R) MKL integer types for LP64 and ILP64 */
+/* oneMKL integer types for LP64 and ILP64 */
 #if (!defined(__INTEL_COMPILER)) & defined(_MSC_VER)
     #define MKL_INT64 __int64
     #define MKL_UINT64 unsigned __int64
@@ -72,7 +65,7 @@ struct {
 
 #ifdef MKL_ILP64
 
-/* Intel(R) MKL ILP64 integer types */
+/* oneMKL ILP64 integer types */
 #ifndef MKL_INT
     #define MKL_INT MKL_INT64
 #endif
@@ -83,7 +76,7 @@ struct {
 
 #else
 
-/* Intel(R) MKL LP64 integer types */
+/* oneMKL LP64 integer types */
 #ifndef MKL_INT
     #define MKL_INT int
 #endif
@@ -94,7 +87,7 @@ struct {
 
 #endif
 
-/* Intel(R) MKL integer types */
+/* oneMKL integer types */
 #ifndef MKL_UINT8
     #define MKL_UINT8 unsigned char
 #endif
@@ -104,28 +97,36 @@ struct {
 #ifndef MKL_INT16
     #define MKL_INT16 short
 #endif
+#ifndef MKL_BF16
+    #define MKL_BF16 unsigned short
+#endif
 #ifndef MKL_INT32
     #define MKL_INT32 int
 #endif
+#ifndef MKL_F16
+    #define MKL_F16 unsigned short
+#endif
 
-/* Intel(R) MKL threading stuff. Intel(R) MKL Domain names */
+/* oneMKL domain names */
 #define MKL_DOMAIN_ALL      0
 #define MKL_DOMAIN_BLAS     1
 #define MKL_DOMAIN_FFT      2
 #define MKL_DOMAIN_VML      3
 #define MKL_DOMAIN_PARDISO  4
+#define MKL_DOMAIN_LAPACK   5
 
-/* Intel(R) MKL CBWR stuff */
+/* oneMKL CBWR */
 
-/* options */
+/* mkl_cbwr_get options */
 #define MKL_CBWR_BRANCH 1
 #define MKL_CBWR_ALL   ~0
 
-/* common settings */
-#define MKL_CBWR_UNSET_ALL 0
-#define MKL_CBWR_OFF       0
+/* flag specific values */
+#define MKL_CBWR_STRICT    0x10000
 
 /* branch specific values */
+#define MKL_CBWR_UNSET_ALL      MKL_CBWR_OFF
+#define MKL_CBWR_OFF            0
 #define MKL_CBWR_BRANCH_OFF     1
 #define MKL_CBWR_AUTO           2
 #define MKL_CBWR_COMPATIBLE     3
@@ -138,6 +139,7 @@ struct {
 #define MKL_CBWR_AVX512_MIC    11
 #define MKL_CBWR_AVX512        12
 #define MKL_CBWR_AVX512_MIC_E1 13
+#define MKL_CBWR_AVX512_E1     14
 
 /* error codes */
 #define MKL_CBWR_SUCCESS                   0
@@ -147,7 +149,7 @@ struct {
 #define MKL_CBWR_ERR_UNKNOWN_BRANCH       -4
 #define MKL_CBWR_ERR_MODE_CHANGE_FAILURE  -8
 
-/* Obsolete */
+/* obsolete */
 #define MKL_CBWR_SSE3           5
 
 typedef enum {
@@ -158,7 +160,8 @@ typedef enum {
 typedef enum {
     MKL_NOTRANS = 111,
     MKL_TRANS = 112,
-    MKL_CONJTRANS = 113
+    MKL_CONJTRANS = 113,
+    MKL_CONJ = 114
 } MKL_TRANSPOSE;
 
 typedef enum {
@@ -181,6 +184,17 @@ typedef enum {
     MKL_COMPACT_AVX = 182,
     MKL_COMPACT_AVX512 = 183
 } MKL_COMPACT_PACK;
+
+typedef void (*sgemm_jit_kernel_t)(void*, float*,         float*,         float*);
+typedef void (*dgemm_jit_kernel_t)(void*, double*,        double*,        double*);
+typedef void (*cgemm_jit_kernel_t)(void*, MKL_Complex8*,  MKL_Complex8*,  MKL_Complex8*);
+typedef void (*zgemm_jit_kernel_t)(void*, MKL_Complex16*, MKL_Complex16*, MKL_Complex16*);
+
+typedef enum {
+    MKL_JIT_SUCCESS = 0,
+    MKL_NO_JIT = 1,
+    MKL_JIT_ERROR = 2
+} mkl_jit_status_t;
 
 #ifdef __cplusplus
 }
