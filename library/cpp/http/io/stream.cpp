@@ -134,10 +134,12 @@ class THttpInput::TImpl {
     typedef THashSet<TString> TAcceptCodings;
 
 public:
-    inline TImpl(IInputStream* slave)
+    inline TImpl(IInputStream* slave, const THttpInput::TOptions& options = {})
         : Slave_(slave)
+        , Options_(options)
         , Buffered_(Slave_, SuggestBufferSize())
         , ChunkedInput_(nullptr)
+        , LengthLimitedInput_(nullptr)
         , Input_(nullptr)
         , FirstLine_(ReadFirstLine(Buffered_))
         , Headers_(&Buffered_)
@@ -208,12 +210,22 @@ public:
         return Expect100Continue_;
     }
 
+    inline ui64 ContentLengthLeft() const noexcept {
+        return LengthLimitedInput_ ? LengthLimitedInput_->Left() : 0;
+    }
+
 private:
     template <class Operation>
     inline size_t Perform(size_t len, const Operation& operation) {
         size_t processed = operation(len);
         if (processed == 0 && len > 0) {
             if (!ChunkedInput_) {
+                if (Options_.StrictContentLength) {
+                    if (const ui64 left = ContentLengthLeft()) {
+                        ythrow THttpTruncatedBodyException() << "Body ended after " << (ContentLength_ - left)
+                                                            << " of " << ContentLength_ << " byte(s) declared in Content-Length";
+                    }
+                }
                 Trailers_.ConstructInPlace();
             } else {
                 // Read the header of the trailing chunk. It remains in
@@ -345,7 +357,8 @@ private:
                 /*
                  * TODO - we have other cases
                  */
-                Input_ = Streams_.Add(new TLengthLimitedInput(Input_, ContentLength_));
+                LengthLimitedInput_ = Streams_.Add(new TLengthLimitedInput(Input_, ContentLength_));
+                Input_ = LengthLimitedInput_;
             }
         }
 
@@ -359,6 +372,7 @@ private:
 
 private:
     IInputStream* Slave_;
+    THttpInput::TOptions Options_;
 
     /*
      * input helpers
@@ -366,6 +380,7 @@ private:
     TBufferedInput Buffered_;
     TStreams<IInputStream, 8> Streams_;
     IInputStream* ChunkedInput_;
+    TLengthLimitedInput* LengthLimitedInput_;
 
     /*
      * final input stream
@@ -388,6 +403,11 @@ private:
 
 THttpInput::THttpInput(IInputStream* slave)
     : Impl_(new TImpl(slave))
+{
+}
+
+THttpInput::THttpInput(IInputStream* slave, const TOptions& options)
+    : Impl_(new TImpl(slave, options))
 {
 }
 
@@ -443,6 +463,10 @@ bool THttpInput::GetContentLength(ui64& value) const noexcept {
 
 bool THttpInput::ContentEncoded() const noexcept {
     return Impl_->ContentEncoded();
+}
+
+ui64 THttpInput::ContentLengthLeft() const noexcept {
+    return Impl_->ContentLengthLeft();
 }
 
 bool THttpInput::HasContent() const noexcept {

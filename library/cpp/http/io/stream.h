@@ -21,10 +21,24 @@ struct THttpParseException: public THttpException {
 struct THttpReadException: public THttpException {
 };
 
+// Body ended before Content-Length. Thrown only under TOptions::StrictContentLength.
+struct THttpTruncatedBodyException: public THttpReadException {
+};
+
 /// Чтение ответа HTTP-сервера.
 class THttpInput: public IInputStream {
 public:
+    struct TOptions {
+        // If Content-Length is present, throw THttpTruncatedBodyException once the underlying
+        // stream reaches EOF with fewer bytes read than announced. A caller that stops reading
+        // early and destroys the stream does not trigger it.
+        // Do not enable for HEAD responses: they announce Content-Length but carry no body,
+        // which is indistinguishable from truncation at this level.
+        bool StrictContentLength = false;
+    };
+
     THttpInput(IInputStream* slave);
+    THttpInput(IInputStream* slave, const TOptions& options);
     THttpInput(THttpInput&& httpInput);
     ~THttpInput() override;
 
@@ -80,6 +94,11 @@ public:
     /// Признак запакованности данных, - если выставлен, то Content-Length, при наличии в заголовках,
     /// показывает объём запакованных данных, а из THttpInput мы будем вычитывать уже распакованные.
     bool ContentEncoded() const noexcept;
+
+    /// Сколько байт из заявленных в Content-Length ещё не вычитано из тела (до распаковки).
+    /// Всегда 0, если Content-Length в ответе нет или используется chunked encoding.
+    /// После полного вычитывания тела ненулевое значение означает обрыв ответа.
+    ui64 ContentLengthLeft() const noexcept;
 
     /// Returns true if Content-Length or Transfer-Encoding header received
     bool HasContent() const noexcept;

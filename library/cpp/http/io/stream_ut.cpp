@@ -537,6 +537,208 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         UNIT_ASSERT_VALUES_EQUAL(trailers.GetRef().Count(), 0);
     }
 
+    // A response whose body stops short of its Content-Length. TLengthLimitedInput reports
+    // socket EOF by returning 0 without checking that Content-Length was reached, so by
+    // default this is indistinguishable from a complete body. Existing callers depend on
+    // that, hence the opt-in flag.
+    Y_UNIT_TEST(TruncatedBodyIsToleratedByDefault) {
+        TMemoryInput response(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 10\r\n"
+            "\r\n"
+            "bar");
+        THttpInput i(&response);
+        UNIT_ASSERT_VALUES_EQUAL(i.ReadAll(), "bar");
+        UNIT_ASSERT_VALUES_EQUAL(i.ContentLengthLeft(), 7u);
+    }
+
+    Y_UNIT_TEST(TruncatedBodyThrowsWithStrictContentLength) {
+        TMemoryInput response(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 10\r\n"
+            "\r\n"
+            "bar");
+        THttpInput i(&response, {.StrictContentLength = true});
+        UNIT_ASSERT_EXCEPTION_CONTAINS(i.ReadAll(), THttpTruncatedBodyException, "declared in Content-Length");
+    }
+
+    Y_UNIT_TEST(CompleteBodyPassesStrictContentLength) {
+        TMemoryInput response(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 3\r\n"
+            "\r\n"
+            "bar");
+        THttpInput i(&response, {.StrictContentLength = true});
+        UNIT_ASSERT_VALUES_EQUAL(i.ReadAll(), "bar");
+        UNIT_ASSERT_VALUES_EQUAL(i.ContentLengthLeft(), 0u);
+    }
+
+    static TString GzipBody() {
+        TString body;
+        for (size_t i = 0; i < 512; ++i) {
+            body += "the quick brown fox jumps over the lazy dog ";
+        }
+        return body;
+    }
+
+    // Content-Length always advertises the whole encoded body, even when only half of it is
+    // actually sent: that is what a connection dying mid-response looks like on the wire.
+    static TString GzipHttpResponse(TStringBuf body, bool truncate) {
+        TString compressed;
+        {
+            TStringOutput so(compressed);
+            TZLibCompress c(&so, ZLib::GZip);
+            c << body;
+            c.Finish();
+        }
+
+        const TString contentLength = ToString(compressed.size());
+        if (truncate) {
+            compressed.resize(compressed.size() / 2);
+        }
+
+        return TString::Join(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Encoding: gzip\r\n"
+            "Content-Length: ", contentLength, "\r\n"
+            "\r\n",
+            compressed);
+    }
+
+    // Content-Length measures the encoded body and TLengthLimitedInput sits below the
+    // decoder, so both are in the same units and the check covers encoded bodies too.
+    // TZLibDecompress reads until its slave EOFs rather than stopping at Z_STREAM_END, so a
+    // complete body leaves nothing behind.
+    Y_UNIT_TEST(CompleteContentEncodedBodyPassesStrictContentLength) {
+        const TString body = GzipBody();
+        const TString response = GzipHttpResponse(body, false);
+        TMemoryInput in(response.data(), response.size());
+        THttpInput i(&in, {.StrictContentLength = true});
+        UNIT_ASSERT(i.ContentEncoded());
+        UNIT_ASSERT_VALUES_EQUAL(i.ReadAll(), body);
+        // Proves the decoder drained TLengthLimitedInput, which is what makes the check
+        // meaningful for encoded bodies.
+        UNIT_ASSERT_VALUES_EQUAL(i.ContentLengthLeft(), 0u);
+    }
+
+    // A truncated gzip body is the worst case: zlib does not complain, it just stops
+    // producing output once its input runs dry, so without the check this yields a short
+    // body and reports success.
+    Y_UNIT_TEST(TruncatedContentEncodedBodyIsToleratedByDefault) {
+        const TString body = GzipBody();
+        const TString response = GzipHttpResponse(body, true);
+        TMemoryInput in(response.data(), response.size());
+        THttpInput i(&in);
+        UNIT_ASSERT(i.ReadAll().size() < body.size());
+        UNIT_ASSERT(i.ContentLengthLeft() > 0);
+    }
+
+    Y_UNIT_TEST(TruncatedContentEncodedBodyThrowsWithStrictContentLength) {
+        const TString response = GzipHttpResponse(GzipBody(), true);
+        TMemoryInput in(response.data(), response.size());
+        THttpInput i(&in, {.StrictContentLength = true});
+        UNIT_ASSERT_EXCEPTION_CONTAINS(i.ReadAll(), THttpTruncatedBodyException, "declared in Content-Length");
+    }
+
+    // Everything below pins the "must not throw" half of the contract: strict mode may only
+    // fire on a genuinely short Content-Length body.
+
+    Y_UNIT_TEST(ChunkedBodyIgnoresStrictContentLength) {
+        TMemoryInput response(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+            "3\r\nbar\r\n"
+            "0\r\n"
+            "\r\n");
+        THttpInput i(&response, {.StrictContentLength = true});
+        UNIT_ASSERT_VALUES_EQUAL(i.ReadAll(), "bar");
+        UNIT_ASSERT_VALUES_EQUAL(i.ContentLengthLeft(), 0u);
+    }
+
+    // Body framed by connection close: no Content-Length, so nothing to verify.
+    Y_UNIT_TEST(NoContentLengthIgnoresStrictContentLength) {
+        TMemoryInput response(
+            "HTTP/1.1 200 OK\r\n"
+            "Connection: close\r\n"
+            "\r\n"
+            "bar");
+        THttpInput i(&response, {.StrictContentLength = true});
+        UNIT_ASSERT_VALUES_EQUAL(i.ReadAll(), "bar");
+        UNIT_ASSERT_VALUES_EQUAL(i.ContentLengthLeft(), 0u);
+    }
+
+    Y_UNIT_TEST(ZeroContentLengthPassesStrictContentLength) {
+        TMemoryInput response(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 0\r\n"
+            "\r\n");
+        THttpInput i(&response, {.StrictContentLength = true});
+        UNIT_ASSERT_VALUES_EQUAL(i.ReadAll(), "");
+        UNIT_ASSERT_VALUES_EQUAL(i.ContentLengthLeft(), 0u);
+    }
+
+    // Trailing garbage past Content-Length is a keep-alive framing concern, not truncation.
+    Y_UNIT_TEST(BodyLongerThanContentLengthPassesStrictContentLength) {
+        TMemoryInput response(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 3\r\n"
+            "\r\n"
+            "barbaz");
+        THttpInput i(&response, {.StrictContentLength = true});
+        UNIT_ASSERT_VALUES_EQUAL(i.ReadAll(), "bar");
+        UNIT_ASSERT_VALUES_EQUAL(i.ContentLengthLeft(), 0u);
+    }
+
+    // Requests take the IsRequest() branch, which builds TLengthLimitedInput with length 0.
+    Y_UNIT_TEST(RequestWithoutContentLengthPassesStrictContentLength) {
+        TMemoryInput request(
+            "GET / HTTP/1.1\r\n"
+            "Host: yandex.ru\r\n"
+            "\r\n");
+        THttpInput i(&request, {.StrictContentLength = true});
+        UNIT_ASSERT_VALUES_EQUAL(i.ReadAll(), "");
+        UNIT_ASSERT_VALUES_EQUAL(i.ContentLengthLeft(), 0u);
+    }
+
+    // Strict mode reacts to EOF, not to the caller losing interest.
+    Y_UNIT_TEST(PartialReadThenDestroyPassesStrictContentLength) {
+        TMemoryInput response(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 10\r\n"
+            "\r\n"
+            "0123456789");
+        char buf[4];
+        THttpInput i(&response, {.StrictContentLength = true});
+        UNIT_ASSERT_VALUES_EQUAL(i.Load(buf, sizeof(buf)), sizeof(buf));
+        UNIT_ASSERT_VALUES_EQUAL(i.ContentLengthLeft(), 6u);
+    }
+
+    // Skip() reaches the same Perform() as Read(). A short skip is not itself EOF -- the
+    // check only fires once a call comes back with nothing at all.
+    Y_UNIT_TEST(SkipDetectsTruncationWithStrictContentLength) {
+        TMemoryInput response(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 10\r\n"
+            "\r\n"
+            "bar");
+        THttpInput i(&response, {.StrictContentLength = true});
+        UNIT_ASSERT_VALUES_EQUAL(i.Skip(10), 3u);
+        UNIT_ASSERT_EXCEPTION_CONTAINS(i.Skip(7), THttpTruncatedBodyException, "declared in Content-Length");
+    }
+
+    // THttpInput does not know the request method, so a HEAD response -- Content-Length set,
+    // body legitimately absent -- looks exactly like truncation. Clients must not enable
+    // strict mode for HEAD; TKeepAliveHttpClient does that for us, see http_ut.cpp.
+    Y_UNIT_TEST(HeadResponseCannotBeDistinguishedFromTruncation) {
+        TMemoryInput response(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 1024\r\n"
+            "\r\n");
+        THttpInput i(&response, {.StrictContentLength = true});
+        UNIT_ASSERT_EXCEPTION_CONTAINS(i.ReadAll(), THttpTruncatedBodyException, "declared in Content-Length");
+    }
+
     Y_UNIT_TEST(RequestWithoutContentLength) {
         TStringStream request;
         {
