@@ -6,7 +6,7 @@ The input [CatBoost](../../../concepts/python-reference_catboost.md) model for 
 
 **Possible types**
 
- {{ python-type__catboost-core-CatBoost }}
+ [CatBoost](../../../concepts/python-reference_catboost.md)
 
 **Default value**
 
