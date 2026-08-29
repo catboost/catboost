@@ -50,8 +50,12 @@ namespace NNetliba {
         //    printf("node type: %s\n", ibv_node_type_str(dev->node_type));
         //    printf("\n");
         //}
-        if (numDevices == 1) {
+        if (numDevices == 1 && deviceList != nullptr) {
             ctx = new TIBContext(deviceList[0]);
+        }
+
+        // ibv_open_device() may fail on machines without InfiniBand access;
+        if (ctx.Get() != nullptr && ctx->IsValid()) {
             TIBContext::TLock ibContext(ctx);
             ibv_device_attr devAttrs;
             CHECK_Z(ibv_query_device(ibContext.GetContext(), &devAttrs));
