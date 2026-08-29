@@ -51,6 +51,17 @@ except ImportError:
 
 _polars_is_series_of_list_to_numpy_correct = _polars_version >= (1, 9)
 
+# pandas.NA singleton is available only since pandas 1.0.0
+_pandas_NA = getattr(pd, 'NA', None)
+
+# names of pandas nullable extension dtypes for numeric and boolean data
+_pandas_nullable_numeric_dtype_names = frozenset([
+    'Int8', 'Int16', 'Int32', 'Int64',
+    'UInt8', 'UInt16', 'UInt32', 'UInt64',
+    'Float32', 'Float64',
+    'boolean'
+])
+
 np.import_array()
 
 cimport cython
@@ -1283,6 +1294,8 @@ cdef inline float _FloatOrNan(object obj) except *:
     # here lies fastpath
     cdef type obj_type = type(obj)
     if obj is None:
+        return _FLOAT_NAN
+    elif obj is _pandas_NA:
         return _FLOAT_NAN
     elif obj_type is float:
         return <float>obj
@@ -3165,20 +3178,22 @@ cdef object _set_features_order_data_pd_data_frame(
                 py_builder_visitor
             )
         else:
-            column_values = column_data.to_numpy()
             if is_cat_feature_mask[flat_feature_idx]:
+                column_values = column_data.to_numpy()
                 _set_features_order_data_frame_generic_categorical_column(
                     flat_feature_idx,
                     column_values,
                     builder_visitor
                 )
             elif is_text_feature_mask[flat_feature_idx]:
+                column_values = column_data.to_numpy()
                 _set_features_order_data_frame_generic_text_column(
                     flat_feature_idx,
                     column_values,
                     builder_visitor
                 )
             elif is_embedding_feature_mask[flat_feature_idx]:
+                column_values = column_data.to_numpy()
                 create_embedding_factor_data(
                     flat_feature_idx,
                     column_values,
@@ -3186,6 +3201,12 @@ cdef object _set_features_order_data_pd_data_frame(
                     new_data_holders
                 )
             else:
+                if column_data.dtype.name in _pandas_nullable_numeric_dtype_names:
+                    # pandas nullable numeric/boolean extension dtypes:
+                    # missing values (pandas.NA) are converted to NaN in a vectorized way
+                    column_values = column_data.to_numpy(dtype=np.float32, na_value=np.nan)
+                else:
+                    column_values = column_data.to_numpy()
                 new_data_holders += create_num_factor_data(
                     flat_feature_idx,
                     column_values,
