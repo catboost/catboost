@@ -10,4 +10,4 @@ The input [CatBoost](../../../concepts/python-reference_catboost.md) model for 
 
 **Default value**
 
-{{ loss-functions__params__q__default }}
+{{ python--required }}

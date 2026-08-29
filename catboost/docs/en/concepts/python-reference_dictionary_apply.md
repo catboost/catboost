@@ -27,7 +27,7 @@ A zero-, one- or two-dimensional array-like data.
 
 **Default value**
 
-{{ loss-functions__params__q__default }}
+{{ python--required }}
 
 ### tokenizer
 
