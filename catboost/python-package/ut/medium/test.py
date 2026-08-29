@@ -2977,7 +2977,7 @@ def test_generated_regression_losses_with_default_params():
             'MAE': metrics.MAE(), 'MAPE': metrics.MAPE(), 'Poisson': metrics.Poisson(),
             'Quantile:alpha=0.5': metrics.Quantile(), 'RMSE': metrics.RMSE(),
             'RMSEWithUncertainty': metrics.RMSEWithUncertainty(), 'LogLinQuantile': metrics.LogLinQuantile(),
-            # BUG: Expectile incorrectly expects alpha in catboost.core.Catboost({'loss_function': 'Expectile'})
+            # BUG: Expectile incorrectly expects alpha in catboost.Catboost({'loss_function': 'Expectile'})
             # 'Expectile': metrics.Expectile()
         }
     )
