@@ -52,6 +52,36 @@ Y_UNIT_TEST(ShouldStoreMultipleChunks) {
         UNIT_ASSERT_EQUAL(result, i);
     }
 }
+
+struct alignas(64) TOverAligned {
+    size_t Value = 0;
+
+    TOverAligned() = default;
+
+    explicit TOverAligned(size_t value)
+        : Value(value)
+    {
+        UNIT_ASSERT(reinterpret_cast<uintptr_t>(this) % alignof(TOverAligned) == 0);
+    }
+};
+
+// ChunkSize = 128, alignof = 64: EntriesOffset = 64, sizeof = 64, so
+// MaxCount = 1 — every Enqueue exercises the chunk hand-off.
+Y_UNIT_TEST(ShouldKeepOverAlignedEntriesAligned) {
+    TOneOneQueue<TOverAligned, 128> queue;
+
+    for (size_t i = 0; i < 10; ++i) {
+        queue.Enqueue(TOverAligned{i});
+    }
+
+    for (size_t i = 0; i < 10; ++i) {
+        TOverAligned result;
+        UNIT_ASSERT(queue.Dequeue(result));
+        UNIT_ASSERT_EQUAL(result.Value, i);
+    }
+
+    UNIT_ASSERT(queue.IsEmpty());
+}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

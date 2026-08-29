@@ -1,7 +1,5 @@
 #pragma once
 
-#include <library/cpp/deprecated/atomic/atomic.h> // AtomicGet
-
 #include <util/datetime/base.h>
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
@@ -98,21 +96,33 @@ namespace NThreading {
         struct TChunk;
 
         struct TChunkHeader {
-            size_t Count = 0;
-            TChunk* Next = nullptr;
+            // Incremented by the producer (release) after writing an entry, read by
+            // the consumer (acquire) — publishes the entry data written so far.
+            std::atomic<size_t> Count = 0;
+            // Set by the producer (release) when the chunk is exhausted, read by the
+            // consumer (acquire) — publishes the next chunk and makes it safe for the
+            // consumer to delete the exhausted one.
+            std::atomic<TChunk*> Next = nullptr;
         };
 
         struct TChunk: public TChunkHeader {
-            static constexpr size_t MaxCount = (ChunkSize - sizeof(TChunkHeader)) / sizeof(T);
+            // Offset of Entries inside TChunk: the header size rounded up to the
+            // alignment of T, so that every slot is properly aligned.
+            static constexpr size_t EntriesOffset = (sizeof(TChunkHeader) + alignof(T) - 1) / alignof(T) * alignof(T);
+            static constexpr size_t MaxCount = ChunkSize > EntriesOffset ? (ChunkSize - EntriesOffset) / sizeof(T) : 0;
+            static_assert(MaxCount > 0, "ChunkSize is too small to hold at least one element of T");
 
-            char Entries[MaxCount * sizeof(T)];
+            alignas(T) char Entries[MaxCount * sizeof(T)];
 
             TChunk() {
                 Y_UNUSED(Entries); // uninitialized
             }
 
             ~TChunk() {
-                for (size_t i = 0; i < this->Count; ++i) {
+                // No concurrent access: the chunk is destroyed after the producer
+                // finished with it (or in the queue destructor).
+                const size_t count = this->Count.load(std::memory_order_relaxed);
+                for (size_t i = 0; i < count; ++i) {
                     TTypeHelper::Destroy(GetPtr(i));
                 }
             }
@@ -170,20 +180,23 @@ namespace NThreading {
     protected:
         T* PrepareWrite() {
             TChunk* chunk = Writer.Chunk;
-            Y_ASSERT(chunk && !chunk->Next);
+            Y_ASSERT(chunk && chunk->Next.load(std::memory_order_relaxed) == nullptr);
 
-            if (chunk->Count != TChunk::MaxCount) {
-                return chunk->GetPtr(chunk->Count);
+            const size_t count = chunk->Count.load(std::memory_order_relaxed);
+            if (count != TChunk::MaxCount) {
+                return chunk->GetPtr(count);
             }
 
             chunk = new TChunk();
-            AtomicSet(Writer.Chunk->Next, chunk);
+            // Release-publishes the new chunk to the consumer.
+            Writer.Chunk->Next.store(chunk, std::memory_order_release);
             Writer.Chunk = chunk;
             return chunk->GetPtr(0);
         }
 
         void CompleteWrite() {
-            AtomicSet(Writer.Chunk->Count, Writer.Chunk->Count + 1);
+            // Release-publishes the entry written by the preceding PrepareWrite().
+            Writer.Chunk->Count.fetch_add(1, std::memory_order_release);
         }
 
         T* PrepareRead() {
@@ -191,7 +204,8 @@ namespace NThreading {
             Y_ASSERT(chunk);
 
             for (;;) {
-                size_t writerCount = AtomicGet(chunk->Count);
+                // Acquire-syncs with CompleteWrite(), making the published entry visible.
+                size_t writerCount = chunk->Count.load(std::memory_order_acquire);
                 if (Reader.Count != writerCount) {
                     return chunk->GetPtr(Reader.Count);
                 }
@@ -200,7 +214,10 @@ namespace NThreading {
                     return nullptr;
                 }
 
-                chunk = AtomicGet(chunk->Next);
+                // Acquire-syncs with the release-store in PrepareWrite(); after this
+                // load the producer is known to be done with the exhausted chunk,
+                // so it is safe to delete it below.
+                chunk = chunk->Next.load(std::memory_order_acquire);
                 if (!chunk) {
                     return nullptr;
                 }
@@ -218,7 +235,7 @@ namespace NThreading {
     private:
         static void DeleteChunks(TChunk* chunk) {
             while (chunk) {
-                TChunk* next = chunk->Next;
+                TChunk* next = chunk->Next.load(std::memory_order_relaxed);
                 delete chunk;
                 chunk = next;
             }
