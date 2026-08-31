@@ -114,7 +114,7 @@ namespace {
 
 #define Registree(loss, flags)                                          \
     reg.insert({ELossFunction::loss, [&]() {                            \
-        CB_ENSURE(!reg.contains(ELossFunction::loss), "Loss " + ToString(ELossFunction::loss) + " redefined"); \
+        CB_ENSURE(!reg.contains(ELossFunction::loss), "Loss " << (ELossFunction::loss) << " redefined"); \
         class T##loss : public IMetricInfo {                            \
         public:                                                         \
             T##loss() : IMetricInfo(ELossFunction::loss, flags){}       \
@@ -124,7 +124,7 @@ namespace {
 
 #define RankingRegistree(loss, rankingType, flags)                      \
     reg.insert({ELossFunction::loss, [&]() {                            \
-        CB_ENSURE(!reg.contains(ELossFunction::loss), "Loss " + ToString(ELossFunction::loss) + " redefined"); \
+        CB_ENSURE(!reg.contains(ELossFunction::loss), "Loss " << (ELossFunction::loss) << " redefined"); \
         class T##loss : public IMetricInfo {                            \
         public:                                                         \
             T##loss() : IMetricInfo(ELossFunction::loss, rankingType, flags){} \
@@ -453,7 +453,7 @@ MakeRegister(LossInfos,
 )
 
 const IMetricInfo *GetInfo(ELossFunction loss) {
-    CB_ENSURE(LossInfos.contains(loss), "No description for [" + ToString(loss) + "]");
+    CB_ENSURE(LossInfos.contains(loss), "No description for [" << loss << "]");
     return LossInfos.at(loss).Get();
 }
 

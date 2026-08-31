@@ -7012,13 +7012,13 @@ void CheckPreprocessedTarget(
     }
     if (EqualToOneOf(lossFunction, ELossFunction::CrossEntropy, ELossFunction::PFound, ELossFunction::ERR)) {
         auto targetBounds = CalcMinMax(target);
-        CB_ENSURE(targetBounds.Min >= 0, "Min target less than 0: " + ToString(targetBounds.Min));
-        CB_ENSURE(targetBounds.Max <= 1, "Max target greater than 1: " + ToString(targetBounds.Max));
+        CB_ENSURE(targetBounds.Min >= 0, "Min target less than 0: " << targetBounds.Min);
+        CB_ENSURE(targetBounds.Max <= 1, "Max target greater than 1: " << targetBounds.Max);
     }
 
     if (lossFunction == ELossFunction::QuerySoftMax) {
         float minTarget = *MinElement(target.begin(), target.end());
-        CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
+        CB_ENSURE(minTarget >= 0, "Min target less than 0: " << minTarget);
     }
 
     if (IsMultiClassOnlyMetric(lossFunction)) {
