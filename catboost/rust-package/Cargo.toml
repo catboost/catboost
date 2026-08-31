@@ -20,3 +20,4 @@ memmap2 = "=0.6.2"
 
 [features]
 gpu = ["catboost-sys/gpu"]
+static-link = ["catboost-sys/static-link"]
