@@ -26,12 +26,12 @@ struct TFastLcgIterator {
 
 template <typename T, T A>
 struct TLcgIterator {
-    inline TLcgIterator(T seq) noexcept
+    constexpr TLcgIterator(T seq) noexcept
         : C((seq << 1u) | (T)1) // C must be odd
     {
     }
 
-    inline T Iterate(T x) const noexcept {
+    constexpr T Iterate(T x) const noexcept {
         return x * A + C;
     }
 
@@ -48,13 +48,13 @@ struct TLcgRngBase: public TIterator, public TMixer {
     using TResultType = decltype(std::declval<TMixer>().Mix(TStateType()));
 
     template <typename... Args>
-    inline TLcgRngBase(TStateType seed, Args&&... args)
+    constexpr TLcgRngBase(TStateType seed, Args&&... args)
         : TIterator(std::forward<Args>(args)...)
         , X(seed)
     {
     }
 
-    inline TResultType GenRand() noexcept {
+    constexpr TResultType GenRand() noexcept {
         return this->Mix(X = this->Iterate(X));
     }
 

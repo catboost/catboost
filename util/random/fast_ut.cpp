@@ -2,6 +2,11 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+static_assert([] {
+    TFastRng64 rng(17);
+    return rng.GenRand() == ULL(14895365814383052362);
+}());
+
 Y_UNIT_TEST_SUITE(TTestFastRng) {
     Y_UNIT_TEST(Test1) {
         TFastRng32 rng1(17, 0);

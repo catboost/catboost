@@ -1,3 +1,4 @@
+#include "constant_evaluation.h"
 #include "utility.h"
 #include "ymath.h"
 
@@ -34,6 +35,15 @@ static bool operator<(const TUnorderedTag, const TUnorderedTag) {
 static bool operator>(const TUnorderedTag, const TUnorderedTag) = delete;
 
 Y_UNIT_TEST_SUITE(TUtilityTest) {
+
+    Y_UNIT_TEST(TestIsConstantEvaluated) {
+        static_assert(IsConstantEvaluated());
+#if defined(__cpp_lib_is_constant_evaluated) || Y_HAS_BUILTIN(__builtin_is_constant_evaluated)
+        UNIT_ASSERT(!IsConstantEvaluated());
+#else
+        UNIT_ASSERT(IsConstantEvaluated());
+#endif
+    }
 
     Y_UNIT_TEST(TestSwapPrimitive) {
         int i = 0;

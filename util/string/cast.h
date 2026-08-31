@@ -2,6 +2,7 @@
 
 #include <util/system/defaults.h>
 #include <util/stream/str.h>
+#include <util/generic/constant_evaluation.h>
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
@@ -416,15 +417,11 @@ public:
     template <std::enable_if_t<std::is_integral<T>::value, bool> = true>
     explicit constexpr TIntStringBuf(T t) {
         Size_ = Convert(t, Buf_, sizeof(Buf_));
-#if __cplusplus >= 202002L // is_constant_evaluated is not supported by CUDA yet
-        if (std::is_constant_evaluated()) {
-#endif
+        if (IsConstantEvaluated()) {
             // Init the rest of the array,
             // otherwise constexpr copy and move constructors don't work due to uninitialized data access
             std::fill(Buf_ + Size_, Buf_ + sizeof(Buf_), '\0');
-#if __cplusplus >= 202002L
         }
-#endif
     }
 
     constexpr operator TStringBuf() const noexcept {

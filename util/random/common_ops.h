@@ -33,7 +33,7 @@ namespace NPrivate {
     }
 
     template <class T>
-    static inline ui64 ToRand64(T&& rng, ui32 x) noexcept {
+    static constexpr ui64 ToRand64(T&& rng, ui32 x) noexcept {
         return ((ui64)x) | (((ui64)rng.GenRand()) << 32);
     }
 
@@ -65,7 +65,7 @@ struct TCommonRNG {
     using TResult = TRandType;
     using result_type = TRandType;
 
-    inline T& Engine() noexcept {
+    constexpr T& Engine() noexcept {
         return static_cast<T&>(*this);
     }
 
@@ -91,7 +91,7 @@ struct TCommonRNG {
     }
 
     /* generates 64-bit random number for current(may be 32 bit) rng */
-    inline ui64 GenRand64() noexcept {
+    constexpr ui64 GenRand64() noexcept {
         return ::NPrivate::ToRand64(Engine(), Engine().GenRand());
     }
 
@@ -116,7 +116,7 @@ struct TCommonRNG {
     }
 
     // compatibility stuff
-    inline TResult operator()() noexcept {
+    constexpr TResult operator()() noexcept {
         return Engine().GenRand();
     }
 
