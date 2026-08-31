@@ -3,6 +3,8 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/set.h>
+#include <util/generic/string.h>
+#include <util/string/cast.h>
 
 namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
@@ -82,6 +84,25 @@ Y_UNIT_TEST(ShouldKeepOverAlignedEntriesAligned) {
 
     UNIT_ASSERT(queue.IsEmpty());
 }
+
+Y_UNIT_TEST(ShouldDestroyNonTrivialEntriesOnDestruction) {
+    // Small chunks force the queue to span several chunks, and half of the
+    // entries are still alive when the queue is destroyed: ~TOneOneQueue()
+    // must destroy the leftovers in every chunk exactly once.
+    TOneOneQueue<TString, 128> queue;
+
+    for (int i = 0; i < 100; ++i) {
+        queue.Enqueue(ToString(i));
+    }
+
+    for (int i = 0; i < 50; ++i) {
+        TString result;
+        UNIT_ASSERT(queue.Dequeue(result));
+        UNIT_ASSERT_EQUAL(result, ToString(i));
+    }
+
+    UNIT_ASSERT(!queue.IsEmpty());
+}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,6 +137,22 @@ Y_UNIT_TEST(ShouldReturnEntries) {
 
     UNIT_ASSERT(queue.IsEmpty());
     UNIT_ASSERT(!queue.Dequeue(result));
+}
+
+Y_UNIT_TEST(ShouldHandleNonTrivialEntries) {
+    TManyOneQueue<TString> queue;
+
+    for (int i = 0; i < 100; ++i) {
+        queue.Enqueue(ToString(i));
+    }
+
+    for (int i = 0; i < 100; ++i) {
+        TString result;
+        UNIT_ASSERT(queue.Dequeue(result));
+        UNIT_ASSERT_EQUAL(result, ToString(i));
+    }
+
+    UNIT_ASSERT(queue.IsEmpty());
 }
 }
 

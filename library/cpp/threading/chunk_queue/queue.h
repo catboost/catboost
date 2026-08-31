@@ -3,7 +3,6 @@
 #include <util/datetime/base.h>
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
-#include <util/generic/typetraits.h>
 #include <util/generic/ylimits.h>
 #include <util/system/guard.h>
 #include <util/system/spinlock.h>
@@ -20,11 +19,11 @@ namespace NThreading {
 #endif
 
 #if !defined(PLATFORM_PAGE_SIZE)
-    #define PLATFORM_PAGE_SIZE 4 * 1024
+    #define PLATFORM_PAGE_SIZE (4 * 1024)
 #endif
 
     template <typename T, size_t PadSize = PLATFORM_CACHE_LINE>
-    struct TPadded: public T {
+    struct alignas(PadSize) TPadded: public T {
         char Pad[PadSize - sizeof(T) % PadSize];
 
         TPadded() {
@@ -42,57 +41,10 @@ namespace NThreading {
     };
 
     ////////////////////////////////////////////////////////////////////////////////
-    // Type helpers
-
-    namespace NImpl {
-        template <typename T>
-        struct TPodTypeHelper {
-            template <typename TT>
-            static void Write(T* ptr, TT&& value) {
-                *ptr = value;
-            }
-
-            static T Read(T* ptr) {
-                return *ptr;
-            }
-
-            static void Destroy(T* ptr) {
-                Y_UNUSED(ptr);
-            }
-        };
-
-        template <typename T>
-        struct TNonPodTypeHelper {
-            template <typename TT>
-            static void Write(T* ptr, TT&& value) {
-                new (ptr) T(std::forward<TT>(value));
-            }
-
-            static T Read(T* ptr) {
-                return std::move(*ptr);
-            }
-
-            static void Destroy(T* ptr) {
-                (void)ptr; /* Make MSVC happy. */
-                ptr->~T();
-            }
-        };
-
-        template <typename T>
-        using TTypeHelper = std::conditional_t<
-            TTypeTraits<T>::IsPod,
-            TPodTypeHelper<T>,
-            TNonPodTypeHelper<T>>;
-
-    } // namespace NImpl
-
-    ////////////////////////////////////////////////////////////////////////////////
     // One producer/one consumer chunked queue.
 
     template <typename T, size_t ChunkSize = PLATFORM_PAGE_SIZE>
     class TOneOneQueue: private TNonCopyable {
-        using TTypeHelper = NImpl::TTypeHelper<T>;
-
         struct TChunk;
 
         struct TChunkHeader {
@@ -118,22 +70,29 @@ namespace NThreading {
                 Y_UNUSED(Entries); // uninitialized
             }
 
-            ~TChunk() {
-                // No concurrent access: the chunk is destroyed after the producer
-                // finished with it (or in the queue destructor).
-                const size_t count = this->Count.load(std::memory_order_relaxed);
-                for (size_t i = 0; i < count; ++i) {
-                    TTypeHelper::Destroy(GetPtr(i));
+            // No concurrent access: the chunk is destroyed after the producer
+            // finished with it (or in the queue destructor).
+            void DestroyRangeFrom(size_t start) requires (!std::is_trivially_destructible_v<T>) {
+                const size_t end = this->Count.load(std::memory_order_relaxed);
+                Y_ASSERT(start <= end);
+                T* const endPtr = GetPtr(end);
+
+                for (T* ptr = GetPtr(start); ptr != endPtr; ++ptr) {
+                    ptr->~T();
                 }
             }
 
             T* GetPtr(size_t i) {
-                return (T*)Entries + i;
+                return reinterpret_cast<T*>(Entries) + i;
             }
         };
 
         struct TWriterState {
             TChunk* Chunk = nullptr;
+            // Producer-local mirror of Chunk->Count: the number of entries
+            // already published in the current chunk. Only the producer
+            // touches it, so it needs no synchronization.
+            size_t Pos = 0;
         };
 
         struct TReaderState {
@@ -153,20 +112,36 @@ namespace NThreading {
         }
 
         ~TOneOneQueue() {
-            DeleteChunks(Reader.Chunk);
+            auto chunk = Reader.Chunk->Next.load(std::memory_order_relaxed);
+            if constexpr (!std::is_trivially_destructible_v<T>) {
+                Reader.Chunk->DestroyRangeFrom(Reader.Count);
+            }
+            delete Reader.Chunk;
+
+            while (chunk) {
+                if constexpr (!std::is_trivially_destructible_v<T>) {
+                    chunk->DestroyRangeFrom(0);
+                }
+                auto next = chunk->Next.load(std::memory_order_relaxed);
+                delete chunk;
+                chunk = next;
+            }
         }
 
         template <typename TT>
         void Enqueue(TT&& value) {
             T* ptr = PrepareWrite();
             Y_ASSERT(ptr);
-            TTypeHelper::Write(ptr, std::forward<TT>(value));
+            new (ptr) T(std::forward<TT>(value));
             CompleteWrite();
         }
 
         bool Dequeue(T& value) {
-            if (T* ptr = PrepareRead()) {
-                value = TTypeHelper::Read(ptr);
+            if (T* ptr = PrepareRead(); ptr) {
+                value = std::move(*ptr);
+                if constexpr (!std::is_trivially_destructible_v<T>) {
+                    ptr->~T();
+                }
                 CompleteRead();
                 return true;
             }
@@ -182,21 +157,23 @@ namespace NThreading {
             TChunk* chunk = Writer.Chunk;
             Y_ASSERT(chunk && chunk->Next.load(std::memory_order_relaxed) == nullptr);
 
-            const size_t count = chunk->Count.load(std::memory_order_relaxed);
-            if (count != TChunk::MaxCount) {
-                return chunk->GetPtr(count);
+            if (Writer.Pos != TChunk::MaxCount) {
+                return chunk->GetPtr(Writer.Pos);
             }
 
             chunk = new TChunk();
             // Release-publishes the new chunk to the consumer.
             Writer.Chunk->Next.store(chunk, std::memory_order_release);
             Writer.Chunk = chunk;
+            Writer.Pos = 0;
             return chunk->GetPtr(0);
         }
 
         void CompleteWrite() {
             // Release-publishes the entry written by the preceding PrepareWrite().
-            Writer.Chunk->Count.fetch_add(1, std::memory_order_release);
+            // A plain store suffices: Count of the current chunk is only ever
+            // written by the (single) producer, so no atomic RMW is needed.
+            Writer.Chunk->Count.store(++Writer.Pos, std::memory_order_release);
         }
 
         T* PrepareRead() {
@@ -231,15 +208,6 @@ namespace NThreading {
         void CompleteRead() {
             ++Reader.Count;
         }
-
-    private:
-        static void DeleteChunks(TChunk* chunk) {
-            while (chunk) {
-                TChunk* next = chunk->Next.load(std::memory_order_relaxed);
-                delete chunk;
-                chunk = next;
-            }
-        }
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -248,15 +216,13 @@ namespace NThreading {
 
     template <typename T, size_t Concurrency = 4, size_t ChunkSize = PLATFORM_PAGE_SIZE>
     class TManyOneQueue: private TNonCopyable {
-        using TTypeHelper = NImpl::TTypeHelper<T>;
-
         struct TEntry {
             T Value;
             ui64 Tag;
         };
 
         struct TQueueType: public TOneOneQueue<TEntry, ChunkSize> {
-            TSpinLock WriteLock;
+            TPadded<TSpinLock> WriteLock;
 
             using TOneOneQueue<TEntry, ChunkSize>::PrepareWrite;
             using TOneOneQueue<TEntry, ChunkSize>::CompleteWrite;
@@ -283,7 +249,11 @@ namespace NThreading {
         bool Dequeue(T& value) {
             size_t index = 0;
             if (TEntry* entry = PrepareRead(index)) {
-                value = TTypeHelper::Read(&entry->Value);
+                T* valuePtr = &entry->Value;
+                value = std::move(*valuePtr);
+                if constexpr (!std::is_trivially_destructible_v<T>) {
+                    valuePtr->~T();
+                }
                 Queues[index].CompleteRead();
                 return true;
             }
@@ -319,7 +289,7 @@ namespace NThreading {
                 }
                 TEntry* entry = queue.PrepareWrite();
                 Y_ASSERT(entry);
-                TTypeHelper::Write(&entry->Value, std::forward<TT>(value));
+                new (&entry->Value) T(std::forward<TT>(value));
                 entry->Tag = tag;
                 queue.CompleteWrite();
                 return true;
@@ -399,7 +369,7 @@ namespace NThreading {
     template <typename T, size_t Concurrency = 4, size_t ChunkSize = PLATFORM_PAGE_SIZE>
     class TRelaxedManyOneQueue: private TNonCopyable {
         struct TQueueType: public TOneOneQueue<T, ChunkSize> {
-            TSpinLock WriteLock;
+            TPadded<TSpinLock> WriteLock;
         };
 
     private:
