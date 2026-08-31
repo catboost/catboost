@@ -225,7 +225,7 @@ namespace NCB {
     void TCatboostModelToCppConverter::Write(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
         if (model.HasCategoricalFeatures()) {
             CB_ENSURE(catFeaturesHashToString != nullptr,
-                      "Need to use training dataset Pool to save mapping {categorical feature value -> hash value} "
+                      "Need to use training dataset to save mapping {categorical feature value -> hash value} "
                       "due to the absence of a hash function in the model");
             WriteHeader(/*forCatFeatures*/true);
             WriteNamespaceBegin();
