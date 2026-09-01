@@ -306,6 +306,8 @@ cdef extern from "catboost/libs/data/data_provider.h" namespace "NCB":
         void SetGraph(TConstArrayRef[TPair] pairs) except +ProcessException
         void SetSubgroupIds(TConstArrayRef[TSubgroupId] subgroupIds) except +ProcessException
         void SetWeights(TConstArrayRef[float] weights) except +ProcessException
+        void SetNumericTarget(TConstArrayRef[float] target) except +ProcessException
+        void SetNumericTarget(TVector[float]&& target) except +ProcessException
         void SetTimestamps(TConstArrayRef[ui64] timestamps) except +ProcessException
 
     ctypedef TDataProviderTemplate[TQuantizedObjectsDataProvider] TQuantizedDataProvider
