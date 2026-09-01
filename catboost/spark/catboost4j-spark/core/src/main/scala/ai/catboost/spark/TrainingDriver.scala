@@ -15,7 +15,7 @@ import org.apache.spark.internal.Logging
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 
 import ai.catboost.spark.impl.{RunClassInNewProcess,ShutdownWorkersApp}
 

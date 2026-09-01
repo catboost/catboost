@@ -6,7 +6,7 @@ import org.apache.spark.sql.types._;
 
 import org.junit.{Assert,Test,Ignore};
 
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 import ai.catboost.spark.params._
 
 
