@@ -378,7 +378,14 @@ static void GetObliviousModelTrees(const TJsonValue& jsonValue, TModelTrees* mod
         }
         int treeSize = value["splits"].GetArray().ysize();
         modelTrees->AddTreeSize(treeSize);
-        modelTrees->SetApproxDimension(value["leaf_values"].GetArray().ysize() / (1uLL << treeSize));
+        const ui64 leafValuesCount = value["leaf_values"].GetArray().ysize();
+        const ui64 leavesPerDimension = 1uLL << treeSize;
+        CB_ENSURE(
+            leafValuesCount > 0 && leafValuesCount % leavesPerDimension == 0,
+            "Invalid oblivious tree in JSON model: leaf_values count (" << leafValuesCount
+                << ") must be a positive multiple of 2^depth (" << leavesPerDimension
+                << ") for tree of depth " << treeSize);
+        modelTrees->SetApproxDimension(leafValuesCount / leavesPerDimension);
         for (const auto& split: value["splits"].GetArray()) {
             modelTrees->AddTreeSplit(split["split_index"].GetInteger());
         }
