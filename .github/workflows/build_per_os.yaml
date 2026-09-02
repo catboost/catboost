@@ -32,7 +32,7 @@ env:
     {
       "linux": ["linux-x86_64", "linux-aarch64"],
       "macos": ["darwin-universal2"],
-      "windows": ["windows-x86_64"]
+      "windows": ["windows-x86_64", "windows-arm64"]
     }
 
   platform_to_specs_map: |
@@ -56,6 +56,11 @@ env:
         "executable_suffix": ".exe",
         "python_platform_tag": "win_amd64",
         "runs_on": "windows-2022"
+      },
+      "windows-arm64" : {
+        "executable_suffix": ".exe",
+        "python_platform_tag": "win_arm64",
+        "runs_on": "windows-11-arm"
       }
     }
 
