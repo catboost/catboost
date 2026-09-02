@@ -182,7 +182,11 @@ class _CustomLoggersStack(object):
                 # because push from other threads does nothing
                 return
             if not self._stack:
-                raise RuntimeError('Attempt to pop from an empty stack')
+                # push() can be a no-op when another thread owns the stack
+                # (see push()), so push/pop are not guaranteed to be balanced
+                # when fit() runs concurrently from multiple threads. Popping
+                # an empty stack is therefore not an error.
+                return
 
             _reset_logger()
             if len(self._stack) != 1:
