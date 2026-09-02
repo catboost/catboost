@@ -20,7 +20,7 @@ namespace {
 namespace NPar {
     const int MIN_SIZE_TO_PACK = 4000;
     const int N_SIGNATURE = 0x21a9e395;
-    const int SIZEOF_SIGNATURE = sizeof(int);
+    const size_t SIZEOF_SIGNATURE = sizeof(int);
 
     const unsigned int BLOCK_SIZE = 2000000000;
     using TBlockLen = unsigned int;
@@ -58,7 +58,7 @@ namespace NPar {
         if (!dst) {
             return;
         }
-        int srcSize = dst->ysize();
+        size_t srcSize = dst->size();
         if (srcSize < SIZEOF_SIGNATURE) {
             return;
         }
