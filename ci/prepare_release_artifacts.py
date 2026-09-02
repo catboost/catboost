@@ -10,7 +10,7 @@ def get_sys_arch_list():
     return [
         ('darwin', ['universal2']),
         ('linux', ['aarch64', 'x86_64']),
-        ('windows', ['x86_64']),
+        ('windows', ['x86_64', 'arm64']),
     ]
 
 
