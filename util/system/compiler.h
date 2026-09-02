@@ -146,7 +146,7 @@
 #endif
 
 // to cheat compiler about strict aliasing or similar problems
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(_MSC_VER)
     #define Y_FAKE_READ(X)                  \
         do {                                \
             __asm__ __volatile__(""         \

@@ -40,7 +40,7 @@ struct EHParameters {
   uint32_t magic_number;
   void* exception_object;
   EHThrowInfo* throw_info;
-#ifdef _M_AMD64
+#if defined(_M_AMD64) || defined(_M_ARM64)
   uintptr_t throw_image_base;
 #endif
 };
@@ -71,12 +71,12 @@ struct ExceptionPtr {
   void* exception_object;
   const EHThrowInfo* throw_info;
   std::atomic<size_t> counter;
-#ifdef _M_AMD64
+#if defined(_M_AMD64) || defined(_M_ARM64)
   PVOID image_base;
 #endif
   template <class T>
   T convert(int32_t offset) {
-#ifdef _M_AMD64
+#if defined(_M_AMD64) || defined(_M_ARM64)
     uintptr_t value = reinterpret_cast<uintptr_t>(image_base) + static_cast<uintptr_t>(offset);
 #else
     uintptr_t value = static_cast<uintptr_t>(offset);
@@ -108,7 +108,7 @@ struct ExceptionPtr {
 
   ExceptionPtr(const void* exception_object_, const EHThrowInfo* throw_info_)
       : exception_object(nullptr), throw_info(throw_info_), counter(1) {
-#ifdef _M_AMD64
+#if defined(_M_AMD64) || defined(_M_ARM64)
     RtlPcToFileHeader(reinterpret_cast<PVOID>(const_cast<EHThrowInfo*>(throw_info)), &image_base);
 #endif
     EHCatchableType* exc_type = exception_type();
