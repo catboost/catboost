@@ -60,6 +60,9 @@ public class NativeLib {
             if (osName.contains("win")) {
                 osName = "win32";
             }
+            if (osArch.equals("aarch64") || osArch.equals("arm64")) {
+                return new String[] {osName + "-arm64", osName + "-aarch64"};
+            }
             return new String[] {osName + "-" + osArch};
         }
     }

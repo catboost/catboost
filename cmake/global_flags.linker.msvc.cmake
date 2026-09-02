@@ -13,4 +13,6 @@ add_link_options(
 
 if ((CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64") OR (CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64"))
   add_link_options(/MACHINE:X64)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+  add_link_options(/MACHINE:ARM64)
 endif()
