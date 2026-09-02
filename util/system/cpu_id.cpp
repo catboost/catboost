@@ -6,7 +6,9 @@
 
 #if defined(_win_)
     #include <intrin.h>
-    #include <immintrin.h>
+    #if defined(_x86_)
+        #include <immintrin.h>
+    #endif
 #elif defined(_x86_)
     #include <cpuid.h>
 #endif
