@@ -115,7 +115,7 @@ struct TPartitionStatistics {
     double Sum;
     double Count;
 
-    TPartitionStatistics(double weight = 0,
+    __host__ __device__ TPartitionStatistics(double weight = 0,
                          double sum = 0,
                          double count = 0)
         : Weight(weight)
@@ -124,7 +124,7 @@ struct TPartitionStatistics {
     {
     }
 
-    TPartitionStatistics& operator+=(const TPartitionStatistics& other) {
+    __host__ __device__ TPartitionStatistics& operator+=(const TPartitionStatistics& other) {
         Weight += other.Weight;
         Sum += other.Sum;
         Count += other.Count;

@@ -198,12 +198,19 @@ static ui64 GetBlockCount(ui32 logicalWarpSize, ui32 blockSize, ui64 objectCount
 }
 
 template <typename T>
+// Match the dcg.cuh decl signature EXACTLY (no top-level
+// const on any param). clang-cl's MSVC-ABI mangler treats `const ui64` and `ui64`
+// as distinct back-reference entries, so the mixed-const repeated ui64 here mangled
+// the 2nd ui64 as `_K` while the const-free decl/caller back-referenced it (`1`),
+// leaving the kernel unresolved at link. Pointer params likewise drop top-level
+// const (T* const -> QEAM vs T* -> PEAM). Itanium/Linux ignores top-level const so
+// neither bit there.
 void MakeElementwiseOffsets(
-    const T* const sizes,
-    const T* const biasedOffsets,
-    const ui64 size,
-    const T offsetsBias,
-    T* const elementwiseOffsets,
+    const T* sizes,
+    const T* biasedOffsets,
+    ui64 size,
+    T offsetsBias,
+    T* elementwiseOffsets,
     ui64 elementwiseOffsetsSize,
     TCudaStream stream)
 {
@@ -266,12 +273,14 @@ __global__ void MakeEndOfGroupMarkersImpl(
 }
 
 template <typename T>
+// Drop top-level const on pointer params to match the dcg.cuh decl
+// (clang-cl MSVC-ABI mangling keeps it on the def -> link mismatch; see above).
 void MakeEndOfGroupMarkers(
-    const T* const sizes,
-    const T* const biasedOffsets,
+    const T* sizes,
+    const T* biasedOffsets,
     const ui64 size,
     const T offsetsBias,
-    T* const endOfGroupMarkers,
+    T* endOfGroupMarkers,
     const ui64 endOfGroupMarkersSize,
     TCudaStream stream)
 {
@@ -311,14 +320,16 @@ __global__ void GatherBySizeAndOffsetImpl(
 }
 
 template <typename T, typename I>
+// Drop top-level const on pointer params to match the dcg.cuh decl
+// (clang-cl MSVC-ABI mangling keeps it on the def -> link mismatch; see above).
 void GatherBySizeAndOffset(
-    const T* const src,
-    const I* const sizes,
-    const I* const biasedOffsets,
+    const T* src,
+    const I* sizes,
+    const I* biasedOffsets,
     const ui64 size,
     const I offsetsBias,
     const I maxSize,
-    T* const dst,
+    T* dst,
     TCudaStream stream)
 {
     const ui32 blockSize = 512;
@@ -369,7 +380,7 @@ __global__ void RemoveGroupMeanImpl(
     }
 
     T mean = ShuffleReduce<T>(localThreadIdx, localMean, LogicalWarpSize);
-    mean = __shfl_sync(0xFFFFFFFF, mean, 0, LogicalWarpSize);
+    mean = __shfl_sync(CB_FULL_WARP_MASK, mean, 0, LogicalWarpSize);
 
     for (ui32 i = localThreadIdx; i < groupSize; i += LogicalWarpSize) {
         normalized[i] = __ldg(values + i) - mean;
@@ -377,14 +388,16 @@ __global__ void RemoveGroupMeanImpl(
 }
 
 template <typename T, typename I>
+// Drop top-level const on pointer params to match the dcg.cuh decl
+// (clang-cl MSVC-ABI mangling keeps it on the def -> link mismatch; see above).
 void RemoveGroupMean(
-    const T* const values,
+    const T* values,
     const ui64 valuesSize,
-    const I* const sizes,
-    const I* const biasedOffsets,
+    const I* sizes,
+    const I* biasedOffsets,
     const ui64 size,
     const I offsetsBias,
-    T* const normalized,
+    T* normalized,
     TCudaStream stream)
 {
     const ui32 blockSize = 512;
