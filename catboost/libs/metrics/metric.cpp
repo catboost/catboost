@@ -935,7 +935,6 @@ TMetricHolder TCoxMetric::Eval(
 
         lastExpP = expP;
     }
-    error.Stats[0] = error.Stats[0];
 
     return error;
 }
