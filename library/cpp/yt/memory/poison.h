@@ -42,7 +42,7 @@ void RecycleFreedMemory(TMutableRef ref);
  * In ASAN builds, does nothing.
  * In MSAN builds, does nothing.
  */
-void PoisonUnitializedOrFreedMemory(TMutableRef ref);
+void PoisonUninitializedOrFreedMemory(TMutableRef ref);
 
 ////////////////////////////////////////////////////////////////////////////////
 
