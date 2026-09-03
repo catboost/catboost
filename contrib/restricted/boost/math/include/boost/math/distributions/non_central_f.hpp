@@ -14,6 +14,7 @@
 #include <boost/math/tools/tuple.hpp>
 #include <boost/math/tools/promotion.hpp>
 #include <boost/math/distributions/non_central_beta.hpp>
+#include <boost/math/distributions/non_central_chi_squared.hpp>
 #include <boost/math/distributions/detail/generic_mode.hpp>
 #include <boost/math/special_functions/pow.hpp>
 #include <boost/math/policies/policy.hpp>
@@ -44,7 +45,8 @@ namespace boost
          };
          
          template <class RealType, class Policy>
-         BOOST_MATH_GPU_ENABLED RealType find_non_centrality_f(const RealType x, const RealType v1, const RealType v2, const RealType p, const RealType q, const RealType p_q_precision, const Policy& pol)         {
+         BOOST_MATH_GPU_ENABLED RealType find_non_centrality_f(const RealType x, const RealType v1, const RealType v2, const RealType p, const RealType q, const RealType p_q_precision, const Policy& pol)         
+         {
             constexpr auto function = "non_central_f<%1%>::find_non_centrality";
 
             if ( p == 0 || q == 0) {
@@ -77,6 +79,103 @@ namespace boost
             if (max_iter >= policies::get_max_root_iterations<Policy>()) {
                return policies::raise_evaluation_error<RealType>(function, "Unable to locate solution in a reasonable time:" // LCOV_EXCL_LINE
                   " or there is no answer to problem.  Current best guess is %1%", result, Policy()); // LCOV_EXCL_LINE
+            }
+            return result;
+         }
+         
+         template <class RealType, class Policy>
+         struct f_degrees_of_freedom_finder
+         {
+            f_degrees_of_freedom_finder(
+               RealType x_, RealType v_, RealType nc_, bool find_v1_, RealType p_, bool c)
+               : x(x_), v(v_), nc(nc_), find_v1(find_v1_), p(p_), comp(c) {}
+
+            RealType operator()(const RealType& input_v)
+            {
+               RealType v1 = find_v1 ? input_v : v; 
+               RealType v2 = find_v1 ? v : input_v; 
+               non_central_f_distribution<RealType, Policy> d(v1, v2, nc);
+               return comp ?
+                  p - cdf(complement(d, x))
+                  : cdf(d, x) - p;
+            }
+         private:
+            RealType x;
+            RealType v;
+            RealType nc;
+            bool find_v1;
+            RealType p;
+            bool comp;
+         };
+
+         template <class RealType, class Policy>
+         RealType large_v2_approximation(RealType x, RealType v1, RealType p, RealType q, RealType nc)
+         { // For v2 -> inf approximate f_degreese_of_freedome_finder with chi squared distribution 
+           // with degrees of freedom v1 at the cdf at x * v1
+               bool comp = p < q ? false : true;
+               RealType pval =  p < q ? p : q;
+               non_central_chi_squared_distribution<RealType, Policy> d(v1, nc);
+               return comp ? pval - cdf(complement(d, x*v1)) : cdf(d, x*v1) - pval;
+         }
+
+         template <class RealType, class Policy>
+         inline RealType find_degrees_of_freedom_f(
+            const RealType x, const RealType v, const RealType nc, const bool find_v1, const RealType p, const RealType q, const Policy& pol)
+         {
+            BOOST_MATH_STD_USING
+            using std::fabs;
+            const char* function = "non_central_f<%1%>::find_degrees_of_freedom_f";
+            if((p == 0) || (q == 0))
+            {
+               //
+               // Can't find a thing if one of p and q is zero:
+               //
+               return policies::raise_domain_error<RealType>(function, "Can't find degrees of freedom when the probability is 0 or 1, only possible answer is %1%",
+                  RealType(std::numeric_limits<RealType>::quiet_NaN()), Policy()); // LCOV_EXCL_LINE
+            }
+            if (x < tools::epsilon<RealType>())
+            {
+               return policies::raise_evaluation_error<RealType>(function, "Can't find degrees of freedom when the abscissa value is very close to zero as all degrees of freedom generate the same CDF at x=0: try again further out in the tails!!",
+                  RealType(std::numeric_limits<RealType>::quiet_NaN()), Policy()); // LCOV_EXCL_LINE
+            }
+            f_degrees_of_freedom_finder<RealType, Policy> f(x, v, nc, find_v1, p < q ? p : q, p < q ? false : true);
+
+            // There are times when f has two roots - thus, two degrees of freedom can
+            // be found. We find this case by checking if the sign of f for large and 
+            // small values of v have the same sign. If the sign is the same, then there 
+            // are an even number of roots. If the signs differ, there is only one root
+            // and we can safely find the root.
+            RealType vLarge = sqrt(boost::math::tools::max_value<RealType>());
+            RealType vSmall = 1 / vLarge;
+
+            // As v2 -> infinity, noncentral f converges to chi-squared distribution.
+            // Rather than evaluating f(vLarge), we can use the more stable chi-squared approximation
+            RealType large_difference;
+            if (find_v1)
+            {
+               large_difference = large_v2_approximation<RealType, Policy>(x, v, p, q, nc);
+            }
+            else
+               large_difference = f(vLarge);
+
+            if ((large_difference < 0) == (f(vSmall) < 0)){
+               return policies::raise_evaluation_error<RealType>(function, "Can't find degrees of freedom because two degrees of freedom can be found using the given parameters",
+                  RealType(std::numeric_limits<RealType>::quiet_NaN()), Policy()); // LCOV_EXCL_LINE 
+            }
+
+            tools::eps_tolerance<RealType> tol(policies::digits<RealType, Policy>());
+            std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
+            //
+            // Pick an initial guess:
+            //
+            RealType guess = 1;
+            std::pair<RealType, RealType> ir = tools::bracket_and_solve_root(
+               f, guess, RealType(2), f(guess) < 0 ? true : false, tol, max_iter, pol);
+            RealType result = ir.first + (ir.second - ir.first) / 2;
+            if(max_iter >= policies::get_max_root_iterations<Policy>())
+            {
+               return policies::raise_evaluation_error<RealType>(function, "Unable to locate solution in a reasonable time:" // LCOV_EXCL_LINE
+                  " or there is no answer to problem. Current best guess is %1%", result, Policy()); // LCOV_EXCL_LINE
             }
             return result;
          }
@@ -158,6 +257,96 @@ namespace boost
                static_cast<eval_type>(1-c.param3),
                static_cast<eval_type>(c.param3),
                static_cast<eval_type>(tools::epsilon<RealType>()),
+               forwarding_policy());
+            return policies::checked_narrowing_cast<RealType, forwarding_policy>(
+               result,
+               function);
+         }
+         BOOST_MATH_GPU_ENABLED static RealType find_v1(const RealType x, const RealType v2, const RealType nc, const RealType p)
+         {
+            constexpr auto function = "non_central_f_distribution<%1%>::find_v1";
+            typedef typename policies::evaluation<RealType, Policy>::type eval_type;
+            typedef typename policies::normalise<
+               Policy,
+               policies::promote_float<false>,
+               policies::promote_double<false>,
+               policies::discrete_quantile<>,
+               policies::assert_undefined<> >::type forwarding_policy;
+            eval_type result = detail::find_degrees_of_freedom_f(
+               static_cast<eval_type>(x),
+               static_cast<eval_type>(v2),
+               static_cast<eval_type>(nc),
+               true,
+               static_cast<eval_type>(p),
+               static_cast<eval_type>(1-p),
+               forwarding_policy());
+            return policies::checked_narrowing_cast<RealType, forwarding_policy>(
+               result,
+               function);
+         }
+         template <class A, class B, class C, class D>
+         BOOST_MATH_GPU_ENABLED static RealType find_v1(const complemented4_type<A,B,C, D>& c)
+         {
+            constexpr auto function = "non_central_f_distribution<%1%>::find_non_centrality";
+            typedef typename policies::evaluation<RealType, Policy>::type eval_type;
+            typedef typename policies::normalise<
+               Policy,
+               policies::promote_float<false>,
+               policies::promote_double<false>,
+               policies::discrete_quantile<>,
+               policies::assert_undefined<> >::type forwarding_policy;
+            eval_type result = detail::find_degrees_of_freedom_f(
+               static_cast<eval_type>(c.dist),
+               static_cast<eval_type>(c.param1),
+               static_cast<eval_type>(c.param2),
+               true,
+               static_cast<eval_type>(1-c.param3),
+               static_cast<eval_type>(c.param3),
+               forwarding_policy());
+            return policies::checked_narrowing_cast<RealType, forwarding_policy>(
+               result,
+               function);
+         }
+                  BOOST_MATH_GPU_ENABLED static RealType find_v2(const RealType x, const RealType v2, const RealType nc, const RealType p)
+         {
+            constexpr auto function = "non_central_f_distribution<%1%>::find_v1";
+            typedef typename policies::evaluation<RealType, Policy>::type eval_type;
+            typedef typename policies::normalise<
+               Policy,
+               policies::promote_float<false>,
+               policies::promote_double<false>,
+               policies::discrete_quantile<>,
+               policies::assert_undefined<> >::type forwarding_policy;
+            eval_type result = detail::find_degrees_of_freedom_f(
+               static_cast<eval_type>(x),
+               static_cast<eval_type>(v2),
+               static_cast<eval_type>(nc),
+               false,
+               static_cast<eval_type>(p),
+               static_cast<eval_type>(1-p),
+               forwarding_policy());
+            return policies::checked_narrowing_cast<RealType, forwarding_policy>(
+               result,
+               function);
+         }
+         template <class A, class B, class C, class D>
+         BOOST_MATH_GPU_ENABLED static RealType find_v2(const complemented4_type<A,B,C, D>& c)
+         {
+            constexpr auto function = "non_central_f_distribution<%1%>::find_non_centrality";
+            typedef typename policies::evaluation<RealType, Policy>::type eval_type;
+            typedef typename policies::normalise<
+               Policy,
+               policies::promote_float<false>,
+               policies::promote_double<false>,
+               policies::discrete_quantile<>,
+               policies::assert_undefined<> >::type forwarding_policy;
+            eval_type result = detail::find_degrees_of_freedom_f(
+               static_cast<eval_type>(c.dist),
+               static_cast<eval_type>(c.param1),
+               static_cast<eval_type>(c.param2),
+               false,
+               static_cast<eval_type>(1-c.param3),
+               static_cast<eval_type>(c.param3),
                forwarding_policy());
             return policies::checked_narrowing_cast<RealType, forwarding_policy>(
                result,

@@ -11,7 +11,7 @@
 #pragma once
 #endif
 
-#ifndef __CUDACC_RTC__
+#if !(defined(__CUDACC_RTC__) && defined(BOOST_MATH_ENABLE_NVRTC))
 
 #include <boost/math/tools/is_standalone.hpp>
 
@@ -168,7 +168,7 @@
 #    define BOOST_MATH_NOINLINE __declspec(noinline)
 #  elif defined(__GNUC__) && __GNUC__ > 3
      // Clang also defines __GNUC__ (as 4)
-#    if defined(__CUDACC__)
+#    if defined(__CUDACC__) && defined(BOOST_MATH_ENABLE_CUDA)
        // nvcc doesn't always parse __noinline__,
        // see: https://svn.boost.org/trac/boost/ticket/9392
 #      define BOOST_MATH_NOINLINE __attribute__ ((noinline))
@@ -678,7 +678,7 @@ namespace boost{ namespace math{
 // CUDA support:
 //
 
-#ifdef __CUDACC__
+#if defined(__CUDACC__) && defined(BOOST_MATH_ENABLE_CUDA)
 
 // We have to get our include order correct otherwise you get compilation failures
 #include <cuda.h>
@@ -774,7 +774,7 @@ BOOST_MATH_GPU_ENABLED constexpr T gpu_safe_max(const T& a, const T& b) { return
 #    define BOOST_MATH_STATIC_LOCAL_VARIABLE
 #  else
 #    define BOOST_MATH_INLINE_CONSTEXPR constexpr
-#    define BOOST_MATH_STATIC constexpr
+#    define BOOST_MATH_STATIC static
 #    define BOOST_MATH_STATIC_LOCAL_VARIABLE static
 #  endif
 #endif
