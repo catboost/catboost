@@ -31,7 +31,9 @@ target_link_libraries(contrib-restricted-abseil-cpp PUBLIC
 
 target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/casts.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/cpu_detect.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/cycleclock.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/hardening.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/low_level_alloc.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/poison.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/raw_logging.cc
@@ -49,7 +51,6 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler_force_weak_definition.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/raw_hash_set.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/crc32c.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/internal/cpu_detect.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/internal/crc.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/internal/crc_cord_state.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/internal/crc_memcpy_fallback.cc

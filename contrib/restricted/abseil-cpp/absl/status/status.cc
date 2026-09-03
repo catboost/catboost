@@ -15,27 +15,19 @@
 
 #include <errno.h>
 
-#include <atomic>
-#include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <memory>
 #include <ostream>
 #include <string>
+#include <type_traits>
+#include <utility>
 
-#include "absl/base/attributes.h"
 #include "absl/base/config.h"
-#include "absl/base/internal/raw_logging.h"
 #include "absl/base/internal/strerror.h"
-#include "absl/base/macros.h"
 #include "absl/base/no_destructor.h"
 #include "absl/base/nullability.h"
-#include "absl/debugging/stacktrace.h"
-#include "absl/debugging/symbolize.h"
 #include "absl/status/internal/status_internal.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
-#include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/source_location.h"
 
@@ -112,21 +104,39 @@ absl::Status absl::Status::MakeNonOkStatusWithOkCode(
           absl::StatusCode::kOk, message, nullptr)));
 }
 
-uintptr_t Status::MakeRep(uintptr_t inlined_rep, absl::string_view msg,
-                          absl::SourceLocation loc) {
-  bool ok = inlined_rep == CodeToInlinedRep(absl::StatusCode::kOk);
+template <typename StringOrView>
+uintptr_t MakeStatusRepImpl(uintptr_t inlined_rep, StringOrView msg,
+                            absl::SourceLocation loc) {
+  static_assert(std::is_same_v<StringOrView, absl::string_view> ||
+                std::is_same_v<StringOrView, std::string&&>);
+  bool ok = inlined_rep == Status::CodeToInlinedRep(absl::StatusCode::kOk);
   if (ok) return inlined_rep;
   if (msg.empty()
   ) {
     return inlined_rep;
   }
-  auto* rep = new status_internal::StatusRep(InlinedRepToCode(inlined_rep), msg,
-                                             nullptr);
+  auto* rep =
+      new status_internal::StatusRep(Status::InlinedRepToCode(inlined_rep),
+                                     std::forward<StringOrView>(msg), nullptr);
   if (loc.file_name()[0] != '\0') {
     rep->AddSourceLocation(loc);
   }
-  return PointerToRep(rep);
+  return Status::PointerToRep(rep);
 }
+
+uintptr_t Status::MakeRepFromStringView(uintptr_t inlined_rep,
+                                        absl::string_view msg,
+                                        absl::SourceLocation loc) {
+  return MakeStatusRepImpl<absl::string_view>(inlined_rep, msg, loc);
+}
+
+#ifndef SWIG
+uintptr_t Status::MakeRepFromStringRvalue(uintptr_t inlined_rep,
+                                          std::string&& msg,
+                                          absl::SourceLocation loc) {
+  return MakeStatusRepImpl<std::string&&>(inlined_rep, std::move(msg), loc);
+}
+#endif  // SWIG
 
 uintptr_t Status::AddSourceLocationImpl(uintptr_t rep,
                                         absl::SourceLocation loc) {
