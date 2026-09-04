@@ -93,7 +93,8 @@ Y_FORCE_INLINE int ReadVarUint64(const char* input, ui64* value)
     READ_VARUINT_STEP7(ui64, 7)
     READ_VARUINT_STEP7(ui64, 8)
     READ_VARUINT_STEP7(ui64, 9)
-    READ_VARUINT_STEP7(ui64, 10)
+    // Last byte of a varuint64 carries only one bit.
+    READ_VARUINT_STEP(ui64, 10, 0x02)
     throw TSimpleException("Value is too big for varuint64");
 }
 
