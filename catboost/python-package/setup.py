@@ -790,7 +790,7 @@ if __name__ == '__main__':
             'numpy (>=1.16.0, <3.0)',
             'pandas (>=0.24, <4.0)',
             'scipy',
-            'plotly (<7.0)',
+            'plotly (<8.0)',
             'six',
         ],
         zip_safe=False,
