@@ -89,7 +89,7 @@ jobs:
           fetch-depth: 0
 
       # Python 3.9 is not included in 'macos-14' and 'windows-2022' images.
-      - if: inputs.os != 'linux'
+      - if: inputs.os != 'linux' && inputs.target_platform != 'windows-arm64'
         name: Install python 3.9
         uses: actions/setup-python@v5
         with:
@@ -104,8 +104,17 @@ jobs:
           python-version: '3.10'
           update-environment: false
 
+      # Python 3.11 is not included in 'windows-11-arm' image's tool cache.
+      - if: inputs.target_platform == 'windows-arm64'
+        name: Install python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: 'arm64'
+          update-environment: false
+
       # Python 3.14 is not included in standard Windows images yet
-      - if: inputs.os == 'windows'
+      - if: inputs.os == 'windows' && inputs.target_platform != 'windows-arm64'
         name: Install python 3.14
         uses: actions/setup-python@v5
         with:
@@ -136,6 +145,13 @@ jobs:
             catboost/catboost/jvm-packages/catboost4j-prediction/pom.xml
             catboost/catboost/spark/catboost4j-spark/projects/**/pom.xml
 
+      - if: inputs.target_platform == 'windows-arm64'
+        name: Setup JDK 17 on Windows ARM64
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          architecture: 'aarch64'
 
       - if: inputs.os == 'macos'
         name: Env setup on macOS
@@ -188,7 +204,7 @@ jobs:
           cd Python
           unzip ${{ github.workspace }}/python_versions_macos_x86_64
 
-      - if: inputs.os == 'windows'
+      - if: inputs.target_platform == 'windows-x86_64'
         name: Install CUDA on Windows
         uses: Jimver/cuda-toolkit@v0.2.15
         id: cuda-toolkit
@@ -197,14 +213,20 @@ jobs:
           method: 'network'
           sub-packages: '["nvcc","cudart","thrust"]'
 
-      - if: inputs.os == 'windows'
+      - if: inputs.target_platform == 'windows-x86_64'
         name: Install MSVC tools 14.40
         uses: thepwrtank18/install-vs-components@v1.0.0
         with:
           components: Microsoft.VisualStudio.Component.VC.14.40.17.10.x86.x64
 
-      - if: inputs.os == 'windows'
-        name: Env setup on Windows
+      - if: inputs.target_platform == 'windows-arm64'
+        name: Install MSVC tools 14.40 for ARM64
+        uses: thepwrtank18/install-vs-components@v1.0.0
+        with:
+          components: Microsoft.VisualStudio.Component.VC.14.40.17.10.ARM64
+
+      - if: inputs.target_platform == 'windows-x86_64'
+        name: Env setup on Windows x86_64
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
 
@@ -242,6 +264,39 @@ jobs:
           Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-x86_64
           $CUDA_PATH_WO_DRIVE_AND_ROOT = (Split-Path "${{steps.cuda-toolkit.outputs.CUDA_PATH}}" -NoQualifier).TrimStart('\/')
           New-Item -Path $CUDA_PATH_WO_DRIVE_AND_ROOT -ItemType SymbolicLink -Value "${{steps.cuda-toolkit.outputs.CUDA_PATH}}" -Force
+
+      - if: inputs.target_platform == 'windows-arm64'
+        name: Env setup on Windows ARM64
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          python -m pip install -U conan==2.4.1 setuptools jupyterlab==3.0.6 build
+
+          # version 1.13.0 is broken: https://github.com/ninja-build/ninja/issues/2616
+          choco install ninja --version 1.12.1 --allow-downgrade
+
+          npm install --global rimraf
+
+          $CMAKE_BUILD_ENV_ROOT="${{ github.workspace }}\cmake_build_env_root"
+
+          New-Item $CMAKE_BUILD_ENV_ROOT\windows-arm64 -ItemType Directory
+
+          # JDK
+          Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-arm64
+          New-Item -Path .\jdk-17 -ItemType SymbolicLink -Value $Env:JAVA_HOME
+
+          # Python (ARM64 Windows supports 3.11+)
+          Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-arm64
+          New-Item -Path Python -ItemType Directory
+          Set-Location -Path .\Python
+          New-Item -Path .\3.11 -ItemType SymbolicLink -Value (Get-Item "$Env:RUNNER_TOOL_CACHE\Python\3.11.*\arm64").FullName
+          New-Item -Path .\3.12 -ItemType SymbolicLink -Value (Get-Item "$Env:RUNNER_TOOL_CACHE\Python\3.12.*\arm64").FullName
+          New-Item -Path .\3.13 -ItemType SymbolicLink -Value (Get-Item "$Env:RUNNER_TOOL_CACHE\Python\3.13.*\arm64").FullName
+          New-Item -Path .\3.14 -ItemType SymbolicLink -Value (Get-Item "$Env:RUNNER_TOOL_CACHE\Python\3.14.*\arm64").FullName
+
+          foreach($PY_VER in '3.11','3.12','3.13','3.14') {
+            & "$CMAKE_BUILD_ENV_ROOT\windows-arm64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools numpy cython==3.0.12
+          }
 
 
       - name: Update CMake build cache on every commit
@@ -323,12 +378,20 @@ jobs:
 
       # CLI
 
-      - if: inputs.os != 'macos'
+      - if: inputs.os != 'macos' && inputs.target_platform != 'windows-arm64'
         name: 'Upload artifact: CLI'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-cli-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: catboost/build_native_root/have_cuda/${{ inputs.target_platform }}/catboost/app/catboost${{ inputs.executable_suffix }}
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - if: inputs.target_platform == 'windows-arm64'
+        name: 'Upload artifact: CLI (Windows ARM64)'
+        uses: actions/upload-artifact@v4
+        with:
+          name: catboost-cli-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
+          path: catboost/build_native_root/no_cuda/${{ inputs.target_platform }}/catboost/app/catboost${{ inputs.executable_suffix }}
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.os == 'macos'
@@ -392,7 +455,7 @@ jobs:
           path: catboost/build_native_root/no_cuda/${{ inputs.target_platform }}/catboost/libs/model_interface/libcatboostmodel.*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.os == 'windows'
+      - if: inputs.target_platform == 'windows-x86_64'
         name: 'Upload artifact: catboostmodel library for Windows x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -400,6 +463,16 @@ jobs:
           path: |
             catboost/build_native_root/have_cuda/${{ inputs.target_platform }}/catboost/libs/model_interface/catboostmodel.dll
             catboost/build_native_root/have_cuda/${{ inputs.target_platform }}/catboost/libs/model_interface/catboostmodel.lib
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - if: inputs.target_platform == 'windows-arm64'
+        name: 'Upload artifact: catboostmodel library for Windows ARM64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: catboost-model-interface-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
+          path: |
+            catboost/build_native_root/no_cuda/${{ inputs.target_platform }}/catboost/libs/model_interface/catboostmodel.dll
+            catboost/build_native_root/no_cuda/${{ inputs.target_platform }}/catboost/libs/model_interface/catboostmodel.lib
           retention-days: ${{ inputs.artifact_retention_days }}
 
       # Spark
