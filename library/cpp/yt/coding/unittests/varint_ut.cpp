@@ -4,6 +4,8 @@
 
 #include <util/random/random.h>
 
+#include <util/stream/mem.h>
+
 #include <util/string/escape.h>
 
 #include <tuple>
@@ -37,20 +39,33 @@ class TReadVarIntTest: public ::testing::TestWithParam<std::tuple<ui64, std::str
 TEST_P(TReadVarIntTest, Serialization)
 {
     ui64 rightAnswer = std::get<0>(GetParam());
-    auto input = TString(std::get<1>(GetParam()));
+    const auto input = TString(std::get<1>(GetParam()));
 
     TStringInput inputStream(input);
     ui64 value;
-    ReadVarUint64(&inputStream, &value);
+    EXPECT_EQ(std::ssize(input), ReadVarUint64(&inputStream, &value));
+    EXPECT_EQ(rightAnswer, value);
+
+    EXPECT_EQ(std::ssize(input), ReadVarUint64(input.data(), &value));
+    EXPECT_EQ(rightAnswer, value);
+
+    EXPECT_EQ(std::ssize(input), ReadVarUint64(input.data(), input.data() + input.size(), &value));
+    EXPECT_EQ(rightAnswer, value);
+
+    int position = 0;
+    EXPECT_EQ(std::ssize(input), ReadVarUint64([&] { return input[position++]; }, &value));
     EXPECT_EQ(rightAnswer, value);
 }
 
 TEST(TReadVarIntTest, Overflow)
 {
-    TString input("\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01", 11);
+    const TString input("\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01", 11);
     TStringInput inputStream(input);
     ui64 value;
     EXPECT_ANY_THROW(ReadVarUint64(&inputStream, &value));
+
+    int position = 0;
+    EXPECT_ANY_THROW(ReadVarUint64([&] { return input[position++]; }, &value));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -101,13 +116,31 @@ TEST(TVarInt32Test, RandomValues)
     const int numberOfValues = 10000;
 
     TStringStream stream;
+    int position = 0;
     for (int i = 0; i < numberOfValues; ++i) {
         i32 expected = static_cast<i32>(RandomNumber<ui32>());
         WriteVarInt32(&stream, expected);
+        const auto& bytes = stream.Str();
         i32 actual;
-        ReadVarInt32(&stream, &actual);
+
+        int bytesRead = ReadVarInt32(&stream, &actual);
         EXPECT_EQ(expected, actual)
-            << "Encoded Variant: " << EscapeC(stream.Str());
+            << "Encoded Variant: " << EscapeC(bytes);
+
+        EXPECT_EQ(bytesRead, ReadVarInt32(bytes.data() + position, &actual));
+        EXPECT_EQ(expected, actual)
+            << "Encoded Variant: " << EscapeC(bytes);
+
+        EXPECT_EQ(bytesRead, ReadVarInt32(bytes.data() + position, bytes.data() + bytes.size(), &actual));
+        EXPECT_EQ(expected, actual)
+            << "Encoded Variant: " << EscapeC(bytes);
+
+        int callbackPosition = position;
+        EXPECT_EQ(bytesRead, ReadVarInt32([&] { return bytes[callbackPosition++]; }, &actual));
+        EXPECT_EQ(expected, actual)
+            << "Encoded Variant: " << EscapeC(bytes);
+
+        position += bytesRead;
     }
 }
 
@@ -115,19 +148,44 @@ TEST(TVarInt32Test, RandomValues)
 
 TEST(TVarUint32Test, BoundaryValues)
 {
-    // UINT32_MAX encoded as a 5-byte varint: should succeed.
-    const char maxBytes[] = "\xff\xff\xff\xff\x0f";
     ui32 value = 0;
-    EXPECT_EQ(5, ReadVarUint32(maxBytes, &value));
-    EXPECT_EQ(std::numeric_limits<ui32>::max(), value);
+
+    // UINT32_MAX encoded as a 5-byte varint: should succeed.
+    {
+        const char maxBytes[] = "\xff\xff\xff\xff\x0f";
+        TMemoryInput maxInput(maxBytes, 5);
+        EXPECT_EQ(5, ReadVarUint32(&maxInput, &value));
+        EXPECT_EQ(std::numeric_limits<ui32>::max(), value);
+        EXPECT_EQ(5, ReadVarUint32(maxBytes, &value));
+        EXPECT_EQ(std::numeric_limits<ui32>::max(), value);
+        EXPECT_EQ(5, ReadVarUint32(maxBytes, maxBytes + 5, &value));
+        EXPECT_EQ(std::numeric_limits<ui32>::max(), value);
+        int position = 0;
+        EXPECT_EQ(5, ReadVarUint32([&] { return maxBytes[position++]; }, &value));
+        EXPECT_EQ(std::numeric_limits<ui32>::max(), value);
+    }
 
     // 2^32 encoded as a 5-byte varint: should throw.
-    const char overflowBytes[] = "\x80\x80\x80\x80\x10";
-    EXPECT_THROW(ReadVarUint32(overflowBytes, &value), TSimpleException);
+    {
+        const char overflowBytes[] = "\x80\x80\x80\x80\x10";
+        TMemoryInput overflowInput(overflowBytes, 5);
+        EXPECT_THROW(ReadVarUint32(&overflowInput, &value), TSimpleException);
+        EXPECT_THROW(ReadVarUint32(overflowBytes, &value), TSimpleException);
+        EXPECT_THROW(ReadVarUint32(overflowBytes, overflowBytes + 5, &value), TSimpleException);
+        int position = 0;
+        EXPECT_THROW(ReadVarUint32([&] { return overflowBytes[position++]; }, &value), TSimpleException);
+    }
 
     // Max 5-byte varint (2^35 - 1): should throw.
-    const char maxFiveByteBytes[] = "\xff\xff\xff\xff\x7f";
-    EXPECT_THROW(ReadVarUint32(maxFiveByteBytes, &value), TSimpleException);
+    {
+        const char maxFiveByteBytes[] = "\xff\xff\xff\xff\x7f";
+        TMemoryInput maxFiveByteInput(maxFiveByteBytes, 5);
+        EXPECT_THROW(ReadVarUint32(&maxFiveByteInput, &value), TSimpleException);
+        EXPECT_THROW(ReadVarUint32(maxFiveByteBytes, &value), TSimpleException);
+        EXPECT_THROW(ReadVarUint32(maxFiveByteBytes, maxFiveByteBytes + 5, &value), TSimpleException);
+        int position = 0;
+        EXPECT_THROW(ReadVarUint32([&] { return maxFiveByteBytes[position++]; }, &value), TSimpleException);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -157,13 +215,31 @@ TEST(TVarInt64Test, RandomValues)
     const int numberOfValues = 10000;
 
     TStringStream stream;
+    int position = 0;
     for (int i = 0; i < numberOfValues; ++i) {
         i64 expected = static_cast<i64>(RandomNumber<ui64>());
         WriteVarInt64(&stream, expected);
+        const auto& bytes = stream.Str();
         i64 actual;
-        ReadVarInt64(&stream, &actual);
+
+        int bytesRead = ReadVarInt64(&stream, &actual);
         EXPECT_EQ(expected, actual)
-            << "Encoded Variant: " << EscapeC(stream.Str());
+            << "Encoded Variant: " << EscapeC(bytes);
+
+        EXPECT_EQ(bytesRead, ReadVarInt64(bytes.data() + position, &actual));
+        EXPECT_EQ(expected, actual)
+            << "Encoded Variant: " << EscapeC(bytes);
+
+        EXPECT_EQ(bytesRead, ReadVarInt64(bytes.data() + position, bytes.data() + bytes.size(), &actual));
+        EXPECT_EQ(expected, actual)
+            << "Encoded Variant: " << EscapeC(bytes);
+
+        int callbackPosition = position;
+        EXPECT_EQ(bytesRead, ReadVarInt64([&] { return bytes[callbackPosition++]; }, &actual));
+        EXPECT_EQ(expected, actual)
+            << "Encoded Variant: " << EscapeC(bytes);
+
+        position += bytesRead;
     }
 }
 
