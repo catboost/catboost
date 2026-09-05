@@ -5,6 +5,7 @@
 #include <library/cpp/yt/string/format.h>
 
 #include <util/generic/strbuf.h>
+#include <util/system/compiler.h>
 #include <util/generic/typetraits.h>
 
 #include <string>
@@ -65,6 +66,42 @@ template <class T>
 struct TWellKnownLoggingTagTraits
 {
     static_assert(TDependentFalse<T>, "Type does not carry a well-known logging tag; pass an explicit key");
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+//! Appends keyed tags to an existing list, fluently.
+/*!
+ *  Lets an owner of a #TLoggingTagList offer |request->Annotate().With("Key", value)|
+ *  without exposing the list itself. Holds the list by pointer and appends in place, so
+ *  the chain need not be a single expression and nothing is committed at the end.
+ *
+ *  The referenced list must outlive the builder.
+ */
+class TLoggingTagListBuilder
+{
+public:
+    explicit TLoggingTagListBuilder(TLoggingTagList* tags Y_LIFETIME_BOUND);
+
+    template <class TValue>
+    TLoggingTagListBuilder& With(TLoggingTagKey key, const TValue& value);
+
+    //! Attaches the tag only when #condition holds. NB: #value is evaluated either way.
+    template <class TValue>
+    TLoggingTagListBuilder& WithIf(bool condition, TLoggingTagKey key, const TValue& value);
+
+    template <class... TArgs>
+    TLoggingTagListBuilder& WithFormat(TLoggingTagKey key, TFormatString<TArgs...> format, TArgs&&... args);
+
+    //! Attaches a composed tag only when #condition holds. NB: #args are evaluated either way.
+    template <class... TArgs>
+    TLoggingTagListBuilder& WithFormatIf(bool condition, TLoggingTagKey key, TFormatString<TArgs...> format, TArgs&&... args);
+
+    //! Splices a pre-built list, keeping its tags individual.
+    TLoggingTagListBuilder& With(const TLoggingTagList& tags);
+
+private:
+    TLoggingTagList* const Tags_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -129,6 +129,53 @@ void TLoggingTagList::DoAdd(TLoggingTagKey key, const TValue& value, TStringBuf 
 
 ////////////////////////////////////////////////////////////////////////////////
 
+inline TLoggingTagListBuilder::TLoggingTagListBuilder(TLoggingTagList* tags)
+    : Tags_(tags)
+{ }
+
+template <class TValue>
+TLoggingTagListBuilder& TLoggingTagListBuilder::With(TLoggingTagKey key, const TValue& value)
+{
+    Tags_->Add(key, value);
+    return *this;
+}
+
+template <class TValue>
+TLoggingTagListBuilder& TLoggingTagListBuilder::WithIf(bool condition, TLoggingTagKey key, const TValue& value)
+{
+    return condition ? With(key, value) : *this;
+}
+
+template <class... TArgs>
+TLoggingTagListBuilder& TLoggingTagListBuilder::WithFormat(
+    TLoggingTagKey key,
+    TFormatString<TArgs...> format,
+    TArgs&&... args)
+{
+    Tags_->AddFormat(key, format, std::forward<TArgs>(args)...);
+    return *this;
+}
+
+template <class... TArgs>
+TLoggingTagListBuilder& TLoggingTagListBuilder::WithFormatIf(
+    bool condition,
+    TLoggingTagKey key,
+    TFormatString<TArgs...> format,
+    TArgs&&... args)
+{
+    return condition
+        ? WithFormat(key, format, std::forward<TArgs>(args)...)
+        : *this;
+}
+
+inline TLoggingTagListBuilder& TLoggingTagListBuilder::With(const TLoggingTagList& tags)
+{
+    Tags_->Add(tags);
+    return *this;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 inline TLoggingTagListPayloadView AsView(const TLoggingTagListPayload& payload)
 {
     return TLoggingTagListPayloadView(payload.Underlying());
