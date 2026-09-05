@@ -365,6 +365,38 @@ def _check_polars_categorical_features_have_no_nulls(data, cat_features):
                 )
 
 
+def _convert_float_cat_features_to_int(data, cat_features):
+    """Cast explicitly-marked categorical columns of a float numpy array to int64.
+
+    ``Pool`` rejects ``cat_features`` for a floating-point numpy array because float
+    columns are otherwise treated as continuous. When the caller explicitly marks
+    columns as categorical (e.g. ordinal-encoded ``0.0, 1.0, 2.0`` produced by
+    ``sklearn.preprocessing.OrdinalEncoder``), cast those columns to integer so they
+    are handled as categorical instead of raising (see #3064).
+
+    Returns a new object-dtype array with the categorical columns cast to int64 and
+    all other columns preserved. Raises ``CatBoostError`` if a categorical column
+    contains NaN or non-integer values.
+    """
+    if data.dtype.kind != 'f':
+        return data
+    result = np.array(data, dtype=object)
+    for idx in cat_features:
+        col = np.asarray(data[:, idx], dtype=np.float64)
+        if np.any(np.isnan(col)):
+            raise CatBoostError(
+                "Categorical feature at index {} contains NaN, which is not supported. "
+                "Convert NaN values to a category or a string before fitting.".format(idx)
+            )
+        if not np.all(np.equal(col, np.floor(col))):
+            raise CatBoostError(
+                "Categorical feature at index {} contains non-integer values. "
+                "Cast categorical columns to integer or string before fitting.".format(idx)
+            )
+        result[:, idx] = col.astype(np.int64)
+    return result
+
+
 def _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
                                  feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
                                  nan_mode, input_borders, task_type, used_ram_limit, random_seed,
@@ -830,17 +862,15 @@ class Pool(_PoolBase):
                                 " when 'data' parameter has FeaturesData type"
                             )
                     elif isinstance(data, np.ndarray):
-                        if (data.dtype.kind == 'f') and (cat_features is not None) and (len(cat_features) > 0):
-                            raise CatBoostError(
-                                "'data' is numpy array of floating point numerical type, it means no categorical features,"
-                                " but 'cat_features' parameter specifies nonzero number of categorical features"
-                            )
-                        if (data.dtype.kind == 'f') and (text_features is not None) and (len(text_features) > 0):
+                        data_dtype_kind = data.dtype.kind
+                        if (data_dtype_kind == 'f') and (cat_features is not None) and (len(cat_features) > 0):
+                            data = _convert_float_cat_features_to_int(data, cat_features)
+                        if (data_dtype_kind == 'f') and (text_features is not None) and (len(text_features) > 0):
                             raise CatBoostError(
                                 "'data' is numpy array of floating point numerical type, it means no text features,"
                                 " but 'text_features' parameter specifies nonzero number of text features"
                             )
-                        if (data.dtype.kind != 'O') and (embedding_features is not None) and (len(embedding_features) > 0):
+                        if (data_dtype_kind != 'O') and (embedding_features is not None) and (len(embedding_features) > 0):
                             if embedding_features_data is None:
                                 raise CatBoostError(
                                     "'data' is numpy array of non-object type, it means no embedding features,"
