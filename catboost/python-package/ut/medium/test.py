@@ -4796,6 +4796,89 @@ def test_shap_feature_importance_modes(task_type, calc_shap_mode):
         assert np.all(np.abs(shaps_for_modes[i] - shaps_for_modes[i - 1]) < 1e-9)
 
 
+@pytest.mark.parametrize(
+    'calc_shap_mode, shap_calc_type',
+    [
+        ('TreeSHAP', 'Regular'),
+        ('TreeSHAP', 'Approximate'),
+        ('TreeSHAP', 'Exact'),
+        ('IndependentTreeSHAP', 'Regular'),
+    ],
+)
+@pytest.mark.parametrize('scale, bias', [(0.5, 1.25), (-0.75, -0.5), (0.0, 2.0)])
+def test_shap_feature_importance_with_scale_and_bias(calc_shap_mode, shap_calc_type, scale, bias):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    reference_data = make_reference_data(pool, calc_shap_mode)
+    model = CatBoostRegressor(iterations=5)
+    model.fit(pool)
+    scale_before, bias_before = model.get_scale_and_bias()
+    shap_values_before_scaling = np.array(
+        model.get_feature_importance(
+            type=EFstrType.ShapValues,
+            data=pool,
+            reference_data=reference_data,
+            shap_calc_type=shap_calc_type,
+        )
+    )
+
+    model.set_scale_and_bias(scale, bias)
+    shap_values = np.array(
+        model.get_feature_importance(
+            type=EFstrType.ShapValues,
+            data=pool,
+            reference_data=reference_data,
+            shap_calc_type=shap_calc_type,
+        )
+    )
+
+    scale_ratio = scale / scale_before
+    assert np.allclose(shap_values[:, :-1], shap_values_before_scaling[:, :-1] * scale_ratio)
+    assert np.allclose(
+        shap_values[:, -1],
+        (shap_values_before_scaling[:, -1] - bias_before) * scale_ratio + bias,
+    )
+    assert np.allclose(np.sum(shap_values, axis=1), model.predict(pool))
+
+
+def test_shap_feature_multiclass_probability_with_scale_and_bias():
+    pool = Pool(
+        [[0.0], [1.0], [2.0], [3.0], [4.0], [5.0]],
+        [0, 1, 2, 0, 1, 2],
+    )
+    reference_data = pool.slice([0, 1, 2])
+    model = CatBoostClassifier(iterations=5, loss_function="MultiClass")
+    model.fit(pool)
+    model.set_scale_and_bias(0.5, [1.25, -0.75, 0.25])
+
+    shap_values = model.get_feature_importance(
+        type=EFstrType.ShapValues,
+        data=pool,
+        reference_data=reference_data,
+        model_output="Probability",
+    )
+    predictions = model.predict(pool, "Probability")
+
+    assert np.allclose(np.sum(shap_values, axis=2), predictions)
+
+
+def test_shap_feature_probability_with_scale_and_bias():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    reference_data = make_reference_data(pool, "IndependentTreeSHAP")
+    model = CatBoostClassifier(iterations=5)
+    model.fit(pool)
+    model.set_scale_and_bias(0.5, 1.25)
+
+    shap_values = model.get_feature_importance(
+        type=EFstrType.ShapValues,
+        data=pool,
+        reference_data=reference_data,
+        model_output="Probability",
+    )
+    predictions = model.predict(pool, "Probability")[:, 1]
+
+    assert np.allclose(np.sum(shap_values, axis=1), predictions)
+
+
 def test_shap_feature_probability(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     reference_data = make_reference_data(pool, "IndependentTreeSHAP")
