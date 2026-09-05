@@ -74,7 +74,7 @@ namespace NCB {
             for (const ui32 feature : featuresForSelect) {
                 CB_ENSURE(
                     feature < featureCount,
-                    "Tested feature " << feature << " is not present; dataset contains only " << featureCount
+                    "Tested feature # " << feature << " is not present; dataset contains only " << featureCount
                     << " features"
                 );
             }
