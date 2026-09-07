@@ -3703,7 +3703,7 @@ class CatBoost(_CatBoostBase):
         update_method : string, optional (default='SinglePoint')
             Possible values:
                 - SinglePoint
-                - TopKLeaves (It is posible to set top size : TopKLeaves:top=2)
+                - TopKLeaves (It is possible to set top size : TopKLeaves:top=2)
                 - AllPoints
             Description of the update set methods are given in section 3.1.3 of the paper.
 
@@ -4970,7 +4970,7 @@ class CatBoostClassifier(CatBoost):
         Number of iterations which overfitting detector will wait after new best error.
     od_type : string, [default=None]
         Type of overfitting detector which will be used in program.
-        Posible values:
+        Possible values:
             - 'IncToDec'
             - 'Iter'
         For 'Iter' type od_pval must not be set.
