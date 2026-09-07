@@ -139,6 +139,19 @@ protected:
     }
 };
 
+struct TIso8601DateTimeParser: public TDateTimeParserBase {
+    TIso8601DateTimeParser();
+    bool ParsePart(const char* input, size_t len);
+    TInstant GetResult(TInstant defaultValue) const;
+
+    bool HasExplicitTimeZone() const {
+        return HasExplicitTimeZone_;
+    }
+
+private:
+    bool HasExplicitTimeZone_ = false;
+};
+
 #define DECLARE_PARSER(CLASS)                            \
     struct CLASS: public TDateTimeParserBase {           \
         CLASS();                                         \
@@ -146,7 +159,6 @@ protected:
         TInstant GetResult(TInstant defaultValue) const; \
     };
 
-DECLARE_PARSER(TIso8601DateTimeParser)
 DECLARE_PARSER(TRfc822DateTimeParser)
 DECLARE_PARSER(THttpDateTimeParser)
 DECLARE_PARSER(TX509ValidityDateTimeParser)
@@ -308,6 +320,15 @@ protected:
     }
 };
 
+struct TIso8601DateTimeParserDeprecated: public TDateTimeParserBaseDeprecated {
+    TIso8601DateTimeParserDeprecated();
+    bool ParsePart(const char* input, size_t len);
+    TInstant GetResult(TInstant defaultValue) const;
+
+private:
+    bool HasExplicitTimeZone_ = false;
+};
+
 #define DECLARE_PARSER(CLASS)                            \
     struct CLASS: public TDateTimeParserBaseDeprecated { \
         CLASS();                                         \
@@ -315,7 +336,6 @@ protected:
         TInstant GetResult(TInstant defaultValue) const; \
     };
 
-DECLARE_PARSER(TIso8601DateTimeParserDeprecated)
 DECLARE_PARSER(TRfc822DateTimeParserDeprecated)
 DECLARE_PARSER(THttpDateTimeParserDeprecated)
 DECLARE_PARSER(TX509ValidityDateTimeParserDeprecated)
