@@ -5,6 +5,7 @@ Summary: Catboost Python Package
 Home-page: https://catboost.ai
 Author: CatBoost Developers
 License: Apache License, Version 2.0
+License-File: LICENSE
 Download-URL: https://pypi.python.org/pypi/{pkg_name}/
 Keywords: catboost
 Platform: Linux

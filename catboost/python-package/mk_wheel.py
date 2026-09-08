@@ -240,6 +240,18 @@ def make_record(dir_path, dist_info_dir):
                 record.write(item[tmp_dir_length:] + ',,\n')
 
 
+def add_license_file(arc_root, dist_info_dir):
+    """Copy the repository LICENSE into the wheel's .dist-info/licenses/ dir.
+
+    PEP 639 specifies that license files live in `<dist-info>/licenses/`; this
+    is what tools (pip, importlib.metadata) surface to users. Called from
+    ``make_wheel`` so published wheels carry the license alongside the metadata.
+    """
+    licenses_dir = os.path.join(dist_info_dir, 'licenses')
+    os.makedirs(licenses_dir, exist_ok=True)
+    shutil.copy(os.path.join(arc_root, 'LICENSE'), os.path.join(licenses_dir, 'LICENSE'))
+
+
 def make_wheel(wheel_name, pkg_name, ver, build_system, arc_root, dst_so_modules, should_build_widget):
     dir_path = tempfile.mkdtemp()
     try:
@@ -277,6 +289,9 @@ def make_wheel(wheel_name, pkg_name, ver, build_system, arc_root, dst_so_modules
         # Create metadata
         dist_info_dir = os.path.join(dir_path, '{}-{}.dist-info'.format(pkg_name, ver))
         shutil.copytree(os.path.join(catboost_package_dir, 'for_mk_wheel', 'catboost.dist-info'), dist_info_dir)
+
+        # Include the license file in the wheel metadata (PEP 639 .dist-info/licenses/).
+        add_license_file(arc_root, dist_info_dir)
 
         def substitute_vars(file_path):
             allow_to_write(file_path)
