@@ -21,7 +21,7 @@ struct TProjection;
 /// @param objectsDataProvider - Values of features to hash
 /// @param featuresSubsetIndexing - Use these indices when accessing raw arrays data
 /// @param perfectHashedToHashedCatValuesMap - if not nullptr use it to Hash original hashed cat values
-//                                             if nullptr - used perfectHashed values
+///                                            if nullptr - used perfectHashed values
 /// @param processAggregatedFeatures - process bundled, grouped and binary features in packs.
 ///                                       Faster, but not compatible with current model format.
 ///                                       So, enabled only during training, disabled for FinalCtr.
