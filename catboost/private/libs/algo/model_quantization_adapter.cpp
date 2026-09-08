@@ -116,7 +116,7 @@ namespace {
                         ctrs
                 );
             } else {
-                CB_ENSURE(false, "Model evaluation on GPU is not supported for quantized pools: "
+                CB_ENSURE(false, "Model evaluation on GPU is not supported for quantized datasets: "
                                  "can't apply visitor to GPU quantized data, please contact catboost developers via GitHub issue or in support chat");
             }
         }

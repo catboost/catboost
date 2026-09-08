@@ -150,7 +150,7 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
 }
 
 void TDataMetaInfo::Validate() const {
-    CB_ENSURE(GetFeatureCount() > 0, "Pool should have at least one factor");
+    CB_ENSURE(GetFeatureCount() > 0, "Dataset should have at least one factor");
     CB_ENSURE(!HasGroupWeight || (HasGroupWeight && HasGroupId),
         "You should provide GroupId when providing GroupWeight.");
     if ((BaselineCount != 0) && !ClassLabels.empty()) {

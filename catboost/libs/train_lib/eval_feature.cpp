@@ -844,8 +844,8 @@ static void EvaluateFeaturesImpl(
     TFeatureEvaluationSummary* results
 ) {
     const ui32 foldCount = cvParams.Initialized() ? cvParams.FoldCount : featureEvalOptions.FoldCount.Get();
-    CB_ENSURE(data->ObjectsData->GetObjectCount() > foldCount, "Pool is too small to be split into folds");
-    CB_ENSURE(data->ObjectsData->GetObjectCount() > featureEvalOptions.FoldSize.Get(), "Pool is too small to be split into folds");
+    CB_ENSURE(data->ObjectsData->GetObjectCount() > foldCount, "Dataset is too small to be split into folds");
+    CB_ENSURE(data->ObjectsData->GetObjectCount() > featureEvalOptions.FoldSize.Get(), "Dataset is too small to be split into folds");
 
     const ui64 cpuUsedRamLimit
         = ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get());

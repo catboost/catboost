@@ -52,6 +52,7 @@ template<class E> const E* end(initializer_list<E> il) noexcept; // constexpr in
 #pragma push_macro("__cpp_lib_format")
 #pragma push_macro("__cpp_lib_memory_resource")
 #pragma push_macro("__cpp_lib_ranges")
+#pragma push_macro("__cpp_lib_smart_ptr_for_overwrite")
 
 #include Y_MSVC_INCLUDE_NEXT(yvals.h)
 
@@ -59,6 +60,7 @@ template<class E> const E* end(initializer_list<E> il) noexcept; // constexpr in
 #pragma pop_macro("__cpp_lib_format")
 #pragma pop_macro("__cpp_lib_memory_resource")
 #pragma pop_macro("__cpp_lib_ranges")
+#pragma pop_macro("__cpp_lib_smart_ptr_for_overwrite")
 
 #include Y_MSVC_INCLUDE_NEXT(initializer_list)
 

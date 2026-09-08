@@ -120,5 +120,9 @@ namespace NNeh {
     ///   - approx. linear changed[max..min], while conn. count in range [soft..hard]
     void SetHttp2InputConnectionsTimeouts(unsigned minSeconds, unsigned maxSeconds);
 
+    /// keepalive timeout for an unused input socket, - the rule described above;
+    /// exposed for unit tests
+    TDuration CalcKeepAliveTimeout(size_t connectionCount, size_t softLimit, size_t hardLimit, TDuration minTimeout, TDuration maxTimeout) noexcept;
+
     bool IsNotError(unsigned httpCode);
 }

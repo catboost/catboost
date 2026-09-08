@@ -21,6 +21,7 @@ target_link_libraries(cpp-hnsw-index PUBLIC
   yutil
   cpp-containers-dense_hash
   library-cpp-dot_product
+  cpp-hnsw-helpers
   library-cpp-l1_distance
   library-cpp-l2_distance
   library-cpp-pair_vector_distance

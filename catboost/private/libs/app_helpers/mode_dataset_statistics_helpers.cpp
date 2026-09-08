@@ -226,7 +226,7 @@ static void CalculateHistogram(
                         }
                     }
                 } else {
-                    CB_ENSURE(false, "Non-raw pool formats are not yet supported for dataset histograms calculation");
+                    CB_ENSURE(false, "Non-raw dataset formats are not yet supported for dataset histograms calculation");
                 }
             },
             localExecutor

@@ -68,9 +68,27 @@ static inline void SecureZero(T& t) noexcept {
 }
 
 namespace NSwapCheck {
+
+#if __cplusplus >= 202002L
+
+    // Works with final classes, unlike Y_HAS_MEMBER.
+    // Will fall back to next implementation if Swap/swap is private,
+    // has incorrect signature or is not a member function
+    // (Y_HAS_MEMBER impl would cause a compiler error).
+    template <typename T>
+    struct THasSwap {
+        static constexpr bool value = requires(T& t1, T& t2) { t1.Swap(t2); };
+    };
+
+    template <typename T>
+    struct THasswap {
+        static constexpr bool value = requires(T& t1, T& t2) { t1.swap(t2); };
+    };
+
+#else
     Y_HAS_MEMBER(swap);
     Y_HAS_MEMBER(Swap);
-
+#endif
     template <class T, class = void>
     struct TSwapSelector {
         static inline void Swap(T& l, T& r) noexcept(std::is_nothrow_move_constructible<T>::value &&

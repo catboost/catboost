@@ -89,7 +89,7 @@ namespace NCB {
         if (docId == DocId + 1) {
             ++DocId;
             TString line;
-            CB_ENSURE(LineDataReader->ReadLine(&line), "there's no line in pool for " << DocId);
+            CB_ENSURE(LineDataReader->ReadLine(&line), "there's no line in dataset for " << DocId);
             Columns.clear();
             for (const auto& typeName : StringSplitter(line).Split(Delimiter)) {
                 Columns.push_back(FromString<TString>(typeName.Token()));
@@ -140,7 +140,7 @@ namespace NCB {
     void TQuantizedPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
         CB_ENSURE(
             ColumnsInfo.contains(columnType),
-            "Pool doesn't have " << ToString(columnType) << " column.");
+            "Dataset doesn't have " << ToString(columnType) << " column.");
 
         TString token;
         switch (columnType) {

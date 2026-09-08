@@ -20,11 +20,11 @@ The path to the output file with the [frequency based dictionary](output-data_fr
 
 **Data types**
 
-{{ loss-functions__params__q__default }}
+{{ python--required }}
 
 **Default value**
 
-{{ loss-functions__params__q__default }}
+{{ python--required }}
 
 ### bpe_path
 
@@ -34,7 +34,7 @@ The path to the output file with the [BPE dictionary](output-data_bpe-dict.md).
 
 **Data types**
 
-{{ loss-functions__params__q__default }}
+{{ python--required }}
 
 **Default value**
 

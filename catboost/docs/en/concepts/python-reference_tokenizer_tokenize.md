@@ -23,7 +23,7 @@ The input string that has to be tokenized.
 
 **Default value**
 
-{{ loss-functions__params__q__default }}
+{{ python--required }}
 
 
 ## {{ dl--output-format }} {#return-value}

@@ -69,7 +69,7 @@ static void CheckFeatureTypesAndNames(
         TString featureModelName = GetFeatureName(feature.FeatureId, feature.Position.FlatIndex);
         CB_ENSURE(
             SafeIntegerCast<size_t>(feature.Position.FlatIndex) < datasetFeaturesMetaInfo.size(),
-            "Feature " << featureModelName << " is present in model but not in pool.");
+            "Feature " << featureModelName << " is present in model but not in dataset.");
         if (SafeIntegerCast<size_t>(feature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()
                 && feature.FeatureId != ""
                 && datasetFeaturesMetaInfo[feature.Position.FlatIndex].Name != "")

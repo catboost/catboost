@@ -51,7 +51,7 @@ namespace testing {
 // generated in the same thread that created this object or it can intercept
 // all generated failures. The scope of this mock object can be controlled with
 // the second argument to the two arguments constructor.
-class GTEST_API_ ScopedFakeTestPartResultReporter
+class GTEST_API_ [[nodiscard]] ScopedFakeTestPartResultReporter
     : public TestPartResultReporterInterface {
  public:
   // The two possible mocking modes of this object.
@@ -100,7 +100,7 @@ namespace internal {
 // TestPartResultArray contains exactly one failure that has the given
 // type and contains the given substring.  If that's not the case, a
 // non-fatal failure will be generated.
-class GTEST_API_ SingleFailureChecker {
+class GTEST_API_ [[nodiscard]] SingleFailureChecker {
  public:
   // The constructor remembers the arguments.
   SingleFailureChecker(const TestPartResultArray* results,
@@ -153,10 +153,10 @@ GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
       static void Execute() { statement; }                                    \
     };                                                                        \
     ::testing::TestPartResultArray gtest_failures;                            \
-    const ::testing::internal::SingleFailureChecker gtest_checker(            \
+    ::testing::internal::SingleFailureChecker gtest_checker(                  \
         &gtest_failures, ::testing::TestPartResult::kFatalFailure, (substr)); \
     {                                                                         \
-      const ::testing::ScopedFakeTestPartResultReporter gtest_reporter(       \
+      ::testing::ScopedFakeTestPartResultReporter gtest_reporter(             \
           ::testing::ScopedFakeTestPartResultReporter::                       \
               INTERCEPT_ONLY_CURRENT_THREAD,                                  \
           &gtest_failures);                                                   \
@@ -171,10 +171,10 @@ GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
       static void Execute() { statement; }                                    \
     };                                                                        \
     ::testing::TestPartResultArray gtest_failures;                            \
-    const ::testing::internal::SingleFailureChecker gtest_checker(            \
+    ::testing::internal::SingleFailureChecker gtest_checker(                  \
         &gtest_failures, ::testing::TestPartResult::kFatalFailure, (substr)); \
     {                                                                         \
-      const ::testing::ScopedFakeTestPartResultReporter gtest_reporter(       \
+      ::testing::ScopedFakeTestPartResultReporter gtest_reporter(             \
           ::testing::ScopedFakeTestPartResultReporter::INTERCEPT_ALL_THREADS, \
           &gtest_failures);                                                   \
       GTestExpectFatalFailureHelper::Execute();                               \
@@ -217,11 +217,11 @@ GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
 #define EXPECT_NONFATAL_FAILURE(statement, substr)                    \
   do {                                                                \
     ::testing::TestPartResultArray gtest_failures;                    \
-    const ::testing::internal::SingleFailureChecker gtest_checker(    \
+    ::testing::internal::SingleFailureChecker gtest_checker(          \
         &gtest_failures, ::testing::TestPartResult::kNonFatalFailure, \
         (substr));                                                    \
     {                                                                 \
-      const ::testing::ScopedFakeTestPartResultReporter gtest_reporter( \
+      ::testing::ScopedFakeTestPartResultReporter gtest_reporter(     \
           ::testing::ScopedFakeTestPartResultReporter::               \
               INTERCEPT_ONLY_CURRENT_THREAD,                          \
           &gtest_failures);                                           \
@@ -234,11 +234,11 @@ GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
 #define EXPECT_NONFATAL_FAILURE_ON_ALL_THREADS(statement, substr)             \
   do {                                                                        \
     ::testing::TestPartResultArray gtest_failures;                            \
-    const ::testing::internal::SingleFailureChecker gtest_checker(            \
+    ::testing::internal::SingleFailureChecker gtest_checker(                  \
         &gtest_failures, ::testing::TestPartResult::kNonFatalFailure,         \
         (substr));                                                            \
     {                                                                         \
-      const ::testing::ScopedFakeTestPartResultReporter gtest_reporter(       \
+      ::testing::ScopedFakeTestPartResultReporter gtest_reporter(             \
           ::testing::ScopedFakeTestPartResultReporter::INTERCEPT_ALL_THREADS, \
           &gtest_failures);                                                   \
       if (::testing::internal::AlwaysTrue()) {                                \

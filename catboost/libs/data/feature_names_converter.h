@@ -64,7 +64,7 @@ namespace {
             } else if (str.StartsWith("#")) {
                 const TStringBuf tag(str.data() + 1, str.size() - 1);
                 const auto tagIndices = IndicesFromTags.FindPtr(tag);
-                CB_ENSURE(tagIndices, TStringBuf() << "There is no tag '#" << tag << "' in pool metainfo");
+                CB_ENSURE(tagIndices, TStringBuf() << "There is no tag '#" << tag << "' in dataset metainfo");
                 indices->insert(indices->end(), tagIndices->begin(), tagIndices->end());
             } else {
                 {

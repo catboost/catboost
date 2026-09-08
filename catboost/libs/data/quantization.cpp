@@ -2712,7 +2712,7 @@ namespace NCB {
 
         const ui32 allDataObjectCount = srcData->ObjectsData->GetObjectCount();
 
-        CB_ENSURE(allDataObjectCount != 0, "Pool is empty");
+        CB_ENSURE(allDataObjectCount != 0, "Dataset has no samples");
 
         TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 

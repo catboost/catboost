@@ -29,14 +29,21 @@ namespace NNetliba {
         TMutex Lock;
 
         ~TIBContext() override {
-            if (Context) {
+            // both handles may be null when ibv_open_device()/ibv_alloc_pd() failed
+            // (e.g. no InfiniBand access) - do not pass nulls into libibverbs
+            if (ProtDomain) {
                 CHECK_Z(ibv_dealloc_pd(ProtDomain));
+            }
+            if (Context) {
                 CHECK_Z(ibv_close_device(Context));
             }
         }
 
     public:
-        TIBContext(ibv_device* device) {
+        TIBContext(ibv_device* device)
+            : Context(nullptr)
+            , ProtDomain(nullptr)
+        {
             Context = ibv_open_device(device);
             if (Context) {
                 ProtDomain = ibv_alloc_pd(Context);

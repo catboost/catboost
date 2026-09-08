@@ -31,7 +31,7 @@ Y_FORCE_INLINE void RecycleFreedMemory(TMutableRef ref)
     __asan_unpoison_memory_region(ref.data(), ref.size());
 }
 
-Y_FORCE_INLINE void PoisonUnitializedOrFreedMemory(TMutableRef /*ref*/)
+Y_FORCE_INLINE void PoisonUninitializedOrFreedMemory(TMutableRef /*ref*/)
 { }
 
 #elif defined(_msan_enabled_)
@@ -53,7 +53,7 @@ Y_FORCE_INLINE void PoisonFreedMemory(TMutableRef ref)
 Y_FORCE_INLINE void RecycleFreedMemory(TMutableRef /*ref*/)
 { }
 
-Y_FORCE_INLINE void PoisonUnitializedOrFreedMemory(TMutableRef /*ref*/)
+Y_FORCE_INLINE void PoisonUninitializedOrFreedMemory(TMutableRef /*ref*/)
 { }
 
 #elif defined(NDEBUG)
@@ -67,7 +67,7 @@ Y_FORCE_INLINE void PoisonFreedMemory(TMutableRef /*ref*/)
 Y_FORCE_INLINE void RecycleFreedMemory(TMutableRef /*ref*/)
 { }
 
-Y_FORCE_INLINE void PoisonUnitializedOrFreedMemory(TMutableRef /*ref*/)
+Y_FORCE_INLINE void PoisonUninitializedOrFreedMemory(TMutableRef /*ref*/)
 { }
 
 #endif

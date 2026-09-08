@@ -45,7 +45,7 @@ class BOOST_CONTAINER_NOVTABLE memory_resource
    {  
       //Obtain a pointer to enough storage and initialize the lifetime 
       //of an array object of the given size in the address
-      return ::operator new(bytes, this->do_allocate(bytes, alignment), boost_container_new_t());
+      return ::operator new(bytes, this->do_allocate(bytes, alignment), boost_container_init_life_t());
    }
 
    //! <b>Effects</b>: Equivalent to

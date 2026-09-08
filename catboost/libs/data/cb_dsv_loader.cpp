@@ -94,7 +94,7 @@ namespace NCB {
         }
 
         TString firstLine;
-        CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TCBDsvDataLoader: no data rows in pool");
+        CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TCBDsvDataLoader: no data rows in dataset");
         const ui32 columnsCount = TVector<TString>(
             NCsvFormat::CsvSplitter(firstLine, FieldDelimiter, CsvSplitterQuote)
         ).size();

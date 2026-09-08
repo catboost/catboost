@@ -20,7 +20,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <iterator>
 #include <limits>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -59,6 +61,12 @@ inline unsigned int hex_digit_to_int(char c) {
     x += 9;
   }
   return x & 0xf;
+}
+
+inline char int_to_hex_digit(int i) {
+  assert(i >= 0 && i <= 15);
+  return ((i < 10) ? (static_cast<char>(i) + '0')
+                   : (static_cast<char>(i - 10) + 'A'));
 }
 
 inline bool IsSurrogate(char32_t c, absl::string_view src,
@@ -381,39 +389,35 @@ constexpr std::array<unsigned char, 256> kCEscapedLen = {
 };
 /* clang-format on */
 
-constexpr uint32_t MakeCEscapedLittleEndianUint32(size_t c) {
-  size_t char_len = kCEscapedLen[c];
-  if (char_len == 1) {
-    return static_cast<uint32_t>(c);
-  }
-  if (char_len == 2) {
-    switch (c) {
-      case '\n':
-        return '\\' | (static_cast<uint32_t>('n') << 8);
-      case '\r':
-        return '\\' | (static_cast<uint32_t>('r') << 8);
-      case '\t':
-        return '\\' | (static_cast<uint32_t>('t') << 8);
-      case '\"':
-        return '\\' | (static_cast<uint32_t>('\"') << 8);
-      case '\'':
-        return '\\' | (static_cast<uint32_t>('\'') << 8);
-      case '\\':
-        return '\\' | (static_cast<uint32_t>('\\') << 8);
+constexpr std::array<std::array<char, 4>, 256> kCEscapedSequence = []() {
+  std::array<std::array<char, 4>, 256> a{};
+  for (size_t c = 0; c < 256; ++c) {
+    size_t char_len = kCEscapedLen[c];
+    if (char_len == 1) {
+      a[c][0] = static_cast<char>(c);
+    } else if (char_len == 2) {
+      a[c][0] = '\\';
+      // clang-format off
+      switch (c) {
+        case '\n': a[c][1] = 'n'; break;
+        case '\r': a[c][1] = 'r'; break;
+        case '\t': a[c][1] = 't'; break;
+        case '\"': a[c][1] = '\"'; break;
+        case '\'': a[c][1] = '\''; break;
+        case '\\': a[c][1] = '\\'; break;
+      }
+      // clang-format on
+    } else {
+      assert(char_len == 4);
+      // A backslash followed by the octal value of the byte.
+      a[c][0] = '\\';
+      a[c][1] = static_cast<char>('0' + (c / 64));
+      a[c][2] = static_cast<char>('0' + ((c % 64) / 8));
+      a[c][3] = static_cast<char>('0' + (c % 8));
     }
   }
-  return static_cast<uint32_t>('\\' | (('0' + (c / 64)) << 8) |
-                               (('0' + ((c % 64) / 8)) << 16) |
-                               (('0' + (c % 8)) << 24));
-}
-
-template <size_t... indexes>
-inline constexpr std::array<uint32_t, sizeof...(indexes)>
-MakeCEscapedLittleEndianUint32Array(std::index_sequence<indexes...>) {
-  return {MakeCEscapedLittleEndianUint32(indexes)...};
-}
-constexpr std::array<uint32_t, 256> kCEscapedLittleEndianUint32Array =
-    MakeCEscapedLittleEndianUint32Array(std::make_index_sequence<256>());
+  return a;
+}();
 
 // Calculates the length of the C-style escaped version of 'src'.
 // Assumes that non-printable characters are escaped using octal sequences, and
@@ -448,21 +452,19 @@ void CEscapeAndAppendInternal(absl::string_view src,
     return;
   }
 
-  // We keep 3 slop bytes so that we can call `little_endian::Store32`
-  // invariably regardless of the length of the escaped character.
+  // The small `memcpy` is faster when the size is a compile-time constant, so
+  // keep 3 slop bytes so that we can call memcpy with size=4.
   constexpr size_t kSlopBytes = 3;
-  size_t cur_dest_len = dest->size();
-  size_t append_buf_len = cur_dest_len + escaped_len + kSlopBytes;
-  ABSL_INTERNAL_CHECK(append_buf_len > cur_dest_len,
-                      "std::string size overflow");
+  ABSL_INTERNAL_CHECK(
+      escaped_len <= std::numeric_limits<size_t>::max() - kSlopBytes,
+      "CEscape length overflow");
+  size_t append_buf_len = escaped_len + kSlopBytes;
   strings_internal::StringAppendAndOverwrite(
       *dest, append_buf_len, [src, escaped_len](char* append_ptr, size_t) {
         for (char c : src) {
           unsigned char uc = static_cast<unsigned char>(c);
-          size_t char_len = kCEscapedLen[uc];
-          uint32_t little_endian_uint32 = kCEscapedLittleEndianUint32Array[uc];
-          little_endian::Store32(append_ptr, little_endian_uint32);
-          append_ptr += char_len;
+          memcpy(append_ptr, kCEscapedSequence[uc].data(), 4);
+          append_ptr += kCEscapedLen[uc];
         }
         return escaped_len;
       });
@@ -1169,6 +1171,8 @@ std::string HexStringToBytes(absl::string_view from) {
 
 std::string BytesToHexString(absl::string_view from) {
   std::string result;
+  ABSL_INTERNAL_CHECK(from.size() <= std::numeric_limits<size_t>::max() / 2,
+                      "BytesToHexString() overflow");
   StringResizeAndOverwrite(
       result, 2 * from.size(), [from](char* buf, size_t buf_size) {
         absl::BytesToHexStringInternal(
@@ -1177,6 +1181,132 @@ std::string BytesToHexString(absl::string_view from) {
         return buf_size;
       });
   return result;
+}
+
+static std::string UrlEscapeInternal(absl::string_view input,
+                                     const bool escape_space_to_plus) {
+  // Unreserved characters from RFC 3986.
+  // See https://www.rfc-editor.org/info/rfc3986/#section-2.3.
+  static constexpr absl::CharSet kRfc3986Unreserved =
+      absl::CharSet::AsciiAlphanumerics() | absl::CharSet("-._~");
+
+  std::string output;
+  absl::string_view::iterator in = input.begin();
+
+  // Fast path for when we don't need to do any escaping.
+  while (in < input.end() && kRfc3986Unreserved.contains(*in)) {
+    ++in;
+  }
+
+  std::size_t initial_portion =
+      static_cast<std::size_t>(std::distance(input.begin(), in));
+
+  if (initial_portion == input.size()) {
+    return std::string(input);
+  }
+
+  // We need a buffer with enough space to store at most the initial portion
+  // plus 3 bytes for each remaining character since escapes use 3 characters.
+  ABSL_INTERNAL_CHECK(
+      (input.size() - initial_portion) <=
+          (std::numeric_limits<size_t>::max() - initial_portion) / 3,
+      "UrlEscape() overflow");
+  StringResizeAndOverwrite(
+      output, initial_portion + 3 * (input.size() - initial_portion),
+      [&](char* buf, size_t) {
+        char* out = buf;
+
+        // Copy the initial portion that did not need escaping.
+        out = std::copy(input.begin(), in, out);
+
+        // Handle the rest of the string.
+        while (in < input.end()) {
+          char c = *in++;
+          if (kRfc3986Unreserved.contains(c)) {
+            *out++ = c;
+          } else if (escape_space_to_plus && c == ' ') {
+            *out++ = '+';
+          } else {
+            *out++ = '%';
+            *out++ = static_cast<char>(
+                int_to_hex_digit((static_cast<unsigned char>(c) >> 4) & 0xf));
+            *out++ = static_cast<char>(
+                int_to_hex_digit(static_cast<unsigned char>(c) & 0xf));
+          }
+        }
+        return static_cast<size_t>(std::distance(buf, out));
+      });
+
+  return output;
+}
+
+static std::optional<std::string> UrlUnescapeInternal(
+    absl::string_view input, const bool unescape_plus_to_space) {
+  std::string output;
+
+  // Fast path for when we don't need to do any unescaping.
+  // This case includes empty input, which allows us to return 0 from the
+  // lambda below to signal the error case.
+  size_t in =
+      unescape_plus_to_space ? input.find_first_of("%+") : input.find('%');
+  if (in == input.npos) {
+    return std::string(input);
+  }
+
+  StringResizeAndOverwrite(output, input.size(), [&](char* buf, size_t) {
+    char* out = buf;
+
+    // Copy the initial portion that did not need unescaping.
+    out = std::copy_n(input.data(), in, out);
+
+    // Handle the rest of the string.
+    while (in < input.size()) {
+      char c = input[in++];
+      if (unescape_plus_to_space && c == '+') {
+        *out++ = ' ';
+      } else if (c == '%') {
+        if (in + 1 >= input.size() ||
+            !absl::ascii_isxdigit(static_cast<unsigned char>(input[in])) ||
+            !absl::ascii_isxdigit(static_cast<unsigned char>(input[in + 1]))) {
+          return size_t{0};  // Error.
+        }
+        int x = static_cast<int>(hex_digit_to_int(input[in++])) << 4;
+        x += static_cast<int>(hex_digit_to_int(input[in++]));
+        *out++ = static_cast<char>(x);
+      } else {
+        *out++ = c;
+      }
+    }
+    return static_cast<size_t>(std::distance(buf, out));
+  });
+
+  if (output.empty()) {
+    // Empty output is only valid if the input was empty, and that case is
+    // handled above.
+    return std::nullopt;
+  }
+
+  return output;
+}
+
+std::string UrlEscape(absl::string_view input) {
+  constexpr bool kEscapeSpaceToPlus = false;
+  return UrlEscapeInternal(input, kEscapeSpaceToPlus);
+}
+
+std::optional<std::string> UrlUnescape(absl::string_view input) {
+  constexpr bool kUnescapePlusToSpace = false;
+  return UrlUnescapeInternal(input, kUnescapePlusToSpace);
+}
+
+std::string UrlEscapePlus(absl::string_view input) {
+  constexpr bool kEscapeSpaceToPlus = true;
+  return UrlEscapeInternal(input, kEscapeSpaceToPlus);
+}
+
+std::optional<std::string> UrlUnescapePlus(absl::string_view input) {
+  constexpr bool kUnescapePlusToSpace = true;
+  return UrlUnescapeInternal(input, kUnescapePlusToSpace);
 }
 
 ABSL_NAMESPACE_END

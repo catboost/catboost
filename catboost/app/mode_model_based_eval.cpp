@@ -41,7 +41,7 @@ int mode_model_based_eval(int argc, const char* argv[]) {
     const auto featuresToEvaluate = GetOptionFeaturesToEvaluate(catBoostJsonOptions);
     CB_ENSURE(!featuresToEvaluate.empty(), "Error: no features to evaluate");
     for (ui32 feature : featuresToEvaluate) {
-        CB_ENSURE(Count(poolLoadParams.IgnoredFeatures, feature) == 0, "Error: feature " + ToString(feature) + " is ignored");
+        CB_ENSURE(Count(poolLoadParams.IgnoredFeatures, feature) == 0, "Error: feature " << feature << " is ignored");
     }
     if (outputOptions.IsMetricPeriodSet() && outputOptions.GetMetricPeriod() > 1) {
         CATBOOST_WARNING_LOG << "Warning: metric_period is ignored because "

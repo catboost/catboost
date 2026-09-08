@@ -17,7 +17,7 @@ to_classifier(model)
 
 ## {{ dl--output-format }} {#usage-example}
 
-{{ python-type__catboost-core-CatBoostClassifier }}
+[CatBoostClassifier](python-reference_catboostclassifier.md)
 
 ## {{ input_data__title__example }} {#example}
 

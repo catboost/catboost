@@ -37,14 +37,11 @@ namespace NHnsw {
         {}
 
         template <typename TSearchContext>
-        THolder<INeighborsGetter> CreateNeighborsGetter(
-            const ui32* level, const ui32 numNeighbors, TSearchContext& context)
-        {
+        THolder<INeighborsGetter> CreateNeighborsGetter(const TLevelRows& rows, TSearchContext& context) {
             if (FilterMode_ == EFilterMode::ACORN) {
-                return MakeHolder<TAcornNeighborsGetter<TSearchContext, TFilterAdapter>>(
-                    level, numNeighbors, context, *this);
+                return MakeAcornNeighborsGetter<TSearchContext, TFilterAdapter>(rows, context, *this);
             } else {
-                return MakeHolder<TNeighborsGetterBase<TSearchContext>>(level, numNeighbors, context);
+                return MakeNeighborsGetter<TSearchContext>(rows, context);
             }
         }
 

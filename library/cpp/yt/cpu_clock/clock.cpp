@@ -45,7 +45,8 @@ YT_PREVENT_TLS_CACHING TCalibrationState GetCalibrationState(TCpuInstant cpuInst
 
 TCalibrationState GetCalibrationState()
 {
-    return GetCalibrationState(GetCpuInstant());
+    // The calibration "now" only needs to be approximate, so a non-serializing rdtsc suffices.
+    return GetCalibrationState(GetApproximateCpuInstant());
 }
 
 TDuration CpuDurationToDuration(TCpuDuration cpuDuration, double ticksToMicroseconds)

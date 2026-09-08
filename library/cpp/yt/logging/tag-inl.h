@@ -4,6 +4,8 @@
 #include "tag.h"
 #endif
 
+#include "tagged_payload.h"
+
 #include <library/cpp/yt/string/string_builder.h>
 
 #include <utility>
@@ -61,9 +63,9 @@ TLoggingTagList& TLoggingTagList::Add(TLoggingTagKey key, const TValue& value)
 template <class... TArgs>
 TLoggingTagList& TLoggingTagList::AddFormat(TLoggingTagKey key, TFormatString<TArgs...> format, TArgs&&... args)
 {
-    TStringBuilder builder;
-    Format(&builder, format, std::forward<TArgs>(args)...);
-    DoAdd(key, builder.GetBuffer());
+    TTaggedPayloadWriter::AppendTag(&Payload_, key.Get(), [&] (TStringBuilderBase* builder) {
+        Format(builder, format, std::forward<TArgs>(args)...);
+    });
     return *this;
 }
 
@@ -120,9 +122,56 @@ inline const TLoggingTagListPayload& TLoggingTagList::GetPayload() const
 template <class TValue>
 void TLoggingTagList::DoAdd(TLoggingTagKey key, const TValue& value, TStringBuf spec)
 {
-    TStringBuilder builder;
-    FormatValue(&builder, value, spec);
-    DoAdd(key, builder.GetBuffer());
+    TTaggedPayloadWriter::AppendTag(&Payload_, key.Get(), [&] (TStringBuilderBase* builder) {
+        FormatValue(builder, value, spec);
+    });
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+inline TLoggingTagListBuilder::TLoggingTagListBuilder(TLoggingTagList* tags)
+    : Tags_(tags)
+{ }
+
+template <class TValue>
+TLoggingTagListBuilder& TLoggingTagListBuilder::With(TLoggingTagKey key, const TValue& value)
+{
+    Tags_->Add(key, value);
+    return *this;
+}
+
+template <class TValue>
+TLoggingTagListBuilder& TLoggingTagListBuilder::WithIf(bool condition, TLoggingTagKey key, const TValue& value)
+{
+    return condition ? With(key, value) : *this;
+}
+
+template <class... TArgs>
+TLoggingTagListBuilder& TLoggingTagListBuilder::WithFormat(
+    TLoggingTagKey key,
+    TFormatString<TArgs...> format,
+    TArgs&&... args)
+{
+    Tags_->AddFormat(key, format, std::forward<TArgs>(args)...);
+    return *this;
+}
+
+template <class... TArgs>
+TLoggingTagListBuilder& TLoggingTagListBuilder::WithFormatIf(
+    bool condition,
+    TLoggingTagKey key,
+    TFormatString<TArgs...> format,
+    TArgs&&... args)
+{
+    return condition
+        ? WithFormat(key, format, std::forward<TArgs>(args)...)
+        : *this;
+}
+
+inline TLoggingTagListBuilder& TLoggingTagListBuilder::With(const TLoggingTagList& tags)
+{
+    Tags_->Add(tags);
+    return *this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

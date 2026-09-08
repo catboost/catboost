@@ -7,6 +7,7 @@
 #include <util/generic/vector.h>
 
 #include <functional>
+#include <variant>
 
 //! Mode function with vector of cli arguments.
 using TMainFunctionPtrV = std::function<int(const TVector<TString>&)> ;
@@ -67,6 +68,12 @@ public:
     //! Set default mode (if not specified explicitly)
     void SetDefaultMode(const TString& mode);
 
+    //! Set an unnamed action for invocations that don't select a mode.
+    //!
+    //! Unlike a default mode, the action is not addressable by a user-facing
+    //! name and does not add a synthetic component to the subcommand path.
+    void SetDefaultAction(TMainClass* action);
+
     void AddAlias(const TString& alias, const TString& mode);
 
     //! Set main program description.
@@ -108,7 +115,9 @@ public:
      *      then call it and exit with zero code.
      *   3) Find mode with the same name as first argument. If it's found then
      *      call it and return its return code.
-     *   4) If appropriate mode is not found - return non-zero code.
+     *   4) If no named mode matches, run the default action or default mode,
+     *      when configured.
+     *   5) If no fallback is configured, return non-zero code.
      */
     int Run(int argc, const char** argv) const;
 
@@ -162,7 +171,8 @@ private:
     //! Modes
     TMap<TString, TMode*> Modes;
 
-    TString DefaultMode;
+    using TDefaultBehaviour = std::variant<std::monostate, TString, TMainClass*>;
+    TDefaultBehaviour DefaultBehaviour;
 
     //! Handler for '--version' parameter
     TVersionHandlerPtr VersionHandler;

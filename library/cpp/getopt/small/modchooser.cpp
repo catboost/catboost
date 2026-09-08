@@ -122,7 +122,14 @@ void TModChooser::AddGroupModeDescription(const TString& description, bool hidde
 }
 
 void TModChooser::SetDefaultMode(const TString& mode) {
-    DefaultMode = mode;
+    Y_ENSURE(!std::holds_alternative<TMainClass*>(DefaultBehaviour), "Default mode and default action are mutually exclusive.");
+    DefaultBehaviour = mode.empty() ? TDefaultBehaviour{std::monostate{}} : TDefaultBehaviour{mode};
+}
+
+void TModChooser::SetDefaultAction(TMainClass* action) {
+    Y_ENSURE(action != nullptr, "Default action must not be null.");
+    Y_ENSURE(!std::holds_alternative<TString>(DefaultBehaviour), "Default mode and default action are mutually exclusive.");
+    DefaultBehaviour = action;
 }
 
 void TModChooser::AddAlias(const TString& alias, const TString& mode) {
@@ -180,15 +187,17 @@ const TVector<TString>& TModChooser::GetSubcommandPath() const {
 int TModChooser::Run(const int argc, const char** argv) const {
     Y_ENSURE(argc, "Can't run TModChooser with empty list of arguments.");
 
+    const auto* defaultMode = std::get_if<TString>(&DefaultBehaviour);
+    const auto* defaultAction = std::get_if<TMainClass*>(&DefaultBehaviour);
     bool shiftArgs = true;
     TString modeName;
     if (argc == 1) {
-        if (DefaultMode.empty()) {
+        if (defaultMode != nullptr) {
+            modeName = *defaultMode;
+            shiftArgs = false;
+        } else if (defaultAction == nullptr) {
             PrintHelp(argv[0], HelpAlwaysToStdErr);
             return 0;
-        } else {
-            modeName = DefaultMode;
-            shiftArgs = false;
         }
     } else {
         modeName = argv[1];
@@ -207,9 +216,15 @@ int TModChooser::Run(const int argc, const char** argv) const {
     }
 
     auto modeIter = Modes.find(modeName);
-    if (modeIter == Modes.end() && !DefaultMode.empty()) {
-        modeIter = Modes.find(DefaultMode);
-        shiftArgs = false;
+    if (modeIter == Modes.end()) {
+        if (defaultAction != nullptr) {
+            (*defaultAction)->SetSubcommandPath(SubcommandPath_);
+            return (**defaultAction)(argc, argv);
+        }
+        if (defaultMode != nullptr) {
+            modeIter = Modes.find(*defaultMode);
+            shiftArgs = false;
+        }
     }
 
     if (modeIter == Modes.end()) {

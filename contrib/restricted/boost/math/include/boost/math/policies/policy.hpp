@@ -767,6 +767,9 @@ struct evaluation<double, Policy>
 };
 
 template <class Real, class Policy>
+using evaluation_t = typename evaluation<Real, Policy>::type;
+
+template <class Real, class Policy>
 struct precision
 {
    static_assert((boost::math::numeric_limits<Real>::radix == 2) || ((boost::math::numeric_limits<Real>::is_specialized == 0) || (boost::math::numeric_limits<Real>::digits == 0)),

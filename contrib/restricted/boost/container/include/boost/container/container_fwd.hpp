@@ -147,6 +147,10 @@ template <class T
          ,class Allocator = void >
 class slist;
 
+template <class T
+         ,class Allocator = void >
+class hub;
+
 template <class Key
          ,class Compare  = std::less<Key>
          ,class Allocator = void

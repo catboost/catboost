@@ -82,6 +82,7 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/bitops.h
   ${PROJECT_SOURCE_DIR}/util/generic/buffer.h
   ${PROJECT_SOURCE_DIR}/util/generic/cast.h
+  ${PROJECT_SOURCE_DIR}/util/generic/constant_evaluation.h
   ${PROJECT_SOURCE_DIR}/util/generic/deque.h
   ${PROJECT_SOURCE_DIR}/util/generic/enum_cast.h
   ${PROJECT_SOURCE_DIR}/util/generic/explicit_type.h
@@ -363,6 +364,7 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/generic/bitops.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/buffer.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/cast.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/constant_evaluation.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/deque.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/enum_cast.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/explicit_type.cpp
