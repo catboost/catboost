@@ -76,6 +76,10 @@ void BindQuantizerPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::T
 void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadParams* loadParamsPtr) {
     BindQuantizerPoolLoadParams(parser, loadParamsPtr);
 
+    parser->AddLongOption("init-model", "Init model path")
+      .OptionalArgument("PATH").StoreResult(&loadParamsPtr->InitModelPath)
+      .Help("Init model path");
+
     parser->AddLongOption("cv-no-shuffle", "Do not shuffle dataset before cross-validation")
       .NoArgument()
       .Handler0([loadParamsPtr]() {
