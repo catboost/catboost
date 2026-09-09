@@ -13,7 +13,7 @@ import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 
 import ai.catboost.spark._
 
