@@ -65,18 +65,18 @@ void TCudaQuantizedData::SetDimensions(ui32 effectiveBucketCount, ui32 objectsCo
     }
 }
 
-void TEvaluationDataCache::PrepareCopyBufs(size_t bufSize, size_t objectsCount) {
+void TEvaluationDataCache::PrepareCopyBufs(size_t bufSize, size_t resultsSize) {
     if (CopyDataBufDevice.Size() < bufSize) {
         CopyDataBufDevice = TCudaVec<float>(AlignBy<2048>(bufSize), NCuda::EMemoryType::Device);
     }
     if (CopyDataBufHost.Size() < bufSize) {
         CopyDataBufHost = TCudaVec<float>(AlignBy<2048>(bufSize), NCuda::EMemoryType::Host);
     }
-    if (ResultsFloatBuf.Size() < objectsCount) {
-        ResultsFloatBuf = TCudaVec<float>(AlignBy<2048>(objectsCount), NCuda::EMemoryType::Device);
+    if (ResultsFloatBuf.Size() < resultsSize) {
+        ResultsFloatBuf = TCudaVec<float>(AlignBy<2048>(resultsSize), NCuda::EMemoryType::Device);
     }
-    if (ResultsDoubleBuf.Size() < objectsCount) {
-        ResultsDoubleBuf = TCudaVec<double>(AlignBy<2048>(objectsCount), NCuda::EMemoryType::Device);
+    if (ResultsDoubleBuf.Size() < resultsSize) {
+        ResultsDoubleBuf = TCudaVec<double>(AlignBy<2048>(resultsSize), NCuda::EMemoryType::Device);
     }
 }
 
@@ -179,12 +179,14 @@ __global__ void EvalObliviousTrees(
     const ui32 bucketsCount,
     const TCudaEvaluatorLeafType* __restrict__ leafValues,
     const ui32 documentCount,
+    const ui32 approxDimension,
     TCudaEvaluatorLeafType* __restrict__ results) {
 
     const int innerBlockBy32 = threadIdx.x / WarpSize;
     const int blockby32 = blockIdx.y * EvalDocBlockSize / WarpSize + innerBlockBy32;
     const int inBlockId = threadIdx.x % WarpSize;
     const int firstDocForThread = blockby32 * WarpSize * ObjectsPerThread + inBlockId;
+    const ui32 dimension = blockIdx.z;
 
     quantizedFeatures += bucketsCount * WarpSize * blockby32 + threadIdx.x % WarpSize;
 
@@ -194,7 +196,7 @@ __global__ void EvalObliviousTrees(
 
     if (firstTreeIdx < lastTreeIdx && firstDocForThread < documentCount) {
         const TGPURepackedBin* __restrict__ curRepackedBinPtr = repackedBins + __ldg(treeStartOffsets + firstTreeIdx);
-        leafValues += firstLeafOfset[firstTreeIdx];
+        leafValues += firstLeafOfset[firstTreeIdx] + dimension;
         int treeIdx = firstTreeIdx;
         const int lastTreeBy2 = lastTreeIdx - ((lastTreeIdx - firstTreeIdx) & 0x3);
         for (; treeIdx < lastTreeBy2; treeIdx += 2) {
@@ -203,23 +205,23 @@ __global__ void EvalObliviousTrees(
 
             const TTreeIndex bins1 = CalcTreeVals(curTreeDepth1, curRepackedBinPtr, quantizedFeatures);
             const TTreeIndex bins2 = CalcTreeVals(curTreeDepth2, curRepackedBinPtr + curTreeDepth1, quantizedFeatures);
-            const auto leafValues2 = leafValues + (1 << curTreeDepth1);
-            localResult.x += __ldg(leafValues + bins1.x) + __ldg(leafValues2 + bins2.x);
-            localResult.y += __ldg(leafValues + bins1.y) + __ldg(leafValues2 + bins2.y);
-            localResult.z += __ldg(leafValues + bins1.z) + __ldg(leafValues2 + bins2.z);
-            localResult.w += __ldg(leafValues + bins1.w) + __ldg(leafValues2 + bins2.w);
+            const auto leafValues2 = leafValues + (static_cast<ui64>(1) << curTreeDepth1) * approxDimension;
+            localResult.x += __ldg(leafValues + static_cast<ui64>(bins1.x) * approxDimension) + __ldg(leafValues2 + static_cast<ui64>(bins2.x) * approxDimension);
+            localResult.y += __ldg(leafValues + static_cast<ui64>(bins1.y) * approxDimension) + __ldg(leafValues2 + static_cast<ui64>(bins2.y) * approxDimension);
+            localResult.z += __ldg(leafValues + static_cast<ui64>(bins1.z) * approxDimension) + __ldg(leafValues2 + static_cast<ui64>(bins2.z) * approxDimension);
+            localResult.w += __ldg(leafValues + static_cast<ui64>(bins1.w) * approxDimension) + __ldg(leafValues2 + static_cast<ui64>(bins2.w) * approxDimension);
             curRepackedBinPtr += curTreeDepth1 + curTreeDepth2;
-            leafValues = leafValues2 + (1 << curTreeDepth2);
+            leafValues = leafValues2 + (static_cast<ui64>(1) << curTreeDepth2) * approxDimension;
         }
         for (; treeIdx < lastTreeIdx; ++treeIdx) {
             const int curTreeDepth = __ldg(treeSizes + treeIdx);
             const TTreeIndex bins = CalcTreeVals(curTreeDepth, curRepackedBinPtr, quantizedFeatures);
-            localResult.x += __ldg(leafValues + bins.x);
-            localResult.y += __ldg(leafValues + bins.y);
-            localResult.z += __ldg(leafValues + bins.z);
-            localResult.w += __ldg(leafValues + bins.w);
+            localResult.x += __ldg(leafValues + static_cast<ui64>(bins.x) * approxDimension);
+            localResult.y += __ldg(leafValues + static_cast<ui64>(bins.y) * approxDimension);
+            localResult.z += __ldg(leafValues + static_cast<ui64>(bins.z) * approxDimension);
+            localResult.w += __ldg(leafValues + static_cast<ui64>(bins.w) * approxDimension);
             curRepackedBinPtr += curTreeDepth;
-            leafValues += (1 << curTreeDepth);
+            leafValues += (static_cast<ui64>(1) << curTreeDepth) * approxDimension;
         }
     }
     // TODO(kirillovs): reduce code is valid if those conditions met
@@ -237,9 +239,10 @@ __global__ void EvalObliviousTrees(
     }
     reduceVals[threadIdx.x + threadIdx.y * EvalDocBlockSize] = lr;
     __syncthreads();
-    if (threadIdx.y < ObjectsPerThread) {
+    const ui32 document = blockby32 * WarpSize * ObjectsPerThread + threadIdx.x + threadIdx.y * EvalDocBlockSize;
+    if (threadIdx.y < ObjectsPerThread && document < documentCount) {
         TAtomicAdd<TCudaEvaluatorLeafType>::Add(
-            results + blockby32 * WarpSize * ObjectsPerThread + threadIdx.x + threadIdx.y * EvalDocBlockSize,
+            results + static_cast<ui64>(document) * approxDimension + dimension,
             reduceVals[threadIdx.x + threadIdx.y * EvalDocBlockSize] + reduceVals[threadIdx.x + threadIdx.y * EvalDocBlockSize + 128]
         );
     }
@@ -348,10 +351,14 @@ void TGPUCatboostEvaluationContext::EvalQuantizedData(
     TArrayRef<double> result,
     NCB::NModelEvaluation::EPredictionType predictionType
     ) const {
+    const size_t resultsSize = data->GetObjectsCount() * GPUModelData.ApproxDimension;
+    EvalDataCache.PrepareCopyBufs(0, resultsSize);
+
     const dim3 treeCalcDimBlock(EvalDocBlockSize, TreeSubBlockWidth);
     const dim3 treeCalcDimGrid(
         NKernel::CeilDivide<unsigned int>(GPUModelData.TreeSizes.Size(), TreeSubBlockWidth * ExtTreeBlockWidth),
-        NKernel::CeilDivide<unsigned int>(data->GetObjectsCount(), EvalDocBlockSize * ObjectsPerThread)
+        NKernel::CeilDivide<unsigned int>(data->GetObjectsCount(), EvalDocBlockSize * ObjectsPerThread),
+        static_cast<unsigned int>(GPUModelData.ApproxDimension)
     );
     ClearMemoryAsync(EvalDataCache.ResultsFloatBuf.AsArrayRef(), Stream);
     EvalObliviousTrees<<<treeCalcDimGrid, treeCalcDimBlock, 0, Stream>>> (
@@ -364,6 +371,7 @@ void TGPUCatboostEvaluationContext::EvalQuantizedData(
         GPUModelData.FloatFeatureForBucketIdx.Size(),
         GPUModelData.ModelLeafs.Get(),
         data->GetObjectsCount(),
+        static_cast<ui32>(GPUModelData.ApproxDimension),
         EvalDataCache.ResultsFloatBuf.Get()
     );
 
@@ -373,7 +381,7 @@ void TGPUCatboostEvaluationContext::EvalQuantizedData(
         ProcessResults<false>(*this, predictionType, data->GetObjectsCount());
     }
 
-    NCuda::MemoryCopyAsync<double>(EvalDataCache.ResultsDoubleBuf.Slice(0, data->GetObjectsCount()), result, Stream);
+    NCuda::MemoryCopyAsync<double>(EvalDataCache.ResultsDoubleBuf.Slice(0, result.size()), result, Stream);
 }
 
 void TGPUCatboostEvaluationContext::QuantizeData(const TGPUDataInput& dataInput, TCudaQuantizedData* quantizedData) const{
