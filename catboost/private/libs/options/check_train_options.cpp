@@ -17,8 +17,11 @@ void CheckFitParams(
         catBoostJsonOptions["tree_learner_options"].EraseValue("monotone_constraints");
     }
     auto options = NCatboostOptions::LoadOptions(catBoostJsonOptions);
+    ELossFunction loss = options.LossFunctionDescription->GetLossFunction();
+    bool isNotPerObjectOrQuerywise = (loss != ELossFunction::UserPerObjMetric &&
+                                      loss != ELossFunction::UserQuerywiseMetric);
 
-    if (IsUserDefined(options.LossFunctionDescription->GetLossFunction())) {
+    if (IsUserDefined(options.LossFunctionDescription->GetLossFunction()) && isNotPerObjectOrQuerywise) {
         CB_ENSURE(objectiveDescriptor != nullptr, "Error: provide objective descriptor for custom loss");
     }
 
