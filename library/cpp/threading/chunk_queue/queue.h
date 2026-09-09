@@ -3,6 +3,7 @@
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
 #include <util/generic/ylimits.h>
+#include <util/system/compiler.h>
 #include <util/system/datetime.h>
 #include <util/system/guard.h>
 #include <util/system/spinlock.h>
@@ -10,6 +11,10 @@
 
 #include <atomic>
 #include <type_traits>
+
+#if defined(_MSC_VER) && !defined(__clang__)
+    #include <intrin.h>
+#endif
 
 namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
@@ -55,22 +60,121 @@ namespace NThreading {
         template <typename TT>
         class TAtomicRef {
             static_assert(std::is_trivially_copyable<TT>::value, "TAtomicRef requires a trivially copyable type");
+            static_assert(std::atomic<TT>::is_always_lock_free, "TAtomicRef requires a lock-free std::atomic<TT>");
+            static_assert(
+                !std::is_const<TT>::value && !std::is_volatile<TT>::value,
+                "TAtomicRef cannot be used with cv-qualified types"
+            );
+            static_assert(alignof(TT) == sizeof(TT), "TT must have natural alignment");
+            static_assert(
+                (sizeof(TT) == 1) || (sizeof(TT) == 2) || (sizeof(TT) == 4) || (sizeof(TT) == 8),
+                "sizeof(TT) different from 1, 2, 4 or 8 is not supported"
+            );
+    #if !defined(_MSC_VER) || defined(__clang__)
             static_assert(static_cast<int>(std::memory_order_release) == __ATOMIC_RELEASE);
             static_assert(static_cast<int>(std::memory_order_acquire) == __ATOMIC_ACQUIRE);
             static_assert(static_cast<int>(std::memory_order_relaxed) == __ATOMIC_RELAXED);
+    #endif
 
         public:
             explicit TAtomicRef(TT& obj) noexcept
                 : Obj_(&obj)
             {
+                Y_ASSERT(reinterpret_cast<uintptr_t>(Obj_) % alignof(TT) == 0);
             }
 
             TT load(std::memory_order order) const noexcept {
+    #if defined(_MSC_VER) && !defined(__clang__)
+                Y_ABORT_IF(
+                    order == std::memory_order_acq_rel || order == std::memory_order_release,
+                    "load: Invalid memory order"
+                );
+
+                if (order == std::memory_order_seq_cst) {
+                    if constexpr (sizeof(TT) == 1) {
+                        return (TT)_InterlockedCompareExchange8((volatile char*)Obj_, 0, 0);
+                    } else if constexpr (sizeof(TT) == 2) {
+                        return (TT)_InterlockedCompareExchange16((volatile short*)Obj_, 0, 0);
+                    } else if constexpr (sizeof(TT) == 4) {
+                        return (TT)_InterlockedCompareExchange((volatile long*)Obj_, 0, 0);
+                    } else if constexpr (sizeof(TT) == 8) {
+                        return (TT)_InterlockedCompareExchange64((volatile __int64*)Obj_, 0, 0);
+                    }
+                }
+
+        #if defined(_M_ARM64)
+                if (order == std::memory_order_relaxed) {
+                    // Plain load is atomic if aligned and size ≤ 8
+                    return *(volatile TT*)Obj_;
+                } else if (order == std::memory_order_acquire || order == std::memory_order_consume) {
+                    if constexpr (sizeof(TT) == 1) {
+                        return (TT)_InterlockedCompareExchange8_acq((volatile char*)Obj_, 0, 0);
+                    } else if constexpr (sizeof(TT) == 2) {
+                        return (TT)_InterlockedCompareExchange16_acq((volatile short*)Obj_, 0, 0);
+                    } else if constexpr (sizeof(TT) == 4) {
+                        return (TT)_InterlockedCompareExchange_acq((volatile long*)Obj_, 0, 0);
+                    } else if constexpr (sizeof(TT) == 8) {
+                        return (TT)_InterlockedCompareExchange64_acq((volatile __int64*)Obj_, 0, 0);
+                    }
+                }
+                Y_UNREACHABLE();
+        #else // x86_64
+                std::atomic_signal_fence(std::memory_order_seq_cst);
+                TT val = *(volatile TT*)Obj_;
+                std::atomic_signal_fence(std::memory_order_seq_cst);
+                return val;
+        #endif
+
+    #else
                 return __atomic_load_n(Obj_, static_cast<int>(order));
+    #endif
             }
 
             void store(TT desired, std::memory_order order) noexcept {
+    #if defined(_MSC_VER) && !defined(__clang__)
+                Y_ABORT_IF(
+                    order == std::memory_order_acq_rel
+                    || order == std::memory_order_consume
+                    || order == std::memory_order_acquire,
+                    "store: Invalid memory order"
+                );
+
+                if (order == std::memory_order_seq_cst) {
+                    if constexpr (sizeof(TT) == 1) {
+                        _InterlockedExchange8((char volatile*)Obj_, (char)desired);
+                    } else if constexpr (sizeof(TT) == 2) {
+                        _InterlockedExchange16((short volatile*)Obj_, (short)desired);
+                    } else if constexpr (sizeof(TT) == 4) {
+                        _InterlockedExchange((long volatile*)Obj_, (long)desired);
+                    } else if constexpr (sizeof(TT) == 8) {
+                        _InterlockedExchange64((__int64 volatile*)Obj_, (__int64)desired);
+                    }
+                    return;
+                }
+
+        #if defined(_M_ARM64)
+                if (order == std::memory_order_relaxed) {
+                    *(volatile TT*)Obj_ = desired;
+                } else if (order == std::memory_order_release) {
+                    if constexpr (sizeof(TT) == 1) {
+                        _InterlockedExchange8_rel((char volatile*)Obj_, (char)desired);
+                    } else if constexpr (sizeof(TT) == 2) {
+                        _InterlockedExchange16_rel((short volatile*)Obj_, (short)desired);
+                    } else if constexpr (sizeof(TT) == 4) {
+                        _InterlockedExchange_rel((long volatile*)Obj_, (long)desired);
+                    } else if constexpr (sizeof(TT) == 8) {
+                        _InterlockedExchange64_rel((__int64 volatile*)Obj_, (__int64)desired);
+                    }
+                }
+        #else // x86_64
+                std::atomic_signal_fence(std::memory_order_release);
+                *(volatile TT*)Obj_ = desired;
+                std::atomic_signal_fence(std::memory_order_release);
+        #endif
+
+    #else
                 __atomic_store_n(Obj_, desired, static_cast<int>(order));
+    #endif
             }
 
         private:
