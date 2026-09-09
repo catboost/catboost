@@ -109,6 +109,20 @@ TEST_F(NetworkTest, GetPortNonRandom) {
     }
 }
 
+TEST_F(NetworkTest, PortManagerOwnsAllocatedPorts) {
+    NTesting::TScopedEnvironment envGuard("PORT_SYNC_PATH", TmpDir->Name());
+    NTesting::InitPortManagerFromEnv();
+
+    ui16 port;
+    {
+        NTesting::TPortManager portManager;
+        port = portManager.GetPort();
+        EXPECT_TRUE(NFs::Exists(TmpDir->Path() / ToString(port)));
+    }
+
+    EXPECT_FALSE(NFs::Exists(TmpDir->Path() / ToString(port)));
+}
+
 TEST_F(NetworkTest, Permissions) {
     constexpr ui16 loPort = 3456;
     constexpr ui16 hiPort = 7654;
