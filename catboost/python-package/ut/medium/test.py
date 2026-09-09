@@ -50,6 +50,7 @@ import pandas.arrays
 
 import scipy.sparse
 import scipy.special
+import xml.etree.ElementTree
 
 import _pickle as pickle
 
@@ -1855,8 +1856,98 @@ def test_onnx_export_lightgbm_import_catboost():
     assert (np.allclose(lightgbm_predict, catboost_predict, atol=1e-4))
 
 
-@pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
-def test_pmml_export(problem_type):
+PMML_NAMESPACE = {'p': 'http://www.dmg.org/PMML-4_3'}
+
+
+def _apply_pmml_model(pmml_path, features_df):
+    """
+        Applies a PMML model exported by CatBoost, supports only the subset of PMML that is used there.
+
+        returns predictions for regression models, probabilities of the 'true' class for
+        classification models
+    """
+
+    def get_derived_fields(mining_model):
+        # derived field name -> (source field name, values mapping, default mapped value)
+        derived_fields = {}
+        for derived_field in mining_model.findall('p:LocalTransformations/p:DerivedField', PMML_NAMESPACE):
+            map_values = derived_field.find('p:MapValues', PMML_NAMESPACE)
+            derived_fields[derived_field.get('name')] = (
+                map_values.find('p:FieldColumnPair', PMML_NAMESPACE).get('field'),
+                {
+                    row.find('p:key', PMML_NAMESPACE).text: int(row.find('p:value', PMML_NAMESPACE).text)
+                    for row in map_values.findall('p:InlineTable/p:row', PMML_NAMESPACE)
+                },
+                int(map_values.get('defaultValue'))
+            )
+        return derived_fields
+
+    def apply_tree(tree_model, values):
+        node = tree_model.find('p:Node', PMML_NAMESPACE)
+        while True:
+            children = node.findall('p:Node', PMML_NAMESPACE)
+            if not children:
+                return float(node.get('score'))
+            for child in children:
+                predicate = child.find('p:SimplePredicate', PMML_NAMESPACE)
+                if predicate is None:  # 'True' predicate
+                    node = child
+                    break
+                value = values[predicate.get('field')]
+                if predicate.get('operator') == 'greaterThan':
+                    satisfied = value > np.float32(predicate.get('value'))
+                else:
+                    assert predicate.get('operator') == 'equal'
+                    satisfied = value == int(predicate.get('value'))
+                if satisfied:
+                    node = child
+                    break
+            else:
+                raise Exception('no child node with a satisfied predicate')
+
+    root = xml.etree.ElementTree.parse(pmml_path).getroot()
+
+    continuous_fields = set(
+        data_field.get('name')
+        for data_field in root.findall('p:DataDictionary/p:DataField', PMML_NAMESPACE)
+        if data_field.get('optype') == 'continuous'
+    )
+
+    top_model = root.find('p:MiningModel', PMML_NAMESPACE)
+    is_classification = top_model.get('functionName') == 'classification'
+    if is_classification:
+        segments = top_model.findall('p:Segmentation/p:Segment', PMML_NAMESPACE)
+        tree_ensemble = segments[0].find('p:MiningModel', PMML_NAMESPACE)
+        regression_table = segments[1].find(
+            'p:RegressionModel/p:RegressionTable[@targetCategory="true"]', PMML_NAMESPACE)
+        intercept = float(regression_table.get('intercept'))
+        coefficient = float(
+            regression_table.find('p:NumericPredictor', PMML_NAMESPACE).get('coefficient'))
+    else:
+        tree_ensemble = top_model
+        target = top_model.find('p:Targets/p:Target', PMML_NAMESPACE)
+        intercept = float(target.get('rescaleConstant'))
+        coefficient = float(target.get('rescaleFactor'))
+
+    derived_fields = get_derived_fields(tree_ensemble)
+    trees = tree_ensemble.findall('p:Segmentation/p:Segment/p:TreeModel', PMML_NAMESPACE)
+
+    results = []
+    for row in features_df.values:
+        values = {}
+        for feature_idx, value in enumerate(row):
+            field_name = 'feature_%d' % feature_idx
+            values[field_name] = np.float32(value) if field_name in continuous_fields else str(value)
+        for name, (field, mapping, default_value) in derived_fields.items():
+            values[name] = mapping.get(values[field], default_value)
+
+        result = intercept + coefficient * sum(apply_tree(tree, values) for tree in trees)
+        results.append(scipy.special.expit(result) if is_classification else result)
+
+    return np.array(results)
+
+
+def _train_model_for_pmml_export(problem_type):
     if problem_type == 'binclass':
         loss_function = 'Logloss'
         train_path = TRAIN_FILE
@@ -1886,23 +1977,51 @@ def test_pmml_export(problem_type):
 
     model.fit(train_pool)
 
+    return model, train_pool, train_path, cd_path
+
+
+@pytest.mark.parametrize('problem_type', ['binclass', 'regression'])
+def test_pmml_export(problem_type):
+    model, train_pool, _, _ = _train_model_for_pmml_export(problem_type)
+
     output_pmml_model_path = test_output_path(OUTPUT_PMML_MODEL_PATH)
 
-    if problem_type == "multiclass":
-        with pytest.raises(CatBoostError):
-            model.save_model(output_pmml_model_path, format="pmml")
+    model.save_model(
+        output_pmml_model_path,
+        format="pmml",
+        export_parameters={
+            'pmml_copyright': '(c) catboost team',
+            'pmml_description': 'CatBoostModel_for_%s' % problem_type,
+            'pmml_model_version': '1'
+        },
+        pool=train_pool
+    )
+
+    return compare_canonical_models(output_pmml_model_path)
+
+
+def test_pmml_export_multiclass_is_not_supported():
+    model, _, _, _ = _train_model_for_pmml_export('multiclass')
+
+    with pytest.raises(CatBoostError):
+        model.save_model(test_output_path(OUTPUT_PMML_MODEL_PATH), format="pmml")
+
+
+@pytest.mark.parametrize('problem_type', ['binclass', 'regression'])
+def test_pmml_export_apply(problem_type):
+    model, train_pool, train_path, cd_path = _train_model_for_pmml_export(problem_type)
+
+    output_pmml_model_path = test_output_path(OUTPUT_PMML_MODEL_PATH)
+    model.save_model(output_pmml_model_path, format="pmml", pool=train_pool)
+
+    features_df, _ = load_pool_features_as_df(train_path, cd_path)
+    pmml_results = _apply_pmml_model(output_pmml_model_path, features_df)
+    if problem_type == 'binclass':
+        expected = model.predict(train_pool, prediction_type='Probability')[:, 1]
     else:
-        model.save_model(
-            output_pmml_model_path,
-            format="pmml",
-            export_parameters={
-                'pmml_copyright': '(c) catboost team',
-                'pmml_description': 'CatBoostModel_for_%s' % problem_type,
-                'pmml_model_version': '1'
-            },
-            pool=train_pool
-        )
-        return compare_canonical_models(output_pmml_model_path)
+        expected = model.predict(train_pool)
+
+    assert np.allclose(pmml_results, expected, rtol=0, atol=1e-7)
 
 
 def test_predict_class(task_type):
