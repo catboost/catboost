@@ -58,6 +58,13 @@ To apply a previously trained {{ product }} model in Java:
     System.out.print("model value is " + String.valueOf(prediction.get(0, 0));
     ```
 
+    For classification models class probabilities can be calculated as well:
+    ```java
+    CatBoostPredictions probabilities = model.predictProba(new float[]{0.1f, 0.3f, 0.2f}, new String[]{"foo", "bar", "baz"});
+    // for a binary classification model the probability of the class 1 is at index 1
+    System.out.print("probability of the class 1 is " + String.valueOf(probabilities.get(0, 1)));
+    ```
+
 #### Provided classes
 
 Class | Description |
