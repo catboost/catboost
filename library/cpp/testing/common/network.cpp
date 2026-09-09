@@ -16,7 +16,6 @@
 #include <util/system/error.h>
 #include <util/system/file_lock.h>
 #include <util/system/fs.h>
-#include <util/system/mutex.h>
 #include <util/system/sysstat.h>
 
 #ifdef _darwin_
@@ -104,10 +103,10 @@ namespace {
         return ranges;
     }
 
-    class TPortAllocator {
+    class TPortManager {
         static constexpr size_t Retries = 20;
     public:
-        TPortAllocator()
+        TPortManager()
         {
             InitFromEnv();
         }
@@ -223,78 +222,23 @@ namespace {
 
 namespace NTesting {
     void InitPortManagerFromEnv() {
-        Singleton<TPortAllocator>()->InitFromEnv();
+        Singleton<TPortManager>()->InitFromEnv();
     }
 
     TPortHolder GetFreePort() {
-        return Singleton<TPortAllocator>()->GetFreePort();
+        return Singleton<TPortManager>()->GetFreePort();
     }
 
     namespace NLegacy {
         TPortHolder GetPort( ui16 port ) {
-            return Singleton<TPortAllocator>()->GetPort(port);
+            return Singleton<TPortManager>()->GetPort(port);
         }
         TVector<TPortHolder> GetFreePortsRange(size_t count) {
-            return Singleton<TPortAllocator>()->GetFreePortsRange(count);
+            return Singleton<TPortManager>()->GetFreePortsRange(count);
         }
     }
 
     IOutputStream& operator<<(IOutputStream& out, const TPortHolder& port) {
         return out << static_cast<ui16>(port);
-    }
-
-    class TPortManager::TImpl {
-    public:
-        ui16 GetPort(ui16 port) {
-            auto holder = NLegacy::GetPort(port);
-            const ui16 result = holder;
-
-            TGuard<TMutex> guard(Mutex_);
-            Ports_.push_back(std::move(holder));
-            return result;
-        }
-
-        ui16 GetPortsRange(ui16 startPort, ui16 range) {
-            Y_UNUSED(startPort);
-            auto holders = NLegacy::GetFreePortsRange(range);
-            const ui16 result = holders.front();
-
-            TGuard<TMutex> guard(Mutex_);
-            for (auto& holder : holders) {
-                Ports_.push_back(std::move(holder));
-            }
-            return result;
-        }
-
-    private:
-        TMutex Mutex_;
-        TVector<TPortHolder> Ports_;
-    };
-
-    TPortManager::TPortManager()
-        : Impl_(MakeHolder<TImpl>())
-    {
-    }
-
-    TPortManager::~TPortManager() = default;
-
-    ui16 TPortManager::GetPort(ui16 port) {
-        return Impl_->GetPort(port);
-    }
-
-    ui16 TPortManager::GetTcpPort(ui16 port) {
-        return Impl_->GetPort(port);
-    }
-
-    ui16 TPortManager::GetUdpPort(ui16 port) {
-        return Impl_->GetPort(port);
-    }
-
-    ui16 TPortManager::GetTcpAndUdpPort(ui16 port) {
-        return Impl_->GetPort(port);
-    }
-
-    ui16 TPortManager::GetPortsRange(ui16 startPort, ui16 range) {
-        return Impl_->GetPortsRange(startPort, range);
     }
 }
