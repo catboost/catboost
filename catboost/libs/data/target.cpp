@@ -723,6 +723,64 @@ void TRawTargetDataProvider::AssignWeights(TConstArrayRef<float> src, TWeights<f
     );
 }
 
+static void ValidateSetNumericTargetPreconditions(
+    size_t targetSize,
+    ui32 objectCount,
+    size_t existingTargetDim,
+    ERawTargetType existingTargetType
+) {
+    CB_ENSURE(
+        targetSize == objectCount,
+        "Target length " << targetSize << " != object count " << objectCount
+    );
+    if (existingTargetDim > 0) {
+        CB_ENSURE(
+            existingTargetDim == 1,
+            "SetNumericTarget requires 1 target dimension, got " << existingTargetDim
+        );
+        // Accept any non-String existing type. Storage is rewritten to Float by the
+        // caller after this validator returns, so Boolean/Integer/Float all
+        // transition cleanly. String requires Pool reconstruction.
+        CB_ENSURE(
+            existingTargetType != ERawTargetType::String,
+            "SetNumericTarget does not support string target type; "
+            "reconstruct the Pool to change from string labels to numeric"
+        );
+    }
+}
+
+void TRawTargetDataProvider::SetNumericTarget(TConstArrayRef<float> target) {
+    ValidateSetNumericTargetPreconditions(
+        target.size(), GetObjectCount(), Data.Target.size(), Data.TargetType
+    );
+    // Construct holder before mutating Data to preserve strong exception guarantee.
+    TVector<float> storage(target.begin(), target.end());
+    ITypedSequencePtr<float> holder = static_cast<ITypedSequencePtr<float>>(
+        MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(storage))
+    );
+    if (Data.Target.empty()) {
+        Data.Target.push_back(std::move(holder));
+    } else {
+        Data.Target[0] = std::move(holder);
+    }
+    Data.TargetType = ERawTargetType::Float;
+}
+
+void TRawTargetDataProvider::SetNumericTarget(TVector<float>&& target) {
+    ValidateSetNumericTargetPreconditions(
+        target.size(), GetObjectCount(), Data.Target.size(), Data.TargetType
+    );
+    ITypedSequencePtr<float> holder = static_cast<ITypedSequencePtr<float>>(
+        MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(target))
+    );
+    if (Data.Target.empty()) {
+        Data.Target.push_back(std::move(holder));
+    } else {
+        Data.Target[0] = std::move(holder);
+    }
+    Data.TargetType = ERawTargetType::Float;
+}
+
 
 template <class TKey, class TSharedDataPtr>
 using TTargetSingleTypeDataCache = THashMap<TKey, TSharedDataPtr>;

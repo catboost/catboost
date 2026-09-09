@@ -583,6 +583,12 @@ Use only when the dataset is read from an input file.
 
 {% include [set_group_weight-set_group_weight__desc](../_includes/work_src/reusage-python/set_group_weight__desc.md) %}
 
+**Method:** [set_label](python-reference_pool_set_label.md)
+
+#### Description
+
+{% include [set_label-set_label__desc](../_includes/work_src/reusage-python/set_label__desc.md) %}
+
 **Method:** [set_pairs](python-reference_pool_set_pairs.md)
 
 #### Description
