@@ -19,7 +19,7 @@ def _extract(src_file, dst_dir='.'):
     os.chdir(dst_dir)
     try:
         with tarfile.open(src_file, 'r:gz') as f:
-            f.extractall()
+            f.extractall(filter="data")
     finally:
         os.chdir(cur_dir)
 
