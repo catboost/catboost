@@ -10,7 +10,11 @@ class App(ConanFile):
 
     settings = "os", "compiler", "build_type", "arch"
 
-    default_options = {}
+    def configure(self):
+        # OpenSSL's conan recipe fails to link zlib symbols
+        # into providers/legacy.dll when compiling to Windows ARM64.
+        if self.settings.os == "Windows" and self.settings.arch == "armv8":
+            self.options["openssl"].no_zlib = True
 
     def requirements(self):
         self.requires("openssl/3.0.15")

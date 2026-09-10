@@ -27,7 +27,7 @@ env:
     {
       "linux": [["x86_64", "ubuntu-22.04"], ["aarch64", "ubuntu-22.04-arm"]],
       "macos": [["x86_64", "macos-15-intel"], ["arm64", "macos-14"]],
-      "windows": [["x86_64", "windows-2022"]]
+      "windows": [["x86_64", "windows-2022"], ["arm64", "windows-11-arm"]]
     }
 
 jobs:
