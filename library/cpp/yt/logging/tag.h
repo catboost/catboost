@@ -2,6 +2,8 @@
 
 #include "public.h"
 
+#include <library/cpp/yt/misc/lazy.h>
+
 #include <library/cpp/yt/string/format.h>
 
 #include <util/generic/strbuf.h>
@@ -86,16 +88,18 @@ public:
     template <class TValue>
     TLoggingTagListBuilder& With(TLoggingTagKey key, const TValue& value);
 
-    //! Attaches the tag only when #condition holds. NB: #value is evaluated either way.
+    //! Attaches the tag only when #condition holds.
+    //! NB: #value is evaluated either way unless wrapped in |YT_LAZY|.
     template <class TValue>
     TLoggingTagListBuilder& WithIf(bool condition, TLoggingTagKey key, const TValue& value);
 
     template <class... TArgs>
     TLoggingTagListBuilder& WithFormat(TLoggingTagKey key, TFormatString<TArgs...> format, TArgs&&... args);
 
-    //! Attaches a composed tag only when #condition holds. NB: #args are evaluated either way.
+    //! Attaches a composed tag only when #condition holds.
+    //! NB: #args are evaluated either way unless wrapped in |YT_LAZY|.
     template <class... TArgs>
-    TLoggingTagListBuilder& WithFormatIf(bool condition, TLoggingTagKey key, TFormatString<TArgs...> format, TArgs&&... args);
+    TLoggingTagListBuilder& WithFormatIf(bool condition, TLoggingTagKey key, TFormatString<TUnlazy<TArgs>...> format, TArgs&&... args);
 
     //! Splices a pre-built list, keeping its tags individual.
     TLoggingTagListBuilder& With(const TLoggingTagList& tags);

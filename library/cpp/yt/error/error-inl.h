@@ -226,7 +226,7 @@ template <class... TArgs>
 TError TError::WithIf(bool condition, TArgs&&... args) const &
 {
     return condition
-        ? With(std::forward<TArgs>(args)...)
+        ? With(Unlazy(std::forward<TArgs>(args))...)
         : *this;
 }
 
@@ -234,7 +234,7 @@ template <class... TArgs>
 TError&& TError::WithIf(bool condition, TArgs&&... args) &&
 {
     return condition
-        ? std::move(*this).With(std::forward<TArgs>(args)...)
+        ? std::move(*this).With(Unlazy(std::forward<TArgs>(args))...)
         : std::move(*this);
 }
 

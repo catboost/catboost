@@ -11,6 +11,7 @@
 
 #include <library/cpp/yt/logging/tag.h>
 
+#include <library/cpp/yt/misc/lazy.h>
 #include <library/cpp/yt/misc/property.h>
 
 #include <util/system/compiler.h>
@@ -242,7 +243,7 @@ public:
     [[nodiscard]] TError&& With(TRange&& innerErrors) &&;
 
     //! Forwards to #With only when #condition holds.
-    //! NB: The operands are evaluated either way.
+    //! NB: The operands are evaluated either way unless wrapped in |YT_LAZY|.
     template <class... TArgs>
     [[nodiscard]] TError WithIf(bool condition, TArgs&&... args) const &;
     template <class... TArgs>
