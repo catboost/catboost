@@ -35,7 +35,7 @@ namespace NKernel {
             const int blockSize = 512;
             const int N = 1;
             const int numBlocks = (size + (N * blockSize) - 1) / (N * blockSize);
-            ReorderOneBitImpl<ui32, ui32, N, blockSize> << < numBlocks, blockSize, 0, stream >> > (
+            ReorderOneBitImpl<ui32, ui32, N, blockSize> <<< numBlocks, blockSize, 0, stream >>> (
                 context.TempKeys,
                 context.TempValues,
                 context.Offsets,

@@ -27,7 +27,7 @@ namespace NKernel
             numBlocks.x = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount()));
             numBlocks.y = columnCount;
             numBlocks.z = 1;
-            FillBufferImpl<T> << < numBlocks, blockSize, 0, stream>> > (buffer, value, size, alignSize);
+            FillBufferImpl<T> <<< numBlocks, blockSize, 0, stream>>> (buffer, value, size, alignSize);
         }
     }
 
@@ -51,7 +51,7 @@ namespace NKernel
             const ui32 blockSize = 512;
             const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
                                          (ui64)TArchProps::MaxBlockCount()));
-            MakeSequenceImpl<T> << < numBlocks, blockSize, 0, stream >> > (offset, buffer, size);
+            MakeSequenceImpl<T> <<< numBlocks, blockSize, 0, stream >>> (offset, buffer, size);
         }
     }
 
@@ -72,7 +72,7 @@ namespace NKernel
             const ui32 blockSize = 512;
             const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
                                        (ui64)TArchProps::MaxBlockCount()));
-            InversePermutationImpl<T> << < numBlocks, blockSize, 0, stream >> > (order, inverseOrder, size);
+            InversePermutationImpl<T> <<< numBlocks, blockSize, 0, stream >>> (order, inverseOrder, size);
         }
     }
 

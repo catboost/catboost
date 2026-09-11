@@ -395,7 +395,7 @@ namespace NKernel {
 
 
             #define NB_HIST(IS_FULL)   \
-            ComputeSplitPropertiesNonBinaryPairs6Bit < blockSize, IS_FULL, OneHotPass > << <numBlocks, blockSize, 0, stream>>>(\
+            ComputeSplitPropertiesNonBinaryPairs6Bit < blockSize, IS_FULL, OneHotPass > <<<numBlocks, blockSize, 0, stream>>>(\
                                                   features, featureCount, compressedIndex,  pairs,\
                                                   weight, partition,  histLineSize, histogram);
 

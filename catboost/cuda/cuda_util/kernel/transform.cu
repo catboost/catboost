@@ -28,7 +28,7 @@ namespace NKernel {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount()));
-        AddVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
+        AddVectorImpl<T> <<< numBlocks, blockSize, 0, stream >>> (x, y, size);
     }
 
 
@@ -48,7 +48,7 @@ namespace NKernel {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount()));
-        AddVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
+        AddVectorImpl<T> <<< numBlocks, blockSize, 0, stream >>> (x, y, size);
     }
 
     template <typename T>
@@ -79,7 +79,7 @@ namespace NKernel {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount()));
-        SubtractVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
+        SubtractVectorImpl<T> <<< numBlocks, blockSize, 0, stream >>> (x, y, size);
     }
 
     template <typename T>
@@ -87,7 +87,7 @@ namespace NKernel {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount()));
-        SubtractVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
+        SubtractVectorImpl<T> <<< numBlocks, blockSize, 0, stream >>> (x, y, size);
     }
 
     template <typename T>
@@ -108,7 +108,7 @@ namespace NKernel {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount()));
-        MultiplyVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
+        MultiplyVectorImpl<T> <<< numBlocks, blockSize, 0, stream >>> (x, y, size);
     }
 
     template <typename T>
@@ -127,7 +127,7 @@ namespace NKernel {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount()));
-        MultiplyVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, c, size);
+        MultiplyVectorImpl<T> <<< numBlocks, blockSize, 0, stream >>> (x, c, size);
     }
 
 
@@ -159,7 +159,7 @@ namespace NKernel {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount()));
-        DivideVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, skipZeroes, size);
+        DivideVectorImpl<T> <<< numBlocks, blockSize, 0, stream >>> (x, y, skipZeroes, size);
     }
 
     template <typename T>
@@ -167,7 +167,7 @@ namespace NKernel {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
                                    (ui64)TArchProps::MaxBlockCount()));
-        DivideVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, skipZeroes, size);
+        DivideVectorImpl<T> <<< numBlocks, blockSize, 0, stream >>> (x, y, skipZeroes, size);
     }
 
     template <typename T>
@@ -184,7 +184,7 @@ namespace NKernel {
     void ExpVector(T *x, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount()));
-        ExpVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, size);
+        ExpVectorImpl<T> <<< numBlocks, blockSize, 0, stream >>> (x, size);
     }
 
     template <typename T, typename Index>
@@ -206,7 +206,7 @@ namespace NKernel {
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount()));
 
         if (numBlocks) {
-            GatherImpl<T, Index> << < numBlocks, blockSize, 0, stream >> > (dst, src, map, (Index)size, columnCount, dstColumnAlignSize, srcColumnAlignSize);
+            GatherImpl<T, Index> <<< numBlocks, blockSize, 0, stream >>> (dst, src, map, (Index)size, columnCount, dstColumnAlignSize, srcColumnAlignSize);
         }
     }
 
@@ -227,7 +227,7 @@ namespace NKernel {
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount()));
 
         if (numBlocks) {
-            GatherWithMaskImpl<T, Index> << < numBlocks, blockSize, 0, stream >> > (dst, src, map, (Index)size, mask);
+            GatherWithMaskImpl<T, Index> <<< numBlocks, blockSize, 0, stream >>> (dst, src, map, (Index)size, mask);
         }
     }
 
@@ -249,7 +249,7 @@ namespace NKernel {
         const ui32 blockSize = 256;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount()));
         if (numBlocks) {
-            ScatterImpl<T, Index> << < numBlocks, blockSize, 0, stream >> > (dst, src, map, (Index)size, columnCount, dstColumnAlignSize, srcColumnAlignSize);
+            ScatterImpl<T, Index> <<< numBlocks, blockSize, 0, stream >>> (dst, src, map, (Index)size, columnCount, dstColumnAlignSize, srcColumnAlignSize);
         }
     }
 
@@ -269,7 +269,7 @@ namespace NKernel {
         const ui32 blockSize = 256;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount()));
         if (numBlocks) {
-            ScatterWithMaskImpl<T, Index> << < numBlocks, blockSize, 0, stream >> > (dst, src, map, (Index)size, mask);
+            ScatterWithMaskImpl<T, Index> <<< numBlocks, blockSize, 0, stream >>> (dst, src, map, (Index)size, mask);
         }
     }
 
@@ -290,7 +290,7 @@ namespace NKernel {
     void Reverse(T* data, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 256;
         const ui32 numBlocks = SafeIntegerCast<ui32>(min(((size + 1) / 2 + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount()));
-        ReverseImpl<T> << < numBlocks, blockSize, 0, stream >> > (data, size);
+        ReverseImpl<T> <<< numBlocks, blockSize, 0, stream >>> (data, size);
     }
 
 
@@ -361,7 +361,12 @@ namespace NKernel {
     }
 
     template <typename T>
-    void PowVector(T* const x, const ui64 size, const T base, const TCudaStream stream) {
+    // Match the transform.cuh declaration exactly
+    // (no top-level const on params). clang-cl's MSVC-ABI mangling keeps the
+    // top-level const on pointer params (T* const -> QEAM) here while the decl/
+    // caller use T* (PEAM), so the definition went unresolved at link. Itanium
+    // (Linux) drops top-level const so this never bit there.
+    void PowVector(T* x, ui64 size, T base, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(Min(
             (size + blockSize - 1) / blockSize,
@@ -390,7 +395,8 @@ namespace NKernel {
     }
 
     template <typename T>
-    void PowVector(const T* x, const ui64 size, const T base, T* y, const TCudaStream stream) {
+    // Match transform.cuh decl (no top-level const); see above.
+    void PowVector(const T* x, ui64 size, T base, T* y, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui32 numBlocks = SafeIntegerCast<ui32>(Min(
             (size + blockSize - 1) / blockSize,

@@ -15,17 +15,37 @@ namespace NKernel {
                                                                 float alpha,
                                                                 ui32 binarySearchIterations) {
         const ui32 i = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+        // One thread per leaf. The host passes the per-leaf count (binCount) into
+        // this bound on HIP; on NVIDIA it stays the object count (byte-identical).
+        // Bounding by the object count leaves high-index leaves uncomputed when
+        // binCount > objectCount (a populated leaf reads back 0) and otherwise
+        // runs threads past the binCount-sized arrays -- a pre-existing all-platform
+        // bug that catboost's TExactLeavesEstimationTest exercises.
         if (i >= objectsCount) {
             return;
         }
 
         ui32 left = beginOffsets[i];
+#if defined(USE_HIP)
+        const ui32 end = endOffsets[i];
+
+        // Empty leaf (begin == end) must yield 0 to match the CPU optimum-const.
+        // The base `right = end==0?0:end-1` then `left>right` guard caught empty
+        // interior bins but not a leading run of empties (begin==end==0 -> right=0,
+        // guard false, returns targets[0]). HIP-only; NVIDIA keeps the base guard.
+        if (left >= end) {
+            point[i] = 0;
+            return;
+        }
+        ui32 right = end - 1;
+#else
         ui32 right = endOffsets[i] == 0 ? 0 : endOffsets[i] - 1;
 
         if (left > right) {
             point[i] = 0;
             return;
         }
+#endif
 
         const float eps = std::numeric_limits<float>::epsilon();
         for (ui32 index = 0; index < binarySearchIterations; ++index) {
@@ -114,7 +134,7 @@ namespace NKernel {
         const ui32 blocksNum = binCount;
         const ui32 elementsPerThreads = CeilDivide(objectsCount, blockSize * blocksNum);
 
-        ComputeNeedWeightsImpl<blockSize> << < blocksNum, blockSize, 0, stream >> > (targets,
+        ComputeNeedWeightsImpl<blockSize> <<< blocksNum, blockSize, 0, stream >>> (targets,
                                                                                      weights,
                                                                                      beginOffsets,
                                                                                      endOffsets,
@@ -131,7 +151,7 @@ namespace NKernel {
         const ui32 blockSize = 512;
         const ui32 blocksNum = CeilDivide(objectsCount, blockSize);
 
-        ComputeWeightsWithTargetsImpl << < blocksNum, blockSize, 0, stream >> > (targets,
+        ComputeWeightsWithTargetsImpl <<< blocksNum, blockSize, 0, stream >>> (targets,
                                                                                  weights,
                                                                                  weightsWithTargets,
                                                                                  objectsCount);
@@ -151,7 +171,20 @@ namespace NKernel {
         const ui32 blockSize = 256;
         const ui32 blocksNum = CeilDivide(binCount, blockSize);
 
-        ComputeWeightedQuantileWithBinarySearchImpl<blockSize> << < blocksNum, blockSize, 0, stream >> > (targets,
+#if defined(USE_HIP)
+        // The kernel is one-thread-per-leaf; bound it by binCount (the grid already
+        // covers binCount). NVIDIA passes objectsCount below, byte-identical to base.
+        ComputeWeightedQuantileWithBinarySearchImpl<blockSize> <<< blocksNum, blockSize, 0, stream >>> (targets,
+                                                                                                          weightsPrefixSum,
+                                                                                                          binCount,
+                                                                                                          needWeights,
+                                                                                                          beginOffsets,
+                                                                                                          endOffsets,
+                                                                                                          point,
+                                                                                                          alpha,
+                                                                                                          binarySearchIterations);
+#else
+        ComputeWeightedQuantileWithBinarySearchImpl<blockSize> <<< blocksNum, blockSize, 0, stream >>> (targets,
                                                                                                           weightsPrefixSum,
                                                                                                           objectsCount,
                                                                                                           needWeights,
@@ -160,6 +193,7 @@ namespace NKernel {
                                                                                                           point,
                                                                                                           alpha,
                                                                                                           binarySearchIterations);
+#endif
     }
 
     void MakeEndOfBinsFlags(const ui32* beginOffsets,
@@ -170,7 +204,7 @@ namespace NKernel {
         const ui32 blockSize = 128;
         const ui32 blocksNum = binCount;
 
-        MakeEndOfBinsFlagsImpl << < blocksNum, blockSize, 0, stream >> > (beginOffsets,
+        MakeEndOfBinsFlagsImpl <<< blocksNum, blockSize, 0, stream >>> (beginOffsets,
                                                                           endOffsets,
                                                                           flags);
     }

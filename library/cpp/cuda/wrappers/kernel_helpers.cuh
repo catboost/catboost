@@ -1,6 +1,7 @@
 #pragma once
 
 #include "kernel.cuh"
+#include "warp_mask.cuh"
 #include <cub/thread/thread_load.cuh>
 #include <cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
@@ -81,7 +82,7 @@ __forceinline__ __device__ T WarpReduce(int x, T val, int reduceSize, TOp op = T
     __syncwarp();
     #pragma unroll
     for (int s = reduceSize >> 1; s > 0; s >>= 1) {
-        val = op(val, __shfl_down_sync(0xFFFFFFFF, val, s));
+        val = op(val, __shfl_down_sync(CB_FULL_WARP_MASK, val, s));
     }
     return val;
 }
@@ -106,9 +107,25 @@ __forceinline__ __device__ T Reduce(volatile T* data) {
 
 template <class T,  class TOp = TCudaAdd<T>>
 __forceinline__ __device__ T FastInBlockReduce(int x, volatile T* data, int reduceSize) {
+    TOp op;
+#if defined(USE_HIP)
+    // wave64: the classic "tree to 32 then 32-lane warp-synchronous shuffle
+    // tail" races on a 64-lane wavefront (the low 32 lanes are not lockstep
+    // across the unsynced shuffle steps, and a 64-wide shuffle reads inactive
+    // lanes 32..47). Run the __syncthreads tree all the way to size 1: same add
+    // order, block-wide barrier, correct on any wave size.
+    #pragma unroll
+    for (int s = reduceSize >> 1; s > 0; s >>= 1) {
+        if (x < s) {
+            T tmp1 = data[x];
+            T tmp2 = data[x + s];
+            data[x] = op(tmp1, tmp2);
+        }
+        __syncthreads();
+    }
+    return data[0];
+#else
     if (reduceSize > 32) {
-        TOp op;
-
         #pragma  unroll
         for (int s = reduceSize >> 1; s >= 32; s >>= 1) {
             if (x < s) {
@@ -124,6 +141,7 @@ __forceinline__ __device__ T FastInBlockReduce(int x, volatile T* data, int redu
     } else {
         return 0;
     }
+#endif
 }
 
 
@@ -240,15 +258,14 @@ __forceinline__ __device__ TReduceType TileReduce4(cooperative_groups::thread_bl
 
 template <int TileSize, class TOp = TCudaAdd<float>>
 __forceinline__ __device__ float4 WarpReduce4(const float4 threadValue) {
-    constexpr unsigned FULL_MASK = 0xffffffff;
     TOp op;
     __syncwarp();
     float4 val = threadValue;
     for (int s = TileSize / 2; s > 0; s >>= 1) {
-        val.x = op(val.x, __shfl_down_sync(FULL_MASK, val.x, s));
-        val.y = op(val.y, __shfl_down_sync(FULL_MASK, val.y, s));
-        val.z = op(val.z, __shfl_down_sync(FULL_MASK, val.z, s));
-        val.w = op(val.w, __shfl_down_sync(FULL_MASK, val.w, s));
+        val.x = op(val.x, __shfl_down_sync(CB_FULL_WARP_MASK, val.x, s));
+        val.y = op(val.y, __shfl_down_sync(CB_FULL_WARP_MASK, val.y, s));
+        val.z = op(val.z, __shfl_down_sync(CB_FULL_WARP_MASK, val.z, s));
+        val.w = op(val.w, __shfl_down_sync(CB_FULL_WARP_MASK, val.w, s));
     }
     return val;
 };
@@ -264,6 +281,33 @@ struct TTileReducer {
     }
 };
 
+#if defined(USE_HIP)
+// On wave64 a 64-lane tile is the native wavefront width, so the generic
+// cooperative-groups tile reduce is valid (CUDA caps thread_block_tile at 32,
+// which is why the original traps here). Tiles wider than the wavefront still
+// have no shuffle implementation.
+template <>
+struct TTileReducer<64> {
+    template <class T>
+    __forceinline__ __device__ static T Reduce(T val) {
+        auto tile = cooperative_groups::tiled_partition<64>(cooperative_groups::this_thread_block());
+        return TileReduce<T, 64>(tile, val);
+    }
+};
+
+#define UNIMPL(K)\
+    template <>\
+    struct TTileReducer<K> {\
+        template <class T>\
+        __forceinline__ __device__ static T Reduce(T val) {\
+            __builtin_trap();\
+            return 0;\
+        }\
+    };
+UNIMPL(128)
+UNIMPL(256)
+#undef UNIMPL
+#else
 #define UNIMPL(K)\
     template <>\
     struct TTileReducer<K> {\
@@ -277,10 +321,16 @@ UNIMPL(64)
 UNIMPL(128)
 UNIMPL(256)
 #undef UNIMPL
+#endif
 
 
 
 
+// HIP's HIP_vector_type<float,4> already provides the full operator set
+// (vector-vector and vector-scalar +-*/ and compound-assign), so these would be
+// ambiguous on HIP. Guard them out; the non-operator helpers below
+// (Reduce4/Dot4/FMA4/Max4/Sqrt4/...) have no HIP equivalent and stay.
+#if !defined(USE_HIP)
 __forceinline__ __device__ float4 operator*(float4 left, float4 right) {
     float4 result;
     result.x = left.x * right.x;
@@ -393,6 +443,7 @@ __forceinline__ __device__ float4& operator/=(float4& left, float right) {
     left = left / right;
     return left;
 }
+#endif  // !USE_HIP (float4 operators)
 
 
 __forceinline__ __device__ float Reduce4(float4 val) {
@@ -563,6 +614,23 @@ template <int BlockSize,
           class T,
           class TOp = TCudaAdd<T>>
 __forceinline__ __device__ void BlockReduceN(volatile T* data, int reduceSize, TOp op = TOp()) {
+#if defined(USE_HIP)
+    // wave64: drop the 32-lane warp-synchronous tail; reduce the whole block via
+    // the __syncthreads tree to size 1. The result lands in data[k*BlockSize] for
+    // each of the N arrays, matching the original contract.
+    #pragma unroll
+    for (int s = reduceSize >> 1; s > 0; s >>= 1) {
+        if (threadIdx.x < s) {
+            #pragma unroll
+            for (int k = 0; k < N; ++k) {
+                T tmp1 = data[threadIdx.x + k * BlockSize];
+                T tmp2 = data[threadIdx.x + k * BlockSize + s];
+                data[threadIdx.x + k * BlockSize] = op(tmp1, tmp2);
+            }
+        }
+        __syncthreads();
+    }
+#else
     if (reduceSize > 32) {
 
         #pragma  unroll
@@ -582,6 +650,7 @@ __forceinline__ __device__ void BlockReduceN(volatile T* data, int reduceSize, T
     if (threadIdx.x < 32) {
         WarpReduceN<BlockSize, N>(threadIdx.x, data, min(reduceSize, 32), op);
     }
+#endif
 }
 
 
@@ -650,6 +719,19 @@ template <int BlockSize>
 __forceinline__ __device__ float4 SharedReduce4(float4 val, float* tmp) {
     Float4ToSharedMemory<BlockSize>(val, tmp, threadIdx.x);
     __syncthreads();
+#if defined(USE_HIP)
+    // wave64: a __syncwarp-only tail over the low 16/8/4/2/1 lanes runs as a
+    // divergent partial-wavefront sync and races; reduce the whole array with a
+    // __syncthreads tree to size 1.
+    for (int s = BlockSize / 2; s > 0; s >>= 1) {
+        if (threadIdx.x < s) {
+            for (int k = 0; k < 4; ++k) {
+                tmp[threadIdx.x + BlockSize * k] += tmp[threadIdx.x + s + BlockSize * k];
+            }
+        }
+        __syncthreads();
+    }
+#else
     if (BlockSize > 32) {
         for (int s = BlockSize / 2; s >= 32; s >>= 1) {
             if (threadIdx.x < s) {
@@ -669,6 +751,7 @@ __forceinline__ __device__ float4 SharedReduce4(float4 val, float* tmp) {
         __syncwarp();
 
     }
+#endif
     __syncthreads();
     float4 result = Float4FromSharedMemory<BlockSize>(tmp, 0);
     __syncthreads();
@@ -681,6 +764,16 @@ __forceinline__ __device__ void SharedReduce8(float4* val0, float4* val1, float*
     Float4ToSharedMemory<BlockSize>(*val0, tmp, threadIdx.x);
     Float4ToSharedMemory<BlockSize>(*val1, tmp + 4 * BlockSize, threadIdx.x);
     __syncthreads();
+#if defined(USE_HIP)
+    for (int s = BlockSize / 2; s > 0; s >>= 1) {
+        if (threadIdx.x < s) {
+            for (int k = 0; k < 8; ++k) {
+                tmp[threadIdx.x + BlockSize * k] += tmp[threadIdx.x + s + BlockSize * k];
+            }
+        }
+        __syncthreads();
+    }
+#else
     if (BlockSize > 32) {
         for (int s = BlockSize / 2; s >= 32; s >>= 1) {
             if (threadIdx.x < s) {
@@ -700,6 +793,7 @@ __forceinline__ __device__ void SharedReduce8(float4* val0, float4* val1, float*
         __syncwarp();
 
     }
+#endif
     __syncthreads();
     (*val0) = Float4FromSharedMemory<BlockSize>(tmp, 0);
     (*val1) = Float4FromSharedMemory<BlockSize>(tmp + 4 * BlockSize, 0);
@@ -725,6 +819,7 @@ __forceinline__ __device__ void SharedPartReduce4(float4 val0, float4 val1, floa
 
 
 
+#if !defined(USE_HIP)  // float2 operators: provided by HIP_vector_type on HIP
 __forceinline__ __device__ float2 operator*(float2 left, float2 right) {
     float2 result;
     result.x = left.x * right.x;
@@ -821,6 +916,7 @@ __forceinline__ __device__ float2& operator/=(float2& left, float right) {
     left = left / right;
     return left;
 }
+#endif  // !USE_HIP (float2 operators)
 
 
 __forceinline__ __device__ float2 Sqrt2(float2 left) {

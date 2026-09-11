@@ -378,7 +378,11 @@ namespace NKernel
                                        float* histograms) {
 
         const int featuresPerBlock = BlockSize / 32;
-        using WarpScan = cub::WarpScan<double>;
+        // One feature per 32-lane logical warp. hipCUB's WarpScan defaults to the
+        // physical wavefront (64 on gfx90a), which would scan two features
+        // together; pin the logical width to 32 (identical to CUDA's default) so
+        // each feature scans its own 32 lanes on wave64 too.
+        using WarpScan = cub::WarpScan<double, 32>;
         __shared__ typename WarpScan::TempStorage tempStorage[featuresPerBlock];
 
         const int warpId = threadIdx.x / 32;
@@ -457,7 +461,11 @@ namespace NKernel
                                       float* histograms) {
 
         const int featuresPerBlock = BlockSize / 32;
-        using WarpScan = cub::WarpScan<double>;
+        // One feature per 32-lane logical warp. hipCUB's WarpScan defaults to the
+        // physical wavefront (64 on gfx90a), which would scan two features
+        // together; pin the logical width to 32 (identical to CUDA's default) so
+        // each feature scans its own 32 lanes on wave64 too.
+        using WarpScan = cub::WarpScan<double, 32>;
         __shared__ typename WarpScan::TempStorage tempStorage[featuresPerBlock];
 
         const int warpId = threadIdx.x / 32;

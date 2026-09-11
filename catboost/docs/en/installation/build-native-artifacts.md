@@ -34,6 +34,12 @@ It is disabled by default and can be enabled by adding `--have-cuda` flag when c
 
 {% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures.md) %}
 
+## HIP/ROCm support
+
+[ROCm](https://www.amd.com/en/products/software/rocm.html) support (via HIP) is available for AMD GPUs on the Linux and Windows target platforms, as an alternative to CUDA.
+
+It is disabled by default and can be enabled by setting `-DHAVE_HIP=ON` when calling `cmake`. Use the ROCm `clang`/`clang++` as the C, C++, and HIP compiler, and select the target GPU architectures with `-DCMAKE_HIP_ARCHITECTURES=<arch>` (for example `gfx90a` or `gfx1100`). Because {{ product }} builds against its bundled C++ standard library, the C runtime must be made explicit on the link line: also pass `-DCMAKE_C_STANDARD_LIBRARIES="-lc -lm"`, `-DCMAKE_CXX_STANDARD_LIBRARIES="-lc -lm"`, and `-DCMAKE_HIP_STANDARD_LIBRARIES="-lc -lm"`.
+
 ## Targets {#targets}
 
 CMakeFiles for {{ product }} CMake projects contain different targets that correspond to native artifacts.
@@ -240,6 +246,8 @@ So it is recommended to pass toolchain that will set `clang` and `clang++` as C 
 - [`-DCUDAToolkit_ROOT=<path>`](https://cmake.org/cmake/help/latest/module/FindCUDAToolkit.html#search-behavior) - Specify path to CUDA installation directory. Useful if a specific CUDA version has to be selected from several versions installed or if CUDA has been installed to a non-standard path so CMake is unable to find it automatically.
 
 - [`-DCMAKE_CUDA_RUNTIME_LIBRARY=<None|Shared|Static>`](https://cmake.org/cmake/help/latest/variable/CMAKE_CUDA_RUNTIME_LIBRARY.html) - Select the CUDA runtime library for use when compiling and linking CUDA.
+
+- `-DHAVE_HIP=<ON|OFF>` - Turn HIP/ROCm (AMD GPU) support on or off, as an alternative to CUDA. Off by default. Select target architectures with `-DCMAKE_HIP_ARCHITECTURES`; see the "HIP/ROCm support" section above for the required compiler and standard-library settings.
 
 - `-DJAVA_HOME=<path>` - path of JDK installation to be used during build. Relevant only to build components with JVM API (JVM applier and CatBoost for Apache Spark). `JAVA_HOME` environment variable will be used by default.
 

@@ -109,8 +109,21 @@ namespace {
             auto context = MakeHolder<TKernelContext>(FirstBit, LastBit, CompareGreater);
             if (size) {
                 //fill temp storage size by cub
+#if defined(USE_HIP)
+                // Size the temp storage for the SAME keys-vs-pairs path the Run will
+                // take. Passing (V*)nullptr unconditionally sizes for SortKeys, but a
+                // pairs Run (Values != null) calls SortPairs, which needs more temp
+                // storage on rocPRIM -> hipErrorInvalidValue at Run. Pass Values.Get()
+                // so a pairs sort sizes for SortPairs. (Safe: the size query ignores the
+                // data pointers, and tmpValues stays null so the gap-seed memcpy is
+                // skipped.) CUB sizes SortKeys/SortPairs identically, so the CUDA path
+                // keeps (V*)nullptr below.
+                CUDA_SAFE_CALL(NKernel::SegmentedRadixSort((K*)nullptr, Values.Get(), (K*)nullptr, (V*)nullptr,
+                                                           size, nullptr, nullptr, PartCount, *context, 0));
+#else
                 CUDA_SAFE_CALL(NKernel::SegmentedRadixSort((K*)nullptr, (V*)nullptr, (K*)nullptr, (V*)nullptr,
                                                            size, nullptr, nullptr, PartCount, *context, 0));
+#endif
                 context->TempStorage = manager.Allocate<char>(context->TempStorageSize);
             }
             return context;
