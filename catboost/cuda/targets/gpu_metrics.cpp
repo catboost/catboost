@@ -300,6 +300,20 @@ namespace NCatboostCuda {
                     const double sum = ReadReduce(tmp)[0];
                     return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
+                case ELossFunction::MultiRMSEWithMissingValues: {
+                    //objects with a missing target are excluded from the weight sum of that
+                    //dimension only, so the metric keeps (sum of errors, sum of weights) per
+                    //target dimension, see TMultiRMSEWithMissingValues on CPU
+                    const int statCount = static_cast<int>(2 * target.GetColumnCount());
+                    auto stats = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(statCount));
+                    MultiRMSEWithMissingValuesStats(target, weights, cursor, &stats);
+                    const TVector<float> statsCpu = ReadReduce(stats);
+                    TMetricHolder result(statCount);
+                    for (int i = 0; i < statCount; ++i) {
+                        result.Stats[i] = statsCpu[i];
+                    }
+                    return result;
+                }
                 case ELossFunction::MCC: {
                     return BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache);
                 }
@@ -580,7 +594,8 @@ namespace NCatboostCuda {
         const bool isMultiLabel = IsMultiLabelObjective(targetObjective);
         const bool isRMSEWithUncertainty = targetObjective == ELossFunction::RMSEWithUncertainty;
         const bool isMultiRMSE = targetObjective == ELossFunction::MultiRMSE;
-        if (isMulticlass || isMultiLabel || isRMSEWithUncertainty || isMultiRMSE) {
+        const bool isMultiRMSEWithMissingValues = targetObjective == ELossFunction::MultiRMSEWithMissingValues;
+        if (isMulticlass || isMultiLabel || isRMSEWithUncertainty || isMultiRMSE || isMultiRMSEWithMissingValues) {
             CB_ENSURE(approxDim > 1, "Error: Approx dimension equal to 1 for multidimensional output");
         } else {
             CB_ENSURE(approxDim == 1, "Error: non-multidimensional output dim should be equal to 1");
@@ -603,6 +618,7 @@ namespace NCatboostCuda {
             case ELossFunction::MultiCrossEntropy:
             case ELossFunction::MultiLogloss:
             case ELossFunction::MultiRMSE:
+            case ELossFunction::MultiRMSEWithMissingValues:
             case ELossFunction::MAPE:
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:
