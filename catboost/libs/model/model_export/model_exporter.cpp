@@ -96,17 +96,6 @@ namespace NCB {
             !model.HasEmbeddingFeatures(),
             "ONNX-ML format export does not support embedding features"
         );
-        CB_ENSURE(
-            model.ModelTrees->GetOneHotFeatures().empty() || catFeaturesHashToString,
-            "catFeaturesHashToString has to be specified if the model contains one hot features"
-        );
-
-        for (const auto& split : model.ModelTrees->GetBinFeatures()) {
-            CB_ENSURE(
-                split.Type == ESplitType::FloatFeature || split.Type == ESplitType::OneHotFeature,
-                "ONNX-ML format export only supports FloatFeature and OneHotFeature splits"
-            );
-        }
 
         onnx::ModelProto outModel;
 
