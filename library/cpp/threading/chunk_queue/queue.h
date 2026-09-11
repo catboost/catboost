@@ -416,8 +416,9 @@ namespace NThreading {
 
         template <typename TT>
         bool TryEnqueue(TT&& value, ui64 tag) {
-            for (size_t i = 0; i < Concurrency; ++i) {
-                TQueueType& queue = Queues[i];
+            const size_t reminder = tag % Concurrency;
+            for (size_t i = reminder; i < Concurrency + reminder; ++i) {
+                TQueueType& queue = Queues[i % Concurrency];
                 if (queue.WriteLock.IsLocked()) {
                     continue;
                 }
