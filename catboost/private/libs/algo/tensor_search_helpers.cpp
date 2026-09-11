@@ -42,6 +42,8 @@ TSplit TCandidateInfo::GetSplit(
     const TQuantizedObjectsDataProvider& objectsData,
     ui32 oneHotMaxSize
 ) const {
+    CB_ENSURE_INTERNAL(binId >= 0, "GetSplit: invalid bin id " << binId);
+
     auto getCandidateType = [&] (EFeatureType featureType) {
         if (SplitEnsemble.IsEstimated) {
             return ESplitType::EstimatedFeature;

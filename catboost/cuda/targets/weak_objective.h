@@ -1,5 +1,6 @@
 #pragma once
 
+#include <util/generic/maybe.h>
 #include <util/generic/noncopyable.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>
@@ -24,7 +25,11 @@ namespace NCatboostCuda {
         virtual ~IWeakObjective() {
         }
 
+        /* mvsLambda is the regularization for MVS bootstrap used if mvs_reg is not set explicitly
+         * (usually L1 leaves sum of the previous tree), ignored for other bootstrap types
+         */
         virtual void StochasticDer(const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
+                                   TMaybe<float> mvsLambda,
                                    bool secondDerAsWeights,
                                    TOptimizationTarget* target) const = 0;
 
