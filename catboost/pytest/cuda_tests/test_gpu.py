@@ -3484,3 +3484,61 @@ def test_mvs_bootstrap(boosting_type, loss_function):
         assert (filecmp.cmp(ref_eval_path, eval_path) is False)
 
     return [local_canonical_file(ref_eval_path)]
+
+
+# MVS bootstrap with non-symmetric trees used to crash (memory corruption) on GPU, see #1935
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE'])
+@pytest.mark.parametrize('score_function', ['Cosine', 'NewtonL2'])
+def test_mvs_bootstrap_nonsymmetric(grow_policy, loss_function, score_function):
+    pool = 'airlines_5K'
+    learn_file = data_file(pool, 'train')
+    test_file = data_file(pool, 'test')
+    cd_file = data_file(pool, 'cd')
+
+    def run_catboost(eval_path, mvs_sample_rate, mvs_reg=None):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--use-best-model', 'false',
+            '--allow-writing-files', 'false',
+            '--loss-function', loss_function,
+            '--max-ctr-complexity', '5',
+            '-f', learn_file,
+            '-t', test_file,
+            '--column-description', cd_file,
+            '--has-header',
+            '--task-type', 'GPU',
+            '--devices', '0',
+            '--boosting-type', 'Plain',
+            '--grow-policy', grow_policy,
+            '--score-function', score_function,
+            '--bootstrap-type', 'MVS',
+            '--subsample', mvs_sample_rate,
+            '-i', '50',
+            '-w', '0.03',
+            '-T', '6',
+            '-r', '0',
+            '--leaf-estimation-iterations', '10',
+            '--eval-file', eval_path,
+        ]
+        if mvs_reg is not None:
+            cmd += ['--mvs-reg', mvs_reg]
+        yatest.common.execute(cmd)
+
+    def read_eval(eval_path):
+        return np.loadtxt(eval_path, delimiter='\t', skiprows=1, usecols=[1])
+
+    ref_eval_path = yatest.common.test_output_path('test.eval')
+    run_catboost(ref_eval_path, '0.5')
+    ref_eval = read_eval(ref_eval_path)
+    assert np.all(np.isfinite(ref_eval))
+
+    for sample_rate in ('0.1', '0.9'):
+        eval_path = yatest.common.test_output_path('test_{}.eval'.format(sample_rate))
+        run_catboost(eval_path, sample_rate)
+        assert not np.array_equal(ref_eval, read_eval(eval_path))
+
+    eval_path = yatest.common.test_output_path('test_mvs_reg.eval')
+    run_catboost(eval_path, '0.5', mvs_reg='0.1')
+    assert np.all(np.isfinite(read_eval(eval_path)))
