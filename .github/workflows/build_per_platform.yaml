@@ -208,7 +208,7 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
 
-          python -m pip install -U conan==2.4.1 setuptools jupyterlab==3.0.6 build
+          python -m pip install -U conan==2.9.2 setuptools jupyterlab==3.0.6 build
 
           # version 1.13.0 is broken: https://github.com/ninja-build/ninja/issues/2616
           choco install ninja --version 1.12.1 --allow-downgrade
