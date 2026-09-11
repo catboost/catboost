@@ -3796,6 +3796,7 @@ class CatBoost(_CatBoostBase):
                 * pmml_model_version : string
         pool : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or catboost.FeaturesData
             Training dataset.
+            Required if the model contains categorical features and the format is 'cpp', 'python', 'json' or 'onnx'.
         """
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to use save_model(). Use fit() to train model. Then use this method.")

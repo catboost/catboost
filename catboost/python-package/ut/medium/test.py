@@ -1845,10 +1845,12 @@ def test_onnx_import(problem_type, boost_from_average):
         assert np.all(canon_pred == loaded_pred)
 
 
-def test_onnx_export_with_categorical_features():
+@pytest.mark.parametrize('with_feature_names', [False, True], ids=['with_feature_names=False', 'with_feature_names=True'])
+def test_onnx_export_with_categorical_features(with_feature_names):
     onnxruntime = pytest.importorskip("onnxruntime")
 
     cat_features = [0, 1]
+    feature_names = ['color', 'shape', 'size'] if with_feature_names else None
     X = np.array([
         ['a', 'x', 1.0],
         ['b', 'y', 2.0],
@@ -1861,7 +1863,16 @@ def test_onnx_export_with_categorical_features():
     ], dtype=object)
     y = np.array([1.0, 2.0, 1.5, 2.5, 1.2, 2.2, 1.8, 2.8])
 
-    train_pool = Pool(X, y, cat_features=cat_features)
+    # contains categorical values unseen during training
+    X_test = np.array([
+        ['a', 'x', 1.5],
+        ['c', 'y', 2.5],
+        ['b', 'z', 3.5],
+        ['c', 'z', 4.5],
+    ], dtype=object)
+
+    train_pool = Pool(X, y, cat_features=cat_features, feature_names=feature_names)
+    test_pool = Pool(X_test, cat_features=cat_features, feature_names=feature_names)
 
     model = CatBoostRegressor(
         iterations=5,
@@ -1872,8 +1883,6 @@ def test_onnx_export_with_categorical_features():
         task_type='CPU'
     )
     model.fit(train_pool)
-
-    cb_pred = model.predict(train_pool)
 
     output_onnx_model_path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
     model.save_model(
@@ -1890,18 +1899,37 @@ def test_onnx_export_with_categorical_features():
 
     session = onnxruntime.InferenceSession(output_onnx_model_path, providers=['CPUExecutionProvider'])
     input_names = [inp.name for inp in session.get_inputs()]
+    if with_feature_names:
+        assert sorted(input_names) == ['color', 'features', 'shape']
+        cat_input_names = ['color', 'shape']
+    else:
+        assert sorted(input_names) == ['cat_feature_0', 'cat_feature_1', 'features']
+        cat_input_names = ['cat_feature_0', 'cat_feature_1']
 
-    feed = {}
-    for name in input_names:
-        if name == 'features':
-            feed[name] = X[:, 2:3].astype(np.float32)
-        elif name == 'cat_feature_0':
-            feed[name] = X[:, 0:1].astype(str)
-        elif name == 'cat_feature_1':
-            feed[name] = X[:, 1:2].astype(str)
+    for pool, data in [(train_pool, X), (test_pool, X_test)]:
+        feed = {'features': data[:, 2:3].astype(np.float32)}
+        for cat_feature_idx, cat_input_name in zip(cat_features, cat_input_names):
+            feed[cat_input_name] = data[:, cat_feature_idx:cat_feature_idx + 1].astype(str)
 
-    onnx_pred = session.run(None, feed)[0].flatten()
-    assert np.allclose(cb_pred, onnx_pred, atol=1e-4)
+        onnx_pred = session.run(None, feed)[0].flatten()
+        assert np.allclose(model.predict(pool), onnx_pred, atol=1e-4)
+
+
+def test_onnx_export_with_categorical_features_without_pool():
+    X = np.array([
+        ['a', 1.0],
+        ['b', 2.0],
+        ['a', 3.0],
+        ['b', 4.0],
+    ], dtype=object)
+    y = np.array([1.0, 2.0, 1.5, 2.5])
+    train_pool = Pool(X, y, cat_features=[0])
+
+    model = CatBoostRegressor(iterations=5, depth=2, one_hot_max_size=255, verbose=False, task_type='CPU')
+    model.fit(train_pool)
+
+    with pytest.raises(CatBoostError):
+        model.save_model(test_output_path(OUTPUT_ONNX_MODEL_PATH), format="onnx")
 
 
 def test_onnx_import_with_categorical_features():
