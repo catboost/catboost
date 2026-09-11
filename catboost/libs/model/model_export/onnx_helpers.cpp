@@ -19,12 +19,15 @@
 #include <util/generic/mapfindptr.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
+#include <util/generic/utility.h>
 #include <util/generic/xrange.h>
+#include <util/generic/ymath.h>
 #include <util/string/cast.h>
 #include <util/string/join.h>
 #include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
+#include <cmath>
 #include <numeric>
 
 
@@ -384,13 +387,160 @@ public:
 };
 
 
+/*
+ * Categorical features in ONNX-ML export.
+ *
+ * ONNX-ML TreeEnsemble* operators accept a single float tensor as input, so categorical features are
+ * handled in the same way as in PMML export:
+ *  - each categorical feature used in one-hot splits gets its own string input;
+ *  - a LabelEncoder node maps its string values to indices in TOneHotFeature::Values (as floats),
+ *    values not seen during training are mapped to -1 so they do not match any split;
+ *  - a Concat node joins the numerical features tensor and the encoded categorical features
+ *    (numerical features first), its output is the input of the TreeEnsemble* node.
+ *
+ * Feature indices in TreeEnsemble* nodes are:
+ *  - index among float features for float features (the "features" input contains only float features
+ *    in this case);
+ *  - (float features count + position among exported categorical features) for categorical features.
+ *
+ * Models without one-hot features keep the original layout: the single "features" input has
+ * GetFlatFeatureVectorExpectedSize() columns and float features are addressed by their flat indices.
+ */
+
+struct TOnnxFeaturesLayout {
+    TString TreesInputName;
+
+    // float feature index -> feature index in the TreeEnsemble* input tensor
+    TVector<int> FloatFeatureToOnnxFeatureIdx;
+
+    // cat feature index -> feature index in the TreeEnsemble* input tensor, -1 if not exported
+    TVector<int> CatFeatureToOnnxFeatureIdx;
+
+    // [catFeatureIdx][hashed value] -> index in TOneHotFeature::Values
+    TVector<THashMap<int, ui32>> OneHotValuesToIdx;
+};
+
+
+static TString GetCatFeatureInputName(const TCatFeature& catFeature) {
+    if (catFeature.FeatureId) {
+        return catFeature.FeatureId;
+    }
+    return "cat_feature_" + ToString(catFeature.Position.FlatIndex);
+}
+
+
+static TOnnxFeaturesLayout InitInputs(
+    const TModelTrees& trees,
+    const THashMap<ui32, TString>* catFeaturesHashToString,
+    onnx::GraphProto* onnxGraph) {
+
+    TOnnxFeaturesLayout layout;
+
+    if (trees.GetOneHotFeatures().empty()) {
+        InitValueInfo(
+            "features",
+            onnx::TensorProto_DataType_FLOAT,
+            trees.GetFlatFeatureVectorExpectedSize(),
+            onnxGraph->add_input());
+        layout.TreesInputName = "features";
+
+        for (const auto& floatFeature : trees.GetFloatFeatures()) {
+            layout.FloatFeatureToOnnxFeatureIdx.push_back(floatFeature.Position.FlatIndex);
+        }
+        return layout;
+    }
+
+    CB_ENSURE(
+        catFeaturesHashToString,
+        "Categorical features hash to string mapping is required for ONNX-ML export of models with"
+        " categorical features (pass the training dataset to the export function)"
+    );
+
+    const int floatFeaturesCount = (int)trees.GetFloatFeatures().size();
+
+    InitValueInfo(
+        "features",
+        onnx::TensorProto_DataType_FLOAT,
+        floatFeaturesCount,
+        onnxGraph->add_input());
+
+    for (auto floatFeatureIdx : xrange(floatFeaturesCount)) {
+        layout.FloatFeatureToOnnxFeatureIdx.push_back(floatFeatureIdx);
+    }
+
+    onnx::NodeProto* concatNode = onnxGraph->add_node();
+    concatNode->set_op_type("Concat");
+    AddAttribute("axis", i64(1), concatNode);
+    concatNode->add_input("features");
+
+    THashSet<TString> usedNames = {"features", "all_features"};
+
+    layout.CatFeatureToOnnxFeatureIdx.assign(trees.GetCatFeatures().size(), -1);
+    layout.OneHotValuesToIdx.resize(trees.GetCatFeatures().size());
+
+    int exportedCatFeaturesCount = 0;
+    for (const auto& oneHotFeature : trees.GetOneHotFeatures()) {
+        const int catFeatureIdx = oneHotFeature.CatFeatureIndex;
+        const auto& catFeature = trees.GetCatFeatures()[catFeatureIdx];
+
+        const TString inputName = GetCatFeatureInputName(catFeature);
+        const TString encodedName = inputName + "_encoded";
+        for (const auto& name : {inputName, encodedName}) {
+            CB_ENSURE(
+                usedNames.insert(name).second,
+                "Cannot export model to ONNX-ML: feature name \"" << name << "\" is not unique"
+            );
+        }
+
+        InitValueInfo(
+            inputName,
+            onnx::TensorProto_DataType_STRING,
+            /*secondDim*/ 1,
+            onnxGraph->add_input());
+
+        TVector<TString> keysStrings;
+        TVector<float> valuesFloats;
+        auto& oneHotValuesToIdx = layout.OneHotValuesToIdx[catFeatureIdx];
+        for (auto i : xrange(oneHotFeature.Values.size())) {
+            const int hashedValue = oneHotFeature.Values[i];
+            const TString* stringValue = catFeaturesHashToString->FindPtr((ui32)hashedValue);
+            CB_ENSURE(
+                stringValue,
+                "Cannot find string value for categorical feature \"" << inputName << "\" hash "
+                << (ui32)hashedValue << ", the dataset passed to the export must contain all categorical"
+                " values used by the model"
+            );
+            keysStrings.push_back(*stringValue);
+            valuesFloats.push_back((float)i);
+            oneHotValuesToIdx.emplace(hashedValue, (ui32)i);
+        }
+
+        onnx::NodeProto* labelEncoderNode = onnxGraph->add_node();
+        labelEncoderNode->set_domain(onnx::AI_ONNX_ML_DOMAIN);
+        labelEncoderNode->set_op_type("LabelEncoder");
+        labelEncoderNode->add_input(inputName);
+        labelEncoderNode->add_output(encodedName);
+        AddAttribute("keys_strings", keysStrings, labelEncoderNode);
+        AddAttribute("values_floats", valuesFloats, labelEncoderNode);
+        AddAttribute("default_float", -1.0f, labelEncoderNode);
+
+        concatNode->add_input(encodedName);
+        layout.CatFeatureToOnnxFeatureIdx[catFeatureIdx] = floatFeaturesCount + exportedCatFeaturesCount;
+        ++exportedCatFeaturesCount;
+    }
+
+    layout.TreesInputName = "all_features";
+    concatNode->add_output(layout.TreesInputName);
+
+    return layout;
+}
+
+
 static void AddTree(
     const TModelTrees& trees,
     i64 treeIdx,
     bool isClassifierModel,
-    const TVector<THashMap<int, ui32>>& oneHotValuesToIdx,
-    TConstArrayRef<int> catFeatureIdxToOnnxFeatureIdx,
-    int numFloatFeatures,
+    const TOnnxFeaturesLayout& layout,
     TTreesAttributes* treesAttributes) {
 
     i64 nodeIdx = 0;
@@ -400,47 +550,33 @@ static void AddTree(
         const auto& split = trees.GetBinFeatures()[
             trees.GetModelTreeData()->GetTreeSplits()[trees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx] + (trees.GetModelTreeData()->GetTreeSizes()[treeIdx] - 1 - depth)]];
 
-        int splitFlatFeatureIdx = 0;
+        int splitFeatureIdx = 0;
         TString nodeMode;
         i64 missingValueTracksTrue = 0;
         float splitValue = 0.0f;
 
         if (split.Type == ESplitType::FloatFeature) {
             const auto& floatFeature = trees.GetFloatFeatures()[split.FloatFeature.FloatFeature];
+            splitFeatureIdx = layout.FloatFeatureToOnnxFeatureIdx[split.FloatFeature.FloatFeature];
             nodeMode = TModeNode::BRANCH_GT;
             if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue) {
                 missingValueTracksTrue = 1;
             }
             splitValue = split.FloatFeature.Split;
-            // When there are no one-hot features, the input tensor uses original flat indices.
-            // When one-hot features are present, float features are concatenated first
-            // and renumbered starting from 0.
-            if (trees.GetOneHotFeatures().empty()) {
-                splitFlatFeatureIdx = floatFeature.Position.FlatIndex;
-            } else {
-                splitFlatFeatureIdx = split.FloatFeature.FloatFeature;
-            }
         } else if (split.Type == ESplitType::OneHotFeature) {
-            CB_ENSURE(
-                split.OneHotFeature.CatFeatureIdx < (int)oneHotValuesToIdx.size(),
-                "Invalid CatFeatureIdx in OneHotFeature split");
-            const auto& valueMap = oneHotValuesToIdx[split.OneHotFeature.CatFeatureIdx];
-            auto it = valueMap.find(split.OneHotFeature.Value);
-            CB_ENSURE(
-                it != valueMap.end(),
-                "OneHotFeature value not found in categorical mapping for feature " << split.OneHotFeature.CatFeatureIdx);
-            CB_ENSURE(
-                split.OneHotFeature.CatFeatureIdx < (int)catFeatureIdxToOnnxFeatureIdx.size()
-                    && catFeatureIdxToOnnxFeatureIdx[split.OneHotFeature.CatFeatureIdx] >= 0,
-                "No ONNX input for categorical feature " << split.OneHotFeature.CatFeatureIdx);
-            splitFlatFeatureIdx = numFloatFeatures + catFeatureIdxToOnnxFeatureIdx[split.OneHotFeature.CatFeatureIdx];
+            const int catFeatureIdx = split.OneHotFeature.CatFeatureIdx;
+            splitFeatureIdx = layout.CatFeatureToOnnxFeatureIdx.at(catFeatureIdx);
+            CB_ENSURE_INTERNAL(splitFeatureIdx >= 0, "categorical feature " << catFeatureIdx << " has no ONNX input");
             nodeMode = TModeNode::BRANCH_EQ;
-            splitValue = static_cast<float>(it->second);
+            // NaN can't be a value of a string tensor
             missingValueTracksTrue = 0;
+            splitValue = (float)layout.OneHotValuesToIdx[catFeatureIdx].at(split.OneHotFeature.Value);
         } else {
             CB_ENSURE(
                 false,
-                "Only FloatFeature and OneHotFeature splits are supported in ONNX-ML format export"
+                "ONNX-ML format export supports only float features and one-hot encoded categorical features"
+                " splits. Set one_hot_max_size parameter to a value greater than the maximum number of unique"
+                " categorical feature values to make all categorical features one-hot encoded"
             );
         }
 
@@ -451,7 +587,7 @@ static void AddTree(
 
             treesAttributes->nodes_modes->add_strings(nodeMode);
 
-            treesAttributes->nodes_featureids->add_ints((i64)splitFlatFeatureIdx);
+            treesAttributes->nodes_featureids->add_ints((i64)splitFeatureIdx);
             treesAttributes->nodes_values->add_floats(splitValue);
             treesAttributes->nodes_falsenodeids->add_ints(2*nodeIdx + 1);
             treesAttributes->nodes_truenodeids->add_ints(2*nodeIdx + 2);
@@ -477,6 +613,7 @@ static void AddTree(
         treesAttributes->nodes_truenodeids->add_ints(0);
         treesAttributes->nodes_missing_value_tracks_true->add_ints(0);
         treesAttributes->nodes_hitrates->add_floats(1.0f);
+
 
         if (isClassifierModel) {
             if (trees.GetDimensionsCount() > 1) {
@@ -527,94 +664,12 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
 
     onnxGraph->set_name(onnxGraphName.GetOrElse("CatBoostModel"));
 
-    const int numFloatFeatures = (int)trees.GetFloatFeatures().size();
-
-    // Build oneHotValuesToIdx mapping for categorical features
-    TVector<THashMap<int, ui32>> oneHotValuesToIdx;
-    if (!trees.GetOneHotFeatures().empty()) {
-        CB_ENSURE_INTERNAL(
-            catFeaturesHashToString,
-            "catFeaturesHashToString must be provided for models with one-hot features");
-        oneHotValuesToIdx.resize(trees.GetCatFeatures().size());
-        for (const auto& oneHotFeature : trees.GetOneHotFeatures()) {
-            auto& oneHotValuesToIdxMap = oneHotValuesToIdx[oneHotFeature.CatFeatureIndex];
-            for (auto i : xrange(oneHotFeature.Values.size())) {
-                oneHotValuesToIdxMap.emplace(oneHotFeature.Values[i], (ui32)i);
-            }
-        }
-    }
-
-    TString treesInputName;
-    TVector<int> catFeatureIdxToOnnxFeatureIdx;
-    if (!trees.GetOneHotFeatures().empty()) {
-        // Float features input
-        InitValueInfo(
-            "features",
-            onnx::TensorProto_DataType_FLOAT,
-            numFloatFeatures,
-            onnxGraph->add_input());
-
-        // String inputs and LabelEncoders for categorical features.
-        // The flat index of an encoded categorical feature in the concatenated tensor is
-        // numFloatFeatures + its position in catFeatureEncodedNames.
-        TVector<TString> catFeatureEncodedNames;
-        catFeatureIdxToOnnxFeatureIdx.assign(trees.GetCatFeatures().size(), -1);
-        for (const auto& oneHotFeature : trees.GetOneHotFeatures()) {
-            const auto& catFeature = trees.GetCatFeatures()[oneHotFeature.CatFeatureIndex];
-            TString inputName = catFeature.FeatureId.empty()
-                ? "cat_feature_" + ToString(catFeature.Position.FlatIndex)
-                : catFeature.FeatureId;
-            TString encodedName = inputName + "_encoded";
-            catFeatureIdxToOnnxFeatureIdx[oneHotFeature.CatFeatureIndex] = (int)catFeatureEncodedNames.size();
-            catFeatureEncodedNames.push_back(encodedName);
-
-            InitValueInfo(
-                inputName,
-                onnx::TensorProto_DataType_STRING,
-                /*secondDim*/ 1,
-                onnxGraph->add_input());
-
-            onnx::NodeProto* labelEncoderNode = onnxGraph->add_node();
-            labelEncoderNode->set_domain(onnx::AI_ONNX_ML_DOMAIN);
-            labelEncoderNode->set_op_type("LabelEncoder");
-            labelEncoderNode->add_input(inputName);
-            labelEncoderNode->add_output(encodedName);
-
-            TVector<TString> keysStrings;
-            TVector<float> valuesFloats;
-            for (auto i : xrange(oneHotFeature.Values.size())) {
-                keysStrings.push_back(catFeaturesHashToString->at((ui32)oneHotFeature.Values[i]));
-                valuesFloats.push_back((float)i);
-            }
-
-            AddAttribute("keys_strings", keysStrings, labelEncoderNode);
-            AddAttribute("values_floats", valuesFloats, labelEncoderNode);
-            AddAttribute("default_float", -1.0f, labelEncoderNode);
-        }
-
-        // Concatenate float features and encoded categorical features
-        onnx::NodeProto* concatNode = onnxGraph->add_node();
-        concatNode->set_op_type("Concat");
-        AddAttribute("axis", (i64)1, concatNode);
-        concatNode->add_input("features");
-        for (const auto& encodedName : catFeatureEncodedNames) {
-            concatNode->add_input(encodedName);
-        }
-        treesInputName = "all_features";
-        concatNode->add_output(treesInputName);
-    } else {
-        InitValueInfo(
-            "features",
-            onnx::TensorProto_DataType_FLOAT,
-            trees.GetFlatFeatureVectorExpectedSize(),
-            onnxGraph->add_input());
-        treesInputName = "features";
-    }
+    const TOnnxFeaturesLayout layout = InitInputs(trees, catFeaturesHashToString, onnxGraph);
 
     onnx::NodeProto* treesNode = onnxGraph->add_node();
     treesNode->set_domain(onnx::AI_ONNX_ML_DOMAIN);
-    treesNode->add_input(treesInputName);
 
+    treesNode->add_input(layout.TreesInputName);
     if (isClassifierModel) {
         treesNode->set_op_type("TreeEnsembleClassifier");
 
@@ -693,7 +748,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         }
     }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
-        AddTree(trees, treeIdx, isClassifierModel, oneHotValuesToIdx, catFeatureIdxToOnnxFeatureIdx, numFloatFeatures, &treesAttributes);
+        AddTree(trees, treeIdx, isClassifierModel, layout, &treesAttributes);
     }
 }
 
@@ -716,72 +771,239 @@ static void ConfigureMetaInfo(const onnx::ModelProto& onnxModel, TFullModel* ful
 }
 
 
-static void PrepareTrees(
-    const TTreesAttributes& treesAttributes,
-    const bool isClassifierModel,
-    TVector<THashMap<int, NCB::NOnnx::TOnnxNode>>* trees,
-    int* approxDimension,
-    TVector<TFloatFeature>* floatFeatures,
-    TVector<TCatFeature>* catFeatures,
-    THashMap<int, int>* flatFeatureIndexToPerTypeIndex,
-    const THashMap<int, THashMap<int, TString>>* catFeatureIdxToEnumIdToString = nullptr
-) {
-    // First pass: determine which features are categorical based on node modes
-    THashSet<int> categoricalFeatureIds;
-    for (auto idx = 0; idx < treesAttributes.nodes_treeids->ints_size(); ++idx) {
-        const TString nodeMode = treesAttributes.nodes_modes->strings(idx);
-        if (nodeMode != TModeNode::LEAF) {
-            if (nodeMode == TModeNode::BRANCH_EQ || nodeMode == TModeNode::BRANCH_NEQ) {
-                categoricalFeatureIds.insert(treesAttributes.nodes_featureids->ints(idx));
-            }
+struct TOnnxCatFeatureInputInfo {
+    TString Name;
+    THashMap<int, TString> EncodedValueToString; // from LabelEncoder attributes
+};
+
+// Description of the TreeEnsemble* node input tensor
+struct TOnnxTreesInputInfo {
+    // number of columns, 0 if it can't be determined from the graph
+    int FeaturesCount = 0;
+
+    // column index -> info about categorical feature preprocessed with LabelEncoder
+    THashMap<int, TOnnxCatFeatureInputInfo> CatFeatureInputs;
+};
+
+
+static i64 GetSecondDim(const onnx::ValueInfoProto& valueInfo) {
+    const auto& shape = valueInfo.type().tensor_type().shape();
+    CB_ENSURE(
+        shape.dim_size() == 2,
+        "Dimension of input \"" << valueInfo.name() << "\" must have format [N, featuresCount]"
+    );
+    CB_ENSURE(shape.dim(1).has_dim_value(), "Second dimension of input \"" << valueInfo.name() << "\" is unknown");
+    return shape.dim(1).dim_value();
+}
+
+
+static const onnx::NodeProto* FindTreesNode(const onnx::GraphProto& onnxGraph) {
+    for (const auto& node : onnxGraph.node()) {
+        if ((node.op_type() == "TreeEnsembleClassifier") || (node.op_type() == "TreeEnsembleRegressor")) {
+            return &node;
+        }
+    }
+    ythrow TCatBoostException() << "TreeEnsembleClassifier or TreeEnsembleRegressor node not found in ONNX graph";
+}
+
+
+static THashMap<int, TString> GetLabelEncoderMapping(const onnx::NodeProto& labelEncoderNode) {
+    const onnx::AttributeProto* keysStrings = nullptr;
+    const onnx::AttributeProto* valuesFloats = nullptr;
+    for (const auto& attribute : labelEncoderNode.attribute()) {
+        if (attribute.name() == "keys_strings") {
+            keysStrings = &attribute;
+        } else if (attribute.name() == "values_floats") {
+            valuesFloats = &attribute;
+        }
+    }
+    CB_ENSURE(
+        keysStrings && valuesFloats,
+        "Only LabelEncoder nodes with keys_strings and values_floats attributes are supported"
+    );
+    CB_ENSURE(
+        keysStrings->strings_size() == valuesFloats->floats_size(),
+        "LabelEncoder keys_strings and values_floats must have the same size"
+    );
+
+    THashMap<int, TString> result;
+    for (auto i : xrange(keysStrings->strings_size())) {
+        result[(int)valuesFloats->floats(i)] = keysStrings->strings(i);
+    }
+    return result;
+}
+
+
+/*
+ * Supported inputs of the TreeEnsemble* node:
+ *  - a graph input (float tensor with all features);
+ *  - an output of a Concat node whose inputs are graph inputs or outputs of LabelEncoder nodes applied
+ *    to graph inputs (this is how CatBoost exports models with categorical features);
+ *  - otherwise the first graph input is assumed to contain all features.
+ */
+static TOnnxTreesInputInfo GetTreesInputInfo(const onnx::GraphProto& onnxGraph, const TString& treesInputName) {
+    THashMap<TString, const onnx::ValueInfoProto*> graphInputs;
+    for (const auto& input : onnxGraph.input()) {
+        graphInputs[input.name()] = &input;
+    }
+    THashMap<TString, const onnx::NodeProto*> outputToNode;
+    for (const auto& node : onnxGraph.node()) {
+        for (const auto& output : node.output()) {
+            outputToNode[output] = &node;
         }
     }
 
-    // Build mapping from flat feature index to per-type index
-    THashSet<int> floatFeatureIds;
-    THashSet<int> catFeatureIds;
-    for (auto idx = 0; idx < treesAttributes.nodes_treeids->ints_size(); ++idx) {
-        const TString nodeMode = treesAttributes.nodes_modes->strings(idx);
+    TOnnxTreesInputInfo result;
+
+    if (const auto* graphInput = graphInputs.Value(treesInputName, nullptr)) {
+        result.FeaturesCount = (int)GetSecondDim(*graphInput);
+        return result;
+    }
+
+    const onnx::NodeProto* concatNode = outputToNode.Value(treesInputName, nullptr);
+    if (!concatNode || (concatNode->op_type() != "Concat")) {
+        CB_ENSURE(onnxGraph.input_size() > 0, "ONNX graph has no inputs");
+        result.FeaturesCount = (int)GetSecondDim(onnxGraph.input(0));
+        return result;
+    }
+
+    for (const auto& concatInputName : concatNode->input()) {
+        if (const auto* graphInput = graphInputs.Value(concatInputName, nullptr)) {
+            result.FeaturesCount += (int)GetSecondDim(*graphInput);
+            continue;
+        }
+
+        const onnx::NodeProto* labelEncoderNode = outputToNode.Value(concatInputName, nullptr);
+        CB_ENSURE(
+            labelEncoderNode && (labelEncoderNode->op_type() == "LabelEncoder"),
+            "Inputs of Concat node must be either graph inputs or outputs of LabelEncoder nodes"
+        );
+        const auto* labelEncoderInput = graphInputs.Value(labelEncoderNode->input(0), nullptr);
+        CB_ENSURE(labelEncoderInput, "Input of LabelEncoder node must be a graph input");
+        CB_ENSURE(
+            GetSecondDim(*labelEncoderInput) == 1,
+            "Input of LabelEncoder node must have a single column"
+        );
+
+        auto& catFeatureInput = result.CatFeatureInputs[result.FeaturesCount];
+        catFeatureInput.Name = labelEncoderInput->name();
+        catFeatureInput.EncodedValueToString = GetLabelEncoderMapping(*labelEncoderNode);
+        ++result.FeaturesCount;
+    }
+
+    return result;
+}
+
+
+static bool IsCatFeatureNodeMode(const TString& nodeMode) {
+    return (nodeMode == TModeNode::BRANCH_EQ) || (nodeMode == TModeNode::BRANCH_NEQ);
+}
+
+static bool IsFloatFeatureNodeMode(const TString& nodeMode) {
+    return (nodeMode == TModeNode::BRANCH_LEQ) || (nodeMode == TModeNode::BRANCH_LT) ||
+        (nodeMode == TModeNode::BRANCH_GTE) || (nodeMode == TModeNode::BRANCH_GT);
+}
+
+
+/*
+ * Features used in BRANCH_EQ/BRANCH_NEQ nodes and features preprocessed with LabelEncoder are considered
+ * categorical, all other features are considered float.
+ * All columns of the input tensor are added to the features (even if unused in the model) to preserve
+ * the input layout.
+ */
+static void PrepareFeatures(
+    const TTreesAttributes& treesAttributes,
+    const TOnnxTreesInputInfo& treesInputInfo,
+    TVector<TFloatFeature>* floatFeatures,
+    TVector<TCatFeature>* catFeatures,
+    TVector<int>* flatFeatureIndexToPerTypeIndex
+) {
+    int featuresCount = treesInputInfo.FeaturesCount;
+    THashSet<int> catFeatureFlatIndices;
+    for (const auto& catFeatureInput : treesInputInfo.CatFeatureInputs) {
+        catFeatureFlatIndices.insert(catFeatureInput.first);
+    }
+
+    for (auto idx : xrange(treesAttributes.nodes_modes->strings_size())) {
+        const TString& nodeMode = treesAttributes.nodes_modes->strings(idx);
         if (nodeMode == TModeNode::LEAF) {
             continue;
         }
-        int flatFeatureId = treesAttributes.nodes_featureids->ints(idx);
-        if (categoricalFeatureIds.contains(flatFeatureId)) {
-            catFeatureIds.insert(flatFeatureId);
+        const int flatFeatureIdx = treesAttributes.nodes_featureids->ints(idx);
+        featuresCount = Max(featuresCount, flatFeatureIdx + 1);
+        if (IsCatFeatureNodeMode(nodeMode)) {
+            catFeatureFlatIndices.insert(flatFeatureIdx);
         } else {
-            floatFeatureIds.insert(flatFeatureId);
+            CB_ENSURE(IsFloatFeatureNodeMode(nodeMode), "Undefined mode of node " << nodeMode);
         }
     }
 
-    // Sort features by flat index to satisfy CatBoost's sorted requirement
-    TVector<int> sortedFloatFeatureIds(floatFeatureIds.begin(), floatFeatureIds.end());
-    TVector<int> sortedCatFeatureIds(catFeatureIds.begin(), catFeatureIds.end());
-    Sort(sortedFloatFeatureIds.begin(), sortedFloatFeatureIds.end());
-    Sort(sortedCatFeatureIds.begin(), sortedCatFeatureIds.end());
+    floatFeatures->clear();
+    catFeatures->clear();
+    flatFeatureIndexToPerTypeIndex->assign(featuresCount, -1);
 
-    for (int i = 0; i < (int)sortedFloatFeatureIds.size(); ++i) {
-        (*flatFeatureIndexToPerTypeIndex)[sortedFloatFeatureIds[i]] = i;
+    for (auto flatFeatureIdx : xrange(featuresCount)) {
+        if (catFeatureFlatIndices.contains(flatFeatureIdx)) {
+            TCatFeature catFeature;
+            catFeature.Position = TFeaturePosition((int)catFeatures->size(), flatFeatureIdx);
+            if (const auto* catFeatureInput = treesInputInfo.CatFeatureInputs.FindPtr(flatFeatureIdx)) {
+                catFeature.FeatureId = catFeatureInput->Name;
+            }
+            (*flatFeatureIndexToPerTypeIndex)[flatFeatureIdx] = catFeature.Position.Index;
+            catFeatures->push_back(std::move(catFeature));
+        } else {
+            TFloatFeature floatFeature;
+            floatFeature.Position = TFeaturePosition((int)floatFeatures->size(), flatFeatureIdx);
+            (*flatFeatureIndexToPerTypeIndex)[flatFeatureIdx] = floatFeature.Position.Index;
+            floatFeatures->push_back(std::move(floatFeature));
+        }
     }
-    for (int i = 0; i < (int)sortedCatFeatureIds.size(); ++i) {
-        (*flatFeatureIndexToPerTypeIndex)[sortedCatFeatureIds[i]] = i;
-    }
+}
 
-    floatFeatures->resize(sortedFloatFeatureIds.size());
-    catFeatures->resize(sortedCatFeatureIds.size());
-    for (int i = 0; i < (int)sortedFloatFeatureIds.size(); ++i) {
-        (*floatFeatures)[i].Position.Index = i;
-        (*floatFeatures)[i].Position.FlatIndex = sortedFloatFeatureIds[i];
+
+static int GetCatFeatureValue(
+    const TOnnxTreesInputInfo& treesInputInfo,
+    int flatFeatureIdx,
+    float onnxValue
+) {
+    CB_ENSURE(
+        (onnxValue == std::floor(onnxValue)) && (std::fabs(onnxValue) < (float)Max<int>()),
+        "Categorical feature " << flatFeatureIdx << " split value must be an integer, got " << onnxValue
+    );
+    const int encodedValue = (int)onnxValue;
+
+    TString stringValue;
+    if (const auto* catFeatureInput = treesInputInfo.CatFeatureInputs.FindPtr(flatFeatureIdx)) {
+        const TString* mappedValue = catFeatureInput->EncodedValueToString.FindPtr(encodedValue);
+        CB_ENSURE(
+            mappedValue,
+            "Categorical feature " << flatFeatureIdx << " split value " << encodedValue
+            << " is not found in LabelEncoder mapping"
+        );
+        stringValue = *mappedValue;
+    } else {
+        // CatBoost treats all categorical values as strings
+        stringValue = ToString(encodedValue);
     }
-    for (int i = 0; i < (int)sortedCatFeatureIds.size(); ++i) {
-        (*catFeatures)[i].Position.Index = i;
-        (*catFeatures)[i].Position.FlatIndex = sortedCatFeatureIds[i];
-        (*catFeatures)[i].SetUsedInModel(true);
-    }
+    return CalcCatFeatureHash(stringValue);
+}
+
+
+static void PrepareTrees(
+    const TTreesAttributes& treesAttributes,
+    const bool isClassifierModel,
+    const TOnnxTreesInputInfo& treesInputInfo,
+    TVector<THashMap<int, NCB::NOnnx::TOnnxNode>>* trees,
+    int* approxDimension,
+    TVector<TFloatFeature>* floatFeatures, /* for adding nanModes and borders */
+    TVector<TCatFeature>* catFeatures
+) {
+    TVector<int> flatFeatureIndexToPerTypeIndex;
+    PrepareFeatures(treesAttributes, treesInputInfo, floatFeatures, catFeatures, &flatFeatureIndexToPerTypeIndex);
 
     TVector<TSet<float>> floatFeatureBorders(floatFeatures->size());
-
-    // Second pass: process all nodes
-    for (auto idx = 0; idx < treesAttributes.nodes_treeids->ints_size(); ++idx) {
+    //consider all nodes
+    for (auto idx = 0; idx < treesAttributes.nodes_treeids->ints_size() ;++idx) {
         NCB::NOnnx::TOnnxNode node;
         const size_t treeId = treesAttributes.nodes_treeids->ints(idx);
         const int nodeId = treesAttributes.nodes_nodeids->ints(idx);
@@ -795,49 +1017,39 @@ static void PrepareTrees(
         } else {
             node.Type = EType::Inner;
 
-            TModelSplit split;
-            
-            if (nodeMode == TModeNode::BRANCH_LEQ || nodeMode == TModeNode::BRANCH_LT) {
-                std::swap(node.TrueNodeId, node.FalseNodeId);
-            }
+            const int flatFeatureIdx = treesAttributes.nodes_featureids->ints(idx);
+            const int perTypeFeatureIdx = flatFeatureIndexToPerTypeIndex.at(flatFeatureIdx);
 
-            if (nodeMode == TModeNode::BRANCH_LEQ || nodeMode == TModeNode::BRANCH_LT ||
-                nodeMode == TModeNode::BRANCH_GTE || nodeMode == TModeNode::BRANCH_GT) {
-                split.Type = ESplitType::FloatFeature;
-                int perTypeIndex = flatFeatureIndexToPerTypeIndex->at(treesAttributes.nodes_featureids->ints(idx));
-                split.FloatFeature.FloatFeature = perTypeIndex;
-                split.FloatFeature.Split = treesAttributes.nodes_values->floats(idx);
-                
-                if (treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1) {
-                    (*floatFeatures)[perTypeIndex].NanValueTreatment = ENanValueTreatment::AsTrue;
-                }
-                floatFeatureBorders[perTypeIndex].insert(split.FloatFeature.Split);
-            } else if (nodeMode == TModeNode::BRANCH_EQ || nodeMode == TModeNode::BRANCH_NEQ) {
-                split.Type = ESplitType::OneHotFeature;
-                int perTypeIndex = flatFeatureIndexToPerTypeIndex->at(treesAttributes.nodes_featureids->ints(idx));
-                split.OneHotFeature.CatFeatureIdx = perTypeIndex;
-                
-                float floatValue = treesAttributes.nodes_values->floats(idx);
-                int intValue = (int)floatValue;
-                CB_ENSURE((float)intValue == floatValue,
-                    "Categorical feature value must be an integer, got " << floatValue);
-                
-                TString stringValue;
-                if (catFeatureIdxToEnumIdToString && catFeatureIdxToEnumIdToString->contains(perTypeIndex)) {
-                    const auto& enumIdToString = catFeatureIdxToEnumIdToString->at(perTypeIndex);
-                    CB_ENSURE(enumIdToString.contains(intValue),
-                        "Categorical feature value " << intValue << " not found in LabelEncoder for feature " << perTypeIndex);
-                    stringValue = enumIdToString.at(intValue);
-                } else {
-                    stringValue = ToString(intValue);
-                }
-                split.OneHotFeature.Value = CalcCatFeatureHash(stringValue);
-                
+            TModelSplit split;
+            if (IsCatFeatureNodeMode(nodeMode)) {
                 if (nodeMode == TModeNode::BRANCH_NEQ) {
                     std::swap(node.TrueNodeId, node.FalseNodeId);
                 }
+
+                split.Type = ESplitType::OneHotFeature;
+                split.OneHotFeature.CatFeatureIdx = perTypeFeatureIdx;
+                split.OneHotFeature.Value = GetCatFeatureValue(
+                    treesInputInfo,
+                    flatFeatureIdx,
+                    treesAttributes.nodes_values->floats(idx)
+                );
             } else {
-                CB_ENSURE(false, "Undefined mode of node " << nodeMode);
+                if (nodeMode == TModeNode::BRANCH_LEQ || nodeMode == TModeNode::BRANCH_LT) {
+                    std::swap(node.TrueNodeId, node.FalseNodeId);
+                } else {
+                    CB_ENSURE(nodeMode == TModeNode::BRANCH_GTE || nodeMode == TModeNode::BRANCH_GT, "Undefined mode of node " << nodeMode);
+                }
+
+                split.Type = ESplitType::FloatFeature;
+                split.FloatFeature.FloatFeature = perTypeFeatureIdx;
+                split.FloatFeature.Split = treesAttributes.nodes_values->floats(idx);
+
+                //update floatFeatures
+                if (treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1) {
+                    (*floatFeatures)[split.FloatFeature.FloatFeature].NanValueTreatment =
+                    ENanValueTreatment::AsTrue;
+                }
+                floatFeatureBorders[split.FloatFeature.FloatFeature].insert(split.FloatFeature.Split);
             }
 
             node.SplitCondition = split;
@@ -914,85 +1126,28 @@ static THolder<TNonSymmetricTreeNode> BuildNonSymmetricTree(
 
 
 static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullModel* fullModel) {
-
-    const auto& nodes = onnxGraph.node();
-    // Find the TreeEnsemble node (skip preprocessing nodes like LabelEncoder, Concat)
-    const onnx::NodeProto* treesNode = nullptr;
-    for (const auto& node : nodes) {
-        if (node.op_type() == "TreeEnsembleClassifier" || node.op_type() == "TreeEnsembleRegressor") {
-            treesNode = &node;
-            break;
-        }
-    }
-    CB_ENSURE(treesNode != nullptr, "No TreeEnsembleClassifier or TreeEnsembleRegressor node found in ONNX graph");
-
+    const onnx::NodeProto* treesNode = FindTreesNode(onnxGraph);
     const bool isClassifierModel = (treesNode->op_type() == "TreeEnsembleClassifier");
 
     auto attributes = treesNode->attribute();
     TTreesAttributes treesAttributes(isClassifierModel, attributes);
 
-    // Build mapping from LabelEncoder enumerated ids to original string values
-    THashMap<int, THashMap<int, TString>> catFeatureIdxToEnumIdToString;
-    {
-        // Find Concat node to determine catFeatureIdx order
-        const onnx::NodeProto* concatNode = nullptr;
-        THashMap<TString, int> encodedNameToCatFeatureIdx;
-        for (const auto& node : nodes) {
-            if (node.op_type() == "Concat") {
-                concatNode = &node;
-                break;
-            }
-        }
-        if (concatNode != nullptr) {
-            int catFeatureIdx = 0;
-            for (int i = 0; i < concatNode->input_size(); ++i) {
-                TString inputName = concatNode->input(i);
-                if (inputName != "features") {
-                    encodedNameToCatFeatureIdx[inputName] = catFeatureIdx++;
-                }
-            }
-        }
-
-        // Find LabelEncoder nodes and build enum id -> string mapping
-        for (const auto& node : nodes) {
-            if (node.op_type() == "LabelEncoder" && node.domain() == onnx::AI_ONNX_ML_DOMAIN) {
-                TString outputName = node.output(0);
-                int catFeatureIdx = encodedNameToCatFeatureIdx.Value(outputName, -1);
-                if (catFeatureIdx < 0) {
-                    continue; // LabelEncoder not part of Concat (shouldn't happen)
-                }
-
-                TVector<TString> keysStrings;
-                TVector<float> valuesFloats;
-                for (const auto& attr : node.attribute()) {
-                    if (attr.name() == "keys_strings") {
-                        for (const auto& s : attr.strings()) {
-                            keysStrings.push_back(TString(s));
-                        }
-                    } else if (attr.name() == "values_floats") {
-                        for (auto f : attr.floats()) {
-                            valuesFloats.push_back(f);
-                        }
-                    }
-                }
-                CB_ENSURE(keysStrings.size() == valuesFloats.size(),
-                    "LabelEncoder keys_strings and values_floats must have the same size");
-                for (size_t i = 0; i < keysStrings.size(); ++i) {
-                    int enumId = (int)valuesFloats[i];
-                    catFeatureIdxToEnumIdToString[catFeatureIdx][enumId] = keysStrings[i];
-                }
-            }
-        }
-    }
+    CB_ENSURE(treesNode->input_size() == 1, "TreeEnsemble node must have a single input");
+    const TOnnxTreesInputInfo treesInputInfo = GetTreesInputInfo(onnxGraph, treesNode->input(0));
 
     TVector<TFloatFeature> floatFeatures;
     TVector<TCatFeature> catFeatures;
-    THashMap<int, int> flatFeatureIndexToPerTypeIndex;
-
     TVector<THashMap<int, NCB::NOnnx::TOnnxNode>> trees;
     int approxDimension = 1;
-    PrepareTrees(treesAttributes, isClassifierModel, &trees, &approxDimension, &floatFeatures, &catFeatures, &flatFeatureIndexToPerTypeIndex,
-                 catFeatureIdxToEnumIdToString.empty() ? nullptr : &catFeatureIdxToEnumIdToString);
+    PrepareTrees(
+        treesAttributes,
+        isClassifierModel,
+        treesInputInfo,
+        &trees,
+        &approxDimension,
+        &floatFeatures,
+        &catFeatures
+    );
 
     TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, catFeatures, {}, {}, approxDimension);
 
