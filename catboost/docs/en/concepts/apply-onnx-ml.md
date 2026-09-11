@@ -11,7 +11,8 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 ## Specifics {#specifics}
 
 - Numerical and categorical features are supported. Text and embedding features will likely never be supported.
-  Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset.
+- Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset.
+- Exporting a model with categorical features requires the training dataset (the `pool` parameter of `save_model` in the {{ python-package }}, the `--input-path` dataset for the command-line training with `--model-format ONNX`) to restore string values of categorical features from their hashes stored in the model.
 - Exported ONNX-ML models cannot be currently loaded and applied by {{ product }} libraries/executable. This export format is suitable only for external Machine Learning libraries.
 - {% include [reusage-common-phrases-native-catboost-format-is-faster](../_includes/work_src/reusage-common-phrases/native-catboost-format-is-faster.md) %}
 
@@ -27,19 +28,23 @@ The numerical input features.
 
 Possible types: Tensor of shape [N_examples, number_of_numerical_features] and type {{ python-type--float }}
 
+If the model does not use categorical features, the tensor must contain all features of the training dataset (in the order of the training dataset columns), so `number_of_numerical_features` is equal to the number of features in the training dataset.
+
+If the model uses categorical features, the tensor must contain only the numerical features of the training dataset (in the order of the training dataset columns). Categorical features are passed as separate inputs.
+
 #### Categorical features
 
-Each categorical feature is exported as a separate input with the name derived from the feature's identifier:
-- If the feature has a custom `feature_id`, the input name matches that identifier.
-- Otherwise, the input name is `cat_feature_<flat_index>`.
+Each categorical feature used by the model is exported as a separate input with the name derived from the feature's identifier:
+- If the feature has a name (a `feature_names` element in the {{ python-package }} or a name in the [column descriptions file](input-data_column-descfile.md)), the input name is this name.
+- Otherwise, the input name is `cat_feature_<flat_index>`, where `<flat_index>` is the index of the feature among all features of the training dataset.
+
+Categorical features that are not used by the model do not have corresponding inputs. Use the ONNX model's inputs list to get the actual set of inputs.
 
 Possible types: Tensor of shape [N_examples, 1] and type {{ python-type--string }}
 
-{% note info %}
+Values are converted to strings exactly as in {{ product }} (for example, integer values must be passed as their decimal string representations). Values not present in the training dataset are treated as unseen categories, the same way as in {{ product }}.
 
-When exporting a model with categorical features, the `pool` parameter must be passed to `save_model` so that CatBoost can provide the mapping from categorical hash values to string representations required by ONNX.
-
-{% endnote %}
+The exported graph maps string values to numbers with [LabelEncoder](https://onnx.ai/onnx/operators/onnx_aionnxml_LabelEncoder.html) operators and concatenates them with the numerical features before the tree ensemble operator.
 
 
 
@@ -247,7 +252,8 @@ y = np.array([1.0, 2.0, 1.5, 2.5])
 
 train_pool = catboost.Pool(X, y, cat_features=[0, 1])
 
-model = catboost.CatBoostRegressor(iterations=5, depth=3, verbose=False)
+# one_hot_max_size must be greater than the maximum number of unique categorical feature values
+model = catboost.CatBoostRegressor(iterations=5, depth=3, one_hot_max_size=255, verbose=False)
 model.fit(train_pool)
 
 # Save model to ONNX-ML format (pool is required for categorical features)
@@ -273,7 +279,8 @@ import onnxruntime as rt
 
 sess = rt.InferenceSession('regression_with_cat.onnx')
 
-# Pass categorical features as separate string inputs
+# 'features' contains only numerical features,
+# categorical features are passed as separate string inputs
 predictions = sess.run(
     ['predictions'],
     {
