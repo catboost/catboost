@@ -143,7 +143,7 @@ TLoggingTagListBuilder& TLoggingTagListBuilder::With(TLoggingTagKey key, const T
 template <class TValue>
 TLoggingTagListBuilder& TLoggingTagListBuilder::WithIf(bool condition, TLoggingTagKey key, const TValue& value)
 {
-    return condition ? With(key, Unlazy(value)) : *this;
+    return condition ? With(key, Force(value)) : *this;
 }
 
 template <class... TArgs>
@@ -160,11 +160,11 @@ template <class... TArgs>
 TLoggingTagListBuilder& TLoggingTagListBuilder::WithFormatIf(
     bool condition,
     TLoggingTagKey key,
-    TFormatString<TUnlazy<TArgs>...> format,
+    TFormatString<TForced<TArgs>...> format,
     TArgs&&... args)
 {
     return condition
-        ? WithFormat(key, format, Unlazy(std::forward<TArgs>(args))...)
+        ? WithFormat(key, format, Force(std::forward<TArgs>(args))...)
         : *this;
 }
 

@@ -4,15 +4,18 @@
 #include "lazy.h"
 #endif
 
+#include <utility>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
-decltype(auto) Unlazy(T&& value)
+decltype(auto) Force(T&& value)
 {
     if constexpr (CLazy<T>) {
-        return value.Functor();
+        // Invoke as const: #TForced is spelled in terms of the const invocation.
+        return std::as_const(value).Functor();
     } else {
         return std::forward<T>(value);
     }

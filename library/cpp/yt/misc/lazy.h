@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <type_traits>
 #include <utility>
 
@@ -10,17 +11,23 @@ namespace NYT {
 //! Holds a nullary functor standing in for a value that must not be computed
 //! unless it is actually needed.
 /*!
- *  Build one with |YT_LAZY(expr)| and consume it with #Unlazy. Since the
- *  expression runs only when the consumer asks for it, it may safely touch
- *  state that is valid only under the condition guarding its use.
+ *  Build one with |YT_LAZY(expr)| and consume it with #Force. The expression runs only
+ *  when the consumer asks for it, so it may touch state that is valid only under the
+ *  condition guarding its use. Not memoized: every #Force re-runs it.
  */
 template <class TFunctor>
 struct TLazy
 {
+    static_assert(
+        std::invocable<const TFunctor&>,
+        "TLazy functor must be invocable on a const instance");
+
     TFunctor Functor;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+namespace NDetail {
 
 template <class T>
 constexpr bool IsLazy = false;
@@ -28,58 +35,60 @@ constexpr bool IsLazy = false;
 template <class TFunctor>
 constexpr bool IsLazy<TLazy<TFunctor>> = true;
 
+} // namespace NDetail
+
 template <class T>
-concept CLazy = IsLazy<std::remove_cvref_t<T>>;
+concept CLazy = NDetail::IsLazy<std::remove_cvref_t<T>>;
 
 ////////////////////////////////////////////////////////////////////////////////
 
 //! Evaluates a lazy #value; passes any other #value through untouched.
 template <class T>
-decltype(auto) Unlazy(T&& value);
+decltype(auto) Force(T&& value);
 
 namespace NDetail {
 
+// A forwarding pack deduces a plain value type from an xvalue, never an rvalue reference.
 template <class T>
-struct TUnlazyTraits
+using TCollapseRvalueRef = std::conditional_t<
+    std::is_rvalue_reference_v<T>,
+    std::remove_reference_t<T>,
+    T
+>;
+
+template <class T>
+struct TForcedTraits
 {
-    using TType = T;
+    using TType = TCollapseRvalueRef<T>;
 };
 
-template <class TFunctor>
-struct TUnlazyTraits<TLazy<TFunctor>>
+template <CLazy T>
+struct TForcedTraits<T>
 {
-    using TType = decltype(std::declval<const TFunctor&>()());
+    using TType = TCollapseRvalueRef<decltype(std::declval<const std::remove_cvref_t<T>&>().Functor())>;
 };
-
-template <class TFunctor>
-struct TUnlazyTraits<TLazy<TFunctor>&>
-    : public TUnlazyTraits<TLazy<TFunctor>>
-{ };
-
-template <class TFunctor>
-struct TUnlazyTraits<const TLazy<TFunctor>&>
-    : public TUnlazyTraits<TLazy<TFunctor>>
-{ };
 
 } // namespace NDetail
 
-//! The type a (possibly lazy) #T stands for; #T itself when it is not lazy.
+//! The type a (possibly lazy) #T stands for.
 /*!
- *  Deliberately preserves the reference-ness of a non-lazy #T: it names the very
- *  type a forwarding parameter pack would deduce, so a |TFormatString<TUnlazy<TArgs>...>|
- *  still matches the |TFormatString<TArgs...>| it forwards to.
+ *  Exactly what a forwarding pack deduces from |Force(...)|, so |TFormatString<TForced<TArgs>...>|
+ *  still matches the |TFormatString<TArgs...>| it forwards to. References therefore survive.
  */
 template <class T>
-using TUnlazy = typename NDetail::TUnlazyTraits<T>::TType;
+using TForced = typename NDetail::TForcedTraits<T>::TType;
 
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT
 
-//! Defers #expr until it is consumed.
+//! Defers the given expression until it is consumed.
 /*!
- *  Captures by reference, so the result must not outlive the state #expr touches.
- *  expression.
+ *  Captures by reference, so the result must not outlive the scope that built it.
+ *
+ *  The operand keeps its value category, as #Force does with a non-lazy value, so it must
+ *  not root a reference in a temporary: |YT_LAZY(GetOptions().Name)| dangles, the
+ *  temporary dying with the enclosing |return| -- bind it first.
  */
 #define YT_LAZY(...) ::NYT::TLazy{[&] () -> decltype(auto) { return (__VA_ARGS__); }}
 
