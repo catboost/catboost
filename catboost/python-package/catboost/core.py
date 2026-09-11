@@ -279,16 +279,20 @@ class EFstrType(Enum):
     LossFunctionChange = 1
     """Use LossFunctionChange for ranking models and PredictionValuesChange otherwise"""
     FeatureImportance = 2
+    """Calculate internal feature importance (average change in leaf values)"""
+    InternalFeatureImportance = 3
     """Calculate pairwise score between every feature."""
-    Interaction = 3
+    Interaction = 4
+    """Calculate internal feature interaction (pairwise internal effects)"""
+    InternalInteraction = 5
     """Calculate SHAP Values for every object."""
-    ShapValues = 4
+    ShapValues = 6
     """Calculate most important features explaining difference in predictions for a pair of documents"""
-    PredictionDiff = 5
+    PredictionDiff = 7
     """Calculate SHAP Interaction Values pairwise between every feature for every object."""
-    ShapInteractionValues = 6
+    ShapInteractionValues = 8
     """Calculate SAGE Values for every feature"""
-    SageValues = 7
+    SageValues = 9
 
 
 class EShapCalcType(Enum):
@@ -3466,12 +3470,16 @@ class CatBoost(_CatBoostBase):
                 For every feature in this dataset importance will be calculated.
             If type == 'PredictionValuesChange', data is None or a dataset of Pool type
                 Dataset specification is needed only in case if the model does not contain leaf weight information (trained with CatBoost v < 0.9).
+            If type == 'InternalFeatureImportance', data is None or a dataset of Pool type
+                Dataset specification is needed only in case if the model does not contain leaf weight information (trained with CatBoost v < 0.9).
             If type == 'PredictionDiff' data must contain a matrix of feature values of shape (2, n_features).
                 Possible types are catboost.Pool or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or polars.DataFrame or catboost.FeaturesData or pandas.SparseDataFrame or scipy.sparse.spmatrix
             If type == 'FeatureImportance'
                 See 'PredictionValuesChange' for non-ranking metrics and 'LossFunctionChange' for ranking metrics.
             If type == 'Interaction'
+                This parameter is not used.
+            If type == 'InternalInteraction'
                 This parameter is not used.
 
         type : EFstrType or string (converted to EFstrType), optional
@@ -3483,12 +3491,16 @@ class CatBoost(_CatBoostBase):
                     Calculate score for every feature by loss.
                 - FeatureImportance
                     PredictionValuesChange for non-ranking metrics and LossFunctionChange for ranking metrics
+                - InternalFeatureImportance
+                    Calculate internal feature importance (average change in leaf values).
+                - Interaction
+                    Calculate pairwise score between every feature.
+                - InternalInteraction
+                    Calculate internal feature interaction (pairwise internal effects).
                 - ShapValues
                     Calculate SHAP Values for every object.
                 - ShapInteractionValues
                     Calculate SHAP Interaction Values between each pair of features for every object
-                - Interaction
-                    Calculate pairwise score between every feature.
                 - PredictionDiff
                     Calculate most important features explaining difference in predictions for a pair of documents.
                 - SageValues
@@ -3604,8 +3616,8 @@ class CatBoost(_CatBoostBase):
                 if data is not None and not isinstance(data, Pool):
                     raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(_typeof(data)))
 
-            need_meta_info = type == EFstrType.PredictionValuesChange
-            empty_data_is_ok = need_meta_info and self._object._has_leaf_weights_in_model() or type == EFstrType.Interaction
+            need_meta_info = type in (EFstrType.PredictionValuesChange, EFstrType.InternalFeatureImportance)
+            empty_data_is_ok = need_meta_info and self._object._has_leaf_weights_in_model() or type in (EFstrType.Interaction, EFstrType.InternalInteraction)
             if not empty_data_is_ok:
                 if data is None:
                     if need_meta_info:
@@ -3623,13 +3635,15 @@ class CatBoost(_CatBoostBase):
             fstr, feature_names = self._calc_fstr(type, data, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices,
                                                   shap_calc_type, sage_n_samples, sage_batch_size, sage_detect_convergence)
             if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange,
-                        EFstrType.PredictionDiff, EFstrType.SageValues):
+                        EFstrType.InternalFeatureImportance, EFstrType.PredictionDiff, EFstrType.SageValues):
                 feature_importances = [value[0] for value in fstr]
                 attribute_name = None
                 if type == EFstrType.PredictionValuesChange:
                     attribute_name = "_prediction_values_change"
                 if type == EFstrType.LossFunctionChange:
                     attribute_name = "_loss_value_change"
+                if type == EFstrType.InternalFeatureImportance:
+                    attribute_name = "_internal_feature_importance"
                 if attribute_name:
                     setattr(
                         self,
@@ -3664,6 +3678,13 @@ class CatBoost(_CatBoostBase):
                 result = [[int(row[0]), int(row[1]), row[2]] for row in fstr]
                 if prettified:
                     columns = ['First Feature Index', 'Second Feature Index', 'Interaction']
+                    return pd.DataFrame(result, columns=columns)
+                else:
+                    return np.array(result)
+            elif type == EFstrType.InternalInteraction:
+                result = [[int(row[0]), int(row[1]), row[2]] for row in fstr]
+                if prettified:
+                    columns = ['First Feature Index', 'Second Feature Index', 'InternalInteraction']
                     return pd.DataFrame(result, columns=columns)
                 else:
                     return np.array(result)
