@@ -1462,6 +1462,46 @@ def test_save_load_equality(task_type):
     fill_check_model(params, ROTTEN_TOMATOES_TRAIN_FILE, ROTTEN_TOMATOES_TEST_FILE, ROTTEN_TOMATOES_CD_FILE)
 
 
+def test_load_model_preserves_poisson_link():
+    # Regression test for #3103: loading a Poisson model from a blob or a
+    # stream used to silently drop the default link function, so predict()
+    # returned RawFormulaVal (log-scale) instead of the exponentiated target.
+    rng = np.random.default_rng(0)
+    n_objects = 200
+    features = rng.standard_normal((n_objects, 3))
+    coef = rng.standard_normal((3,))
+    target = np.exp(features @ coef + 0.1)  # strictly positive Poisson target
+
+    model = CatBoostRegressor(loss_function='Poisson', iterations=20, verbose=False)
+    model.fit(features, target)
+
+    with tempfile.NamedTemporaryFile(suffix='.cbm', delete=False) as tmp:
+        output_model_path = tmp.name
+    try:
+        model.save_model(output_model_path)
+
+        predictions_from_path = model.predict(features)
+
+        with open(output_model_path, 'rb') as f:
+            model_blob = f.read()
+        model_from_blob = CatBoostRegressor()
+        model_from_blob.load_model(blob=model_blob)
+
+        model_from_stream = CatBoostRegressor()
+        with open(output_model_path, 'rb') as f:
+            model_from_stream.load_model(stream=f, format='cbm')
+
+        assert np.allclose(predictions_from_path, model_from_blob.predict(features))
+        assert np.allclose(predictions_from_path, model_from_stream.predict(features))
+
+        # The default prediction must be the exponentiated target, not the raw
+        # formula value (that was the bug).
+        raw_predictions = model.predict(features, prediction_type='RawFormulaVal')
+        assert not np.allclose(predictions_from_path, raw_predictions)
+    finally:
+        os.unlink(output_model_path)
+
+
 def test_load_model_incorrect_argument(task_type):
     with pytest.raises(CatBoostError):
         cb = CatBoost()
