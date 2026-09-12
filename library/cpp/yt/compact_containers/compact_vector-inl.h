@@ -73,10 +73,8 @@ public:
 
 template <class T, size_t N>
 constexpr TCompactVector<T, N>::TCompactVector() noexcept
+    : InlineMeta_{}
 {
-    if (std::is_constant_evaluated()) {
-        InlineMeta_ = {};
-    }
     InlineMeta_.SizePlusOne = 1;
 }
 
@@ -99,11 +97,7 @@ template <class T, size_t N>
 TCompactVector<T, N>::TCompactVector(TCompactVector&& other) noexcept(std::is_nothrow_move_constructible_v<T>)
     : TCompactVector()
 {
-    if constexpr (std::is_trivially_copyable_v<T>) {
-        RelocateFrom(other);
-    } else {
-        swap(other);
-    }
+    swap(other);
 }
 
 template <class T, size_t N>
@@ -441,11 +435,6 @@ void TCompactVector<T, N>::swap(TCompactVector& other)
         return;
     }
 
-    if constexpr (std::is_trivially_copyable_v<T>) {
-        SwapTriviallyCopyable(other);
-        return;
-    }
-
     if (!IsInline() && !other.IsInline()) {
         std::swap(OnHeapMeta_.Storage, other.OnHeapMeta_.Storage);
         return;
@@ -723,88 +712,6 @@ template <class T, size_t N>
 bool TCompactVector<T, N>::IsInline() const
 {
     return InlineMeta_.SizePlusOne != 0;
-}
-
-template <class T, size_t N>
-void TCompactVector<T, N>::RelocateFrom(TCompactVector& other)
-{
-    static_assert(std::is_trivially_copyable_v<T>);
-
-    if (Y_UNLIKELY(!other.IsInline())) {
-        OnHeapMeta_.Storage = other.OnHeapMeta_.Storage;
-    } else if constexpr (PreferFixedSizeMemoryOperations) {
-        ::memcpy(static_cast<void*>(this), static_cast<const void*>(&other), sizeof(*this));
-    } else {
-        auto sizePlusOne = other.InlineMeta_.SizePlusOne;
-        ::memcpy(InlineElements_, other.InlineElements_, (sizePlusOne - 1) * sizeof(T));
-        InlineMeta_.SizePlusOne = sizePlusOne;
-    }
-
-    other.InlineMeta_.SizePlusOne = 1;
-}
-
-template <class T, size_t N>
-void TCompactVector<T, N>::SwapTriviallyCopyable(TCompactVector& other)
-{
-    static_assert(std::is_trivially_copyable_v<T>);
-
-    if constexpr (PreferFixedSizeMemoryOperations) {
-        if constexpr (sizeof(TCompactVector) > sizeof(TOnHeapStorage*)) {
-            if (!IsInline() && !other.IsInline()) {
-                std::swap(OnHeapMeta_.Storage, other.OnHeapMeta_.Storage);
-                return;
-            }
-        }
-
-        static_assert(sizeof(TCompactVector) % sizeof(uintptr_t) == 0);
-        auto* lhs = reinterpret_cast<unsigned char*>(this);
-        auto* rhs = reinterpret_cast<unsigned char*>(&other);
-        for (size_t index = 0; index < sizeof(TCompactVector); index += sizeof(uintptr_t)) {
-            uintptr_t buffer;
-            ::memcpy(&buffer, lhs + index, sizeof(uintptr_t));
-            ::memcpy(lhs + index, rhs + index, sizeof(uintptr_t));
-            ::memcpy(rhs + index, &buffer, sizeof(uintptr_t));
-        }
-        return;
-    }
-
-    bool thisIsInline = IsInline();
-    bool otherIsInline = other.IsInline();
-    if (!thisIsInline && !otherIsInline) {
-        std::swap(OnHeapMeta_.Storage, other.OnHeapMeta_.Storage);
-        return;
-    }
-
-    if (thisIsInline != otherIsInline) {
-        auto* inlineVector = thisIsInline ? this : &other;
-        auto* onHeapVector = thisIsInline ? &other : this;
-        auto* storage = onHeapVector->OnHeapMeta_.Storage;
-        auto sizePlusOne = inlineVector->InlineMeta_.SizePlusOne;
-        ::memcpy(
-            onHeapVector->InlineElements_,
-            inlineVector->InlineElements_,
-            (sizePlusOne - 1) * sizeof(T));
-        onHeapVector->InlineMeta_.SizePlusOne = sizePlusOne;
-        inlineVector->OnHeapMeta_.Storage = storage;
-        return;
-    }
-
-    size_t thisSize = InlineMeta_.SizePlusOne - 1;
-    size_t otherSize = other.InlineMeta_.SizePlusOne - 1;
-    size_t commonSize = std::min(thisSize, otherSize);
-    std::swap_ranges(InlineElements_, InlineElements_ + commonSize, other.InlineElements_);
-    if (thisSize < otherSize) {
-        ::memcpy(
-            InlineElements_ + commonSize,
-            other.InlineElements_ + commonSize,
-            (otherSize - commonSize) * sizeof(T));
-    } else if (otherSize < thisSize) {
-        ::memcpy(
-            other.InlineElements_ + commonSize,
-            InlineElements_ + commonSize,
-            (thisSize - commonSize) * sizeof(T));
-    }
-    std::swap(InlineMeta_.SizePlusOne, other.InlineMeta_.SizePlusOne);
 }
 
 template <class T, size_t N>
