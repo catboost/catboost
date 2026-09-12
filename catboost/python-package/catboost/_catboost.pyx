@@ -5751,8 +5751,8 @@ cdef class _CatBoost:
         cdef EExplainableModelOutput model_output = string_to_model_output(model_output_name)
         cdef TMaybe[pair[int, int]] pair_of_features
 
-        if shap_calc_type == 'Exact':
-            assert dereference(self.__model).IsOblivious(), "'Exact' calculation type is supported only for symmetric trees."
+        if shap_calc_type == 'Exact' and not dereference(self.__model).IsOblivious():
+            raise CatBoostError("'Exact' calculation type is supported only for symmetric trees.")
         cdef ECalcTypeShapValues calc_type = string_to_calc_type(shap_calc_type)
         if reference_data:
             referenceDataProviderPtr = reference_data.__pool
