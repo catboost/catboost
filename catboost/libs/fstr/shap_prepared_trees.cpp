@@ -540,6 +540,13 @@ TShapPreparedTrees PrepareTrees(
     EExplainableModelOutput modelOutputType,
     bool fstrOnTrainPool
 ) {
+    CB_ENSURE(
+        model.IsOblivious()
+            || (calcType == ECalcTypeShapValues::Regular)
+            || (calcType == ECalcTypeShapValues::Approximate),
+        "'" << calcType << "' SHAP values calculation type is supported only for symmetric trees"
+    );
+
     TShapPreparedTrees preparedTrees;
     InitLeafWeights(model, fstrOnTrainPool, dataset, localExecutor, &preparedTrees.LeafWeightsForAllTrees);
     InitPreparedTreesWithoutIndependent(
