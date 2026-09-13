@@ -11,6 +11,7 @@
 
 #include <util/generic/map.h>
 #include <util/stream/str.h>
+#include <util/ysaveload.h>
 
 #include <algorithm>
 #include <numeric>
@@ -19,17 +20,19 @@ using namespace NCB;
 
 namespace {
     constexpr ui32 FirstFeature = 11;
+    const TVector<ui32> GroupSizes = {3, 1, 5, 2, 7, 2, 6, 4, 8, 3, 5, 7};
 
     struct TFixture {
         TTrainingDataProvider Data;
         TVector<TVector<ui32>> Hashes;
         TVector<ui8> FloatBins;
         TVector<float> Targets;
+        TVector<ui32> GroupIds;
         TVector<TFloatFeature> FloatFeatures = {TFloatFeature(false, 0, 0, {0.5f})};
         TVector<TCatFeature> CatFeatures = {
             TCatFeature(true, 0, 1, "a"), TCatFeature(true, 1, 2, "b"), TCatFeature(true, 2, 3, "onehot")};
 
-        explicit TFixture(ui32 rows = 53) {
+        explicit TFixture(ui32 rows = 53, const TVector<ui32>& groupSizes = {}) {
             // Signed category hashes, including both uint32 extremes, catch
             // accidental sign extension or truncation of compound model keys.
             const TVector<TVector<ui32>> dictionaries = {
@@ -48,7 +51,21 @@ namespace {
             Data.MetaInfo.TargetType = ERawTargetType::Float;
             Data.MetaInfo.TargetCount = 1;
             Data.MetaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(4, TVector<ui32>{1, 2, 3}, TVector<TString>{});
-            Data.ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(rows);
+            if (groupSizes.empty()) {
+                Data.ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(rows);
+            } else {
+                TVector<TGroupBounds> groups;
+                ui32 begin = 0;
+                for (ui32 size : groupSizes) {
+                    UNIT_ASSERT(size > 0);
+                    GroupIds.insert(GroupIds.end(), size, groups.size());
+                    groups.emplace_back(begin, begin + size);
+                    begin += size;
+                }
+                UNIT_ASSERT_VALUES_EQUAL(begin, rows);
+                Data.MetaInfo.HasGroupId = true;
+                Data.ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(std::move(groups));
+            }
             TCommonObjectsData common;
             common.FeaturesLayout = Data.MetaInfo.FeaturesLayout;
             common.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(rows));
@@ -89,6 +106,26 @@ namespace {
         }
 
         TVector<TVector<ui32>> Histories() const {
+            if (!GroupIds.empty()) {
+                const ui32 count = Data.ObjectsGrouping->GetGroupCount();
+                TVector<TVector<ui32>> groupOrders(4, TVector<ui32>(count));
+                std::iota(groupOrders[0].begin(), groupOrders[0].end(), 0);
+                groupOrders[1] = groupOrders[0];
+                std::reverse(groupOrders[1].begin(), groupOrders[1].end());
+                groupOrders[2] = groupOrders[0];
+                std::rotate(groupOrders[2].begin(), groupOrders[2].begin() + count / 3, groupOrders[2].end());
+                groupOrders[3] = groupOrders[0];
+                std::rotate(groupOrders[3].begin(), groupOrders[3].begin() + count / 2, groupOrders[3].end());
+                TVector<TVector<ui32>> orders(4);
+                for (ui32 permutation = 0; permutation < orders.size(); ++permutation) {
+                    for (ui32 group : groupOrders[permutation]) {
+                        const auto bounds = Data.ObjectsGrouping->GetGroup(group);
+                        for (ui32 row = bounds.Begin; row < bounds.End; ++row)
+                            orders[permutation].push_back(row);
+                    }
+                }
+                return orders;
+            }
             TVector<TVector<ui32>> orders(4, TVector<ui32>(Targets.size()));
             std::iota(orders[0].begin(), orders[0].end(), 0);
             orders[1] = orders[0];
@@ -151,7 +188,8 @@ namespace {
 
     TVector<float> Reference(const TFixture& fixture, const TModelCtr& ctr, TConstArrayRef<ui32> order,
                              bool pastOnly, const TVector<TVector<ui32>>& queryHashes,
-                             TConstArrayRef<ui8> queryFloatBins, ui32 targetBorders = 2) {
+                             TConstArrayRef<ui8> queryFloatBins, ui32 targetBorders = 2,
+                             bool groupHistory = true) {
         TVector<float> result(queryFloatBins.size());
         TMap<ui64, std::pair<float, ui32>> sums;
         const auto& projection = ctr.Base.Projection;
@@ -168,11 +206,27 @@ namespace {
                     : ctr.Calc(entry.first, entry.second);
             }
         } else {
-            for (ui32 row : order) {
-                auto& entry = sums[ProjectionHash(projection, fixture.Hashes, fixture.FloatBins, row)];
-                result[row] = ctr.Calc(entry.first, entry.second);
-                entry.first += Numerator(ctr, fixture.Targets[row], targetBorders);
-                ++entry.second;
+            for (ui32 begin = 0; begin < order.size();) {
+                ui32 end = begin + 1;
+                if (groupHistory && !fixture.GroupIds.empty()) {
+                    while (end < order.size() && fixture.GroupIds[order[end]] == fixture.GroupIds[order[begin]])
+                        ++end;
+                }
+                // Evaluate a whole query against prior queries, then commit
+                // its statistics. No target from this query can enter any of
+                // its encodings, even when several rows share a projection.
+                for (ui32 position = begin; position < end; ++position) {
+                    const ui32 row = order[position];
+                    const auto& entry = sums[ProjectionHash(projection, fixture.Hashes, fixture.FloatBins, row)];
+                    result[row] = ctr.Calc(entry.first, entry.second);
+                }
+                for (ui32 position = begin; position < end; ++position) {
+                    const ui32 row = order[position];
+                    auto& entry = sums[ProjectionHash(projection, fixture.Hashes, fixture.FloatBins, row)];
+                    entry.first += Numerator(ctr, fixture.Targets[row], targetBorders);
+                    ++entry.second;
+                }
+                begin = end;
             }
         }
         return result;
@@ -307,6 +361,39 @@ namespace {
             }
         }
     }
+
+    bool GroupExclusionChangesBins(const TFixture& fixture, TMetalTreeCtrFeatures* helper,
+                                  const TMetalTreeCtrBatch& batch, const TVector<TVector<ui32>>& histories) {
+        bool changed = false;
+        for (ui32 candidate = 0; candidate < batch.CandidateFeatures.size(); ++candidate) {
+            if (batch.CandidateBins[candidate] != 0) continue;
+            const ui32 feature = batch.CandidateFeatures[candidate];
+            const auto& ctr = helper->GetSplit(batch.FirstFeature + feature, 0).OnlineCtr.Ctr;
+            for (const auto& history : histories) {
+                const auto grouped = Reference(fixture, ctr, history, true, fixture.Hashes, fixture.FloatBins);
+                const auto sample = Reference(fixture, ctr, history, true, fixture.Hashes, fixture.FloatBins, 2, false);
+                for (ui32 other = 0; other < batch.CandidateFeatures.size(); ++other) {
+                    if (batch.CandidateFeatures[other] != feature) continue;
+                    const float border = helper->GetSplit(batch.FirstFeature + feature, batch.CandidateBins[other]).OnlineCtr.Border;
+                    for (ui32 row = 0; row < grouped.size(); ++row)
+                        changed |= (grouped[row] > border) != (sample[row] > border);
+                }
+            }
+        }
+        return changed;
+    }
+
+    void CheckSameBatch(const TMetalTreeCtrBatch& actual, const TMetalTreeCtrBatch& expected) {
+        UNIT_ASSERT_VALUES_EQUAL(actual.FirstFeature, expected.FirstFeature);
+        UNIT_ASSERT_VALUES_EQUAL(actual.PermutationBins, expected.PermutationBins);
+        UNIT_ASSERT_VALUES_EQUAL(actual.CandidateFeatures, expected.CandidateFeatures);
+        UNIT_ASSERT_VALUES_EQUAL(actual.CandidateBins, expected.CandidateBins);
+        UNIT_ASSERT_VALUES_EQUAL(actual.CandidateTypes, expected.CandidateTypes);
+        UNIT_ASSERT_VALUES_EQUAL(actual.CtrUniqueValues, expected.CtrUniqueValues);
+        UNIT_ASSERT_VALUES_EQUAL(actual.RegisteredCtrFlags, expected.RegisteredCtrFlags);
+        UNIT_ASSERT_VALUES_EQUAL(actual.ActiveFeatures, expected.ActiveFeatures);
+        UNIT_ASSERT_VALUES_EQUAL(actual.BinsPerFeature, expected.BinsPerFeature);
+    }
 }
 
 Y_UNIT_TEST_SUITE(TMetalTreeCtrFeatures) {
@@ -330,6 +417,183 @@ Y_UNIT_TEST_SUITE(TMetalTreeCtrFeatures) {
             CheckInference(fixture, &helper, combined);
             UNIT_ASSERT_VALUES_EQUAL(combined.ActiveFeatures.size(), oneHot.GetFeatureCount() + combined.GetFeatureCount());
         }
+    }
+
+    Y_UNIT_TEST(TestAllTypesGroupPastOnlyHistoriesAndInference) {
+        TFixture fixture(53, GroupSizes);
+        NPar::TLocalExecutor executor;
+        for (ui32 permutations : {1, 4}) {
+            auto histories = fixture.Histories();
+            histories.resize(permutations);
+            const ui32 searchHistory = permutations - 1;
+            for (ECtrType type : {ECtrType::Borders, ECtrType::Buckets, ECtrType::FloatTargetMeanValue, ECtrType::FeatureFreq}) {
+                auto options = Options(type);
+                options.CatFeatureParams->CtrHistoryUnit = ECtrHistoryUnit::Group;
+                NCB::TMetalTreeCtrFeatures helper(fixture.Data, options, &executor, FirstFeature, 70, {}, histories);
+                helper.BeginTree();
+                bool exclusionChangesBins = false;
+                for (const auto& predicate : {TModelSplit(TFloatSplit(0, 0.5f)),
+                                              TModelSplit(TOneHotSplit(2, 41)), SimpleCtrSplit()}) {
+                    const auto batch = helper.AddSplit(predicate, searchHistory);
+                    CheckBatch(fixture, &helper, batch, histories, 2, searchHistory);
+                    CheckInference(fixture, &helper, batch);
+                    exclusionChangesBins |= GroupExclusionChangesBins(fixture, &helper, batch, histories);
+                }
+                // The fixture must distinguish the group-prefix oracle from
+                // row-prefix statistics even after quantization. Frequency
+                // intentionally uses all learning rows under either policy.
+                UNIT_ASSERT_VALUES_EQUAL(exclusionChangesBins, type != ECtrType::FeatureFreq);
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestGroupFeatureFrequencyMatchesSampleExactly) {
+        TFixture fixture(53, GroupSizes);
+        NPar::TLocalExecutor executor;
+        const auto histories = fixture.Histories();
+        auto sampleOptions = Options(ECtrType::FeatureFreq);
+        auto groupOptions = sampleOptions;
+        groupOptions.CatFeatureParams->CtrHistoryUnit = ECtrHistoryUnit::Group;
+        NCB::TMetalTreeCtrFeatures sample(fixture.Data, sampleOptions, &executor, FirstFeature, 70, {}, histories);
+        NCB::TMetalTreeCtrFeatures group(fixture.Data, groupOptions, &executor, FirstFeature, 70, {}, histories);
+        for (const auto& predicate : {TModelSplit(TFloatSplit(0, 0.5f)),
+                                      TModelSplit(TOneHotSplit(2, 41)), SimpleCtrSplit()}) {
+            const auto expected = sample.AddSplit(predicate, 2);
+            const auto actual = group.AddSplit(predicate, 2);
+            CheckSameBatch(actual, expected);
+            for (ui32 candidate = 0; candidate < actual.CandidateFeatures.size(); ++candidate) {
+                const ui32 feature = actual.FirstFeature + actual.CandidateFeatures[candidate];
+                const ui32 bin = actual.CandidateBins[candidate];
+                UNIT_ASSERT(group.GetSplit(feature, bin) == sample.GetSplit(feature, bin));
+            }
+            CheckInference(fixture, &group, actual);
+            CheckInference(fixture, &sample, expected);
+        }
+    }
+
+    Y_UNIT_TEST(TestGroupSnapshotRestoresAndContinuesExactly) {
+        TFixture fixture(53, GroupSizes);
+        NPar::TLocalExecutor executor;
+        for (ui32 permutations : {1, 4}) {
+            auto histories = fixture.Histories();
+            histories.resize(permutations);
+            const ui32 searchHistory = permutations - 1;
+            for (ECtrType type : {ECtrType::Borders, ECtrType::Buckets, ECtrType::FloatTargetMeanValue, ECtrType::FeatureFreq}) {
+                auto options = Options(type);
+                options.CatFeatureParams->CtrHistoryUnit = ECtrHistoryUnit::Group;
+                NCB::TMetalTreeCtrFeatures helper(fixture.Data, options, &executor, FirstFeature, 70, {}, histories);
+                const auto first = helper.AddSplit(TModelSplit(TFloatSplit(0, 0.5f)), searchHistory);
+                const auto second = helper.AddSplit(SimpleCtrSplit(), searchHistory);
+                helper.MarkSelected(second.FirstFeature);
+                TStringStream snapshot;
+                helper.Save(&snapshot);
+                NCB::TMetalTreeCtrFeatures restored(fixture.Data, options, &executor, FirstFeature, 70, {}, histories);
+                const auto banks = restored.Restore(&snapshot);
+                UNIT_ASSERT_VALUES_EQUAL(restored.GetFeatureCount(), helper.GetFeatureCount());
+                UNIT_ASSERT_VALUES_EQUAL(restored.GetRegisteredFeatures(), helper.GetRegisteredFeatures());
+                UNIT_ASSERT(banks.ActiveFeatures.empty());
+                for (ui32 permutation = 0; permutation < histories.size(); ++permutation) {
+                    auto expected = first.PermutationBins[permutation];
+                    expected.insert(expected.end(), second.PermutationBins[permutation].begin(), second.PermutationBins[permutation].end());
+                    UNIT_ASSERT_VALUES_EQUAL(banks.PermutationBins[permutation], expected);
+                }
+                for (ui32 candidate = 0; candidate < banks.CandidateFeatures.size(); ++candidate) {
+                    const ui32 feature = banks.FirstFeature + banks.CandidateFeatures[candidate];
+                    const ui32 bin = banks.CandidateBins[candidate];
+                    UNIT_ASSERT(restored.GetSplit(feature, bin) == helper.GetSplit(feature, bin));
+                }
+                CheckInference(fixture, &restored, banks);
+                helper.BeginTree();
+                const auto expected = helper.AddSplit(TModelSplit(TOneHotSplit(2, 41)), 0);
+                const auto continued = restored.AddSplit(TModelSplit(TOneHotSplit(2, 41)), 0);
+                CheckSameBatch(continued, expected);
+                CheckBatch(fixture, &restored, continued, histories);
+                CheckInference(fixture, &restored, continued);
+                for (ui32 candidate = 0; candidate < continued.CandidateFeatures.size(); ++candidate) {
+                    const ui32 feature = continued.FirstFeature + continued.CandidateFeatures[candidate];
+                    const ui32 bin = continued.CandidateBins[candidate];
+                    UNIT_ASSERT(restored.GetSplit(feature, bin) == helper.GetSplit(feature, bin));
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestGroupSnapshotRejectsPolicyAndBoundaryChanges) {
+        TFixture fixture(53, GroupSizes);
+        auto changedSizes = GroupSizes;
+        --changedSizes[0];
+        ++changedSizes[1];
+        TFixture changedFixture(53, changedSizes);
+        NPar::TLocalExecutor executor;
+        for (auto sourcePolicy : {ECtrHistoryUnit::Group, ECtrHistoryUnit::Sample}) {
+            auto options = Options(ECtrType::FloatTargetMeanValue);
+            options.CatFeatureParams->CtrHistoryUnit = sourcePolicy;
+            NCB::TMetalTreeCtrFeatures helper(fixture.Data, options, &executor, FirstFeature, 70);
+            helper.AddSplit(SimpleCtrSplit());
+            TStringStream snapshot;
+            helper.Save(&snapshot);
+            auto changedOptions = options;
+            changedOptions.CatFeatureParams->CtrHistoryUnit = sourcePolicy == ECtrHistoryUnit::Group
+                ? ECtrHistoryUnit::Sample : ECtrHistoryUnit::Group;
+            NCB::TMetalTreeCtrFeatures changedPolicy(fixture.Data, changedOptions, &executor, FirstFeature, 70);
+            TStringStream policyInput(snapshot.Str());
+            UNIT_ASSERT_EXCEPTION(changedPolicy.Restore(&policyInput), TCatBoostException);
+            UNIT_ASSERT_VALUES_EQUAL(changedPolicy.GetFeatureCount(), 0);
+            if (sourcePolicy == ECtrHistoryUnit::Group) {
+                // Identical rows, options, and identity history isolate the
+                // grouping fingerprint from the existing history fingerprint.
+                NCB::TMetalTreeCtrFeatures changedBounds(changedFixture.Data, options, &executor, FirstFeature, 70);
+                TStringStream boundsInput(snapshot.Str());
+                UNIT_ASSERT_EXCEPTION(changedBounds.Restore(&boundsInput), TCatBoostException);
+                UNIT_ASSERT_VALUES_EQUAL(changedBounds.GetFeatureCount(), 0);
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestGroupHistoryRejectsSplitQueries) {
+        TFixture fixture(53, GroupSizes);
+        NPar::TLocalExecutor executor;
+        auto options = Options(ECtrType::Borders);
+        options.CatFeatureParams->CtrHistoryUnit = ECtrHistoryUnit::Group;
+        auto histories = fixture.Histories();
+        std::swap(histories[0][1], histories[0][3]);
+        UNIT_ASSERT_EXCEPTION((NCB::TMetalTreeCtrFeatures(
+            fixture.Data, options, &executor, FirstFeature, 70, {}, histories)), TCatBoostException);
+    }
+
+    Y_UNIT_TEST(TestLegacySampleSnapshotRestoresButRejectsGroupPolicy) {
+        TFixture fixture;
+        NPar::TLocalExecutor executor;
+        auto options = Options(ECtrType::FloatTargetMeanValue);
+        const auto histories = fixture.Histories();
+        NCB::TMetalTreeCtrFeatures helper(fixture.Data, options, &executor, FirstFeature, 70, {}, histories);
+        const auto expected = helper.AddSplit(SimpleCtrSplit(), 2);
+        TStringStream snapshot;
+        helper.Save(&snapshot);
+        // Version 3 preserves the v2 body and appends policy/group metadata.
+        // Serialize both sizes rather than relying on native byte order.
+        TStringStream legacy, metadata;
+        ::Save(&legacy, ui32(2));
+        ::SaveMany(&metadata, ui32(ECtrHistoryUnit::Sample), ui64(0));
+        const size_t versionBytes = legacy.Str().size();
+        const TString& current = snapshot.Str();
+        UNIT_ASSERT(current.size() > versionBytes + metadata.Str().size());
+        legacy.Write(current.data() + versionBytes, current.size() - versionBytes - metadata.Str().size());
+        NCB::TMetalTreeCtrFeatures restored(fixture.Data, options, &executor, FirstFeature, 70, {}, histories);
+        TStringStream sampleInput(legacy.Str());
+        const auto actual = restored.Restore(&sampleInput);
+        UNIT_ASSERT_VALUES_EQUAL(actual.PermutationBins, expected.PermutationBins);
+        for (ui32 candidate = 0; candidate < actual.CandidateFeatures.size(); ++candidate) {
+            const ui32 feature = actual.FirstFeature + actual.CandidateFeatures[candidate];
+            const ui32 bin = actual.CandidateBins[candidate];
+            UNIT_ASSERT(restored.GetSplit(feature, bin) == helper.GetSplit(feature, bin));
+        }
+        CheckInference(fixture, &restored, actual);
+        options.CatFeatureParams->CtrHistoryUnit = ECtrHistoryUnit::Group;
+        NCB::TMetalTreeCtrFeatures grouped(fixture.Data, options, &executor, FirstFeature, 70, {}, histories);
+        TStringStream groupInput(legacy.Str());
+        UNIT_ASSERT_EXCEPTION(grouped.Restore(&groupInput), TCatBoostException);
+        UNIT_ASSERT_VALUES_EQUAL(grouped.GetFeatureCount(), 0);
     }
 
     Y_UNIT_TEST(TestSnapshotRestoresBanksGridsAndStableIds) {

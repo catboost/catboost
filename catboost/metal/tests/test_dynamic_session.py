@@ -5,6 +5,7 @@ structure/leaf expectations below use independent CUDA scalar equations; no
 CPU CatBoost trainer supplies expected values.
 """
 
+import ctypes as ct
 import math
 import platform
 
@@ -262,7 +263,7 @@ class DynamicOracle:
     """
 
     def __init__(self, args, matrices, cursors, chosen, features, borders, types, counts, feature_weights,
-                 feature_flags=None):
+                 feature_flags=None, feature_parallel=True):
         self.args, self.matrices, self.cursors = args, np.asarray(matrices), np.asarray(cursors).copy()
         self.chosen = chosen
         self.features, self.borders, self.types = features, borders, types
@@ -270,6 +271,7 @@ class DynamicOracle:
         self.flags = (np.full(len(counts), 2, np.uint8) if feature_flags is None
                       else np.asarray(feature_flags, np.uint8).copy())
         self.used = np.zeros(len(counts), np.uint8)
+        self.feature_parallel = feature_parallel
         self.splits, self.before = [], np.float32(0)
         cursor, targets = self.cursors[chosen], args["targets"]
         weights = np.asarray(args.get("sample_weight", np.ones(targets.size)), np.float32)
@@ -338,13 +340,15 @@ class DynamicOracle:
             return None
         gain, _, score, feature, border, kind = min(evaluated)
         self.before = np.float32(score)
-        if self.counts[feature]:
-            self.used[feature] = 1
+        tree_ctr = bool(self.counts[feature] and (self.flags[feature] & 1))
+        if tree_ctr or (not self.feature_parallel and self.counts[feature]):
             self.flags[feature] |= 2
         split = feature, border, kind
         added = split not in self.splits
         if added:
             self.splits.append(split)
+        if ((tree_ctr and added) or not self.feature_parallel) and self.counts[feature]:
+            self.used[feature] = 1
         return dict(feature=feature, bin=border, type=kind, score=score, gain=gain,
                     depth=len(self.splits), has_split=added)
 
@@ -393,7 +397,7 @@ def test_dynamic_oracle_with_all_features_matches_existing_independent_penalty_o
         args["sample_weight"], args["candidate_features"], args["candidate_bins"], counts,
         np.zeros(3, np.uint8), 0.5, feature_weights, args)
     oracle = DynamicOracle(args, matrices, cursors, 0, args["candidate_features"], args["candidate_bins"],
-                            types, counts, feature_weights)
+                            types, counts, feature_weights, feature_parallel=False)
     for level in range(args["depth"]):
         info = oracle.grow(3, np.ones(3, np.uint8))
         assert info["score"] == pytest.approx(trace[level]["weighted_scores"][trace[level]["winner"]], rel=2e-6)
@@ -542,7 +546,7 @@ def test_restored_used_dynamic_ctr_is_still_penalized(metal_device, score):
         session.append_features(np.stack([bins]), candidates, candidates,
             ctr_unique_values=np.array([7], np.uint32), used_features=np.array([1], np.uint8))
         step = staged_step(session, 1)
-        np.testing.assert_array_equal(session.feature_penalty_state["used_features"], [1, 1])
+        np.testing.assert_array_equal(session.feature_penalty_state["used_features"], [0, 1])
     # Dynamic c7 was used, so it leaves the unused maximum (now1) but keeps its
     # own penalty. Static c10 uses max10 and wins the identical raw-score tie.
     np.testing.assert_array_equal(step.split_features, [0])
@@ -740,3 +744,128 @@ def test_inconsistent_used_unregistered_ctr_restore_rejects_without_poisoning_op
                 used_features=np.array([1], np.uint8))
         assert session.grow_tree()["has_split"]
         assert session.finish_tree().depth == 1
+
+
+def restore_feature_metadata(session, flags, used, active, count=None):
+    """Exercise the additive C ABI used by native FeatureParallel snapshots."""
+    values = [None if value is None else np.ascontiguousarray(value, dtype=np.uint8)
+              for value in (flags, used, active)]
+    function = session._lib.cbm_session_restore_feature_metadata
+    byte_ptr = ct.POINTER(ct.c_uint8)
+    function.argtypes = [ct.c_void_p, ct.c_uint32, byte_ptr, byte_ptr, byte_ptr,
+                         ct.c_char_p, ct.c_size_t]
+    function.restype = ct.c_int
+    error = ct.create_string_buffer(2048)
+    pointers = [None if value is None else value.ctypes.data_as(byte_ptr) for value in values]
+    if count is None:
+        count = next(value.size for value in values if value is not None)
+    session._check(function(session._handle, count, *pointers, error, len(error)), error)
+
+
+@pytest.mark.parametrize("feature_parallel", [False, True])
+def test_only_feature_parallel_tree_ctr_winners_enter_used_set(metal_device, feature_parallel):
+    bins = np.array([[0, 0, 1, 1]], np.uint8)
+    zero = np.array([0], np.uint32)
+    with _native.Session(bins, np.array([-2, -2, 2, 2], np.float32), zero, zero,
+            iterations=2, depth=3, learning_rate=0.2, l2_leaf_reg=1, bias=0,
+            score_function="L2") as session:
+        session.configure_feature_penalties(np.array([10], np.uint32))
+        if feature_parallel:
+            session.set_feature_activity(np.ones(1, np.uint8))
+        for _ in range(2):
+            # The sole static CTR wins, then terminates through its duplicate.
+            assert staged_step(session, 3).depth == 1
+            np.testing.assert_array_equal(session.feature_metadata["used_features"],
+                                          [0 if feature_parallel else 1])
+            np.testing.assert_array_equal(session.feature_metadata["feature_flags"], [2])
+
+
+def test_restore_metadata_on_original_columns_enables_dynamic_penalty_semantics(metal_device):
+    bins = np.array([[0, 0, 1, 1]] * 3, np.uint8)
+    with _native.Session(bins, np.array([-2, -2, 2, 2], np.float32),
+            np.arange(3, dtype=np.uint32), np.zeros(3, np.uint32),
+            iterations=1, depth=1, learning_rate=0.2, l2_leaf_reg=1, bias=0,
+            score_function="L2") as session:
+        session.configure_feature_penalties(np.array([10, 200, 7], np.uint32))
+        restore_feature_metadata(session, [2, 1, 3], [0, 0, 1], [1, 0, 1])
+        metadata = session.feature_metadata
+        np.testing.assert_array_equal(metadata["feature_flags"], [2, 1, 3])
+        np.testing.assert_array_equal(metadata["used_features"], [0, 0, 1])
+        np.testing.assert_array_equal(metadata["active_features"], [1, 0, 1])
+        # Inactive transient c200 is excluded; used dynamic c7 keeps its size
+        # penalty with denominator1. Static c10 uses denominator10 and wins.
+        np.testing.assert_array_equal(staged_step(session, 1).split_features, [0])
+        np.testing.assert_array_equal(session.feature_metadata["used_features"], [0, 0, 1])
+
+
+@pytest.mark.parametrize("bootstrap", ["Bayesian", "MVS"])
+def test_arbitrary_restored_original_feature_metadata_resumes_all_banks_exactly(metal_device, bootstrap):
+    args, matrices, cursors, features, borders, types, counts, weights = dynamic_problem("RMSE", 4, bootstrap)
+    args.update(bins=matrices[0], candidate_features=features, candidate_bins=borders,
+                candidate_types=types, iterations=3, score_function="Cosine")
+    initial_metadata = dict(feature_flags=np.array([2, 1, 2, 3], np.uint8),
+                            used_features=np.array([0, 0, 0, 1], np.uint8),
+                            active_features=np.array([0, 1, 1, 1], np.uint8))
+
+    def run(config, choices, state=None, metadata=initial_metadata):
+        with _native.Session(**config) as session:
+            session.configure_permutations(matrices,
+                initial_predictions=cursors if state is None else state["predictions"],
+                mvs_lambdas=None if state is None else state["mvs_lambdas"],
+                mvs_valid=None if state is None else state["mvs_valid"])
+            session.configure_feature_penalties(counts, feature_weights=weights)
+            restore_feature_metadata(session, metadata["feature_flags"],
+                                     metadata["used_features"], metadata["active_features"])
+            for chosen in choices:
+                session.select_permutation(chosen)
+                staged_step(session, config["depth"])
+            return session.result(), session.permutation_state, session.feature_metadata
+
+    full, full_state, full_metadata = run(args, [2, 0, 3])
+    first, state, metadata = run(args, [2])
+    rest, rest_state, rest_metadata = run(args | {"iterations": 2,
+        "iteration_offset": args["iteration_offset"] + 1}, [0, 3], state, metadata)
+    for name in ("depths", "split_features", "split_bins", "split_types", "leaf_values", "leaf_weights"):
+        np.testing.assert_array_equal(np.concatenate([getattr(first, name), getattr(rest, name)]), getattr(full, name))
+    np.testing.assert_array_equal(np.concatenate([first.loss, rest.loss[1:]]), full.loss)
+    np.testing.assert_array_equal(rest.predictions, full.predictions)
+    for key in full_state:
+        np.testing.assert_array_equal(rest_state[key], full_state[key])
+    for key in full_metadata:
+        np.testing.assert_array_equal(rest_metadata[key], full_metadata[key])
+
+
+@pytest.mark.parametrize("change", [
+    {"count": 2}, {"flags": [2, 4, 3]}, {"flags": None},
+    {"used": [0, 2, 0]}, {"used": None},
+    {"active": [1, 2, 1]}, {"active": None},
+    {"flags": [2, 1, 3], "used": [0, 1, 0]},
+    {"used": [1, 0, 0]},
+])
+def test_invalid_metadata_restore_is_transactional_and_preserves_session(metal_device, change):
+    args, _, _ = problem(iterations=1, depth=1)
+    with _native.Session(**args) as session:
+        session.configure_feature_penalties(np.array([0, 11, 73], np.uint32))
+        original = session.feature_metadata
+        values = dict(flags=[2, 3, 3], used=[0, 0, 0], active=[1, 1, 1]) | change
+        with pytest.raises(RuntimeError):
+            restore_feature_metadata(session, **values)
+        for key in original:
+            np.testing.assert_array_equal(session.feature_metadata[key], original[key])
+        assert staged_step(session, 1).depth == 1
+
+
+@pytest.mark.parametrize("when", ["open_tree", "completed_tree"])
+def test_metadata_restore_rejects_training_in_progress_without_poisoning_session(metal_device, when):
+    args, _, _ = problem(iterations=2, depth=1)
+    with _native.Session(**args) as session:
+        if when == "open_tree":
+            session.begin_tree()
+        else:
+            staged_step(session, 1)
+        with pytest.raises(RuntimeError):
+            restore_feature_metadata(session, [2, 2, 2], [0, 0, 0], [1, 1, 1])
+        if when == "open_tree":
+            assert session.grow_tree()["has_split"]
+            assert session.finish_tree().depth == 1
+        assert staged_step(session, 1).depth == 1

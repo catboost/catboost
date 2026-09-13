@@ -10,6 +10,7 @@
 #include <util/generic/vector.h>
 
 #include <algorithm>
+#include <functional>
 #include <numeric>
 
 namespace NCB {
@@ -44,10 +45,11 @@ namespace NCB {
             TConstArrayRef<TVector<ui32>> permutationOrders = {},
             TConstArrayRef<ui8> candidateTypes = {},
             double groupFoldGrowth = 0,
-            TConstArrayRef<TVector<ui8>> additionalBins = {})
+            TConstArrayRef<TVector<ui8>> additionalBins = {},
+            bool dynamicTreeCtrs = false)
             : Params(params)
             , RandomSeed(randomSeed)
-            , Random(randomSeed, params.permutations, params.depth, params.candidates)
+            , Random(randomSeed, params.permutations, params.depth, params.candidates, dynamicTreeCtrs)
         {
             CB_ENSURE(permutationOrders.empty() ? Params.permutations == 1 :
                       permutationOrders.size() == Params.permutations,
@@ -225,6 +227,52 @@ namespace NCB {
             CB_ENSURE(info->completed_iterations == CompletedIterations && *depth <= Params.depth,
                 "Metal Ordered returned inconsistent iteration or depth information");
             Random.FinishIteration(*depth);
+        }
+
+        // The controller appends newly generated CTR columns after each
+        // selected split. All prefix cursors and the one bootstrap draw stay
+        // resident throughout this begin/grow/finish sequence.
+        void StepDynamic(
+            ui64 absoluteIteration,
+            CBMStepInfo* info,
+            ui32* depth,
+            TArrayRef<ui32> splitFeatures,
+            TArrayRef<ui32> splitBins,
+            TArrayRef<ui8> splitTypes,
+            TArrayRef<float> leafValues,
+            TArrayRef<float> leafWeights,
+            const std::function<void(ui32)>& begin,
+            const std::function<void(ui32, const CBMStructureInfo&)>& split,
+            const std::function<ui32()>& scoreDraws)
+        {
+            CB_ENSURE(absoluteIteration == ui64(IterationOffset) + CompletedIterations,
+                "Metal Ordered dynamic step must use the next absolute iteration");
+            CB_ENSURE(info && depth && splitFeatures.size() >= Params.depth &&
+                splitBins.size() >= Params.depth && splitTypes.size() >= Params.depth &&
+                leafValues.size() >= (1u << Params.depth) && leafWeights.size() >= (1u << Params.depth) &&
+                begin && split && scoreDraws,
+                "Metal Ordered dynamic step requires full output buffers and CTR callbacks");
+            const ui32 selected = Random.SelectPermutation();
+            begin(selected);
+            char error[2048] = {};
+            CB_ENSURE(cbm_ordered_session_begin_tree(Session.Value, selected, error, sizeof(error)) == 0,
+                "Metal Ordered dynamic tree initialization failed: " << error);
+            CBMStructureInfo structure = {};
+            ui32 searchDrawCount = 0;
+            do {
+                if (Params.depth && Params.candidates) searchDrawCount += scoreDraws();
+                CB_ENSURE(cbm_ordered_session_grow_tree(Session.Value, &structure, error, sizeof(error)) == 0,
+                    "Metal Ordered dynamic split search failed: " << error);
+                if (structure.has_split) split(selected, structure);
+            } while (!structure.finished);
+            CB_ENSURE(cbm_ordered_session_finish_tree(Session.Value, info, depth,
+                splitFeatures.data(), splitBins.data(), splitTypes.data(), leafValues.data(), leafWeights.data(),
+                error, sizeof(error)) == 0,
+                "Metal Ordered dynamic leaf estimation failed: " << error);
+            ++CompletedIterations;
+            CB_ENSURE(info->completed_iterations == CompletedIterations && *depth <= Params.depth,
+                "Metal Ordered dynamic step returned inconsistent iteration or depth information");
+            Random.FinishIterationWithDraws(*depth, searchDrawCount);
         }
 
         void SetFeaturePenalties(TConstArrayRef<ui32> counts, float modelSizeReg) {

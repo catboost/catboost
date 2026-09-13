@@ -5,8 +5,8 @@ algorithms for Apple Silicon, including native `task_type="GPU"` integration and
 a standalone Python adapter. See the [Metal usage guide](catboost/metal/README.md),
 [implementation status](catboost/metal/IMPLEMENTATION_STATUS.md), and
 [CUDA-to-Metal source map](catboost/metal/CUDA_PORT.md). This is an active port;
-full CUDA parity is not established. The current branch includes an unfinished
-[greedy PairLogit extension](catboost/metal/GREEDY_PAIRLOGIT_WIP.md).
+full CUDA parity is not established. Progress and acceptance evidence are tracked
+in the [Metal parity Kanban](Kanban/README.md).
 
 [Website](https://catboost.ai) |
 [Documentation](https://catboost.ai/docs/) |

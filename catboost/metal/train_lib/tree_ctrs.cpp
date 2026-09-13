@@ -19,7 +19,7 @@
 namespace NCB {
 namespace {
     constexpr ui64 MaxInputBytes = ui64(1) << 30;
-    constexpr ui32 SnapshotVersion = 2;
+    constexpr ui32 SnapshotVersion = 3;
 
     struct TVariantState {
         TFeatureCombination Projection;
@@ -121,6 +121,7 @@ public:
         , MaximumUniqueValues(Max(Rows, learnAndFirstEvalRows))
         , RandomSeed(static_cast<ui32>(options.RandomSeed.Get()))
         , BorderCacheComplexity(options.ObliviousTreeOptions->MaxCtrComplexityForBordersCaching.Get())
+        , HistoryUnit(options.CatFeatureParams->CtrHistoryUnit.Get())
         , Provider(provider ? std::move(provider) : MakeIntrusive<TStaticCtrProvider>())
         , FloatFeatures(CreateFloatFeatures(*Objects.GetFeaturesLayout(), *Objects.GetQuantizedFeaturesInfo()))
         , CatFeatures(CreateCatFeatures(*Objects.GetFeaturesLayout()))
@@ -128,10 +129,20 @@ public:
         CB_ENSURE(Rows && Rows <= (1u << 24), "Metal tree CTR row count is invalid");
         const auto& categorical = options.CatFeatureParams.Get();
         CB_ENSURE(categorical.MaxTensorComplexity > 1, "Metal tree CTRs require max_ctr_complexity > 1");
-        CB_ENSURE(categorical.CtrHistoryUnit == ECtrHistoryUnit::Sample,
-                  "Metal tree CTRs require sample-level histories");
+        CB_ENSURE(HistoryUnit == ECtrHistoryUnit::Sample || HistoryUnit == ECtrHistoryUnit::Group,
+                  "Metal tree CTR history unit is invalid");
         CB_ENSURE(categorical.CounterCalcMethod == ECounterCalc::SkipTest,
                   "Metal tree CTRs currently require counter_calc_method='SkipTest'");
+        if (HistoryUnit == ECtrHistoryUnit::Group && !data.ObjectsGrouping->IsTrivial()) {
+            // CUDA BuildCtrTarget uses query ordinals in source-row order.
+            // External group hashes are not truncated, and every observation
+            // still contributes one count to subsequent groups' histories.
+            GroupIds.resize(Rows);
+            for (ui32 group = 0; group < data.ObjectsGrouping->GetGroupCount(); ++group) {
+                const auto bounds = data.ObjectsGrouping->GetGroup(group);
+                std::fill(GroupIds.begin() + bounds.Begin, GroupIds.begin() + bounds.End, group);
+            }
+        }
         const auto target = data.TargetData->GetTarget();
         CB_ENSURE(target && target->size() == 1 && (*target)[0].size() == Rows,
                   "Metal tree CTRs require one scalar target per row");
@@ -166,9 +177,16 @@ public:
         for (const auto& order : HistoryOrders) {
             CB_ENSURE(order.size() == Rows, "Metal tree CTR history row count differs");
             TVector<bool> seen(Rows, false);
+            TVector<bool> seenGroups(GroupIds.empty() ? 0 : data.ObjectsGrouping->GetGroupCount(), false);
+            ui32 previousGroup = Max<ui32>();
             for (ui32 row : order) {
                 CB_ENSURE(row < Rows && !seen[row], "Metal tree CTR history must be a source-row permutation");
                 seen[row] = true;
+                if (!GroupIds.empty() && GroupIds[row] != previousGroup) {
+                    previousGroup = GroupIds[row];
+                    CB_ENSURE(!seenGroups[previousGroup], "Metal tree CTR history must keep each group contiguous");
+                    seenGroups[previousGroup] = true;
+                }
             }
             HistoryHashes.push_back(VecCityHash(order));
         }
@@ -368,7 +386,8 @@ public:
                 CBMCtrStats stats = {};
                 char error[2048] = {};
                 const float* targets = config.Type == ECtrType::FloatTargetMeanValue ? Targets.data() : BinTargets.data();
-                CB_ENSURE(cbm_compute_ctrs(&params, groups.Bins.data(), groups.Rows.data(), targets,
+                CB_ENSURE(cbm_compute_ctrs_grouped(&params, groups.Bins.data(), groups.Rows.data(), targets,
+                    GroupIds.empty() ? nullptr : GroupIds.data(),
                     values.data(), sums.data(), counts.data(), &stats, error, sizeof(error)) == 0,
                     "Metal tree CTR computation failed: " << error);
                 AddStats(stats, &batch->Stats);
@@ -514,6 +533,7 @@ public:
     ui32 MaximumUniqueValues;
     ui32 RandomSeed;
     ui32 BorderCacheComplexity;
+    ECtrHistoryUnit HistoryUnit;
     ui32 TargetBorderCount;
     TIntrusivePtr<TStaticCtrProvider> Provider;
     TVector<TFloatFeature> FloatFeatures;
@@ -521,6 +541,7 @@ public:
     TMap<int, TMetalCategoryColumn> Categories;
     TVector<float> Targets;
     TVector<float> BinTargets;
+    TVector<ui32> GroupIds;
     TVector<TVector<ui32>> HistoryOrders;
     TVector<ui64> HistoryHashes;
     TVector<TCtrConfig> Configs;
@@ -565,7 +586,8 @@ void TMetalTreeCtrFeatures::Save(IOutputStream* output) const {
     ::SaveMany(output, SnapshotVersion, Impl->FirstFeature, Impl->Rows,
                static_cast<ui32>(Impl->HistoryOrders.size()), Impl->HistoryHashes,
                Impl->Configs, Impl->BinarizationState(), Impl->BorderCacheComplexity,
-               Impl->Registry, Impl->GetRegisteredFeatures());
+               Impl->Registry, Impl->GetRegisteredFeatures(),
+               static_cast<ui32>(Impl->HistoryUnit), VecCityHash(Impl->GroupIds));
 }
 
 TMetalTreeCtrBatch TMetalTreeCtrFeatures::Restore(IInputStream* input) {
@@ -576,9 +598,19 @@ TMetalTreeCtrBatch TMetalTreeCtrFeatures::Restore(IInputStream* input) {
     TVector<TVector<ui32>> binarizations;
     TVector<TVariantState> registry;
     TVector<ui32> knownFeatures;
-    ::LoadMany(input, version, firstFeature, rows, permutations, historyHashes, configs, binarizations,
+    ::Load(input, version);
+    CB_ENSURE(version == SnapshotVersion || (version == 2 && Impl->HistoryUnit == ECtrHistoryUnit::Sample),
+              "Saved Metal tree CTR version does not support the current history unit");
+    ::LoadMany(input, firstFeature, rows, permutations, historyHashes, configs, binarizations,
                borderCacheComplexity, registry, knownFeatures);
-    CB_ENSURE(version == SnapshotVersion && firstFeature == Impl->FirstFeature && rows == Impl->Rows &&
+    if (version >= 3) {
+        ui32 historyUnit;
+        ui64 groupHash;
+        ::LoadMany(input, historyUnit, groupHash);
+        CB_ENSURE(historyUnit == static_cast<ui32>(Impl->HistoryUnit) && groupHash == VecCityHash(Impl->GroupIds),
+                  "Saved Metal tree CTR history unit or group boundaries differ");
+    }
+    CB_ENSURE(firstFeature == Impl->FirstFeature && rows == Impl->Rows &&
               permutations == Impl->HistoryOrders.size() && historyHashes == Impl->HistoryHashes &&
               configs == Impl->Configs && binarizations == Impl->BinarizationState() &&
               borderCacheComplexity == Impl->BorderCacheComplexity,

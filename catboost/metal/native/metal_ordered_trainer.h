@@ -61,6 +61,33 @@ int cbm_ordered_session_create_banked(const CBMOrderedParams* params, uint32_t b
 int cbm_ordered_session_step(void* session, uint32_t search_permutation,
     CBMStepInfo* info, uint32_t* depth, uint32_t* split_features, uint32_t* split_bins,
     uint8_t* split_types, float* leaf_values, float* leaf_weights, char* error, size_t capacity);
+// Incremental Ordered structure search freezes the selected permutation,
+// gradients, bootstrap sample and fold cursors until finish. Finish may end early.
+int cbm_ordered_session_begin_tree(void* session, uint32_t search_permutation, char* error, size_t capacity);
+int cbm_ordered_session_grow_tree(void* session, CBMStructureInfo* info, char* error, size_t capacity);
+int cbm_ordered_session_finish_tree(void* session, CBMStepInfo* info, uint32_t* depth,
+    uint32_t* split_features, uint32_t* split_bins, uint8_t* split_types,
+    float* leaf_values, float* leaf_weights, char* error, size_t capacity);
+// Append-only columns in original row order, with local candidate feature IDs.
+// The bank count is one or every permutation; shared banks may be promoted.
+// A zero-column append enables dynamic metadata without replacing feature data.
+// The scalar flag/weight semantics apply; only dynamic CTR winners become used.
+int cbm_ordered_session_append_features(void* session, const CBMAppendFeatureOptions* options,
+    const uint8_t* const* permutation_bins, const uint32_t* candidate_features,
+    const uint32_t* candidate_bins, const uint8_t* candidate_types,
+    const uint32_t* ctr_unique_values, const float* feature_weights,
+    const uint8_t* feature_flags, const uint8_t* used_features,
+    uint32_t* first_global_feature, char* error, size_t capacity);
+int cbm_ordered_session_set_feature_activity(void* session, uint32_t feature_count,
+    const uint8_t* active_features, char* error, size_t capacity);
+// Metadata snapshots are available only between completed trees. Restore the
+// constructed banks' flags only before the first tree; counts/grids are caller-checked.
+int cbm_ordered_session_copy_feature_metadata(void* session, uint32_t feature_capacity,
+    uint32_t* ctr_unique_values, float* feature_weights, uint8_t* feature_flags,
+    uint8_t* used_features, uint8_t* active_features, char* error, size_t capacity);
+int cbm_ordered_session_restore_feature_metadata(void* session, uint32_t feature_count,
+    const uint8_t* feature_flags, const uint8_t* used_features, const uint8_t* active_features,
+    char* error, size_t capacity);
 // Static simple CTR penalties follow CUDA update_feature_weights.cpp. Configure
 // once before stepping. Simple FeatureParallel CTRs keep their penalty after selection.
 int cbm_ordered_session_set_feature_penalties(void* session, const CBMFeaturePenaltyOptions* options,

@@ -28,8 +28,9 @@ namespace NCB {
     };
 
     // CUDA FeatureParallel tree-dependent tensor scheduling, GPU projection
-    // hashing/grouping and exclusive CTR histories. Explicit history orders
-    // are source-row permutations; an empty collection means identity/P1.
+    // hashing/grouping and exclusive sample/group CTR histories. Explicit
+    // history orders are source-row permutations (whole groups for Group);
+    // an empty collection means identity/P1.
     // The adapter owns boosting folds, search RNG and the begin/grow/finish
     // runtime state machine. This helper never changes targets or cursors.
     class TMetalTreeCtrFeatures {
@@ -64,7 +65,9 @@ namespace NCB {
 
         // Save after a completed tree. Restore into a fresh helper and append
         // its returned banks before restoring optimizer state; saved grids and
-        // descriptor order are reused exactly. The caller must validate its
+        // descriptor order are reused exactly. History policy and group
+        // boundaries are checked; Sample-only version 2 snapshots remain
+        // readable. The caller must validate its
         // complete data/options fingerprint before Restore. No in-progress
         // tree is restored.
         void Save(IOutputStream* output) const;

@@ -21,6 +21,15 @@
 #include <unordered_map>
 
 namespace {
+// Activity is metadata only: retained split columns still route every cursor.
+// Keep this additive kernel private so the legacy shared score ABI is unchanged.
+static const char* OrderedActivitySource = R"METAL(
+kernel void OrderedSessionMaskCandidates(device float2* scores [[buffer(0)]],
+    const device uint2* candidates [[buffer(1)]], const device uchar* active [[buffer(2)]],
+    constant uint& count [[buffer(3)]], uint candidate [[thread_position_in_grid]]) {
+    if (candidate < count && !active[candidates[candidate].x]) scores[candidate] = float2(FLT_MAX);
+}
+)METAL";
 constexpr uint64_t MemoryLimit = uint64_t(1) << 30;
 constexpr uint64_t HistogramLimit = uint64_t(32) << 20;
 static_assert(CBMMetalKernelAbiVersion == 2, "Review Ordered runtime after shared Metal ABI changes");
@@ -70,12 +79,12 @@ struct Runtime {
         if (@available(macOS 13.0, *)) options.languageVersion = MTLLanguageVersion3_0;
         else throw std::runtime_error("Ordered training requires macOS 13 or newer");
         options.fastMathEnabled = NO;
-        NSString* source = [NSString stringWithFormat:@"%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
+        NSString* source = [NSString stringWithFormat:@"%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
             CBMMetalBootstrapSource, CBMMetalScoreNoiseSource, CBMMetalSource,
             CBMMetalAdditionalObjectiveSource, CBMMetalObjectiveSource,
             CBMMetalBacktrackingSource, CBMMetalExactLeafSource, CBMMetalOrderedSource,
             CBMMetalOrderedSessionSource, CBMMetalOrderedBacktrackingSource,
-            CBMMetalDeepPartitionSource, CBMMetalOrderedHistogramSource];
+            CBMMetalDeepPartitionSource, CBMMetalOrderedHistogramSource, OrderedActivitySource];
         NSError* error = nil;
         id<MTLLibrary> library = [Device newLibraryWithSource:source options:options error:&error];
         Require(library != nil, "Ordered shader compilation failed: " + Error(error));
@@ -92,7 +101,7 @@ struct Runtime {
             "InitializeOrderedHistogramOccurrences", "UpdateOrderedHistogramLeafIds", "ResetOrderedHistogramJobs", "BuildOrderedHistogramJobs",
             "OrderedHistogramArguments", "ClearOrderedHistogram", "ComputeOrderedHistogram", "ScanOrderedHistogram",
             "SubtractOrderedHistogramSibling", "ExtractOrderedHistogramCandidates", "ScatterOrderedHistogramScores",
-            "ClearOrderedPartitionCandidateStatistics", "ComputeOrderedPartitionCandidates"};
+            "ClearOrderedPartitionCandidateStatistics", "ComputeOrderedPartitionCandidates", "OrderedSessionMaskCandidates"};
         for (const char* name : names) {
             id<MTLFunction> function = [library newFunctionWithName:[NSString stringWithUTF8String:name]];
             Require(function != nil, std::string("Missing Ordered kernel: ") + name);
@@ -381,7 +390,7 @@ public:
     }
     void CheckStatus() const { Require(!*static_cast<const uint32_t*>(Status.contents), "Ordered GPU arithmetic became nonfinite"); }
     void ConfigureBootstrap(const CBMBootstrapOptions* options, uint32_t testOnly) {
-        Require(!Completed && !Failed && options, "Configure Ordered bootstrap before the first step");
+        Require(!Completed && !Pending.Active && !Failed && options, "Configure Ordered bootstrap before the first step");
         Require(options->bootstrap_type <= 4 && testOnly <= 1, "Unknown Ordered bootstrap type");
         Require(options->mvs_reg_is_set <= 1 && options->initial_mvs_lambda_is_set <= 1 && !options->reserved0 && !options->reserved1,
                 "Invalid Ordered bootstrap flags");
@@ -408,7 +417,7 @@ public:
         } else { MvsInput = nil; MvsThresholds = nil; MvsStatistics = nil; }
     }
     void ConfigureNoise(const CBMScoreNoiseOptions* options) {
-        Require(!Completed && !Failed && options, "Configure Ordered score noise before the first step");
+        Require(!Completed && !Pending.Active && !Failed && options, "Configure Ordered score noise before the first step");
         Require(std::isfinite(options->random_strength) && options->random_strength >= 0 &&
                 !options->reserved0 && !options->reserved1 && !options->reserved2, "Invalid Ordered random_strength");
         const uint64_t extra = options->random_strength > 0 ? P.features * 4ull + FoldCount * 8ull : 0;
@@ -418,11 +427,12 @@ public:
         else { FeatureNoise = nil; QualityStatistics = nil; }
     }
     void BootstrapState(uint32_t* iteration, float* lambda, uint32_t* valid) const {
+        Require(!Pending.Active && !Failed, "Ordered bootstrap state is available only between completed trees");
         Require(iteration && lambda && valid, "Ordered bootstrap state outputs are required");
         *iteration = Bootstrap.iteration_offset + Completed; *valid = HasMvsLambda; *lambda = HasMvsLambda ? MvsLambda : 0;
     }
     void ConfigureBacktracking(uint32_t type) {
-        Require(!Completed && !Failed && type <= 2, "Configure valid Ordered backtracking before the first step");
+        Require(!Completed && !Pending.Active && !Failed && type <= 2, "Configure valid Ordered backtracking before the first step");
         const uint64_t extra = type && P.leaf_iterations > 1 && P.leaf_method != 2 ? uint64_t(Tasks) * (MaxLeaves * 16ull + 12) : 0;
         Require(WorkingBytes + BootstrapBytes + NoiseBytes + extra <= MemoryLimit, "Ordered backtracking exceeds 1 GiB workspace");
         BacktrackingType = type; BacktrackingBytes = extra;
@@ -507,18 +517,11 @@ public:
             for (uint32_t leaf = 0; leaf < leaves; ++leaf) Require(std::isfinite(raw[leaf]), "Ordered Exact leaf solve became nonfinite");
         }
     }
-    void Step(uint32_t selected, CBMStepInfo* info, uint32_t* depth, uint32_t* splitFeatures,
-        uint32_t* splitBins, uint8_t* splitTypes, float* values, float* weights) {
-        Require(!Failed && Completed < P.iterations, "Ordered session is failed or has no remaining iterations");
+    void BeginTree(uint32_t selected) {
+        Require(!Failed && !Pending.Active && Completed < P.iterations,
+                "Ordered session is failed, already has an active tree, or has no remaining iterations");
         Require(selected < LearnPermutations, "Invalid Ordered search permutation");
-        Require(info && depth && values && weights && (!P.depth || (splitFeatures && splitBins && splitTypes)),
-                "Ordered step output buffers are required");
         try {
-            if (P.depth) {
-                std::fill(splitFeatures, splitFeatures + P.depth, 0); std::fill(splitBins, splitBins + P.depth, 0);
-                std::fill(splitTypes, splitTypes + P.depth, 0);
-            }
-            std::fill(values, values + MaxLeaves, 0); std::fill(weights, weights + MaxLeaves, 0);
             const uint32_t foldCount = PermutationFoldCounts[selected];
             const uint32_t packedRows = PermutationPackedRows[selected];
             const uint32_t taskOffset = PermutationTaskOffsets[selected];
@@ -572,50 +575,96 @@ public:
                     {TaskBuffer, uint64_t(taskOffset) * 16}, Sampled}, sampling, P.rows, false, foldCount);
                 sample.Wait();
             }
-            std::vector<uint32_t> chosen;
-            float scoreBefore = 0;
-            for (uint32_t level = 0; level < P.depth && P.candidates; ++level) {
-                OrderedParams hist = {P.rows, P.features, foldCount, step.Leaves, 0, CursorCount, 1, 0,
-                    P.l2, P.normalize, scoreBefore, P.learning_rate};
-                UpdateFeaturePenalties();
-                Command search(Stats);
-                if (FeatureNoise) {
-                    auto noise = bootstrap; noise.Rows = P.features; noise.Stream = level + 1; noise.NoiseScale = noiseScale;
-                    search.Dispatch("GenerateScoreFeatureNoise", {FeatureNoise}, noise, P.features);
-                    search.Dispatch("OrderedSessionFeatureNoise", {FeatureNoise, FeatureOptions}, P, P.features);
-                }
-                Histogram->Prepare(search, step.Leaves);
-                if (!Histogram->CanHistogram()) {
-                    for (uint32_t begin = 0; begin < P.candidates; begin += BatchSize) {
-                        hist.Candidates = std::min(BatchSize, P.candidates - begin);
-                        Histogram->DirectCandidates(search, FeatureBanks[BinBanks > 1 ? selected : 0], Sampled ? Sampled : Derivatives,
-                            Binding(CandidatePairs, begin * 8ull), hist.Candidates, Statistics);
-                        search.Dispatch("ScoreOrderedCandidates", {Statistics, {CandidatePairs, begin * 8ull},
-                            FeatureOptions, {Scores, begin * 8ull}}, hist, hist.Candidates);
-                    }
-                } else for (const auto& tile : Histogram->Plan.Tiles) {
-                    Histogram->Compute(search, tile, FeatureBanks[BinBanks > 1 ? selected : 0], Sampled ? Sampled : Derivatives);
-                    for (uint32_t begin = 0; begin < tile.Candidates; begin += BatchSize) {
-                        hist.Candidates = std::min(BatchSize, tile.Candidates - begin);
-                        Histogram->Extract(search, tile, begin, hist.Candidates, Statistics);
-                        search.Dispatch("ScoreOrderedCandidates", {Statistics,
-                            {Histogram->CandidatePairs, uint64_t(tile.FirstCandidate + begin) * 8}, FeatureOptions, TileScores}, hist, hist.Candidates);
-                        Histogram->ScatterScores(search, tile, begin, hist.Candidates, TileScores, Scores);
-                    }
-                }
-                search.Dispatch("OrderedSessionFindWinner", {Scores, CandidatePairs, Winner}, P, 1, true); search.Wait();
-                Histogram->Check();
-                const auto winner = *static_cast<const SplitState*>(Winner.contents);
-                Require(!winner.InvalidScore, "Ordered split score became nonfinite");
-                if (!winner.Valid || std::find(chosen.begin(), chosen.end(), winner.Index) != chosen.end()) break;
-                chosen.push_back(winner.Index); splitFeatures[level] = winner.Feature; splitBins[level] = winner.Bin;
-                splitTypes[level] = winner.Type;
-                scoreBefore = winner.Score;
-                Command partition(Stats);
-                partition.Dispatch("OrderedSessionUpdateLeafIds", {Bins, Winner, LeafIds}, P, P.rows, false, BinBanks, 1, &step);
-                if (level + 1 < P.depth) Histogram->Partition(partition, Binding(LeafIds, uint64_t(selected) * P.reserved0 * 4), step.Leaves * 2);
-                partition.Wait(); step.Leaves *= 2;
+            Pending = {}; Pending.Active = true; Pending.SelectedPermutation = selected;
+            Pending.Bootstrap = bootstrap; Pending.NoiseScale = noiseScale;
+            Pending.Finished = !P.depth || !HasActiveCandidates();
+            Pending.Exhausted = P.depth && !HasActiveCandidates();
+        } catch (...) { Failed = true; throw; }
+    }
+    void StructureInfo(CBMStructureInfo& info) const {
+        info = {}; info.depth = Pending.Selected.size(); info.finished = Pending.Finished;
+        info.has_split = Pending.HasSplit;
+        if (Pending.HasSplit) {
+            info.feature = Pending.LastWinner.Feature; info.bin = Pending.LastWinner.Bin;
+            info.type = Pending.LastWinner.Type; info.score = Pending.LastWinner.Score; info.gain = Pending.LastWinner.Gain;
+        }
+    }
+    void GrowTree(CBMStructureInfo* info) {
+        Require(!Failed && Pending.Active && info, "Ordered grow requires an active tree and output");
+        Pending.HasSplit = false;
+        if (Pending.Finished) { StructureInfo(*info); return; }
+        try {
+            const uint32_t selected = Pending.SelectedPermutation, level = Pending.Selected.size();
+            StepParams step = StepConfiguration(1u << level, selected);
+            OrderedParams hist = {P.rows, P.features, PermutationFoldCounts[selected], step.Leaves, 0, CursorCount, 1, 0,
+                P.l2, P.normalize, Pending.ScoreBefore, P.learning_rate};
+            UpdateFeaturePenalties();
+            Command search(Stats);
+            if (FeatureNoise) {
+                auto noise = Pending.Bootstrap; noise.Rows = P.features; noise.Stream = level + 1; noise.NoiseScale = Pending.NoiseScale;
+                search.Dispatch("GenerateScoreFeatureNoise", {FeatureNoise}, noise, P.features);
+                search.Dispatch("OrderedSessionFeatureNoise", {FeatureNoise, FeatureOptions}, P, P.features);
             }
+            Histogram->Prepare(search, step.Leaves);
+            if (!Histogram->CanHistogram()) {
+                for (uint32_t begin = 0; begin < P.candidates; begin += BatchSize) {
+                    hist.Candidates = std::min(BatchSize, P.candidates - begin);
+                    Histogram->DirectCandidates(search, FeatureBanks[BinBanks > 1 ? selected : 0], Sampled ? Sampled : Derivatives,
+                        Binding(CandidatePairs, begin * 8ull), hist.Candidates, Statistics);
+                    search.Dispatch("ScoreOrderedCandidates", {Statistics, {CandidatePairs, begin * 8ull},
+                        FeatureOptions, {Scores, begin * 8ull}}, hist, hist.Candidates);
+                }
+            } else for (const auto& tile : Histogram->Plan.Tiles) {
+                Histogram->Compute(search, tile, FeatureBanks[BinBanks > 1 ? selected : 0], Sampled ? Sampled : Derivatives);
+                for (uint32_t begin = 0; begin < tile.Candidates; begin += BatchSize) {
+                    hist.Candidates = std::min(BatchSize, tile.Candidates - begin);
+                    Histogram->Extract(search, tile, begin, hist.Candidates, Statistics);
+                    search.Dispatch("ScoreOrderedCandidates", {Statistics,
+                        {Histogram->CandidatePairs, uint64_t(tile.FirstCandidate + begin) * 8}, FeatureOptions, TileScores}, hist, hist.Candidates);
+                    Histogram->ScatterScores(search, tile, begin, hist.Candidates, TileScores, Scores);
+                }
+            }
+            if (Dynamic) search.Dispatch("OrderedSessionMaskCandidates", {Scores, CandidatePairs, FeatureActivity}, P.candidates, P.candidates);
+            search.Dispatch("OrderedSessionFindWinner", {Scores, CandidatePairs, Winner}, P, 1, true); search.Wait();
+            Histogram->Check();
+            Histogram->Plan.AllowReuse = true;
+            const auto winner = *static_cast<const SplitState*>(Winner.contents);
+            Require(!winner.InvalidScore, "Ordered split score became nonfinite");
+            bool duplicate = false;
+            for (const auto& previous : Pending.Selected) duplicate |= previous.Index == winner.Index;
+            if (!winner.Valid || duplicate) {
+                Pending.Finished = true; Pending.Exhausted = !winner.Valid;
+                StructureInfo(*info); return;
+            }
+            Pending.Selected.push_back(winner); Pending.LastWinner = winner;
+            Pending.ScoreBefore = winner.Score;
+            if (Dynamic && (FeatureFlags[winner.Feature] & 1) && CtrCounts[winner.Feature]) {
+                UsedFeatures[winner.Feature] = 1; FeatureFlags[winner.Feature] |= 2;
+            }
+            Command partition(Stats);
+            partition.Dispatch("OrderedSessionUpdateLeafIds", {Bins, Winner, LeafIds}, P, P.rows, false, BinBanks, 1, &step);
+            if (level + 1 < P.depth) Histogram->Partition(partition, Binding(LeafIds, uint64_t(selected) * P.reserved0 * 4), step.Leaves * 2);
+            partition.Wait();
+            Pending.HasSplit = true; Pending.Finished = Pending.Selected.size() == P.depth;
+            StructureInfo(*info);
+        } catch (...) { Failed = true; throw; }
+    }
+    void FinishTree(CBMStepInfo* info, uint32_t* depth, uint32_t* splitFeatures,
+        uint32_t* splitBins, uint8_t* splitTypes, float* values, float* weights) {
+        Require(!Failed && Pending.Active, "Ordered finish requires an active tree");
+        Require(info && depth && values && weights && (!P.depth || (splitFeatures && splitBins && splitTypes)),
+                "Ordered step output buffers are required");
+        try {
+            if (P.depth) {
+                std::fill(splitFeatures, splitFeatures + P.depth, 0); std::fill(splitBins, splitBins + P.depth, 0);
+                std::fill(splitTypes, splitTypes + P.depth, 0);
+                for (uint32_t level = 0; level < Pending.Selected.size(); ++level) {
+                    splitFeatures[level] = Pending.Selected[level].Feature; splitBins[level] = Pending.Selected[level].Bin;
+                    splitTypes[level] = Pending.Selected[level].Type;
+                }
+            }
+            std::fill(values, values + MaxLeaves, 0); std::fill(weights, weights + MaxLeaves, 0);
+            const auto step = StepConfiguration(1u << Pending.Selected.size(), Pending.SelectedPermutation);
             if (P.leaf_method == 2) EstimateExact(step.Leaves);
             else if (BacktrackingBytes) EstimateBacktracking(step);
             else for (uint32_t iteration = 0; iteration < P.leaf_iterations; ++iteration) {
@@ -638,35 +687,218 @@ public:
                 Require(std::isfinite(MvsLambda), "Ordered MVS leaf regularization became nonfinite");
             }
             std::swap(Cursor, NextCursor); std::swap(Published, NextPublished);
-            ++Completed; Loss = nextLoss; *depth = chosen.size(); Info(*info);
+            ++Completed; Loss = nextLoss; *depth = Pending.Selected.size(); Pending = {}; Info(*info);
         } catch (...) { Failed = true; throw; }
+    }
+    void Step(uint32_t selected, CBMStepInfo* info, uint32_t* depth, uint32_t* splitFeatures,
+        uint32_t* splitBins, uint8_t* splitTypes, float* values, float* weights) {
+        Require(info && depth && values && weights && (!P.depth || (splitFeatures && splitBins && splitTypes)),
+                "Ordered step output buffers are required");
+        BeginTree(selected);
+        while (!Pending.Finished) { CBMStructureInfo structure; GrowTree(&structure); }
+        FinishTree(info, depth, splitFeatures, splitBins, splitTypes, values, weights);
+    }
+    void EnableDynamic() {
+        if (Dynamic) return;
+        const uint64_t extra = uint64_t(P.features) * (PenaltiesConfigured ? 4 : 12);
+        Require(WorkingBytes + BootstrapBytes + NoiseBytes + BacktrackingBytes + extra <= MemoryLimit,
+                "Ordered dynamic feature state exceeds 1 GiB");
+        if (!PenaltiesConfigured) { CtrCounts.assign(P.features, 0); FeatureWeights.assign(P.features, 1); }
+        FeatureFlags.assign(P.features, 2); UsedFeatures.assign(P.features, 0); ActiveFeatures.assign(P.features, 1);
+        FeatureActivity = Context().Buffer(P.features, ActiveFeatures.data());
+        Dynamic = true; WorkingBytes += extra; UpdateFeaturePenalties();
+    }
+    void AppendFeatures(const CBMAppendFeatureOptions* options, const uint8_t* const* matrices,
+        const uint32_t* features, const uint32_t* borders, const uint8_t* types,
+        const uint32_t* counts, const float* weights, const uint8_t* flags, const uint8_t* used, uint32_t* first) {
+        Require(!Failed && options && first, "Ordered append options and output are required");
+        Require((options->permutation_count == 1 || options->permutation_count == P.permutations) &&
+                options->permutation_count >= BinBanks, "Ordered appended banks must retain every permutation");
+        for (const auto reserved : options->reserved) Require(!reserved, "Ordered append reserved fields must be zero");
+        Require(options->bins_per_feature && options->bins_per_feature <= 256, "Ordered appended bin capacity must be in [1,256]");
+        Require(options->features || !options->candidates, "Ordered appended candidates need new features");
+        if (!options->features) { EnableDynamic(); *first = P.features; ReopenCandidateExhaustion(); return; }
+        const uint64_t newF64 = uint64_t(P.features) + options->features, newC64 = uint64_t(P.candidates) + options->candidates;
+        const uint32_t banks = options->permutation_count;
+        Require(newF64 < UINT32_MAX && newC64 <= UINT32_MAX && newF64 * P.rows <= UINT32_MAX,
+                "Ordered appended dimensions exceed GPU indexing");
+        Require(newF64 * P.rows * banks + newF64 * 28 + newC64 * 20 <= MemoryLimit,
+                "Ordered appended feature banks exceed 1 GiB");
+        Require(matrices && (!options->candidates || (features && borders)), "Ordered appended input vectors are required");
+        Require(options->candidates <= uint64_t(options->features) * options->bins_per_feature,
+                "Ordered appended candidate count exceeds feature grid");
+        const uint32_t newF = newF64, newC = newC64;
+        const uint64_t addedCells = uint64_t(options->features) * P.rows, oldCells = uint64_t(P.features) * P.rows;
+        for (uint32_t bank = 0; bank < banks; ++bank) {
+            Require(matrices[bank], "Ordered appended permutation matrix is required");
+            for (uint64_t cell = 0; cell < addedCells; ++cell)
+                Require(matrices[bank][cell] < options->bins_per_feature, "Ordered appended bin exceeds capacity");
+        }
+        const uint8_t* oldBins = static_cast<const uint8_t*>(Bins.contents);
+        for (uint64_t cell = 0; cell < oldCells * BinBanks; ++cell)
+            Require(oldBins[cell] < options->bins_per_feature, "Ordered appended capacity must cover the existing grid");
+        std::vector<int8_t> kinds(options->features, -1);
+        for (uint32_t c = 0; c < options->candidates; ++c) {
+            const uint32_t type = types ? types[c] : 0;
+            Require(features[c] < options->features && type <= 1 && borders[c] < options->bins_per_feature &&
+                    borders[c] <= 255 - (type == 0), "Invalid Ordered appended numeric/one-hot candidate");
+            auto& kind = kinds[features[c]];
+            Require(kind < 0 || kind == type, "Ordered appended feature cannot mix numeric and one-hot candidates"); kind = type;
+        }
+        for (uint32_t f = 0; f < options->features; ++f) {
+            Require(!weights || (std::isfinite(weights[f]) && weights[f] >= 0), "Ordered appended feature weights must be finite and nonnegative");
+            Require(!flags || flags[f] <= 3, "Ordered appended flags must use only dynamic and registered bits");
+            Require(!used || used[f] <= 1, "Ordered appended used flags must be boolean");
+            Require(!counts || !counts[f] || !used || !used[f] || !flags || (flags[f] & 2),
+                    "Ordered previously used CTRs must be globally registered");
+        }
+        std::vector<uint32_t> allFeatures(newC), allBorders(newC), allPairs(uint64_t(newC) * 2), allTypes(newC);
+        std::vector<uint8_t> allTypes8(newC);
+        const uint32_t* oldPairs = static_cast<const uint32_t*>(CandidatePairs.contents);
+        for (uint32_t c = 0; c < newC; ++c) {
+            allFeatures[c] = c < P.candidates ? oldPairs[2 * c] : P.features + features[c - P.candidates];
+            allBorders[c] = c < P.candidates ? oldPairs[2 * c + 1] & 255 : borders[c - P.candidates];
+            allTypes[c] = c < P.candidates ? oldPairs[2 * c + 1] >> 31 : (types ? types[c - P.candidates] : 0);
+            allTypes8[c] = allTypes[c]; allPairs[2 * c] = allFeatures[c]; allPairs[2 * c + 1] = allBorders[c] | (allTypes[c] << 31);
+        }
+        std::unique_ptr<CBMOrderedHistogramPlan> plan;
+        if (P.depth && newC) {
+            uint32_t foldSlots = 1, span = 2, cacheLeaves = MaxLeaves / 2;
+            while (foldSlots < FoldCount) foldSlots <<= 1;
+            for (const auto border : allBorders) span = std::max(span, std::min(256u, border + 2));
+            while (cacheLeaves > 1 && uint64_t(cacheLeaves) * foldSlots * span * 32 > (uint64_t(128) << 20)) cacheLeaves >>= 1;
+            plan = std::make_unique<CBMOrderedHistogramPlan>(P.rows, PermutationCursorCount, FoldCount,
+                MaxLeaves / 2, newF, newC, allFeatures.data(), allBorders.data(), uint64_t(128) << 20,
+                !Pending.Active || Pending.Selected.empty(), cacheLeaves, allTypes8.data());
+        }
+        const uint64_t perCandidate = uint64_t(MaxLeaves) * FoldCount * 32;
+        const uint32_t newBatch = newC ? std::max<uint64_t>(1, std::min<uint64_t>(newC, HistogramLimit / perCandidate)) : 1;
+        const uint64_t oldLayout = oldCells * BinBanks + uint64_t(P.rows) * BinBanks * 4 +
+            uint64_t(P.features) * (16 + ((PenaltiesConfigured || Dynamic) ? 8 : 0) + (Dynamic ? 4 : 0)) +
+            uint64_t(P.candidates) * 20 + perCandidate * BatchSize +
+            (Histogram ? Histogram->Plan.Bytes + oldCells * BinBanks + uint64_t(BatchSize) * 8 : 0);
+        const uint64_t cells = newF64 * P.rows;
+        const uint64_t newLayout = cells * banks + uint64_t(P.rows) * banks * 4 + newF64 * 28 + newC64 * 20 +
+            perCandidate * newBatch + (plan ? plan->Bytes + cells * banks + uint64_t(newBatch) * 8 : 0);
+        const uint64_t newNoiseBytes = FeatureNoise ? newF64 * 4 + FoldCount * 8ull : 0;
+        Require(WorkingBytes >= oldLayout && WorkingBytes - oldLayout + newLayout + BootstrapBytes + newNoiseBytes + BacktrackingBytes <= MemoryLimit,
+                "Ordered appended working set exceeds 1 GiB");
+        Require(WorkingBytes + BootstrapBytes + NoiseBytes + BacktrackingBytes + newLayout + (FeatureNoise ? newF64 * 4 : 0) <= MemoryLimit,
+                "Ordered append peak working set exceeds 1 GiB");
+        auto nextCounts = CtrCounts; auto nextWeights = FeatureWeights;
+        auto nextFlags = FeatureFlags, nextUsed = UsedFeatures, nextActive = ActiveFeatures;
+        nextCounts.resize(newF, 0); nextWeights.resize(newF, 1); nextFlags.resize(newF, 2);
+        nextUsed.resize(newF, 0); nextActive.resize(newF, 1);
+        for (uint32_t f = 0; f < options->features; ++f) {
+            const uint32_t global = P.features + f;
+            nextCounts[global] = counts ? counts[f] : 0; nextWeights[global] = weights ? weights[f] : 1;
+            nextFlags[global] = flags ? flags[f] : 3; nextUsed[global] = counts && counts[f] && used ? used[f] : 0;
+        }
+        std::vector<uint8_t> rowBins(cells * banks), columnBins(cells);
+        std::vector<id<MTLBuffer>> newBanks;
+        auto& context = Context();
+        for (uint32_t bank = 0; bank < banks; ++bank) {
+            const uint8_t* oldBank = oldBins + (BinBanks > 1 ? bank * oldCells : 0);
+            for (uint32_t row = 0; row < P.rows; ++row) for (uint32_t f = 0; f < newF; ++f) {
+                const uint8_t value = f < P.features ? oldBank[uint64_t(row) * P.features + f]
+                    : matrices[bank][uint64_t(f - P.features) * P.rows + row];
+                rowBins[bank * cells + uint64_t(row) * newF + f] = value;
+                columnBins[uint64_t(f) * P.rows + row] = value;
+            }
+            if (plan) newBanks.push_back(context.Buffer(cells, columnBins.data()));
+        }
+        auto newBins = context.Buffer(cells * banks, rowBins.data());
+        auto newLeafIds = context.Buffer(uint64_t(P.rows) * banks * 4);
+        for (uint32_t bank = 0; bank < banks; ++bank)
+            std::memcpy(static_cast<uint8_t*>(newLeafIds.contents) + uint64_t(bank) * P.rows * 4,
+                static_cast<const uint8_t*>(LeafIds.contents) + (BinBanks > 1 ? uint64_t(bank) * P.rows * 4 : 0), P.rows * 4ull);
+        auto candidatePairs = context.Buffer(newC64 * 8, allPairs.data());
+        auto candidateTypes = context.Buffer(newC64 * 4, allTypes.data());
+        std::vector<float> featureOptions(newF64 * 4, 0);
+        std::memcpy(featureOptions.data(), FeatureOptions.contents, P.features * 16ull);
+        auto featureOptionsBuffer = context.Buffer(newF64 * 16, featureOptions.data());
+        auto activity = context.Buffer(newF, nextActive.data());
+        auto statistics = context.Buffer(perCandidate * newBatch), scores = context.Buffer(newC64 * 8);
+        id<MTLBuffer> tileScores = plan ? context.Buffer(uint64_t(newBatch) * 8) : nil;
+        id<MTLBuffer> noise = FeatureNoise ? context.Buffer(newF64 * 4) : nil;
+        std::unique_ptr<CBMOrderedHistogramWorkspace> histogram;
+        if (plan) histogram = std::make_unique<CBMOrderedHistogramWorkspace>(context, std::move(*plan));
+        if (Pending.Active && histogram && Pending.Selected.size() < P.depth) {
+            const uint32_t selected = Pending.SelectedPermutation, offset = PermutationTaskOffsets[selected];
+            Command reconstruct(Stats);
+            histogram->Initialize(reconstruct, Binding(Permutations, uint64_t(selected) * P.rows * 4),
+                Binding(TaskBuffer, uint64_t(offset) * 16), Descriptors[offset].CursorOffset,
+                PermutationFoldCounts[selected], PermutationPackedRows[selected]);
+            for (uint32_t level = 1; level <= Pending.Selected.size(); ++level)
+                histogram->Partition(reconstruct, Binding(newLeafIds, banks > 1 ? uint64_t(selected) * P.rows * 4 : 0), 1u << level);
+            reconstruct.Wait();
+        }
+        *first = P.features;
+        P.features = newF; P.candidates = newC; P.reserved0 = banks > 1 ? P.rows : 0;
+        BinBanks = banks; BatchSize = newBatch; WorkingBytes = WorkingBytes - oldLayout + newLayout; NoiseBytes = newNoiseBytes;
+        Bins = newBins; LeafIds = newLeafIds; FeatureBanks = std::move(newBanks); Histogram = std::move(histogram);
+        CandidatePairs = candidatePairs; CandidateTypes = candidateTypes; FeatureOptions = featureOptionsBuffer;
+        FeatureActivity = activity; Statistics = statistics; Scores = scores; TileScores = tileScores; FeatureNoise = noise;
+        CtrCounts = std::move(nextCounts); FeatureWeights = std::move(nextWeights); FeatureFlags = std::move(nextFlags);
+        UsedFeatures = std::move(nextUsed); ActiveFeatures = std::move(nextActive); Dynamic = true;
+        UpdateFeaturePenalties(); ReopenCandidateExhaustion();
+    }
+    void SetFeatureActivity(uint32_t count, const uint8_t* active) {
+        Require(!Failed && count == P.features && active, "Ordered feature activity must cover every feature");
+        for (uint32_t f = 0; f < count; ++f) Require(active[f] <= 1, "Ordered feature activity must be boolean");
+        EnableDynamic(); std::copy_n(active, count, ActiveFeatures.begin());
+        std::memcpy(FeatureActivity.contents, active, count); UpdateFeaturePenalties(); ReopenCandidateExhaustion();
+    }
+    void RestoreFeatureMetadata(uint32_t count, const uint8_t* flags, const uint8_t* used, const uint8_t* active) {
+        Require(!Failed && !Completed && !Pending.Active && count == P.features && flags && used && active,
+                "Restore Ordered feature metadata before the first tree with every feature");
+        for (uint32_t f = 0; f < count; ++f) {
+            Require(flags[f] <= 3 && used[f] <= 1 && active[f] <= 1, "Invalid Ordered restored feature flags");
+            Require(!used[f] || ((PenaltiesConfigured || Dynamic) && CtrCounts[f] && (flags[f] & 2)),
+                    "Ordered used features must be globally registered CTRs");
+        }
+        EnableDynamic(); std::copy_n(flags, count, FeatureFlags.begin()); std::copy_n(used, count, UsedFeatures.begin());
+        std::copy_n(active, count, ActiveFeatures.begin()); std::memcpy(FeatureActivity.contents, active, count); UpdateFeaturePenalties();
+    }
+    void CopyFeatureMetadata(uint32_t capacity, uint32_t* counts, float* weights, uint8_t* flags,
+        uint8_t* used, uint8_t* active) const {
+        Require(!Failed && !Pending.Active && capacity >= P.features && counts && weights && flags && used && active,
+                "Ordered feature metadata requires between-tree state and output capacity");
+        for (uint32_t f = 0; f < P.features; ++f) {
+            counts[f] = (PenaltiesConfigured || Dynamic) ? CtrCounts[f] : 0;
+            weights[f] = (PenaltiesConfigured || Dynamic) ? FeatureWeights[f] : 1;
+            flags[f] = Dynamic ? FeatureFlags[f] : 2; used[f] = Dynamic ? UsedFeatures[f] : 0; active[f] = Dynamic ? ActiveFeatures[f] : 1;
+        }
     }
     void ConfigureFeaturePenalties(const CBMFeaturePenaltyOptions* options, const uint32_t* counts,
                                    const float* weights) {
-        Require(!Completed && !Failed && !PenaltiesConfigured, "Ordered feature penalties can be configured once before training");
+        Require(!Completed && !Pending.Active && !Failed && !PenaltiesConfigured, "Ordered feature penalties can be configured once before training");
         Require(options && counts && !options->reserved0 && !options->reserved1 && !options->reserved2 &&
                 std::isfinite(options->model_size_reg) && options->model_size_reg >= 0,
                 "Invalid Ordered feature penalty options");
         for (uint32_t f = 0; f < P.features; ++f) {
             Require(!weights || (std::isfinite(weights[f]) && weights[f] >= 0), "Ordered feature weights must be finite and nonnegative");
         }
-        Require(WorkingBytes + BootstrapBytes + NoiseBytes + BacktrackingBytes + uint64_t(P.features) * 8 <= MemoryLimit,
+        const uint64_t extra = Dynamic ? 0 : uint64_t(P.features) * 8;
+        Require(WorkingBytes + BootstrapBytes + NoiseBytes + BacktrackingBytes + extra <= MemoryLimit,
                 "Ordered feature penalty state exceeds 1 GiB");
         CtrCounts.assign(counts, counts + P.features); FeatureWeights.resize(P.features, 1);
         if (weights) std::copy_n(weights, P.features, FeatureWeights.begin());
         ModelSizeReg = options->model_size_reg; PenaltiesConfigured = true;
-        WorkingBytes += uint64_t(P.features) * 8; UpdateFeaturePenalties();
+        WorkingBytes += extra; UpdateFeaturePenalties();
     }
     void CopyPredictions(float* output) const {
+        Require(!Pending.Active && !Failed, "Ordered predictions are available only between completed trees");
         Require(output != nullptr, "Ordered prediction output is required");
         std::memcpy(output, Published.contents, P.rows * 4ull);
     }
     void CopyState(uint32_t tasks, uint32_t cursors, uint32_t* descriptors, float* output) const {
+        Require(!Pending.Active && !Failed, "Ordered state is available only between completed trees");
         Require(tasks == Tasks && cursors == CursorCount && descriptors && output, "Ordered state shape mismatch");
         std::memcpy(descriptors, Descriptors.data(), Tasks * 16ull); std::memcpy(output, Cursor.contents, CursorCount * 4ull);
     }
     void Restore(uint32_t count, const float* input) {
-        Require(!Completed && !Failed && count == CursorCount && input, "Ordered state can only be restored before the first step with exact cursor count");
+        Require(!Completed && !Pending.Active && !Failed && count == CursorCount && input, "Ordered state can only be restored before the first step with exact cursor count");
         for (uint32_t i = 0; i < count; ++i) Require(std::isfinite(input[i]), "Ordered restored cursors must be finite");
         auto restored = Context().Buffer(count * 4ull, input);
         const auto step = StepConfiguration();
@@ -676,12 +908,40 @@ public:
         Cursor = restored; std::swap(Published, NextPublished); Loss = nextLoss;
     }
 private:
-    bool Failed = false, PenaltiesConfigured = false;
+    struct PendingTree {
+        bool Active = false, Finished = false, HasSplit = false, Exhausted = false;
+        uint32_t SelectedPermutation = 0;
+        float ScoreBefore = 0, NoiseScale = 0;
+        BootstrapParams Bootstrap = {};
+        SplitState LastWinner = {};
+        std::vector<SplitState> Selected;
+    } Pending;
+    bool Failed = false, PenaltiesConfigured = false, Dynamic = false;
+    std::vector<uint8_t> FeatureFlags, UsedFeatures, ActiveFeatures;
+    id<MTLBuffer> FeatureActivity;
     float ModelSizeReg = 0;
     std::vector<uint32_t> CtrCounts;
     std::vector<float> FeatureWeights;
     void UpdateFeaturePenalties() {
-        if (!PenaltiesConfigured) return;
+        if (!PenaltiesConfigured && !Dynamic) return;
+        if (Dynamic) {
+            uint32_t dynamicMaximum = 1;
+            for (uint32_t f = 0; f < P.features; ++f)
+                if ((FeatureFlags[f] & 1) && ActiveFeatures[f] && !UsedFeatures[f])
+                    dynamicMaximum = std::max(dynamicMaximum, CtrCounts[f]);
+            uint32_t staticMaximum = dynamicMaximum;
+            for (uint32_t f = 0; f < P.features; ++f)
+                if ((FeatureFlags[f] & 2) && !UsedFeatures[f]) staticMaximum = std::max(staticMaximum, CtrCounts[f]);
+            float* values = static_cast<float*>(FeatureOptions.contents);
+            for (uint32_t f = 0; f < P.features; ++f) {
+                const bool dynamic = FeatureFlags[f] & 1;
+                const uint32_t maximum = dynamic ? dynamicMaximum : staticMaximum;
+                values[4 * f] = CtrCounts[f] && (dynamic || !UsedFeatures[f])
+                    ? static_cast<float>(std::pow(1.0f + float(CtrCounts[f]) / float(maximum), -double(ModelSizeReg))) : 1;
+                values[4 * f + 1] = FeatureWeights[f];
+            }
+            return;
+        }
         // FeatureParallel marks only dynamic tree CTRs used. With simple
         // projections (max_ctr_complexity=1), their penalty persists even
         // after selection; DocParallel's used-feature exemption does not apply.
@@ -693,6 +953,16 @@ private:
                 ? static_cast<float>(std::pow(1.0f + float(CtrCounts[f]) / float(maximum), -double(ModelSizeReg))) : 1;
             values[4 * f + 1] = FeatureWeights[f];
         }
+    }
+    bool HasActiveCandidates() const {
+        if (!Dynamic) return P.candidates != 0;
+        const uint32_t* pairs = static_cast<const uint32_t*>(CandidatePairs.contents);
+        for (uint32_t c = 0; c < P.candidates; ++c) if (ActiveFeatures[pairs[2 * c]]) return true;
+        return false;
+    }
+    void ReopenCandidateExhaustion() {
+        if (Pending.Active && Pending.Exhausted && Pending.Selected.size() < P.depth && HasActiveCandidates())
+            Pending.Finished = Pending.Exhausted = false;
     }
     uint32_t BatchSize = 1, LossGroups = 1, BinBanks = 1;
     uint32_t PermutationCursorCount = 0, BootstrapTestOnly = 1;
@@ -791,6 +1061,41 @@ extern "C" int cbm_ordered_session_step(void* handle, uint32_t selected, CBMStep
     uint32_t* features, uint32_t* borders, uint8_t* types, float* values, float* weights, char* error, size_t capacity) {
     return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
         session->Step(selected, info, depth, features, borders, types, values, weights); });
+}
+extern "C" int cbm_ordered_session_begin_tree(void* handle, uint32_t selected, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->BeginTree(selected); });
+}
+extern "C" int cbm_ordered_session_grow_tree(void* handle, CBMStructureInfo* info, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->GrowTree(info); });
+}
+extern "C" int cbm_ordered_session_finish_tree(void* handle, CBMStepInfo* info, uint32_t* depth,
+    uint32_t* features, uint32_t* borders, uint8_t* types, float* values, float* weights, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->FinishTree(info, depth, features, borders, types, values, weights); });
+}
+extern "C" int cbm_ordered_session_append_features(void* handle, const CBMAppendFeatureOptions* options,
+    const uint8_t* const* matrices, const uint32_t* features, const uint32_t* borders, const uint8_t* types,
+    const uint32_t* counts, const float* weights, const uint8_t* flags, const uint8_t* used,
+    uint32_t* first, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->AppendFeatures(options, matrices, features, borders, types, counts, weights, flags, used, first); });
+}
+extern "C" int cbm_ordered_session_set_feature_activity(void* handle, uint32_t count, const uint8_t* active,
+    char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->SetFeatureActivity(count, active); });
+}
+extern "C" int cbm_ordered_session_restore_feature_metadata(void* handle, uint32_t count, const uint8_t* flags,
+    const uint8_t* used, const uint8_t* active, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->RestoreFeatureMetadata(count, flags, used, active); });
+}
+extern "C" int cbm_ordered_session_copy_feature_metadata(void* handle, uint32_t featureCapacity,
+    uint32_t* counts, float* weights, uint8_t* flags, uint8_t* used, uint8_t* active, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->CopyFeatureMetadata(featureCapacity, counts, weights, flags, used, active); });
 }
 extern "C" int cbm_ordered_session_set_feature_penalties(void* handle, const CBMFeaturePenaltyOptions* options,
     const uint32_t* counts, const float* weights, char* error, size_t capacity) {

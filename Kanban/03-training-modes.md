@@ -12,6 +12,7 @@ tags: [catboost, metal, parity]
 
 - [ ] Port CUDA-registered greedy YetiRank for Depthwise, Lossguide and Region.
 - [ ] Port CUDA-supported Ordered query objectives.
+- [ ] Connect CUDA-supported query/ranking FeatureParallel training, including compound CTRs through the categorical machinery completed in card 2.
 - [ ] Integrate Combination losses.
 - [ ] Integrate custom objectives through native Metal training.
 - [ ] Verify supported combinations of objectives, tree policies, scores, samplers and leaf estimators against CUDA registrations.

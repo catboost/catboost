@@ -36,6 +36,9 @@ namespace NCB {
         // category count OnAll; the adapter caps it by learn+first-eval rows
         // before configuring CUDA's dynamic model_size_reg penalty.
         TVector<ui32> CtrUniqueValues;
+        // FeatureParallel consumes a separate shared search seed for the
+        // simple permutation-dependent dataset, even if its grids are empty.
+        bool HasPermutationDependentCtrs = false;
         ui32 BinsPerFeature = 1;
         TIntrusivePtr<TStaticCtrProvider> CtrProvider;
         CBMCtrStats Stats = {};

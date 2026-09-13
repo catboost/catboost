@@ -11,6 +11,7 @@
 #include "query.h"
 #include "query_cross_entropy.h"
 #include "greedy_model.h"
+#include "tree_ctr_session.h"
 
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/metal/native/metal_trainer.h>
@@ -53,9 +54,17 @@ namespace {
         const bool pairwise = objective == ELossFunction::PairLogit || coupled;
         const bool greedy = tree.GrowPolicy != EGrowPolicy::SymmetricTree;
         boosting.BoostingType.SetDefault(EBoostingType::Plain);
+        options->CatFeatureParams->MaxTensorComplexity.SetDefault(1);
+        const bool treeCtrs = options->CatFeatureParams->MaxTensorComplexity > 1;
         const bool ordered = boosting.BoostingType == EBoostingType::Ordered;
-        boosting.DataPartitionType.SetDefault(ordered ? EDataPartitionType::FeatureParallel : EDataPartitionType::DocParallel);
+        boosting.DataPartitionType.SetDefault(ordered || treeCtrs ? EDataPartitionType::FeatureParallel : EDataPartitionType::DocParallel);
         boosting.PermutationCount.SetDefault(4);
+        if (treeCtrs) {
+            CB_ENSURE(!greedy && !vectorBackend && !querywise && !pairwise,
+                      "Metal compound CTRs support scalar pointwise objectives with symmetric trees");
+            CB_ENSURE(boosting.DataPartitionType == EDataPartitionType::FeatureParallel,
+                      "Metal compound CTRs require data_partition='FeatureParallel'");
+        }
         if (ordered) {
             CB_ENSURE(!vectorBackend, "Native Metal Ordered currently supports scalar objectives only");
             CB_ENSURE(tree.LeavesEstimationMethod != ELeavesEstimation::Exact,
@@ -86,7 +95,6 @@ namespace {
                     "Metal QueryCrossEntropy supports alpha and raw_values_scale parameters");
             }
         }
-        options->CatFeatureParams->MaxTensorComplexity.SetDefault(1);
         if (yeti || yetiPair) {
             NCatboostOptions::TLossDescription metric;
             metric.Load(LossDescriptionToJson("PFound"));
@@ -116,8 +124,9 @@ namespace {
                       "Metal multidimensional training does not support MVS bootstrap");
         }
         CB_ENSURE(ordered ? boosting.DataPartitionType == EDataPartitionType::FeatureParallel :
-                  boosting.BoostingType == EBoostingType::Plain && boosting.DataPartitionType == EDataPartitionType::DocParallel,
-                  "Metal supports Plain/DocParallel or Ordered/FeatureParallel training");
+                  boosting.BoostingType == EBoostingType::Plain &&
+                  (boosting.DataPartitionType == EDataPartitionType::DocParallel || treeCtrs),
+                  "Metal supports Plain/DocParallel, compound CTR Plain/FeatureParallel, or Ordered/FeatureParallel training");
         if (greedy) {
             CB_ENSURE(!ordered, "Metal non-symmetric training requires Plain boosting");
             CB_ENSURE((!querywise || objective == ELossFunction::QueryRMSE || objective == ELossFunction::QuerySoftMax) &&
@@ -241,9 +250,27 @@ namespace {
         TVector<ui32> CandidateBins;
         TVector<ui8> CandidateTypes;
         TMetalCategoricalData Categorical;
+        const TMetalTreeCtrFeatures* TreeCtrs = nullptr;
+
+        ui32 StaticFeatureCount() const {
+            return FeatureIndices.size() + Categorical.SplitCandidates.size();
+        }
 
         ui32 FeatureCount() const {
-            return FeatureIndices.size() + Categorical.SplitCandidates.size();
+            return StaticFeatureCount() + (TreeCtrs ? TreeCtrs->GetFeatureCount() : 0);
+        }
+
+        TModelSplit GetSplit(ui32 feature, ui32 bin, ui8 type) const {
+            CB_ENSURE(feature < FeatureCount(), "Metal returned an invalid feature index");
+            if (feature < FeatureIndices.size()) {
+                const auto& numeric = AllFloatFeatures[FeatureIndices[feature]];
+                CB_ENSURE(type == 0 && bin < numeric.Borders.size(), "Metal returned an invalid numeric split");
+                return TModelSplit(TFloatSplit{numeric.Position.Index, numeric.Borders[bin]});
+            }
+            if (feature < StaticFeatureCount())
+                return Categorical.GetSplit(feature - FeatureIndices.size(), bin, type);
+            CB_ENSURE(type == 0, "Metal tree CTR splits require greater-than comparison");
+            return TreeCtrs->GetSplit(feature, bin);
         }
     };
 
@@ -313,16 +340,7 @@ namespace {
         CB_ENSURE(treeDepth <= maxDepth, "Metal returned an invalid tree depth");
         TVector<TModelSplit> splits;
         for (ui32 level = 0; level < treeDepth; ++level) {
-            CB_ENSURE(splitFeatures[level] < data.FeatureCount(), "Metal returned an invalid feature index");
-            if (splitFeatures[level] < data.FeatureIndices.size()) {
-                CB_ENSURE(splitTypes[level] == 0, "Metal returned a nonnumeric comparison for a numeric feature");
-                const auto& feature = data.AllFloatFeatures[data.FeatureIndices[splitFeatures[level]]];
-                CB_ENSURE(splitBins[level] < feature.Borders.size(), "Metal returned an invalid split border");
-                splits.emplace_back(TFloatSplit{feature.Position.Index, feature.Borders[splitBins[level]]});
-            } else {
-                splits.push_back(data.Categorical.GetSplit(splitFeatures[level] - data.FeatureIndices.size(),
-                    splitBins[level], splitTypes[level]));
-            }
+            splits.push_back(data.GetSplit(splitFeatures[level], splitBins[level], splitTypes[level]));
         }
         const ui32 count = 1u << treeDepth;
         TVector<double> leafValues(ui64(count) * approxDimension), leafWeights(count);
@@ -465,6 +483,8 @@ namespace {
             }
             SetMetalDefaultsAndValidate(&options);
             const bool ordered = options.BoostingOptions->BoostingType == EBoostingType::Ordered;
+            const bool compoundCtrs = options.CatFeatureParams->MaxTensorComplexity > 1;
+            const bool featureParallel = ordered || compoundCtrs;
             const auto growPolicy = options.ObliviousTreeOptions->GrowPolicy.Get();
             const bool greedy = growPolicy != EGrowPolicy::SymmetricTree;
             const ui32 greedyPolicy = growPolicy == EGrowPolicy::Depthwise ? 0u : growPolicy == EGrowPolicy::Lossguide ? 1u : 2u;
@@ -481,9 +501,9 @@ namespace {
             const bool coupled = options.LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogitPairwise;
             const bool qce = options.LossFunctionDescription->GetLossFunction() == ELossFunction::QueryCrossEntropy;
             TMetalData data = PrepareData(*trainingData.Learn, options, executor);
-            const auto orderedHistories = ordered ? MakeMetalFeatureParallelHistoryOrders(*trainingData.Learn, options) :
+            const auto orderedHistories = featureParallel ? MakeMetalFeatureParallelHistoryOrders(*trainingData.Learn, options) :
                 TVector<TVector<ui32>>();
-            const ui32 permutationCount = ordered ? orderedHistories.size() : data.Categorical.GetPermutationCount();
+            const ui32 permutationCount = featureParallel ? orderedHistories.size() : data.Categorical.GetPermutationCount();
             const auto objective = options.LossFunctionDescription->GetLossFunction();
             const bool pairwise = objective == ELossFunction::PairLogit || coupled;
             const bool multioutput = IsMetalMultiOutput(objective);
@@ -506,6 +526,16 @@ namespace {
                                                                   initModel ? *initModel : nullptr);
             const ui32 iterations = options.BoostingOptions->IterationCount;
             const ui32 depth = options.ObliviousTreeOptions->MaxDepth;
+            THolder<TMetalTreeCtrFeatures> treeCtrFeatures;
+            TMaybe<TMetalTreeCtrBatch> restoredTreeCtrBatch;
+            if (compoundCtrs) {
+                const ui64 allRows = ui64(data.Rows) +
+                    (trainingData.Test.empty() ? 0 : trainingData.Test.front()->GetObjectCount());
+                CB_ENSURE(allRows <= Max<ui32>(), "Metal compound CTR table row count exceeds uint32 capacity");
+                treeCtrFeatures = MakeHolder<TMetalTreeCtrFeatures>(*trainingData.Learn, options, executor,
+                    data.StaticFeatureCount(), static_cast<ui32>(allRows), data.Categorical.CtrProvider, orderedHistories);
+                data.Categorical.CtrProvider = treeCtrFeatures->GetCtrProvider();
+            }
             const ui32 maxLeaves = greedy ? MetalGreedyLeafCapacity(greedyPolicy, depth,
                 options.ObliviousTreeOptions->MaxLeaves) : 1u << depth;
             const ui32 greedyDepthBound = greedy ? Min(depth, maxLeaves - 1) : 0;
@@ -568,6 +598,7 @@ namespace {
             TMetalSnapshot snapshot;
             snapshot.Greedy = greedy;
             snapshot.YetiRank = yeti;
+            snapshot.TreeCtrs = compoundCtrs;
             TString snapshotPath;
             ui32 restoredIterations = 0;
             if (outputOptions.SaveSnapshot()) {
@@ -575,7 +606,7 @@ namespace {
                 options.Save(&jsonOptions);
                 snapshot.Params = ToString(jsonOptions);
                 snapshot.Checksum = SnapshotDataChecksum(trainingData, initModel, executor);
-                if (ordered) {
+                if (featureParallel) {
                     snapshot.Checksum = UpdateCheckSum(snapshot.Checksum, permutationCount);
                     for (const auto& history : orderedHistories) snapshot.Checksum = UpdateCheckSum(snapshot.Checksum, history);
                 }
@@ -584,7 +615,13 @@ namespace {
                 if (snapshot.Load(snapshotPath, trainingCallbacks)) {
                     if (greedy) snapshot.ValidateGreedy(data.Rows, data.FeatureCount(), greedyPolicy, depth, maxLeaves, iterations, permutationCount, approxDimension, optimizerDimension);
                     else snapshot.Validate(data.Rows, depth, iterations, approxDimension,
-                                           permutationCount, optimizerDimension, ordered);
+                                           permutationCount, optimizerDimension, ordered, featureParallel);
+                    if (compoundCtrs) {
+                        TStringInput input(snapshot.TreeCtrState);
+                        restoredTreeCtrBatch = treeCtrFeatures->Restore(&input);
+                        char trailing;
+                        CB_ENSURE(input.Read(&trailing, 1) == 0, "Saved Metal tree CTR registry has trailing data");
+                    }
                     restoredIterations = snapshot.Depths.size();
                     initialPredictions = snapshot.Predictions;
                     bias = snapshot.Bias;
@@ -620,6 +657,14 @@ namespace {
             THolder<TMetalDocParallelPermutations> permutations;
             THolder<TMetalOrderedSession> orderedSession;
             THolder<TMetalGreedySession> greedySession;
+            THolder<TMetalTreeCtrSession> treeCtrSession;
+            THolder<TMetalOrderedRandom> featureParallelRandom;
+            if (compoundCtrs && !ordered) {
+                featureParallelRandom = MakeHolder<TMetalOrderedRandom>(options.RandomSeed, permutationCount,
+                    depth, data.CandidateFeatures.size(), true);
+                if (restoredIterations) featureParallelRandom->RestoreState({snapshot.OrderedRandomDrawCount,
+                    snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
+            }
             TVector<ui32> ctrUniqueValues(data.FeatureCount(), 0);
             TVector<ui8> usedFeatures(data.FeatureCount(), 0);
             {
@@ -638,10 +683,15 @@ namespace {
                     }
                 }
                 if (restoredIterations && !ordered && !greedy) {
-                    CB_ENSURE(snapshot.UsedFeatures.size() == data.FeatureCount(),
+                    CB_ENSURE(snapshot.UsedFeatures.size() == data.StaticFeatureCount() +
+                              (treeCtrFeatures ? treeCtrFeatures->GetFeatureCount() : 0),
                               "Metal snapshot feature-use state differs from the prepared features");
-                    usedFeatures = snapshot.UsedFeatures;
+                    usedFeatures.assign(snapshot.UsedFeatures.begin(),
+                        snapshot.UsedFeatures.begin() + data.StaticFeatureCount());
                 }
+            }
+            if (restoredTreeCtrBatch) {
+                ValidateMetalTreeCtrSnapshot(*restoredTreeCtrBatch, ctrUniqueValues, snapshot, ordered);
             }
             THolder<TMetalYetiRandom> yetiRandom;
             if (yeti) {
@@ -684,7 +734,7 @@ namespace {
                         static_cast<float>(boosting.FoldLenMultiplier), objectiveOptions.objective_param, 0, 0, 0};
                     orderedSession = MakeHolder<TMetalOrderedSession>(orderedParams, data.Bins, targets,
                         sampleWeights, initialPredictions, data.CandidateFeatures, data.CandidateBins,
-                        options.RandomSeed, *trainingData.Learn->ObjectsData->GetObjectsGrouping(), orderedHistories, data.CandidateTypes, boosting.FoldLenMultiplier.Get(), data.AdditionalPermutationBins);
+                        options.RandomSeed, *trainingData.Learn->ObjectsData->GetObjectsGrouping(), orderedHistories, data.CandidateTypes, boosting.FoldLenMultiplier.Get(), data.AdditionalPermutationBins, compoundCtrs);
                     if (outputOptions.SaveSnapshot()) {
                         CB_ENSURE(ui64(iterations) * (ui64(maxLeaves) * 8 + ui64(depth) * 9) +
                                   ui64(data.Rows) * sizeof(float) + orderedSession->GetStateBytes() <= (1ull << 29),
@@ -852,7 +902,7 @@ namespace {
                     orderedSession->SetScoreNoise(noiseOptions);
                     if (data.Categorical.CtrProvider)
                         orderedSession->SetFeaturePenalties(ctrUniqueValues, options.ObliviousTreeOptions->ModelSizeReg);
-                    if (restoredIterations) {
+                    if (restoredIterations && !compoundCtrs) {
                         orderedSession->RestoreState({snapshot.OrderedDescriptors, snapshot.OrderedCursors});
                         orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,
                             snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
@@ -875,6 +925,7 @@ namespace {
                     }
                     TVector<TConstArrayRef<ui8>> permutationBins{MakeConstArrayRef(data.Bins)};
                     for (const auto& bins : data.AdditionalPermutationBins) permutationBins.push_back(MakeConstArrayRef(bins));
+                    if (compoundCtrs && permutationBins.size() == 1) permutationBins.resize(permutationCount, permutationBins.front());
                     permutations = MakeHolder<TMetalDocParallelPermutations>(session.Handle, data.Rows, data.FeatureCount(),
                         options.RandomSeed, permutationBins, snapshot.PermutationPredictions,
                         snapshot.PermutationMvsLambdas, snapshot.PermutationMvsValid, approxDimension);
@@ -884,7 +935,22 @@ namespace {
                             error, sizeof(error)) == 0, "Metal multiclass optimizer cursor restoration failed: " << error);
                     }
                 }
+                if (compoundCtrs) {
+                    treeCtrSession = MakeHolder<TMetalTreeCtrSession>(orderedSession ? orderedSession->GetHandle() : session.Handle,
+                        ordered, *treeCtrFeatures, data.StaticFeatureCount(), data.BinsPerFeature,
+                        data.Categorical.HasPermutationDependentCtrs);
+                    if (restoredTreeCtrBatch) treeCtrSession->Restore(*restoredTreeCtrBatch, snapshot);
+                    if (ordered && restoredIterations) {
+                        orderedSession->RestoreState({snapshot.OrderedDescriptors, snapshot.OrderedCursors});
+                        orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,
+                            snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
+                    }
+                }
             }
+            // The constructors consume only the original static matrices.
+            // Published trees resolve appended IDs through the restored/live
+            // registry, including a snapshot that needs no further iterations.
+            data.TreeCtrs = treeCtrFeatures.Get();
             TFullModel initialBiasModel;
             const TFullModel* progressInitialModel = initModel ? *initModel : nullptr;
             if (multioutput && options.BoostingOptions->BoostFromAverage) {
@@ -919,7 +985,36 @@ namespace {
                 ui32 treeDepth = 0;
                 TMetalGreedyTree greedyTree;
                 const ui64 absoluteIteration = (initModel ? (*initModel)->GetTreeCount() : 0) + tree;
-                if (greedy && vectorBackend) {
+                if (compoundCtrs) {
+                    auto begin = [&](ui32) { treeCtrSession->BeginTree(); };
+                    auto selectedSplit = [&](ui32 permutation, const CBMStructureInfo& structure) {
+                        treeCtrSession->Selected(data.GetSplit(structure.feature, structure.bin, structure.type),
+                            structure, permutation);
+                    };
+                    auto scoreDraws = [&]() { return treeCtrSession->ScoreDraws(); };
+                    if (orderedSession) {
+                        orderedSession->StepDynamic(absoluteIteration, &info, &treeDepth,
+                            splitFeatures, splitBins, splitTypes, leaves, weights, begin, selectedSplit, scoreDraws);
+                    } else {
+                        const ui32 selected = featureParallelRandom->SelectPermutation();
+                        begin(selected);
+                        CB_ENSURE(cbm_session_select_permutation(session.Handle, selected, error, sizeof(error)) == 0 &&
+                            cbm_session_begin_tree(session.Handle, error, sizeof(error)) == 0,
+                            "Metal FeatureParallel tree initialization failed: " << error);
+                        CBMStructureInfo structure = {};
+                        ui32 searchDrawCount = 0;
+                        do {
+                            if (depth && !data.CandidateFeatures.empty()) searchDrawCount += scoreDraws();
+                            CB_ENSURE(cbm_session_grow_tree(session.Handle, &structure, error, sizeof(error)) == 0,
+                                "Metal FeatureParallel split search failed: " << error);
+                            if (structure.has_split) selectedSplit(selected, structure);
+                        } while (!structure.finished);
+                        CB_ENSURE(cbm_session_finish_tree(session.Handle, &info, &treeDepth,
+                            splitFeatures.data(), splitBins.data(), splitTypes.data(), leaves.data(), weights.data(),
+                            error, sizeof(error)) == 0, "Metal FeatureParallel leaf estimation failed: " << error);
+                        featureParallelRandom->FinishIterationWithDraws(treeDepth, searchDrawCount);
+                    }
+                } else if (greedy && vectorBackend) {
                     if (permutations) permutations->SelectForIteration(absoluteIteration);
                     greedyTree.Nodes.resize(ui64(maxLeaves) * 2 - 1);
                     greedyTree.Values.resize(ui64(maxLeaves) * approxDimension); greedyTree.Weights.resize(maxLeaves);
@@ -1050,6 +1145,13 @@ namespace {
                                     "Metal feature-use snapshot state extraction failed: " << error);
                             }
                         }
+                        if (treeCtrSession) treeCtrSession->Save(&snapshot);
+                        if (featureParallelRandom) {
+                            const auto randomState = featureParallelRandom->GetState();
+                            snapshot.OrderedRandomDrawCount = randomState.DrawCount;
+                            snapshot.OrderedRandomCompletedIterations = randomState.CompletedIterations;
+                            snapshot.OrderedBootstrapInitialized = randomState.BootstrapInitialized;
+                        }
                         if (yetiRandom) snapshot.YetiRandom = yetiRandom->GetState();
                         snapshot.History = history;
                         snapshot.Save(snapshotPath, info.stats.device_name, trainingCallbacks);
@@ -1082,7 +1184,8 @@ namespace {
             model.ModelInfo["metal_device"] = info.stats.device_name;
             model.ModelInfo["metal_permutations"] = ToString(permutationCount);
             model.ModelInfo["metal_port"] = ordered ? "Native CUDA Ordered/FeatureParallel translation" :
-                "Native CUDA Plain/DocParallel translation";
+                compoundCtrs ? "Native CUDA Plain/FeatureParallel translation" : "Native CUDA Plain/DocParallel translation";
+            if (treeCtrFeatures) model.ModelInfo["metal_tree_ctr_features"] = ToString(treeCtrFeatures->GetFeatureCount());
             TCoreModelToFullModelConverter converter(options, outputOptions, classificationTargetHelper,
                 0, false, EFinalCtrComputationMode::Skip, EFinalFeatureCalcersComputationMode::Skip);
             converter.WithCoreModelFrom(&model).WithObjectsDataFrom(trainingData.Learn->ObjectsData).WithMetrics(history);

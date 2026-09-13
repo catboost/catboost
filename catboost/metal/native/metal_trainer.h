@@ -142,6 +142,13 @@ int cbm_session_set_feature_activity(void* session, uint32_t feature_count,
 int cbm_session_copy_feature_metadata(void* session, uint32_t feature_capacity,
     uint32_t* ctr_unique_values, float* feature_weights, uint8_t* feature_flags,
     uint8_t* used_features, uint8_t* active_features, char* error, size_t error_capacity);
+// Restores FeatureParallel metadata before the first tree. Configure CTR counts
+// and weights and append every restored bank first. Enables dynamic scoring;
+// all vectors must cover the complete current feature bank. Used CTRs must be
+// registered, and only CTR columns may carry used state.
+int cbm_session_restore_feature_metadata(void* session, uint32_t feature_count,
+    const uint8_t* feature_flags, const uint8_t* used_features,
+    const uint8_t* active_features, char* error, size_t error_capacity);
 
 // Optional configuration setters are additive and allowed before the first step.
 typedef struct {

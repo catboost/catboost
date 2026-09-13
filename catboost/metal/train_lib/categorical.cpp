@@ -206,6 +206,7 @@ namespace {
             const ui32 paramsCount = type == ECtrType::Borders ? targetBorders.size()
                 : type == ECtrType::Buckets ? targetBorders.size() + 1 : 1;
             if (!paramsCount) continue;
+            result->HasPermutationDependentCtrs |= type != ECtrType::FeatureFreq;
             CB_ENSURE(ui64(column.Hashes.size()) * (paramsCount + 1) * sizeof(float) <= MaxInputBytes,
                       "Metal final CTR statistics exceed the experimental 1 GiB table limit");
             const auto& priors = description.GetPriors();
@@ -343,7 +344,12 @@ TMetalCategoricalData PrepareCategoricalPermutation(const TTrainingDataProvider&
         // CUDA UseForOneHotEncoding uses OnAll, so eval-only categories can
         // move a feature above the one-hot threshold before training begins.
         const bool ordered = options.BoostingOptions->BoostingType == EBoostingType::Ordered;
-        if ((column.UniqueValuesOnAll > 1 || ordered) && column.UniqueValuesOnAll <= categoricalOptions.OneHotMaxSize) {
+        const bool featureParallel = options.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel;
+        // Keep the preceding simple-only Ordered grid layout for snapshot
+        // compatibility. Compound FeatureParallel follows CUDA's strict >1
+        // one-hot cardinality rule, shared by the tree tensor scheduler.
+        const bool legacyOrderedConstant = ordered && categoricalOptions.MaxTensorComplexity <= 1;
+        if ((column.UniqueValuesOnAll > 1 || legacyOrderedConstant) && column.UniqueValuesOnAll <= categoricalOptions.OneHotMaxSize) {
             TVector<ui8> bins(column.Bins.begin(), column.Bins.end());
             TVector<TModelSplit> splits;
             if (column.Hashes.size() > 1) {
@@ -357,11 +363,11 @@ TMetalCategoricalData PrepareCategoricalPermutation(const TTrainingDataProvider&
             const auto targets = (*target)[0];
             if (historyOrder.empty()) {
                 const auto& block = options.BoostingOptions->PermutationBlockSize;
-                historyOrder = ordered ? MakeMetalFeatureParallelHistoryOrder(data, permutation,
+                historyOrder = featureParallel ? MakeMetalFeatureParallelHistoryOrder(data, permutation,
                     GetMetalFeatureParallelBlockSize(rows, block.IsSet() ? block.Get() : 64)) : MakeHistoryOrder(data, permutation);
             }
-            CB_ENSURE(categoricalOptions.MaxTensorComplexity <= 1,
-                      "Metal currently supports single-feature CTR projections; set max_ctr_complexity=1");
+            CB_ENSURE(categoricalOptions.MaxTensorComplexity <= 1 || featureParallel,
+                      "Metal compound CTRs require data_partition='FeatureParallel'");
             if (categoricalOptions.CtrHistoryUnit == ECtrHistoryUnit::Group &&
                 !data.ObjectsGrouping->IsTrivial() && groupIds.empty()) {
                 // CUDA BuildCtrTarget assigns query ordinals in original row
@@ -405,8 +411,8 @@ TMetalCategoricalData PrepareMetalCategoricalPermutations(const TTrainingDataPro
     auto result = PrepareCategoricalPermutation(data, options, executor, 0, nullptr);
     // As in CUDA Plain boosting, numeric/one-hot-only training needs just one
     // dataset. has_time also disables the internal category permutations.
-    const bool ordered = options.BoostingOptions->BoostingType == EBoostingType::Ordered;
-    const bool preserveOrder = ordered ? data.ObjectsData->GetOrder() == EObjectsOrder::Ordered :
+    const bool featureParallel = options.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel;
+    const bool preserveOrder = featureParallel ? data.ObjectsData->GetOrder() == EObjectsOrder::Ordered :
                                         options.DataProcessingOptions->HasTimeFlag.Get();
     const ui32 permutationCount = !result.CtrProvider || preserveOrder
         ? 1 : options.BoostingOptions->PermutationCount.Get();

@@ -116,8 +116,9 @@ and predicate projections, four histories, full/unseen inference, standard
 JSON/CBM models, and snapshot restoration. Its trainer integration requires the
 runtime's begin-tree/grow-depth/append-features/finish-tree state machine. The
 helper alone does not enable `max_ctr_complexity > 1` in the public trainer.
-The initial integration scope is Plain FeatureParallel P1; Ordered folds and
-FeatureParallel's shared RNG consumers remain caller responsibilities.
+The [native integration](../COMPOUND_CTR_PORT.md) now supplies scalar Plain and
+Ordered FeatureParallel training, Sample/Group histories, retained P1/P4 feature
+grids, shared host RNG accounting and exact snapshots.
 See [`feature_parallel_ctr_scores.md`](feature_parallel_ctr_scores.md) for the
 distinct dynamic/static penalty rules and Plain/Ordered noise ordering.
 

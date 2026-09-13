@@ -37,5 +37,6 @@ target_sources(catboost-metal-train_lib.global PRIVATE
   trainer_env.cpp
   progress.cpp
   categorical.cpp
+  tree_ctrs.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/metal/evaluator.cpp
 )

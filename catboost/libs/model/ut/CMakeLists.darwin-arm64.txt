@@ -60,6 +60,8 @@ if (HAVE_METAL)
     ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctrs.cpp
     ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctrs_ut.cpp
     ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctr_permutations_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctr_random_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctr_snapshot_ut.cpp
     ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctr_tensors_ut.cpp
   )
   target_link_libraries(model_ut PRIVATE

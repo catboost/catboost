@@ -140,14 +140,18 @@ lower-level kernels also implement Buckets and FloatTargetMeanValue. Native
 acceptance covers all four simple CTRs and their standard model tables.
 Native scalar and multiclass training now exercise multiple independent CTR
 permutation cursors, including P4, with shared structure search and per-cursor
-leaf estimation. Categorical combinations remain unsupported. Model-size
-regularization tracks used CTR projections across training and snapshots.
+leaf estimation. Native scalar symmetric Plain/Ordered FeatureParallel training
+also generates compound CTRs after selected splits, retaining per-history grids,
+dynamic feature activity and exact snapshot state. Its Sample/Group histories and
+four CTR types use the same GPU projection/CTR primitives and standard tables;
+see [COMPOUND_CTR_PORT.md](COMPOUND_CTR_PORT.md). FeatureParallel size penalties
+distinguish dynamic, active, registered and used CTR configurations.
 
 Plain boosting can use permutation-dependent CTRs. Ordered boosting separately
 requires prefix folds and fold prediction cursors; numeric Ordered does not
 depend on categorical support. [ORDERED_PORT.md](ORDERED_PORT.md) records its
-separate cursor/fold contract. Public Ordered training passed a focused
-93-case matrix; native integration remains a subsequent wave.
+separate cursor/fold contract. Native Ordered numeric, one-hot, simple and compound
+CTR integration is recorded in [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md).
 
 The standalone adapter constructs standard JSON feature/tree/CTR data and
 loads it with the installed CatBoost reader. Native training uses shared

@@ -1034,6 +1034,25 @@ public:
         std::copy(UsedFeatures.begin(), UsedFeatures.end(), used);
         std::copy(ActiveFeatures.begin(), ActiveFeatures.end(), active);
     }
+    void RestoreFeatureMetadata(uint32_t count, const uint8_t* flags,
+                                const uint8_t* used, const uint8_t* active) {
+        RequireCompletedState();
+        Require(Completed == 0 && !Failed, "Feature metadata restoration must precede the first training step");
+        Require(count == K.Features && flags && used && active,
+                "Feature metadata restoration must cover every current feature");
+        for (uint32_t feature = 0; feature < count; ++feature) {
+            Require(flags[feature] <= 3, "Feature flags must use only dynamic/registered bits");
+            Require(used[feature] <= 1 && active[feature] <= 1, "Used-feature and activity flags must be boolean");
+            Require(!used[feature] || (CtrUniqueValues[feature] && (flags[feature] & 2)),
+                    "A previously used feature must be a globally registered CTR");
+        }
+        // Validate all metadata before enabling the replacement compact layout.
+        // Allocation failures leave the existing metadata and banks untouched.
+        SetFeatureActivity(count, active);
+        std::copy_n(flags, count, FeatureFlags.begin());
+        std::copy_n(used, count, UsedFeatures.begin());
+        UpdateFeaturePenalties();
+    }
 
     void CopyWorkspaceInfo(uint32_t* tiles, uint64_t* histogramBytes, uint64_t* peakBytes) const {
         Require(tiles && histogramBytes && peakBytes, "Workspace output pointers are required");
@@ -1752,7 +1771,15 @@ private:
                 ? "Invalid GPU query Newton split score: row curvatures must be finite and nonnegative"
                 : "Non-finite GPU split score; rescale targets, predictions or weights");
         K.ScoreBeforeSplit = winner.Score;
-        if (CtrUniqueValues[winner.Feature]) { UsedFeatures[winner.Feature] = 1; FeatureFlags[winner.Feature] |= 2; }
+        const bool treeCtr = Dynamic && CtrUniqueValues[winner.Feature] && (FeatureFlags[winner.Feature] & 1);
+        if (treeCtr) FeatureFlags[winner.Feature] |= 2;
+        // DocParallel tracks all selected CTRs. FeatureParallel registers tree
+        // CTR winners and marks only an installed tree-CTR split as used;
+        // selecting a static/simple CTR does not update CUDA's used-CTR set.
+        if (!Dynamic && CtrUniqueValues[winner.Feature]) {
+            UsedFeatures[winner.Feature] = 1;
+            FeatureFlags[winner.Feature] |= 2;
+        }
         bool duplicate = false;
         for (const auto& previous : Pending.Selected)
             duplicate |= previous.Feature == winner.Feature && previous.Bin == winner.Bin && previous.Type == winner.Type;
@@ -1760,6 +1787,7 @@ private:
         // stops only when its winning split is already in the tree.
         Pending.LastWinner = winner;
         if (duplicate) { Pending.Finished = true; return; }
+        if (treeCtr) UsedFeatures[winner.Feature] = 1;
         Pending.Selected.push_back(winner);
         K.SplitLevel = Pending.Depth;
         Pending.SplitPending = true;
@@ -2088,6 +2116,15 @@ extern "C" int cbm_session_copy_feature_metadata(void* handle, uint32_t capacity
         auto session = GetSession(handle);
         std::lock_guard<std::mutex> guard(session->Mutex);
         session->CopyFeatureMetadata(capacity, counts, weights, flags, used, active);
+    });
+}
+extern "C" int cbm_session_restore_feature_metadata(void* handle, uint32_t count,
+    const uint8_t* flags, const uint8_t* used, const uint8_t* active,
+    char* error, size_t errorCapacity) {
+    return ApiCall(error, errorCapacity, [&] {
+        auto session = GetSession(handle);
+        std::lock_guard<std::mutex> guard(session->Mutex);
+        session->RestoreFeatureMetadata(count, flags, used, active);
     });
 }
 extern "C" int cbm_session_finish_tree(void* handle, CBMStepInfo* info, uint32_t* depth,

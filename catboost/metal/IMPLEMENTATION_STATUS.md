@@ -7,13 +7,16 @@ components awaiting integration are distinguished below. The earlier
 
 ## Current local checkpoint
 
-Greedy PairLogit is complete in the working tree and installed in checkpoint
-`20260913T195124Z`. The four original numerical failures are resolved, and the
-native/public lifecycle, complete regression, alternate extension, CLI and
-snapshot checks pass. See [GREEDY_PAIRLOGIT_PORT.md](GREEDY_PAIRLOGIT_PORT.md).
-The release records base commit `933ff4a86c`, the local source patch and added
-files; Git publication is separate from this installed checkpoint. Earlier
-dated checkpoint notes below are historical.
+Compound categorical CTRs are complete for native scalar symmetric Plain/Ordered
+FeatureParallel training and installed in checkpoint `20260913T220233Z`.
+The release includes Sample/Group histories, retained permutation grids, exact
+snapshots and standard model tables. Full regression, alternate-extension,
+CLI, prior-snapshot and installed-package checks pass; see
+[COMPOUND_CTR_PORT.md](COMPOUND_CTR_PORT.md).
+The release records base commit `470931d02c`, the local source patch and added
+files. Greedy PairLogit acceptance remains included; the previous installed
+checkpoint `20260913T195124Z` is preserved. Earlier dated checkpoint notes below
+are historical.
 
 ## Verified interfaces on M3 Pro
 
@@ -23,10 +26,10 @@ dated checkpoint notes below are historical.
 | Scalar losses | RMSE, Logloss, CrossEntropy, Poisson, Huber, Expectile, Lq, Tweedie, LogLinQuantile, Quantile, MAE, MAPE | All twelve |
 | Vector losses | MultiClass, MultiClassOneVsAll, MultiRMSE, RMSEWithUncertainty, MultiLogloss, MultiCrossEntropy | All six, including weighted metrics, baselines and snapshots |
 | Grouped losses | QueryRMSE, QuerySoftMax, supplied-pair PairLogit/PairLogitPairwise, QueryCrossEntropy, classic YetiRank and YetiRankPairwise; one-hot arrays/DataFrames for all seven | All seven; all seven support native one-hot/CTR P4, metrics and snapshots |
-| Symmetric trees | Numeric and simple categorical training, depth 0–16 | Same runtime, raw/prequantized Pool support |
+| Symmetric trees | Numeric and simple categorical training, depth 0–16 | Raw/prequantized Pools; scalar Plain/Ordered FeatureParallel compound CTRs |
 | Non-symmetric trees | Numeric/one-hot/CTR Depthwise, Lossguide, Region; eleven scalar, three vector and QueryRMSE/QuerySoftMax/PairLogit CUDA-registered losses, seven scalar/five vector scores, Newton/Gradient/Exact where applicable and backtracking | Numeric/one-hot/CTR P4, eleven scalar, three vector and QueryRMSE/QuerySoftMax/PairLogit objectives, snapshots, callbacks, best-model trimming and GPU evaluation |
-| Ordered boosting | Numeric/one-hot/simple CTR scalar training, Sample/Group CTR histories, grouped folds, P1-P64 prefix recovery and static FeatureParallel penalties | All four simple CTR types, raw/quantized Pools, native baselines/initial models, all samplers and lifecycle verified |
-| Categoricals | One-hot and simple Borders/FeatureFreq CTRs with P4 scalar/multiclass cursors | All four simple CUDA CTR types, Sample/Group histories, P4 and full model tables |
+| Ordered boosting | Numeric/one-hot/simple CTR scalar training, Sample/Group CTR histories, grouped folds, P1-P64 prefix recovery and static FeatureParallel penalties | All four simple/compound CTR types, Sample/Group histories, raw/quantized Pools, baselines/initial models and exact lifecycle |
+| Categoricals | One-hot and simple Borders/FeatureFreq CTRs with P4 scalar/multiclass cursors | All four simple CUDA CTR types; scalar symmetric FeatureParallel combinations with category/numeric/one-hot projections, Sample/Group histories, retained P1/P4 grids and final tables |
 | Scores | Seven symmetric/greedy scalar scores; vector L2/Cosine/SolarL2/LOOL2/SatL2 | All seven scalar and five vector scores |
 | Bootstrap | Symmetric scalar/query: No/Bayesian/Bernoulli/Poisson/MVS; vector and greedy exclude MVS | Scalar/multiclass sampling and exact continuation verified |
 | Lifecycle | Weighted validation, stopping, best models, callbacks, safe numeric snapshots, exact optimizer/permutation state | Multiple evaluation sets, shared metrics, callbacks, baselines, initial models, snapshots |
@@ -46,7 +49,7 @@ native fork includes Metal and uses the existing GPU task type.
 
 ## Current verification and packaged checkpoints
 
-The recovered checkpoint **20260913T195124Z** passes **11,099 cases plus 16 subtests**. The alternate extension passes **3,744 tests**. Counts overlap and are not summed; no native acceptance file is excluded.
+The installed checkpoint **20260913T220233Z** passes **11,323 cases plus 16 subtests**. The alternate extension passes **3,892 tests**; the C++ tensor/history/RNG/snapshot/helper suites pass **41 checks**. Counts overlap and are not summed; no native acceptance file is excluded.
 
 Native numeric/one-hot/CTR Depthwise/Lossguide/Region now includes eleven CUDA-registered
 scalar objectives plus MultiClass/MultiClassOneVsAll/RMSEWithUncertainty and QueryRMSE/QuerySoftMax/PairLogit, all seven scalar and five vector scores, four samplers, applicable leaf estimators
@@ -59,14 +62,17 @@ weights and scale/bias without exponential tree padding.
 Wheel installed in `catboost/metal/.venv`:
 
 ```text
-catboost/metal/.build/releases/20260913T195124Z/
+catboost/metal/.build/releases/20260913T220233Z/
   catboost-1.2.10-cp312-cp312-macosx_11_0_arm64.whl
-SHA256 22a03c3d80c85a15197999c7a87a2c19e785112900df61efb6b561b4333777b8
+SHA256 f1d79ee43aeebfbb65341ac70d10caf83150636f0663c00b11537bf24ba41ffe
 ```
 
-The embedded extension hash matches the tested isolated package. 237 installed
-acceptance cases plus 18 GPU smoke configurations pass. All 171 CLI configurations
-and 202 preceding snapshot recoveries pass. Classic numeric YetiRank adds
+The embedded extension hash matches the tested isolated package. 385 installed
+acceptance cases plus 34 GPU smoke configurations pass. All 187 CLI configurations
+and 214 preceding snapshot recoveries pass. Compound CTR acceptance includes
+148 native cases with independent table/prediction checks and exact lifecycle,
+plus 238 private dynamic runtime/scoring cases in the full matrix.
+Classic numeric YetiRank adds
 resident target/search/leaves, complete host target RNG, real PFound evaluation,
 seven scores, five samplers, snapshots, baseline/initial models and export.
 Its 253 component/controller/native cases include independent equations and
@@ -156,25 +162,24 @@ configuration-matched CUDA quality evidence.
 
 ## Remaining work
 
-- Integrate dynamic categorical tensors/grids into the incremental tree loop;
-  the GPU helper, source tensor scheduler, standard tables, and snapshot banks
-  have C++ unit coverage. Native Plain group-aware CTRs are connected;
-  Ordered simple CTR views are connected; compound tree CTR scheduling remains open.
+- Extend the standalone estimator frontend to the compound CTR machinery now
+  connected through native scalar Plain/Ordered FeatureParallel training.
 - Finish remaining CUDA ranking/combination/custom objectives and complete
   CUDA GPU random state. All seven connected grouped objectives now support
   native simple CTR P4, including both classic YetiRank variants and the
   full-matrix objectives. Generated-pair sampling uses explicitly recorded
   Metal streams; see YETIRANK_PAIRWISE_CTR_PERMUTATIONS.md.
-- Finish Ordered query objectives, greedy YetiRank objectives, dynamic compound CTR scheduling and CUDA GPU random-stream agreement.
+- Finish Ordered query objectives, query/ranking FeatureParallel training,
+  greedy YetiRank objectives and CUDA GPU random-stream agreement.
 - Integrate shared text/embedding estimated features and remaining training
   options/feature penalties; avoid CPU-training fallback.
 - Validate complete memory use, wider/deeper workloads, packed feature layouts,
   and performance across M-series generations. Current major working/output
   guards are 1 GiB/512 MiB; host copies and retained category tables need their
   own accounting. Typical scalar bounds remain 255 borders and 2^24 rows.
-- Run a coherent full regression matrix, package/install the final matching
-  Python/native sources, and compare on actual NVIDIA and additional M-series
-  hardware when available.
+- Compare numerical agreement and performance on actual NVIDIA and additional
+  M-series hardware when available; repeat coherent release acceptance for
+  subsequent capability changes.
 
 Only the M3 Pro (18 GPU cores, 18 GB unified memory) has been exercised. No
 M1/M2/M4 or live NVIDIA speed/quality comparison has been performed. Full CUDA

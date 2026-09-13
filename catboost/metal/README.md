@@ -201,8 +201,11 @@ supported options and cursor state. Public Ordered+Exact remains rejected,
 matching CUDA; private extension tests do not change that supported surface.
 Grouped scalar Ordered is connected through native Pools and standalone raw inputs;
 [ORDERED_GROUPS_PORT.md](ORDERED_GROUPS_PORT.md) records whole-group folds, weights and recovery.
-Complex CTR combinations, Ordered query objectives, text/embeddings,
-and broader CUDA parity remain active work. The installable preserved wheel
+Native scalar symmetric FeatureParallel training now connects compound CTRs to
+Plain and Ordered tree search, with Sample/Group histories, retained P1/P4 grids,
+exact snapshots and standard model tables. Set `max_ctr_complexity=2` or `3`;
+see [COMPOUND_CTR_PORT.md](COMPOUND_CTR_PORT.md) for supported options and release evidence.
+Ordered query objectives, text/embeddings, and broader CUDA parity remain active work. The installable preserved wheel
 and the latest source capabilities differ; check IMPLEMENTATION_STATUS before
 choosing a package.
 The [source map](CUDA_PORT.md) explains correspondence and precision differences;
