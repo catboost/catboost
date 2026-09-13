@@ -6289,7 +6289,9 @@ TMetricHolder TMultiCrossEntropyMetric::EvalSingleThread(
         }
     }
     error.Stats[0] = -sumDimErrors / approxDimension;
-    error.Stats[1] = weight.empty() ? end - begin : Accumulate(weight, 0);
+    // Fractional weights must retain their precision, and each parallel
+    // partition contributes only the weights of the rows it evaluated.
+    error.Stats[1] = weight.empty() ? end - begin : Accumulate(weight.Slice(begin, end - begin), 0.0);
     return error;
 }
 

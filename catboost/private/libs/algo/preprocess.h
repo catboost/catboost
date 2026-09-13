@@ -4,6 +4,7 @@
 #include <catboost/private/libs/options/enums.h>
 
 #include <util/generic/string.h>
+#include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
 
@@ -32,7 +33,8 @@ void UpdateUndefinedRandomSeed(
     ETaskType taskType,
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
     NJson::TJsonValue* updatedJsonParams,
-    std::function<void(TIFStream*, TString&)> paramsLoader
+    std::function<void(TIFStream*, TString&)> paramsLoader,
+    TStringBuf snapshotLabel = {}
 );
 
 void UpdateUndefinedClassLabels(

@@ -278,10 +278,44 @@ bool TModelTrees::IsSolid() const {
 }
 
 void TModelTrees::TruncateTrees(size_t begin, size_t end) {
-    //TODO(eermishkina): support non symmetric trees
-    CB_ENSURE(IsOblivious(), "Truncate support only symmetric trees");
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
-    CB_ENSURE(end <= GetModelTreeData()->GetTreeSplits().size(), "end tree index should be not greater than tree count.");
+    CB_ENSURE(end <= GetTreeCount(), "end tree index should be not greater than tree count.");
+    if (!IsOblivious()) {
+        // Each variable tree occupies contiguous node and leaf spans. Child
+        // links are relative, so only tree starts and absolute leaf-value IDs
+        // need rebasing. Keep the feature dictionary (and its split IDs) intact.
+        const auto* source = GetModelTreeData().Get();
+        const auto starts = source->GetTreeStartOffsets();
+        const auto leaves = GetApplyData()->TreeFirstLeafOffsets;
+        const size_t nodeBegin = begin < GetTreeCount() ? starts[begin] : source->GetTreeSplits().size();
+        const size_t nodeEnd = end < GetTreeCount() ? starts[end] : source->GetTreeSplits().size();
+        const size_t leafBegin = begin < GetTreeCount() ? leaves[begin] : source->GetLeafValues().size();
+        const size_t leafEnd = end < GetTreeCount() ? leaves[end] : source->GetLeafValues().size();
+        auto data = MakeHolder<TSolidModelTree>();
+        auto copySpan = [](auto values, size_t first, size_t last, auto* target) {
+            CB_ENSURE(first <= last && last <= values.size(), "Invalid non-symmetric model storage");
+            target->assign(values.begin() + first, values.begin() + last);
+        };
+        copySpan(source->GetTreeSizes(), begin, end, &data->TreeSizes);
+        copySpan(starts, begin, end, &data->TreeStartOffsets);
+        copySpan(source->GetTreeSplits(), nodeBegin, nodeEnd, &data->TreeSplits);
+        copySpan(source->GetNonSymmetricStepNodes(), nodeBegin, nodeEnd, &data->NonSymmetricStepNodes);
+        copySpan(source->GetNonSymmetricNodeIdToLeafId(), nodeBegin, nodeEnd, &data->NonSymmetricNodeIdToLeafId);
+        copySpan(source->GetLeafValues(), leafBegin, leafEnd, &data->LeafValues);
+        if (!source->GetLeafWeights().empty()) {
+            copySpan(source->GetLeafWeights(), leafBegin / ApproxDimension, leafEnd / ApproxDimension, &data->LeafWeights);
+        }
+        for (auto& start : data->TreeStartOffsets) start -= nodeBegin;
+        for (auto& leaf : data->NonSymmetricNodeIdToLeafId) {
+            if (leaf != Max<ui32>()) {
+                CB_ENSURE(leaf >= leafBegin && leaf < leafEnd, "Invalid non-symmetric leaf reference");
+                leaf -= leafBegin;
+            }
+        }
+        ModelTreeData = std::move(data);
+        UpdateRuntimeData();
+        return;
+    }
     auto savedScaleAndBias = GetScaleAndBias();
     TObliviousTreeBuilder builder(FloatFeatures,
                                   CatFeatures,

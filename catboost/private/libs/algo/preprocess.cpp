@@ -53,7 +53,8 @@ void UpdateUndefinedRandomSeed(
     ETaskType taskType,
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
     NJson::TJsonValue* updatedJsonParams,
-    std::function<void(TIFStream*, TString&)> paramsLoader) {
+    std::function<void(TIFStream*, TString&)> paramsLoader,
+    TStringBuf snapshotLabel) {
 
     const TString snapshotFilename = TOutputFiles::AlignFilePath(
         outputOptions.GetTrainDir(),
@@ -64,7 +65,7 @@ void UpdateUndefinedRandomSeed(
         TString serializedTrainParams;
         NJson::TJsonValue restoredJsonParams;
         try {
-            TProgressHelper(ToString(taskType)).CheckedLoad(
+            TProgressHelper(snapshotLabel.empty() ? ToString(taskType) : TString(snapshotLabel)).CheckedLoad(
                 snapshotFilename,
                 [&](TIFStream* inputStream) {
                     paramsLoader(inputStream, serializedTrainParams);

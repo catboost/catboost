@@ -1,0 +1,94 @@
+#pragma once
+#include "metal_trainer.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct {
+    uint32_t rows, features, candidates, iterations;
+    uint32_t depth, objective, score_function, leaf_method;
+    uint32_t leaf_iterations, permutations, min_fold_size, normalize;
+    float learning_rate, l2, bias, fold_growth;
+    float objective_param;
+    uint32_t reserved0, reserved1, reserved2;
+} CBMOrderedParams;
+
+// Numeric symmetric Ordered session. Objectives use the shared scalar IDs
+// 0..11. Score 0=Cosine,1=NewtonCosine. Leaf method 0=Newton,1=Gradient,
+// 2=Exact (Quantile/MAE/MAPE only; ignores step count and regularization).
+// bins uint8[features,rows]; permutation_maps uint32[permutations,rows].
+// Maps are explicit position->original-row permutations. Optional initial
+// predictions/weights use original row order; buffers are copied on creation.
+int cbm_ordered_session_create(const CBMOrderedParams* params, const uint8_t* bins,
+    const float* targets, const float* weights, const float* initial_predictions,
+    const uint32_t* candidate_features, const uint32_t* candidate_bins,
+    const uint32_t* permutation_maps, void** session, char* error, size_t capacity);
+
+// Numeric/one-hot variant. candidate_types[candidates] uses 0 for greater-than
+// and 1 for equality. A feature cannot mix types; one-hot bin 255 is valid.
+// The original creation entry point remains equivalent to all-zero types.
+int cbm_ordered_session_create_typed(const CBMOrderedParams* params, const uint8_t* bins,
+    const float* targets, const float* weights, const float* initial_predictions,
+    const uint32_t* candidate_features, const uint32_t* candidate_bins, const uint8_t* candidate_types,
+    const uint32_t* permutation_maps, void** session, char* error, size_t capacity);
+
+// Group-aware scalar variant. offsets[group_count+1] strictly partitions the
+// original rows from zero to params->rows. At least four groups are required;
+// every permutation must retain each whole group in its original internal order.
+// Each learning permutation receives its own variable-length prefix list.
+int cbm_ordered_session_create_grouped(const CBMOrderedParams* params, const uint8_t* bins,
+    const float* targets, const float* weights, const float* initial_predictions,
+    const uint32_t* candidate_features, const uint32_t* candidate_bins, const uint8_t* candidate_types,
+    const uint32_t* permutation_maps, uint32_t group_count, const uint32_t* offsets, double fold_growth,
+    void** session, char* error, size_t capacity);
+
+// Permutation-dependent feature variant. bins[bank_count,features,rows] is
+// counted by bin_cells; bank_count must be one or params->permutations.
+// Every bank shares candidate columns/grids. Search uses its selected bank;
+// every prefix/full task routes leaves through its own bank. Optional grouping
+// follows the grouped entry point. Original creation ABIs remain unchanged.
+int cbm_ordered_session_create_banked(const CBMOrderedParams* params, uint32_t bank_count, uint64_t bin_cells,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initial_predictions,
+    const uint32_t* candidate_features, const uint32_t* candidate_bins, const uint8_t* candidate_types,
+    const uint32_t* permutation_maps, uint32_t group_count, const uint32_t* offsets, double fold_growth,
+    void** session, char* error, size_t capacity);
+
+// Structure is chosen using the selected learning permutation. Every learning
+// fold and the independent full-model estimation task is updated each step.
+// Outputs use the existing scalar padded ABI; only the full-model task's tree
+// values/weights are exported. Caller supplies depth and 1<<depth strides.
+int cbm_ordered_session_step(void* session, uint32_t search_permutation,
+    CBMStepInfo* info, uint32_t* depth, uint32_t* split_features, uint32_t* split_bins,
+    uint8_t* split_types, float* leaf_values, float* leaf_weights, char* error, size_t capacity);
+// Static simple CTR penalties follow CUDA update_feature_weights.cpp. Configure
+// once before stepping. Simple FeatureParallel CTRs keep their penalty after selection.
+int cbm_ordered_session_set_feature_penalties(void* session, const CBMFeaturePenaltyOptions* options,
+    const uint32_t* counts, const float* feature_weights, char* error, size_t capacity);
+int cbm_ordered_session_info(void* session, CBMStepInfo* info, char* error, size_t capacity);
+int cbm_ordered_session_copy_predictions(void* session, float* predictions, char* error, size_t capacity);
+int cbm_ordered_session_set_bootstrap(void* session, const CBMBootstrapOptions* options,
+    uint32_t test_only, char* error, size_t capacity);
+int cbm_ordered_session_set_score_noise(void* session, const CBMScoreNoiseOptions* options,
+    char* error, size_t capacity);
+int cbm_ordered_session_get_bootstrap_state(void* session, uint32_t* iteration_offset,
+    float* mvs_lambda, uint32_t* mvs_lambda_is_set, char* error, size_t capacity);
+// 0=No, 1=AnyImprovement, 2=Armijo. Configure before the first step.
+int cbm_ordered_session_set_backtracking(void* session, uint32_t type, char* error, size_t capacity);
+
+// First query task_count and cursor_count, then copy arrays with exactly those
+// capacities. Descriptor uint32[task_count,4] = estimateEnd,qualityEnd,offset,
+// permutationId. Final descriptor is independent full-model estimation.
+int cbm_ordered_session_state_shape(void* session, uint32_t* task_count,
+    uint32_t* cursor_count, char* error, size_t capacity);
+int cbm_ordered_session_copy_state(void* session, uint32_t task_count, uint32_t cursor_count,
+    uint32_t* descriptors, float* cursors, char* error, size_t capacity);
+// Restore only before the first step. Dataset/options/permutation fingerprints
+// must be checked by the caller. Cursor length and finiteness are checked here.
+int cbm_ordered_session_restore_cursors(void* session, uint32_t cursor_count,
+    const float* cursors, char* error, size_t capacity);
+void cbm_ordered_session_close(void* session);
+
+#ifdef __cplusplus
+}
+#endif

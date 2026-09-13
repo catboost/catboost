@@ -58,6 +58,24 @@
 
 using namespace NCB;
 
+static bool SupportsMultipleEvalSets(ETaskType taskType) {
+#if defined(CATBOOST_HAVE_METAL)
+    Y_UNUSED(taskType);
+    return true;
+#else
+    return taskType == ETaskType::CPU;
+#endif
+}
+
+static TString GetTrainingSnapshotLabel(ETaskType taskType) {
+#if defined(CATBOOST_HAVE_METAL)
+    if (taskType == ETaskType::GPU) {
+        return "CatBoost Metal snapshot v6";
+    }
+#endif
+    return ToString(taskType);
+}
+
 static THolder<NPar::ILocalExecutor> CreateLocalExecutor(const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
     const bool isGpuDeviceType = catBoostOptions.GetTaskType() == ETaskType::GPU;
     const int threadCount = catBoostOptions.SystemOptions.Get().NumThreads.Get();
@@ -976,7 +994,7 @@ static void TrainModel(
     const ETaskType taskType = NCatboostOptions::GetTaskType(trainOptionsJson);
 
     CB_ENSURE(
-        (taskType == ETaskType::CPU) || (pools.Test.size() <= 1),
+        SupportsMultipleEvalSets(taskType) || (pools.Test.size() <= 1),
         "Multiple eval sets not supported for GPU"
     );
 
@@ -998,7 +1016,7 @@ static void TrainModel(
     if (outputOptions.SaveSnapshot()) {
         UpdateUndefinedRandomSeed(taskType, updatedOutputOptions, &updatedTrainOptionsJson, [&](IInputStream* in, TString& params) {
             ::Load(in, params);
-        });
+        }, GetTrainingSnapshotLabel(taskType));
     }
 
     const auto learnFeaturesLayout = pools.Learn->MetaInfo.FeaturesLayout;
@@ -1197,7 +1215,7 @@ void TrainModel(
     TProfileInfo profile;
 
     CB_ENSURE(
-        (catBoostOptions.GetTaskType() == ETaskType::CPU) || (loadOptions.TestSetPaths.size() <= 1),
+        SupportsMultipleEvalSets(catBoostOptions.GetTaskType()) || (loadOptions.TestSetPaths.size() <= 1),
         "Multiple eval sets not supported for GPU"
     );
 

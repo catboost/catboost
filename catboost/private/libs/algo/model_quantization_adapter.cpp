@@ -24,7 +24,7 @@ namespace {
             , ObjectsEnd(objectsEnd)
             , FormulaEvaluatorType(model.GetEvaluatorType())
         {
-            if (FormulaEvaluatorType == EFormulaEvaluatorType::CPU) {
+            if (UseHostQuantization()) {
                 ResultCpu = MakeIntrusive<TCPUEvaluatorQuantizedData>();
                 ResultCpu->QuantizedData = TMaybeOwningArrayHolder<ui8>::CreateOwning(
                         TVector<ui8>(
@@ -50,7 +50,7 @@ namespace {
             TVector<float> ctrs(applyData->UsedModelCtrs.size() * blockSize);
             TVector<float> estimatedFeatures(Model.ModelTrees->GetEstimatedFeatures().size() * blockSize);
 
-            if (FormulaEvaluatorType == EFormulaEvaluatorType::CPU) {
+            if (UseHostQuantization()) {
                 BinarizeFeatures(
                         *Model.ModelTrees,
                         *applyData,
@@ -96,7 +96,7 @@ namespace {
         void Visit(const TQuantizedFeaturesBlockIterator& quantizedFeaturesBlockIterator) override {
             TQuantizedFeatureAccessor quantizedFeatureAccessor = quantizedFeaturesBlockIterator.GetAccessor();
 
-            if (FormulaEvaluatorType == EFormulaEvaluatorType::CPU) {
+            if (UseHostQuantization()) {
                 const auto docCount = ObjectsEnd - ObjectsStart;
                 const auto blockSize = Min(docCount, FORMULA_EVALUATION_BLOCK_SIZE);
                 TVector <ui32> transposedHash(blockSize * Model.GetUsedCatFeaturesCount());
@@ -122,7 +122,7 @@ namespace {
         }
 
         TIntrusivePtr<IQuantizedData> GetResult() {
-            if (FormulaEvaluatorType == EFormulaEvaluatorType::GPU) {
+            if (!UseHostQuantization()) {
                 #ifdef HAVE_CUDA
                 return std::move(ResultGpu);
                 #else
@@ -133,6 +133,16 @@ namespace {
         }
 
     private:
+        bool UseHostQuantization() const {
+            // Metal shares native numeric/category/CTR preparation, then sends
+            // the resulting byte buckets to the Apple GPU evaluator.
+            #ifdef CATBOOST_HAVE_METAL
+            return true;
+            #else
+            return FormulaEvaluatorType == EFormulaEvaluatorType::CPU;
+            #endif
+        }
+
         const TFullModel& Model;
         size_t ObjectsStart;
         size_t ObjectsEnd;

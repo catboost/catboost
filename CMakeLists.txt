@@ -19,6 +19,21 @@ endif()
 
 project(CATBOOST LANGUAGES C CXX ASM)
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+  option(HAVE_METAL "Build the native Apple Silicon Metal training backend" ON)
+else()
+  option(HAVE_METAL "Build the native Apple Silicon Metal training backend" OFF)
+endif()
+if (HAVE_METAL)
+  if (NOT (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64"))
+    message(FATAL_ERROR "HAVE_METAL requires macOS on Apple Silicon")
+  endif()
+  if (HAVE_CUDA)
+    message(FATAL_ERROR "The Metal and CUDA trainers cannot be enabled together")
+  endif()
+  enable_language(OBJCXX)
+endif()
+
 if(" ${PROJECT_SOURCE_DIR}" STREQUAL " ${PROJECT_BINARY_DIR}")
   message(FATAL_ERROR "
 FATAL: In-source builds are not allowed.
