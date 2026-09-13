@@ -45,7 +45,7 @@ jobs:
           cd $HOME/.pyenv/versions/ && zip -r -y ${{ github.workspace }}/python_versions_macos_arm64.zip *
 
       - name: Save to cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           enableCrossOsArchive: true # to be used on macOS x86_64 as well
           path: python_versions_macos_arm64.zip
@@ -99,7 +99,7 @@ jobs:
           cd $HOME/.pyenv/versions/ && zip -r -y ${{ github.workspace }}/python_versions_macos_x86_64.zip *
 
       - name: Save to cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           enableCrossOsArchive: true # to be used on macOS arm64 as well
           path: python_versions_macos_x86_64.zip

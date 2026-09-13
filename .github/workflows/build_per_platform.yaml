@@ -55,7 +55,7 @@ jobs:
 
       - if: inputs.os == 'linux'
         name: Checkout actions from catboost
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: actions_from_catboost
           sparse-checkout: .github
@@ -83,7 +83,7 @@ jobs:
           remove-docker-images: 'true'
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: catboost
           fetch-depth: 0
@@ -91,7 +91,7 @@ jobs:
       # Python 3.9 is not included in 'macos-14' and 'windows-2022' images.
       - if: inputs.os != 'linux'
         name: Install python 3.9
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.9'
           update-environment: false
@@ -99,7 +99,7 @@ jobs:
       # Python 3.10 is not included in 'macos-14' image.
       - if: inputs.os == 'macos'
         name: Install python 3.10
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.10'
           update-environment: false
@@ -107,14 +107,14 @@ jobs:
       # Python 3.14 is not included in standard Windows images yet
       - if: inputs.os == 'windows'
         name: Install python 3.14
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.14'
           update-environment: false
 
       - if: inputs.os == 'macos'
         name: Get python_versions_macos_x86_64 from cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           enableCrossOsArchive: true
           fail-on-cache-miss: true
@@ -125,7 +125,7 @@ jobs:
 
       - if: inputs.os == 'macos'
         name: Setup JDK 8 on macOS
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: 'zulu'
           java-version: '8'
@@ -156,7 +156,7 @@ jobs:
           cd $CMAKE_BUILD_ENV_ROOT/darwin-arm64
           mkdir -p Library/Java/JavaVirtualMachines/jdk-8/Contents
           cd Library/Java/JavaVirtualMachines/jdk-8/Contents
-          ln -s $JAVA_HOME_8_ARM64 ./Home
+          ln -s $JAVA_HOME_8_AARCH64 ./Home
 
           # Python
           cd $CMAKE_BUILD_ENV_ROOT/darwin-arm64
@@ -190,7 +190,7 @@ jobs:
 
       - if: inputs.os == 'windows'
         name: Install CUDA on Windows
-        uses: Jimver/cuda-toolkit@v0.2.15
+        uses: Jimver/cuda-toolkit@v0.2.36
         id: cuda-toolkit
         with:
           cuda: '11.8.0'
@@ -199,9 +199,20 @@ jobs:
 
       - if: inputs.os == 'windows'
         name: Install MSVC tools 14.40
-        uses: thepwrtank18/install-vs-components@v1.0.0
-        with:
-          components: Microsoft.VisualStudio.Component.VC.14.40.17.10.x86.x64
+        env:
+          TOOLSET_VERSION: "Microsoft.VisualStudio.Component.VC.14.40.17.10.x86.x64"
+        run: |
+          Start-Process `
+            -FilePath "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe" `
+            -ArgumentList @(
+              "modify",
+              "--installPath `"${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise`"",
+              "--add $env:TOOLSET_VERSION",
+              "--quiet",
+              "--norestart",
+              "--nocache"
+            ) `
+            -Wait
 
       - if: inputs.os == 'windows'
         name: Env setup on Windows
@@ -245,7 +256,7 @@ jobs:
 
 
       - name: Update CMake build cache on every commit
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: cmake_build_cache
           key: cmake_build_cache-${{ inputs.target_platform }}-${{ github.run_id }} # Can use time based key as well
@@ -331,7 +342,7 @@ jobs:
 
       - if: inputs.os != 'macos'
         name: 'Upload artifact: CLI'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost-cli-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: catboost/build_native_root/have_cuda/${{ inputs.target_platform }}/catboost/app/catboost${{ inputs.executable_suffix }}
@@ -339,7 +350,7 @@ jobs:
 
       - if: inputs.os == 'macos'
         name: 'Upload artifact: CLI'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost-cli-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: catboost/build_native_root/no_cuda/${{ inputs.target_platform }}/catboost/app/catboost
@@ -357,7 +368,7 @@ jobs:
 
       - if: inputs.target_platform == 'linux-x86_64'
         name: 'Upload artifact: source python package'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost-python-package-dist-src-${{ inputs.artifacts_version }}
           path: catboost/catboost/python-package/dist/*.tar.gz
@@ -365,7 +376,7 @@ jobs:
 
       - if: inputs.target_platform == 'linux-x86_64'
         name: 'Upload artifact: python package visualization widget'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost-python-package-widget-${{ inputs.artifacts_version }}
           path: catboost/catboost/python-package/build/widget
@@ -374,7 +385,7 @@ jobs:
       # R package
 
       - name: 'Upload artifact: R package'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost-R-package-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: catboost/catboost/R-package/catboost-R-${{ inputs.target_platform }}.tgz
@@ -384,7 +395,7 @@ jobs:
 
       - if: inputs.os == 'linux'
         name: 'Upload artifact: catboostmodel library for Linux'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost-model-interface-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: catboost/build_native_root/have_cuda/${{ inputs.target_platform }}/catboost/libs/model_interface/libcatboostmodel.*
@@ -392,7 +403,7 @@ jobs:
 
       - if: inputs.os == 'macos'
         name: 'Upload artifact: catboostmodel library for macOS universal2'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost-model-interface-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: catboost/build_native_root/no_cuda/${{ inputs.target_platform }}/catboost/libs/model_interface/libcatboostmodel.*
@@ -400,7 +411,7 @@ jobs:
 
       - if: inputs.os == 'windows'
         name: 'Upload artifact: catboostmodel library for Windows x86_64'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost-model-interface-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: |
@@ -411,7 +422,7 @@ jobs:
       # Spark
 
       - name: 'Upload artifact: catboost4j-spark-impl-sources'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost4j-spark-impl-sources-${{ inputs.artifacts_version }}
           path: catboost/catboost/spark/catboost4j-spark/core/target/catboost4j-spark-impl-sources.jar
@@ -419,7 +430,7 @@ jobs:
           overwrite: true
 
       - name: 'Upload artifact: catboost4j-spark_core_resources_classes'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost4j-spark_core_resources_classes-${{ inputs.artifacts_version }}
           path: catboost/catboost/spark/catboost4j-spark/core/src/main/resources/ru*
@@ -428,7 +439,7 @@ jobs:
 
       - if: inputs.os == 'linux'
         name: 'Upload artifact: catboost4j-spark_core_resources-linux'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost4j-spark_core_resources-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: catboost/catboost/spark/catboost4j-spark/core/src/main/resources/linux*
@@ -436,7 +447,7 @@ jobs:
 
       - if: inputs.os == 'macos'
         name: 'Upload artifact: catboost4j-spark_core_resources-darwin'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost4j-spark_core_resources-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: catboost/catboost/spark/catboost4j-spark/core/src/main/resources/darwin*
@@ -444,7 +455,7 @@ jobs:
 
       - if: inputs.os == 'windows'
         name: 'Upload artifact: catboost4j-spark_core_resources-windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost4j-spark_core_resources-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: catboost/catboost/spark/catboost4j-spark/core/src/main/resources/win*
@@ -453,7 +464,7 @@ jobs:
       # catboost-prediction
 
       - name: 'Upload artifact: catboost4j-prediction_resources'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost4j-prediction_resources-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: catboost/catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
@@ -462,7 +473,7 @@ jobs:
       # test tools
 
       - name: 'Upload artifact: test tools'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catboost-test-tools-${{ inputs.target_platform }}-${{ inputs.artifacts_version }}
           path: |
