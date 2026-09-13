@@ -9,6 +9,8 @@ on:
 
 jobs:
   add_macos_arm64_extra_env_to_cache:
+    # disable as it is not needed when CI in run on Arm64 hosts but don't delete it outright just yet
+    if: false
     name: Add MacOS Arm64 extra env to cache
     runs-on: macos-14
     steps:
