@@ -13,8 +13,8 @@ struct PairwiseParams {
 };
 
 inline float PairwiseLogOnePlus(float value) {
-    // MSL has no log1p. Correct the rounded addition for value in [0,1],
-    // retaining tiny softplus tails when 1+value rounds to exactly one.
+    // MSL has no log1p. Correct the rounded addition for value > -1,
+    // retaining tiny signed changes when 1+value rounds to exactly one.
     const float rounded = 1.0f + value;
     return rounded == 1.0f ? value : log(rounded) * (value / (rounded - 1.0f));
 }
@@ -128,6 +128,97 @@ kernel void ReducePairwiseObjective(const device float4* edge_values [[buffer(0)
         threadgroup_barrier(mem_flags::mem_threadgroup);
     }
     if (tid == 0) partials[group] = scratch[0];
+}
+
+inline float PairwiseExpm1(float value) {
+    // The loss-difference path only calls this for |value| <= 0.5. A Taylor
+    // polynomial avoids losing the update when exp(value) rounds to one.
+    return value * (1.0f + value * (0.5f + value * (1.0f / 6.0f + value *
+        (1.0f / 24.0f + value * (1.0f / 120.0f + value * (1.0f / 720.0f +
+        value * (1.0f / 5040.0f + value * (1.0f / 40320.0f + value *
+        (1.0f / 362880.0f + value / 3628800.0f)))))))));
+}
+
+// Return an exact float expansion of a-b, provided the difference is finite.
+inline float2 PairwiseDifference(float a, float b) {
+    const float high = a - b;
+    const float virtual_b = a - high;
+    return float2(high, (a - (high + virtual_b)) + (virtual_b - b));
+}
+
+// Backtracking must resolve improvements much smaller than the absolute
+// objective's float32 ULP. For a small margin change h, use the identity
+// softplus(-d)-softplus(-(d+h)) = -log1p(sigmoid(-d)*expm1(-h)), then reduce
+// those signed differences with an expansion. The point additions still use
+// float32, exactly as the derivative path and the eventual cursor update do.
+kernel void ReducePairwiseObjectiveDifference(const device float* cursor [[buffer(0)]],
+    const device float* current_leaves [[buffer(1)]], const device float* trial_leaves [[buffer(2)]],
+    const device uint* leaf_ids [[buffer(3)]], const device uint* winners [[buffer(4)]],
+    const device uint* losers [[buffer(5)]], const device float* weights [[buffer(6)]],
+    device float2* partials [[buffer(7)]], constant PairwiseParams& p [[buffer(8)]],
+    uint tid [[thread_position_in_threadgroup]], uint group [[threadgroup_position_in_grid]],
+    uint groups [[threadgroups_per_grid]]) {
+    threadgroup float4 high_parts[256], low_parts[256];
+    float4 high = float4(0.0f), low = float4(0.0f);
+    for (uint edge = group * 256 + tid; edge < p.pairs; edge += groups * 256) {
+        if (weights[edge] == 0.0f) continue;
+        const uint winner = winners[edge], loser = losers[edge];
+        const float current_winner = cursor[winner] + current_leaves[leaf_ids[winner]];
+        const float current_loser = cursor[loser] + current_leaves[leaf_ids[loser]];
+        const float trial_winner = cursor[winner] + trial_leaves[leaf_ids[winner]];
+        const float trial_loser = cursor[loser] + trial_leaves[leaf_ids[loser]];
+        if (!all(isfinite(float4(current_winner, current_loser, trial_winner, trial_loser)))) {
+            // A nonfinite trial is rejected without making accepted-state
+            // validation sticky; subsequent halved trials can still succeed.
+            PairwiseAccumulate4(high, low, float4(as_type<float>(0x7fc00000u), 0.0f, 0.0f, 0.0f));
+            continue;
+        }
+        const float2 before = PairwiseDifference(current_winner, current_loser);
+        const float2 after = PairwiseDifference(trial_winner, trial_loser);
+        if (!isfinite(before.x) || !isfinite(after.x)) {
+            // Finite endpoints can overflow their margin subtraction. A
+            // positive saturated margin has zero representable softplus;
+            // negative overflow is a nonfinite loss and rejects the trial.
+            const float improvement = (isinf(before.x) && before.x < 0.0f)
+                    || (isinf(after.x) && after.x < 0.0f)
+                ? as_type<float>(0x7fc00000u)
+                : (isinf(before.x) ? -(max(-after.x, 0.0f) + PairwiseLogOnePlus(exp(-abs(after.x))))
+                    : max(-before.x, 0.0f) + PairwiseLogOnePlus(exp(-abs(before.x))));
+            PairwiseAccumulate4(high, low, float4(weights[edge] * improvement / float(p.pairs), 0.0f, 0.0f, 0.0f));
+            continue;
+        }
+        const float2 delta_high = PairwiseDifference(after.x, before.x);
+        const float delta = delta_high.x + ((after.y - before.y) + delta_high.y);
+        float improvement;
+        if (abs(delta) <= 0.5f) {
+            const float exponential = exp(-abs(before.x));
+            float probability = before.x >= 0.0f
+                ? exponential / (1.0f + exponential) : 1.0f / (1.0f + exponential);
+            probability -= before.y * probability * (1.0f - probability);
+            improvement = -PairwiseLogOnePlus(probability * PairwiseExpm1(-delta));
+        } else {
+            // Separate the linear terms so two large negative margins do
+            // not discard a much smaller (but still > 0.5) improvement.
+            const float linear = before.x < 0.0f
+                ? (after.x < 0.0f ? delta : -before.x - before.y)
+                : (after.x < 0.0f ? after.x + after.y : 0.0f);
+            improvement = linear + (PairwiseLogOnePlus(exp(-abs(before.x)))
+                - PairwiseLogOnePlus(exp(-abs(after.x))));
+        }
+        PairwiseAccumulate4(high, low, float4(weights[edge] * improvement / float(p.pairs), 0.0f, 0.0f, 0.0f));
+    }
+    high_parts[tid] = high; low_parts[tid] = low;
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    for (uint stride = 128; stride; stride >>= 1) {
+        if (tid < stride) {
+            high = high_parts[tid]; low = low_parts[tid];
+            PairwiseAccumulate4(high, low, high_parts[tid + stride]);
+            PairwiseAccumulate4(high, low, low_parts[tid + stride]);
+            high_parts[tid] = high; low_parts[tid] = low;
+        }
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
+    if (tid == 0) partials[group] = float2(high_parts[0].x, low_parts[0].x);
 }
 
 // The persistent runtime validates arbitrary trial points before indexing or

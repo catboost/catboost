@@ -241,3 +241,9 @@ Sample/Group histories, static FeatureParallel penalties and exact recovery.
 QueryRMSE/QuerySoftMax now also support Depthwise, Lossguide and Region in
 native and standalone APIs. [GREEDY_QUERY_PORT.md](GREEDY_QUERY_PORT.md)
 records whole-query projection, CTR dataset cursors and exact recovery.
+
+Greedy PairLogit now supports Depthwise, Lossguide and Region through native
+CatBoost and standalone Metal APIs. Native one-hot/simple CTR permutations,
+unlabeled supplied-pair Pools, metrics, model readers and exact snapshot
+continuation are accepted. [GREEDY_PAIRLOGIT_PORT.md](GREEDY_PAIRLOGIT_PORT.md)
+records the installed release, numerical fix and full validation evidence.

@@ -5,16 +5,15 @@ This is an active port. Standalone features, rebuilt native packages, and
 components awaiting integration are distinguished below. The earlier
 [PORT_REVIEW.md](PORT_REVIEW.md) remains a historical source inventory.
 
-## Published source checkpoint
+## Current local checkpoint
 
-The `metal-m3` branch also contains the in-progress greedy PairLogit extension.
-Its native extensions and CLI build, and its initial private GPU suite passes
-265 of 269 cases. Four permutation-cursor comparisons remain unresolved.
-Native/public lifecycle acceptance and a full regression for that extension
-have not been completed. See [GREEDY_PAIRLOGIT_WIP.md](GREEDY_PAIRLOGIT_WIP.md).
-The installed checkpoint and test counts below predate this extension; they
-must not be interpreted as validation of every change on this branch.
-Packaged wheels and local recovery artifacts are not included in Git.
+Greedy PairLogit is complete in the working tree and installed in checkpoint
+`20260913T195124Z`. The four original numerical failures are resolved, and the
+native/public lifecycle, complete regression, alternate extension, CLI and
+snapshot checks pass. See [GREEDY_PAIRLOGIT_PORT.md](GREEDY_PAIRLOGIT_PORT.md).
+The release records base commit `933ff4a86c`, the local source patch and added
+files; Git publication is separate from this installed checkpoint. Earlier
+dated checkpoint notes below are historical.
 
 ## Verified interfaces on M3 Pro
 
@@ -25,7 +24,7 @@ Packaged wheels and local recovery artifacts are not included in Git.
 | Vector losses | MultiClass, MultiClassOneVsAll, MultiRMSE, RMSEWithUncertainty, MultiLogloss, MultiCrossEntropy | All six, including weighted metrics, baselines and snapshots |
 | Grouped losses | QueryRMSE, QuerySoftMax, supplied-pair PairLogit/PairLogitPairwise, QueryCrossEntropy, classic YetiRank and YetiRankPairwise; one-hot arrays/DataFrames for all seven | All seven; all seven support native one-hot/CTR P4, metrics and snapshots |
 | Symmetric trees | Numeric and simple categorical training, depth 0–16 | Same runtime, raw/prequantized Pool support |
-| Non-symmetric trees | Numeric/one-hot/CTR Depthwise, Lossguide, Region; eleven scalar, three vector and QueryRMSE/QuerySoftMax CUDA-registered losses, seven scalar/five vector scores, Newton/Gradient/Exact where applicable and backtracking | Numeric/one-hot/CTR P4, eleven scalar, three vector and QueryRMSE/QuerySoftMax objectives, snapshots, callbacks, best-model trimming and GPU evaluation |
+| Non-symmetric trees | Numeric/one-hot/CTR Depthwise, Lossguide, Region; eleven scalar, three vector and QueryRMSE/QuerySoftMax/PairLogit CUDA-registered losses, seven scalar/five vector scores, Newton/Gradient/Exact where applicable and backtracking | Numeric/one-hot/CTR P4, eleven scalar, three vector and QueryRMSE/QuerySoftMax/PairLogit objectives, snapshots, callbacks, best-model trimming and GPU evaluation |
 | Ordered boosting | Numeric/one-hot/simple CTR scalar training, Sample/Group CTR histories, grouped folds, P1-P64 prefix recovery and static FeatureParallel penalties | All four simple CTR types, raw/quantized Pools, native baselines/initial models, all samplers and lifecycle verified |
 | Categoricals | One-hot and simple Borders/FeatureFreq CTRs with P4 scalar/multiclass cursors | All four simple CUDA CTR types, Sample/Group histories, P4 and full model tables |
 | Scores | Seven symmetric/greedy scalar scores; vector L2/Cosine/SolarL2/LOOL2/SatL2 | All seven scalar and five vector scores |
@@ -47,10 +46,10 @@ native fork includes Metal and uses the existing GPU task type.
 
 ## Current verification and packaged checkpoints
 
-The recovered checkpoint **20260913T155047Z** passes **10,560 cases plus 16 subtests**. The alternate extension passes **3507 tests**. Counts overlap and are not summed; no native acceptance file is excluded.
+The recovered checkpoint **20260913T195124Z** passes **11,099 cases plus 16 subtests**. The alternate extension passes **3,744 tests**. Counts overlap and are not summed; no native acceptance file is excluded.
 
 Native numeric/one-hot/CTR Depthwise/Lossguide/Region now includes eleven CUDA-registered
-scalar objectives plus MultiClass/MultiClassOneVsAll/RMSEWithUncertainty and QueryRMSE/QuerySoftMax, all seven scalar and five vector scores, four samplers, applicable leaf estimators
+scalar objectives plus MultiClass/MultiClassOneVsAll/RMSEWithUncertainty and QueryRMSE/QuerySoftMax/PairLogit, all seven scalar and five vector scores, four samplers, applicable leaf estimators
 and backtracking, snapshots, initial models, baselines, callbacks, multiple
 validation sets and best-model selection. Compact native GPU evaluation also
 supports non-symmetric categorical/CTR and vector models. The shared model
@@ -60,13 +59,14 @@ weights and scale/bias without exponential tree padding.
 Wheel installed in `catboost/metal/.venv`:
 
 ```text
-catboost/metal/.build/releases/20260913T155047Z/
+catboost/metal/.build/releases/20260913T195124Z/
   catboost-1.2.10-cp312-cp312-macosx_11_0_arm64.whl
-SHA256 ed582f8039f7f7041ea05a36ee319e204c7dd5dc902fa915e76521134b2a3ef5
+SHA256 22a03c3d80c85a15197999c7a87a2c19e785112900df61efb6b561b4333777b8
 ```
 
-The embedded extension hash matches the tested isolated package. 685
-post-install GPU fit/prediction paths pass. Classic numeric YetiRank adds
+The embedded extension hash matches the tested isolated package. 237 installed
+acceptance cases plus 18 GPU smoke configurations pass. All 171 CLI configurations
+and 202 preceding snapshot recoveries pass. Classic numeric YetiRank adds
 resident target/search/leaves, complete host target RNG, real PFound evaluation,
 seven scores, five samplers, snapshots, baseline/initial models and export.
 Its 253 component/controller/native cases include independent equations and
@@ -165,7 +165,7 @@ configuration-matched CUDA quality evidence.
   native simple CTR P4, including both classic YetiRank variants and the
   full-matrix objectives. Generated-pair sampling uses explicitly recorded
   Metal streams; see YETIRANK_PAIRWISE_CTR_PERMUTATIONS.md.
-- Finish Ordered query objectives, greedy PairLogit/YetiRank objectives, dynamic compound CTR scheduling and CUDA GPU random-stream agreement.
+- Finish Ordered query objectives, greedy YetiRank objectives, dynamic compound CTR scheduling and CUDA GPU random-stream agreement.
 - Integrate shared text/embedding estimated features and remaining training
   options/feature penalties; avoid CPU-training fallback.
 - Validate complete memory use, wider/deeper workloads, packed feature layouts,
@@ -343,3 +343,25 @@ recovery is exact. No CPU CatBoost fitting, NVIDIA comparison or other M-series
 execution occurred.
 
 See GREEDY_QUERY_PORT.md for source mappings and precision limits.
+
+## Greedy PairLogit installed checkpoint
+
+Checkpoint `20260913T195124Z` is installed in `catboost/metal/.venv`.
+
+- Full matrix: **11,099 passed plus 16 subtests**, with no skipped cases.
+- Alternate extension: **3,744 passed** (3,665 main cases plus 79 supplemental one-hot reader cases; disjoint selections).
+- Installed package: **237 passed**, plus **18 GPU smoke configurations**.
+- CLI: **171 configurations passed** (153 preceding plus 18 new PairLogit cases).
+- Snapshot compatibility: **202 exact recoveries** (194 preserved older fixtures plus eight fresh fixtures from the preceding installed checkpoint).
+- Wheel: `catboost-1.2.10-cp312-cp312-macosx_11_0_arm64.whl`
+- Wheel SHA256: `22a03c3d80c85a15197999c7a87a2c19e785112900df61efb6b561b4333777b8`
+- Standard extension SHA256: `36b30f0b61c3f8e8e2053aff83e95622d373f8000013a571cede94a7e953e03f`
+- Alternate extension SHA256: `50ea086eb6045de55263fcc3976a0b384257c0b7bff9423a76d5a95cfd2e4106`
+
+Test selections overlap; the counts are not summed. Sources, both extensions,
+CLI, original snapshots, commands and raw evidence are retained under
+`.build/releases/20260913T195124Z/`. The preceding `20260913T155047Z` wheel is
+preserved. Source provenance is Git commit `933ff4a86cfe1f9a1f5cccd799e8a030ae7f3eb4` plus
+`source-changes.patch` and `source-overlay/` in the new release.
+
+See [GREEDY_PAIRLOGIT_PORT.md](GREEDY_PAIRLOGIT_PORT.md) for source mappings and precision limits.

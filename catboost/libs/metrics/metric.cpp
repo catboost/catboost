@@ -7007,7 +7007,10 @@ void CheckPreprocessedTarget(
     bool allowConstLabel
 ) {
     ELossFunction lossFunction = lossDesciption.GetLossFunction();
-    if (isNonEmptyAndNonConst && (lossFunction != ELossFunction::PairLogit) && (lossFunction != ELossFunction::PairLogitPairwise)) {
+    // Pairwise metrics use supplied edges and do not require target values.
+    // GPU preparation may synthesize constant targets for an unlabeled Pool;
+    // this must also work when PairAccuracy is requested alongside PairLogit.
+    if (isNonEmptyAndNonConst && !IsPairwiseMetric(lossFunction)) {
         auto targetBounds = CalcMinMax(target);
         CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "All train targets are equal");
     }

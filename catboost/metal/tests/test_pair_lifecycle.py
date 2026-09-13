@@ -155,7 +155,8 @@ def test_public_pair_metadata_preserves_literal_edges_and_ignores_labels(metal_d
 
 @pytest.mark.parametrize("options", [dict(leaf_estimation_method="Exact"),
     dict(loss_function="YetiRankPairwise:mode=NDCG"), dict(loss_function="PairLogit:max_pairs=10"),
-    dict(boosting_type="Ordered"), dict(grow_policy="Depthwise")])
+    dict(boosting_type="Ordered"),
+    dict(loss_function="PairLogitPairwise", grow_policy="Depthwise")])
 def test_unsupported_public_pair_training_modes_fail_before_gpu(monkeypatch, options):
     forbid_gpu(monkeypatch)
     with pytest.raises(ValueError):

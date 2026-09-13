@@ -679,16 +679,22 @@ private:
             }
             trial.Dispatch("BuildBacktrackingCandidate", {RawValues, Directions, OutputWeights, TrialValues},
                 K, K.Leaves, false, 1, &b, sizeof(b));
-            EncodeBacktrackingObjective(trial, TrialValues, b, true);
+            if (Pairwise) {
+                // Compare signed edge loss changes before reduction. Absolute
+                // float32 loss sums cannot resolve late Armijo improvements.
+                Pairwise->EncodeObjectiveDifference(trial.Buffer, Prediction, RawValues,
+                    TrialValues, LeafIds, K.Leaves, &Info.stats.kernel_dispatches);
+            } else EncodeBacktrackingObjective(trial, TrialValues, b, true);
             trial.Wait();
             if (newDirection) {
                 directionDot = ReadExpandedScalar(DirectionDot, K.Leaves);
                 Require(std::isfinite(directionDot), "Nonfinite GPU leaf direction during backtracking");
             }
-            const double trialValue = ReadBacktrackingObjective();
-            const double threshold = currentValue + (b.Type == 2 ? 1e-5 * b.Step * directionDot : 0.);
+            const double trialValue = Pairwise ? Pairwise->ReadObjectiveDifference() : ReadBacktrackingObjective();
+            const double threshold = (Pairwise ? 0. : currentValue) + (b.Type == 2 ? 1e-5 * b.Step * directionDot : 0.);
             if (std::isfinite(trialValue) && trialValue >= threshold) {
-                std::swap(RawValues, TrialValues); currentValue = trialValue;
+                std::swap(RawValues, TrialValues);
+                if (!Pairwise) currentValue = trialValue;
                 updated = true; newDirection = true; b.Step = 1.f;
             } else { b.Step *= .5f; newDirection = false; }
         }

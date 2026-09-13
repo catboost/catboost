@@ -1,6 +1,9 @@
 """Original supplied-edge PairLogit on Metal variable-node tree policies."""
 import ctypes as ct
+import hashlib
+from pathlib import Path
 import platform
+import subprocess
 import numpy as np
 import pytest
 from catboost import CatBoost
@@ -11,6 +14,103 @@ from test_pairwise_kernels import reference
 from test_greedy_training import route,POLICIES
 
 pytestmark=pytest.mark.skipif(platform.system()!='Darwin' or platform.machine()!='arm64',reason='Apple GPU required')
+
+
+@pytest.fixture(scope='module')
+def difference_probe():
+ source=Path(__file__).with_name('pairwise_difference_probe.mm');root=source.parent.parent
+ dependencies=[source,root/'native/metal_pairwise_runtime.h',root/'native/metal_pairwise_kernels.h']
+ digest=hashlib.sha256(b''.join(path.read_bytes() for path in dependencies)).hexdigest()[:16]
+ destination=root/'.build'/f'pairwise_difference_probe_{digest}.dylib'
+ destination.parent.mkdir(exist_ok=True)
+ if not destination.exists():
+  subprocess.run(['xcrun','clang++','-std=c++17','-O2','-fobjc-arc','-dynamiclib',
+   '-framework','Foundation','-framework','Metal',str(source),'-o',str(destination)],check=True,capture_output=True,text=True)
+ library=ct.CDLL(str(destination));function=library.cbm_pairwise_difference_probe
+ function.argtypes=[ct.c_uint32]*4+[ct.c_void_p]*9+[ct.c_uint32];function.restype=ct.c_int
+ def run(cursor,winners,losers,weights,ids,current,trial,groups=7):
+  buffers=[np.ascontiguousarray(value,np.uint32 if i in (1,2,4) else np.float32)
+   for i,value in enumerate((cursor,winners,losers,weights,ids,current,trial))]
+  result=ct.c_double();error=ct.create_string_buffer(2048)
+  code=function(len(cursor),len(winners),len(current),groups,*(x.ctypes.data for x in buffers),
+   ct.byref(result),error,len(error))
+  if code:raise RuntimeError(error.value.decode())
+  return result.value
+ return run
+
+
+def difference_reference(cursor,winners,losers,weights,ids,current,trial):
+ # Float32 point additions are part of the training contract; loss arithmetic
+ # is independently evaluated in float64, including endpoint subtraction.
+ before=(np.asarray(cursor,np.float32)+np.asarray(current,np.float32)[ids]).astype(float)
+ after=(np.asarray(cursor,np.float32)+np.asarray(trial,np.float32)[ids]).astype(float)
+ weights=np.asarray(weights,np.float32).astype(float)
+ return np.dot(weights,np.logaddexp(0,-(before[winners]-before[losers]))
+  -np.logaddexp(0,-(after[winners]-after[losers])))
+
+
+@pytest.mark.parametrize('seed',range(5))
+@pytest.mark.parametrize('step',[1e-6,1e-3,.5,4.])
+def test_pair_backtracking_signed_difference_matches_independent_loss(difference_probe,seed,step):
+ rng=np.random.default_rng(138+seed);rows=79;pairs=1027;leaves=11
+ cursor=rng.normal(0,2,rows).astype(np.float32);ids=rng.integers(0,leaves,rows,dtype=np.uint32)
+ winners=rng.integers(0,rows,pairs,dtype=np.uint32)
+ losers=(winners+rng.integers(1,rows,pairs,dtype=np.uint32))%rows
+ weights=rng.lognormal(0,.7,pairs).astype(np.float32);weights[::17]=0
+ current=rng.normal(0,.2,leaves).astype(np.float32)
+ trial=(current+step*rng.normal(size=leaves)).astype(np.float32)
+ expected=difference_reference(cursor,winners,losers,weights,ids,current,trial)
+ actual=difference_probe(cursor,winners,losers,weights,ids,current,trial)
+ assert actual==pytest.approx(expected,rel=8e-6,abs=1e-9)
+ assert difference_probe(cursor,winners,losers,weights,ids,current,current)==0
+
+
+@pytest.mark.parametrize('shift',[1e-4,-1e-4])
+def test_pair_backtracking_resolves_improvements_below_absolute_loss_precision(difference_probe,shift):
+ # Opposing edges nearly balance at margin 0.75. Both directions produce an
+ # improvement smaller than one ULP of the absolute float32 loss. The sign
+ # changes across the optimum and must drive the Armijo acceptance decision.
+ cursor=np.array([.75-1e-4,0],np.float32);ids=np.arange(2,dtype=np.uint32)
+ winners=np.array([0,1],np.uint32);losers=winners[::-1].copy()
+ weights=np.array([1,np.exp(-.75)],np.float32);current=np.zeros(2,np.float32)
+ trial=np.array([shift,0],np.float32)
+ expected=difference_reference(cursor,winners,losers,weights,ids,current,trial)
+ actual=difference_probe(cursor,winners,losers,weights,ids,current,trial)
+ before=cursor.astype(float);after=(cursor+trial).astype(float)
+ edge_changes=weights.astype(float)*(np.logaddexp(0,-(before[winners]-before[losers]))
+  -np.logaddexp(0,-(after[winners]-after[losers])))
+ # Opposite signed terms of order 3e-5 cancel to 1e-9. Scale the float32
+ # forward-error tolerance by term magnitudes, not the nearly zero sum.
+ bound=4*np.finfo(np.float32).eps*np.abs(edge_changes).sum()
+ assert abs(actual-expected)<=bound
+ assert np.sign(actual)==np.sign(shift)
+ initial=reference(cursor,winners,losers,weights)['objective'][0]
+ assert abs(expected)<np.spacing(np.float32(initial))
+
+
+@pytest.mark.parametrize('cursor,shift',[
+ ([1000.,-1000.],[1.,0.]),([-1000.,1000.],[1.,0.]),
+ ([-10000000.,10000000.],[2.,0.]),([.25,-.25],[1e-9,1e-9]),
+ ([1024.,.01],[0.,1e-4]),([.01,1024.],[1e-4,0.]),
+ ([3e38,-3e38],[0.,0.]),([3e38,-3e38],[-3e38,3e38]),
+ ([0.,0.],[3e38,-3e38]),
+ ([-1000.,1000.],[3e38,-3e38]),
+])
+def test_pair_backtracking_point_rounding_and_large_margins(difference_probe,cursor,shift):
+ ids=np.arange(2,dtype=np.uint32);winners=np.array([0],np.uint32);losers=np.array([1],np.uint32)
+ current=np.zeros(2,np.float32);weights=np.ones(1,np.float32)
+ expected=difference_reference(cursor,winners,losers,weights,ids,current,shift)
+ actual=difference_probe(cursor,winners,losers,weights,ids,current,shift)
+ assert actual==pytest.approx(expected,rel=3e-6,abs=1e-12)
+
+
+def test_pair_backtracking_nonfinite_trials_reject_and_zero_edges_are_inert(difference_probe):
+ ids=np.arange(3,dtype=np.uint32);cursor=np.zeros(3,np.float32);current=cursor.copy()
+ winners=np.array([0,2],np.uint32);losers=np.array([1,1],np.uint32)
+ trial=np.array([.1,0,np.inf],np.float32)
+ inert=difference_probe(cursor,winners,losers,[1,0],ids,current,trial)
+ assert inert>0 and np.isfinite(inert)
+ assert not np.isfinite(difference_probe(cursor,winners,losers,[1,1],ids,current,trial))
 
 @pytest.fixture(autouse=True)
 def no_cpu(monkeypatch):

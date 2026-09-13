@@ -99,7 +99,7 @@ public:
             options:options error:&error];
         Require(Library != nil, ErrorText(error, "PairLogit Metal source compilation failed"));
         for (const char* name : {"PrepareValidatedPairwisePoint", "PairLogitEdgeDerivatives",
-                "ReducePairwiseRows", "ValidatePairwiseStatistics", "ReducePairwiseObjective",
+                "ReducePairwiseRows", "ValidatePairwiseStatistics", "ReducePairwiseObjective", "ReducePairwiseObjectiveDifference",
                 "ReducePairwiseLeafMean", "FinalizePairwiseLeafMean", "CenterPairwiseLeafValues"}) {
             id<MTLFunction> function = [Library newFunctionWithName:[NSString stringWithUTF8String:name]];
             Require(function != nil, std::string("Missing PairLogit Metal function: ") + name);
@@ -143,6 +143,26 @@ public:
 
     void EncodeLossReduction(id<MTLCommandBuffer> command, uint64_t* dispatches) {
         Dispatch(command, "ReducePairwiseObjective", {EdgeBuffer, LossBuffer}, Parameters(1, false), LossGroups, true, dispatches);
+    }
+
+    void EncodeObjectiveDifference(id<MTLCommandBuffer> command, id<MTLBuffer> cursor,
+        id<MTLBuffer> currentLeaves, id<MTLBuffer> trialLeaves, id<MTLBuffer> leafIds,
+        uint32_t leaves, uint64_t* dispatches) {
+        Require(leaves && leaves <= MaxLeaves, "Invalid PairLogit backtracking leaf count");
+        CheckBuffer(cursor, 4ull * Rows); CheckBuffer(currentLeaves, 4ull * leaves);
+        CheckBuffer(trialLeaves, 4ull * leaves); CheckBuffer(leafIds, 4ull * Rows);
+        Dispatch(command, "ReducePairwiseObjectiveDifference", {cursor, currentLeaves, trialLeaves,
+            leafIds, WinnerBuffer, LoserBuffer, WeightBuffer, LossBuffer}, Parameters(leaves, true),
+            LossGroups, true, dispatches);
+    }
+
+    double ReadObjectiveDifference() const {
+        CheckStatus();
+        const float* parts = static_cast<const float*>(LossBuffer.contents);
+        double value = 0;
+        for (uint32_t group = 0; group < LossGroups; ++group)
+            value += double(parts[2 * group]) + parts[2 * group + 1];
+        return value * Pairs;
     }
 
     // Values are unnormalized positive loss and supplied edge mass. The metric
