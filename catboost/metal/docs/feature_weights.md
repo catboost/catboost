@@ -28,4 +28,5 @@ checks independent depth-one gains; original and appended simple-CTR IDs;
 equal-column score-only effects across vector, query, and full-matrix paths;
 compound CTR independence from original category weights; and snapshots/readers.
 Every fit requests Metal. CPU prediction is used only to check model readers.
-The expanded acceptance cases are collected but await coordinated GPU execution.
+The expanded acceptance cases passed Metal GPU execution in installed checkpoint
+`20260914T025201Z`.

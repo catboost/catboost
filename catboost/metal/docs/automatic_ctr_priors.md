@@ -60,5 +60,5 @@ oracle; it does not establish live NVIDIA agreement.
 contains 35 acceptance cases covering an independent SciPy beta-binomial
 maximum-likelihood oracle, raw/quantized data, original-row counts and overrides,
 model tables/readers, greedy and symmetric training, exact snapshots and
-baseline/initial-model behavior. Collection and the independent host oracle have
-passed; native build and GPU execution remain pending coordinated validation.
+baseline/initial-model behavior. The native build, independent host oracle and
+Metal GPU acceptance passed in installed checkpoint `20260914T025201Z`.

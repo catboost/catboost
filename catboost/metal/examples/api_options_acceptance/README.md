@@ -43,5 +43,6 @@ Every fit requests Metal; CPU model fitting is forbidden.
 `baselines.py` independently captures/replays 106 card 3 snapshot fixtures. The
 overall compatibility runner retains the older snapshot, CLI and smoke checks;
 these new cases supplement their evidence. Host-only helper tests live in
-`tests/test_api_options_acceptance_runner.py`. Native execution awaits the
-coordinated frozen build.
+`tests/test_api_options_acceptance_runner.py`. Native execution passed against
+the frozen build in installed checkpoint `20260914T025201Z`, including all 350
+snapshot recoveries, 348 CLI cases and 203 smoke cases before and after install.
