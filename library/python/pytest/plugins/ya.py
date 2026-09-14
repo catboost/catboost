@@ -108,16 +108,19 @@ class _TokenFilterFormatter(logging.Formatter):
     def __init__(self, fmt):
         super(_TokenFilterFormatter, self).__init__(fmt)
         self._replacements = []
-        if not self._replacements:
-            if six.PY2:
-                for k, v in os.environ.iteritems():
-                    if k.endswith('TOKEN') and v:
-                        self._replacements.append(v)
-            elif six.PY3:
-                for k, v in os.environ.items():
-                    if k.endswith('TOKEN') and v:
-                        self._replacements.append(v)
-            self._replacements = sorted(self._replacements)
+        self.update_replacements()
+
+    def update_replacements(self):
+        # Tokens may be put into the environment while the suite is running, so the
+        # replacements are refreshed before every test. The environment is walked by keys
+        # only: reading every value decodes the whole environment and is noticeable here.
+        replacements = []
+        for key in os.environ:
+            if key.endswith('TOKEN'):
+                value = os.environ[key]
+                if value:
+                    replacements.append(value)
+        self._replacements = sorted(replacements)
 
     def _filter(self, s):
         for r in self._replacements:
@@ -129,19 +132,48 @@ class _TokenFilterFormatter(logging.Formatter):
         return self._filter(super(_TokenFilterFormatter, self).format(record))
 
 
+LOG_FORMAT = '%(asctime)s - %(levelname)s - %(name)s.%(process)d  - %(funcName)s: %(message)s'
+
+
 def setup_logging(log_path, level=logging.DEBUG, *other_logs):
     logs = [log_path] + list(other_logs)
     root_logger = logging.getLogger()
-    for i in range(len(root_logger.handlers) - 1, -1, -1):
-        if isinstance(root_logger.handlers[i], YaTestLoggingFileHandler):
-            root_logger.handlers.pop(i).close()
     root_logger.setLevel(level)
-    for log_file in logs:
-        file_handler = YaTestLoggingFileHandler(log_file)
-        log_format = '%(asctime)s - %(levelname)s - %(name)s.%(process)d  - %(funcName)s: %(message)s'
-        file_handler.setFormatter(_TokenFilterFormatter(log_format))
+
+    # This is called before every test, while only the per test log file changes.
+    # Handlers of the log files that stay the same are kept, reopening them on every
+    # test is a noticeable overhead on suites with many tests.
+    attached = {}
+    formatter = None
+    for handler in root_logger.handlers:
+        if isinstance(handler, YaTestLoggingFileHandler):
+            attached[handler.baseFilename] = handler
+            if isinstance(handler.formatter, _TokenFilterFormatter):
+                formatter = handler.formatter
+
+    # All the handlers share a single formatter, so refreshing it here keeps the masked
+    # secrets up to date for the log files that are kept as well as for the new ones.
+    if formatter is None:
+        formatter = _TokenFilterFormatter(LOG_FORMAT)
+    else:
+        formatter.update_replacements()
+
+    wanted = [(os.path.abspath(log_file), log_file) for log_file in logs]
+    wanted_filenames = set(filename for filename, _ in wanted)
+
+    for filename, handler in list(attached.items()):
+        if filename not in wanted_filenames:
+            root_logger.removeHandler(handler)
+            handler.close()
+
+    for filename, log_file in wanted:
+        file_handler = attached.get(filename)
+        if file_handler is None:
+            file_handler = YaTestLoggingFileHandler(log_file)
+            file_handler.setFormatter(formatter)
+            root_logger.addHandler(file_handler)
+            attached[filename] = file_handler
         file_handler.setLevel(level)
-        root_logger.addHandler(file_handler)
 
 
 class YaHookspec:
