@@ -14,7 +14,14 @@
 #include "metal_ordered_backtracking.h"
 #include "metal_deep_partition_kernels.h"
 #include "metal_ordered_histogram_runtime.h"
+#include "metal_querywise_kernels.h"
+#include "metal_pairwise_kernels.h"
+#include "metal_ordered_query_kernels.h"
+#include "metal_ordered_yeti_runtime.h"
+#include "metal_custom_objective.h"
+#include "metal_ordered_combination_runtime.h"
 #include <cstring>
+#include <array>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -42,6 +49,19 @@ struct OrderedParams {
 };
 struct StepParams { uint32_t Tasks, Leaves, CursorCount, SelectedPermutation; };
 struct BacktrackingParams { float Step; uint32_t Type, AddRidge, Normalize; };
+struct NativeQueryParams { uint32_t Rows, Groups, Objective, ApplyValues; float Beta, Lambda; uint32_t Leaves, Reserved; };
+struct NativePairParams { uint32_t Rows, Pairs, Objective, ApplyValues, Leaves, Reserved0, Reserved1, Reserved2; };
+struct OrderedTargetOptions {
+    const CBMQueryOptions* Query = nullptr;
+    const CBMPairOptions* Pair = nullptr;
+    const CBMYetiRankOptions* Yeti = nullptr;
+    const uint32_t* Winners = nullptr;
+    const uint32_t* Losers = nullptr;
+    const float* PairWeights = nullptr;
+    const char* CustomSource = nullptr;
+    const CBMCombinationOptions* Combination = nullptr;
+    const CBMCombinationComponent* Components = nullptr;
+};
 struct BootstrapParams {
     uint32_t Rows, Type, SeedLow, SeedHigh, Iteration, Stream, Reserved0, Reserved1;
     float Temperature, Subsample, MVSLambda, NoiseScale;
@@ -69,7 +89,7 @@ struct Runtime {
     id<MTLDevice> Device;
     id<MTLCommandQueue> Queue;
     std::unordered_map<std::string, id<MTLComputePipelineState>> Pipelines;
-    Runtime() {
+    explicit Runtime(const char* customSource = nullptr) {
         Device = MTLCreateSystemDefaultDevice();
         Require(Device && Device.hasUnifiedMemory && [Device supportsFamily:MTLGPUFamilyApple7],
                 "Ordered training requires an Apple Silicon Metal GPU");
@@ -79,12 +99,15 @@ struct Runtime {
         if (@available(macOS 13.0, *)) options.languageVersion = MTLLanguageVersion3_0;
         else throw std::runtime_error("Ordered training requires macOS 13 or newer");
         options.fastMathEnabled = NO;
-        NSString* source = [NSString stringWithFormat:@"%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
+        NSString* source = [NSString stringWithFormat:@"%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
             CBMMetalBootstrapSource, CBMMetalScoreNoiseSource, CBMMetalSource,
             CBMMetalAdditionalObjectiveSource, CBMMetalObjectiveSource,
             CBMMetalBacktrackingSource, CBMMetalExactLeafSource, CBMMetalOrderedSource,
             CBMMetalOrderedSessionSource, CBMMetalOrderedBacktrackingSource,
-            CBMMetalDeepPartitionSource, CBMMetalOrderedHistogramSource, OrderedActivitySource];
+            CBMMetalDeepPartitionSource, CBMMetalOrderedHistogramSource, OrderedActivitySource,
+            CBMMetalQuerywiseSource, CBMMetalPairwiseSource, CBMMetalOrderedQuerySource,
+            CBMMetalYetiRankSource, CBMMetalOrderedYetiSource];
+        if (customSource) source = [[NSString stringWithUTF8String:CBMCustomObjectivePrefix(customSource).c_str()] stringByAppendingString:source];
         NSError* error = nil;
         id<MTLLibrary> library = [Device newLibraryWithSource:source options:options error:&error];
         Require(library != nil, "Ordered shader compilation failed: " + Error(error));
@@ -101,7 +124,11 @@ struct Runtime {
             "InitializeOrderedHistogramOccurrences", "UpdateOrderedHistogramLeafIds", "ResetOrderedHistogramJobs", "BuildOrderedHistogramJobs",
             "OrderedHistogramArguments", "ClearOrderedHistogram", "ComputeOrderedHistogram", "ScanOrderedHistogram",
             "SubtractOrderedHistogramSibling", "ExtractOrderedHistogramCandidates", "ScatterOrderedHistogramScores",
-            "ClearOrderedPartitionCandidateStatistics", "ComputeOrderedPartitionCandidates", "OrderedSessionMaskCandidates"};
+            "ClearOrderedPartitionCandidateStatistics", "ComputeOrderedPartitionCandidates", "OrderedSessionMaskCandidates",
+            "QueryRmseDerivatives", "QuerySoftMaxDerivatives", "PairLogitEdgeDerivatives", "ReducePairwiseRows",
+            "OrderedQueryPreparePoint", "OrderedQueryPublishDerivatives", "OrderedQueryEstimateLeaves",
+            "OrderedQueryBacktrackingDirections", "OrderedQueryBacktrackingObjective", "OrderedQueryCenterLeaves",
+            "OrderedPairQueryStatistics", "PrepareYetiRankApprox", "YetiRankPointwise", "OrderedYetiPublishDerivatives"};
         for (const char* name : names) {
             id<MTLFunction> function = [library newFunctionWithName:[NSString stringWithUTF8String:name]];
             Require(function != nil, std::string("Missing Ordered kernel: ") + name);
@@ -131,7 +158,9 @@ struct Command {
     using BindingType = Binding;
     CBMTrainStats& Stats;
     id<MTLCommandBuffer> Buffer;
-    explicit Command(CBMTrainStats& stats) : Stats(stats), Buffer([Context().Queue commandBuffer]) {
+    Runtime* PipelineContext;
+    explicit Command(CBMTrainStats& stats, Runtime* pipelineContext = nullptr)
+        : Stats(stats), Buffer([Context().Queue commandBuffer]), PipelineContext(pipelineContext ? pipelineContext : &Context()) {
         Require(Buffer != nil, "Ordered command buffer allocation failed");
     }
     template<class P> void Dispatch(const char* name, std::initializer_list<Binding> inputs, const P& params,
@@ -140,7 +169,7 @@ struct Command {
         Require(width && width <= UINT32_MAX && height && depth, "Invalid Ordered dispatch");
         id<MTLComputeCommandEncoder> encoder = [Buffer computeCommandEncoder];
         Require(encoder != nil, "Ordered command encoder allocation failed");
-        [encoder setComputePipelineState:Context().Pipelines.at(name)];
+        [encoder setComputePipelineState:PipelineContext->Pipelines.at(name)];
         NSUInteger index = 0;
         for (const auto& item : inputs) [encoder setBuffer:item.Buffer offset:item.Offset atIndex:index++];
         [encoder setBytes:&params length:sizeof(params) atIndex:index++];
@@ -160,7 +189,7 @@ struct Command {
         const P& params, id<MTLBuffer> arguments, uint64_t offset) {
         id<MTLComputeCommandEncoder> encoder = [Buffer computeCommandEncoder];
         Require(encoder != nil, "Ordered indirect command encoder allocation failed");
-        [encoder setComputePipelineState:Context().Pipelines.at(name)];
+        [encoder setComputePipelineState:PipelineContext->Pipelines.at(name)];
         NSUInteger index = 0;
         for (const auto& item : inputs) [encoder setBuffer:item.Buffer offset:item.Offset atIndex:index++];
         [encoder setBytes:&params length:sizeof(params) atIndex:index];
@@ -188,14 +217,18 @@ public:
     std::vector<uint32_t> PermutationTaskOffsets, PermutationFoldCounts, PermutationPackedRows;
     Session(const CBMOrderedParams* params, const uint8_t* bins, const float* targets, const float* weights,
         const float* initial, const uint32_t* features, const uint32_t* borders, const uint32_t* permutations,
-        const uint8_t* candidateTypes = nullptr, uint32_t groupCount = 0, const uint32_t* groupOffsets = nullptr, double groupGrowth = 0, uint32_t binBanks = 1) {
+        const uint8_t* candidateTypes = nullptr, uint32_t groupCount = 0, const uint32_t* groupOffsets = nullptr, double groupGrowth = 0, uint32_t binBanks = 1, const OrderedTargetOptions* targetOptions = nullptr) {
         Require(params != nullptr, "Ordered parameters are required");
         P = *params;
+        if ((P.objective == 12 || P.objective == 13 || P.objective == 14 || P.objective == 19 || P.objective == 20) && P.leaf_method == 3) {
+            Require(P.leaf_iterations == 1, "Ordered Simple estimation requires one leaf iteration");
+            P.leaf_method = 1;
+        }
         Require(P.rows >= 4 && P.rows <= (1u << 24), "Ordered rows must be in [4,16777216]");
         Require(P.features && uint64_t(P.rows) * P.features <= UINT32_MAX, "Invalid Ordered feature dimensions");
         Require(P.candidates <= uint64_t(P.features) * (candidateTypes ? 256 : 255) && P.iterations && P.iterations <= 100000,
                 "Invalid Ordered candidate or iteration count");
-        Require(P.depth <= 16 && P.objective <= 11 && P.score_function <= 1 && P.leaf_method <= 2,
+        Require(P.depth <= 16 && (P.objective <= 11 || ((P.objective <= 14 || P.objective == 17 || P.objective == 19 || P.objective == 20) && targetOptions)) && P.score_function <= 1 && P.leaf_method <= 2,
                 "Unsupported Ordered depth, objective, score or leaf method");
         Require(P.leaf_iterations && P.leaf_iterations <= 1000 && P.permutations && P.permutations <= 64 && P.normalize <= 1,
                 "Invalid Ordered leaf iteration, permutation or normalization option");
@@ -212,10 +245,10 @@ public:
                 (P.objective != 7 || (P.objective_param > 1 && P.objective_param < 2)) &&
                 ((P.objective != 8 && P.objective != 9) || (P.objective_param >= 0 && P.objective_param <= 1)),
                 "Invalid Ordered objective parameter");
-        Require(P.leaf_method != 0 || (P.objective < 8 && (P.objective != 6 || P.objective_param >= 2)),
+        Require(P.leaf_method != 0 || P.objective >= 12 || (P.objective < 8 && (P.objective != 6 || P.objective_param >= 2)),
                 "Newton leaf estimation is unsupported for this Ordered objective");
-        Require(P.leaf_method != 2 || P.objective >= 9, "Ordered Exact supports Quantile, MAE and MAPE only");
-        Require(bins && targets && permutations && (!P.candidates || (features && borders)), "Ordered input buffers are required");
+        Require(P.leaf_method != 2 || (P.objective >= 9 && P.objective <= 11), "Ordered Exact supports Quantile, MAE and MAPE only");
+        Require(bins && (targets || P.objective == 14) && permutations && (!P.candidates || (features && borders)), "Ordered input buffers are required");
         // Reject an impossible core geometry before allocating the host
         // feature maps or planning histogram tiles.
         Require(uint64_t(P.rows) * P.features * BinBanks + uint64_t(P.features) * 16 + uint64_t(P.candidates) * 20 <= MemoryLimit,
@@ -314,7 +347,61 @@ public:
                 Require(row < P.rows && !seen[row], "Each Ordered permutation must contain every row once"); seen[row] = true;
             }
         }
-        std::vector<float> unitWeights(P.rows, 1);
+        std::vector<float> unitWeights(P.rows, 1), pairTargets;
+        if (targetOptions && (targetOptions->Query || targetOptions->Pair || targetOptions->Yeti || targetOptions->Combination)) {
+            Require(P.objective == 19 || (groupCount >= 4 && groupOffsets), "Ordered query objectives require whole-query grouping");
+            IsQuery = true;
+            if (P.objective == 12 || P.objective == 13) {
+                Require(targetOptions->Query && !targetOptions->Pair && !targetOptions->Yeti,
+                        "Ordered query objective options do not match");
+                QueryOptions = *targetOptions->Query;
+                Require(QueryOptions.group_count == groupCount && !QueryOptions.reserved &&
+                        std::isfinite(QueryOptions.beta) && std::isfinite(QueryOptions.lambda), "Invalid Ordered query options");
+            } else if (P.objective == 14) {
+                Require(targetOptions->Pair && !targetOptions->Query && !targetOptions->Yeti,
+                        "Ordered PairLogit objective options do not match");
+                const auto& pair = *targetOptions->Pair;
+                Require(pair.group_count == groupCount && pair.pair_count && pair.pair_count <= UINT32_MAX / 2 &&
+                        !pair.reserved0 && !pair.reserved1 && targetOptions->Winners && targetOptions->Losers && targetOptions->PairWeights,
+                        "Invalid Ordered PairLogit supplied pair arrays");
+                std::vector<double> mass(P.rows, 0);
+                double totalPairMass = 0;
+                for (uint32_t edge = 0; edge < pair.pair_count; ++edge) {
+                    const uint32_t win = targetOptions->Winners[edge], lose = targetOptions->Losers[edge];
+                    const float weight = targetOptions->PairWeights[edge];
+                    Require(win < P.rows && lose < P.rows && win != lose && std::isfinite(weight) && weight >= 0,
+                            "Invalid Ordered PairLogit endpoint or weight");
+                    Require(std::upper_bound(groupOffsets, groupOffsets + groupCount + 1, win) ==
+                            std::upper_bound(groupOffsets, groupOffsets + groupCount + 1, lose),
+                            "Ordered PairLogit edges must remain inside one query");
+                    mass[win] += weight; mass[lose] += weight; totalPairMass += weight;
+                }
+                Require(totalPairMass > 0 && std::isfinite(totalPairMass) && totalPairMass * 2 < 1e30,
+                        "Ordered PairLogit requires positive finite total incident mass");
+                for (uint32_t row = 0; row < P.rows; ++row) unitWeights[row] = mass[row];
+                weights = unitWeights.data(); pairTargets.assign(P.rows, 0); targets = pairTargets.data();
+            } else if (P.objective == 19) {
+                Require(targetOptions->Combination && targetOptions->Components && !targetOptions->Query && !targetOptions->Pair && !targetOptions->Yeti,
+                        "Ordered Combination objective options do not match");
+                CombinationOptions = *targetOptions->Combination;
+                Require(CombinationOptions.component_count && CombinationOptions.component_count <= 128 && !CombinationOptions.reserved,
+                        "Invalid Ordered Combination component count/options");
+                for (uint32_t component = 0; component < CombinationOptions.component_count; ++component) {
+                    const auto& c = targetOptions->Components[component];
+                    CombinationYetiCount += c.objective == 17;
+                    Require(c.objective < 12 || (groupCount && groupOffsets), "Ordered Combination query components require group offsets");
+                }
+            } else {
+                Require(P.objective == 17 && targetOptions->Yeti && !targetOptions->Query && !targetOptions->Pair,
+                        "Ordered YetiRank objective options do not match");
+                Require(P.leaf_method == 0, "Ordered YetiRank requires Newton leaves");
+                YetiOptions = *targetOptions->Yeti;
+                Require(YetiOptions.group_count == groupCount && YetiOptions.legacy_prefix_centering <= 1 &&
+                        YetiOptions.permutations && YetiOptions.permutations <= 10000 &&
+                        std::isfinite(YetiOptions.decay) && YetiOptions.decay >= 0 && YetiOptions.decay <= 1,
+                        "Invalid Ordered YetiRank options");
+            }
+        }
         if (!weights) weights = unitWeights.data();
         double total = 0;
         for (uint32_t row = 0; row < P.rows; ++row) {
@@ -322,7 +409,7 @@ public:
                     (!initial || std::isfinite(initial[row])), "Ordered inputs must be finite with nonnegative weights");
             if (P.objective == 1) Require(targets[row] == 0 || targets[row] == 1, "Logloss targets must be zero or one");
             if (P.objective == 2) Require(targets[row] >= 0 && targets[row] <= 1, "CrossEntropy targets must be in [0,1]");
-            if (P.objective == 3 || P.objective == 7) Require(targets[row] >= 0, "Poisson/Tweedie targets must be nonnegative");
+            if (P.objective == 3 || P.objective == 7 || P.objective == 13) Require(targets[row] >= 0, "Poisson/Tweedie targets must be nonnegative");
             total += weights[row];
         }
         Require(total > 0 && total < 1e30, "Ordered total weight must be positive and below 1e30");
@@ -343,6 +430,10 @@ public:
             for (uint32_t position = 0; position < task.QualityEnd; ++position)
                 cursors[task.CursorOffset + position] = published[permutations[uint64_t(task.Reserved) * P.rows + position]];
         for (uint32_t feature = 0; feature < P.features; ++feature) featureOptions[feature * 4] = featureOptions[feature * 4 + 1] = 1;
+        if (P.objective == 20) {
+            Require(targetOptions && targetOptions->CustomSource && P.leaf_method <= 1, "Ordered Custom requires compiled source and Newton/Gradient leaves");
+            CustomContext = std::make_unique<Runtime>(targetOptions->CustomSource);
+        }
         auto& context = Context(); Text(Stats.device_name, sizeof(Stats.device_name), context.Device.name.UTF8String);
         Bins = context.Buffer(dataCells * BinBanks, rowBins.data()); Targets = context.Buffer(P.rows * 4ull, targets);
         Weights = context.Buffer(P.rows * 4ull, weights); Permutations = context.Buffer(uint64_t(P.rows) * P.permutations * 4, permutations);
@@ -372,7 +463,251 @@ public:
             ExactSelected = context.Buffer(MaxLeaves * 4ull);
         }
         K = {}; K.Rows = P.rows; K.Objective = P.objective; K.TotalWeight = total; K.ObjectiveParam = P.objective_param;
+        if (IsQuery) {
+            std::vector<uint32_t> singletonOffsets;
+            if (!groupCount) {
+                singletonOffsets.resize(P.rows + 1); for (uint32_t row = 0; row <= P.rows; ++row) singletonOffsets[row] = row;
+                groupCount = P.rows; groupOffsets = singletonOffsets.data();
+            }
+            CreateQueryState(targetOptions, groupCount, groupOffsets, targets, weights, permutations);
+        }
         Loss = ReadLoss(Published);
+    }
+    void CreateQueryState(const OrderedTargetOptions* options, uint32_t groupCount, const uint32_t* groupOffsets,
+        const float* targets, const float* weights, const uint32_t* permutations) {
+        Require(WorkingBytes + uint64_t(CursorCount) * 20 + uint64_t(Tasks) * 32 + 4 <= MemoryLimit,
+                "Ordered query cursor arrays exceed the 1 GiB workspace guard");
+        if (options->Pair) Require(WorkingBytes + uint64_t(CursorCount) * 24 + uint64_t(options->Pair->pair_count) * 44 <= MemoryLimit,
+                "Ordered pair query metadata exceeds the 1 GiB workspace guard");
+        std::vector<float> expandedTargets(CursorCount), expandedWeights(CursorCount);
+        std::vector<uint32_t> offsets(1, 0), winners, losers, rowOffsets(CursorCount + 1, 0);
+        std::vector<float> edgeWeights;
+        std::vector<std::array<uint32_t, 2>> queryEdges;
+        std::vector<CBMOrderedYetiBlock> yetiBlocks;
+        std::vector<CBMOrderedCombinationBlock> combinationBlocks;
+        std::vector<CBMOrderedFold> estimateTasks = Descriptors;
+        std::vector<std::vector<uint32_t>> originalEdges(groupCount);
+        if (options->Pair) for (uint32_t e = 0; e < options->Pair->pair_count; ++e) {
+            const uint32_t group = std::upper_bound(groupOffsets, groupOffsets + groupCount + 1, options->Winners[e]) - groupOffsets - 1;
+            originalEdges[group].push_back(e);
+        }
+        YetiWeakBlocks.resize(LearnPermutations);
+        for (uint32_t taskId = 0; taskId < Tasks; ++taskId) {
+            const auto& task = Descriptors[taskId];
+            const uint32_t beginQuery = offsets.size() - 1;
+            uint32_t estimateQueryEnd = beginQuery, prefixEdges = 0;
+            std::vector<uint32_t> localOffsets(1, 0);
+            for (uint32_t position = 0; position < task.QualityEnd;) {
+                const uint32_t firstRow = permutations[uint64_t(task.Reserved) * P.rows + position];
+                const uint32_t originalGroup = std::lower_bound(groupOffsets, groupOffsets + groupCount, firstRow) - groupOffsets;
+                Require(originalGroup < groupCount && groupOffsets[originalGroup] == firstRow,
+                        "Ordered query metadata requires whole-query histories");
+                const uint32_t rows = groupOffsets[originalGroup + 1] - firstRow;
+                Require(position + rows <= task.QualityEnd && !(position < task.EstimateEnd && position + rows > task.EstimateEnd),
+                        "Ordered query fold cuts a query");
+                const uint32_t edgeBegin = winners.size();
+                for (const auto edge : originalEdges[originalGroup]) {
+                    winners.push_back(task.CursorOffset + position + options->Winners[edge] - firstRow);
+                    losers.push_back(task.CursorOffset + position + options->Losers[edge] - firstRow);
+                    edgeWeights.push_back(options->PairWeights[edge]);
+                    if (position < task.EstimateEnd) ++prefixEdges;
+                }
+                queryEdges.push_back({edgeBegin, static_cast<uint32_t>(winners.size())});
+                for (uint32_t i = 0; i < rows; ++i) {
+                    expandedTargets[task.CursorOffset + position + i] = targets[firstRow + i];
+                    expandedWeights[task.CursorOffset + position + i] = weights[firstRow + i];
+                }
+                position += rows; offsets.push_back(task.CursorOffset + position); localOffsets.push_back(position);
+                if (position <= task.EstimateEnd) estimateQueryEnd = offsets.size() - 1;
+            }
+            const bool active = P.objective == 19 || taskId + 1 == Tasks || (P.objective == 14 ? prefixEdges > 0
+                : estimateQueryEnd - beginQuery < task.EstimateEnd);
+            if (!active) estimateTasks[taskId].EstimateEnd = 0;
+            HostQueryTaskRanges.push_back({beginQuery, active ? estimateQueryEnd : beginQuery,
+                static_cast<uint32_t>(offsets.size() - 1), 0});
+            if (P.objective == 17 || P.objective == 19) {
+                auto block = [&](uint32_t begin, uint32_t end) {
+                    if (begin == end) return UINT32_MAX;
+                    CBMOrderedYetiBlock item; item.CursorOffset = task.CursorOffset + begin;
+                    for (uint32_t boundary : localOffsets) if (boundary >= begin && boundary <= end)
+                        item.GroupOffsets.push_back(boundary - begin);
+                    if (P.objective == 19) {
+                        CBMOrderedCombinationBlock combination;
+                        combination.CursorOffset = item.CursorOffset; combination.GroupOffsets = item.GroupOffsets;
+                        for (uint32_t position = begin; position < end; ++position)
+                            combination.OriginalRows.push_back(permutations[uint64_t(task.Reserved) * P.rows + position]);
+                        const uint32_t id = combinationBlocks.size(); combinationBlocks.push_back(std::move(combination)); return id;
+                    }
+                    const uint32_t id = yetiBlocks.size(); yetiBlocks.push_back(std::move(item)); return id;
+                };
+                if (taskId + 1 < Tasks) {
+                    YetiWeakBlocks[task.Reserved].push_back(block(0, task.EstimateEnd));
+                    YetiWeakBlocks[task.Reserved].push_back(block(task.EstimateEnd, task.QualityEnd));
+                }
+                if (active) YetiLeafBlocks.push_back(block(0, task.EstimateEnd));
+            }
+        }
+        QueryCount = offsets.size() - 1; FlatPairCount = winners.size();
+        Require(winners.size() <= UINT32_MAX / 2, "Ordered duplicated pairs exceed GPU indexing");
+        const uint64_t bytes = uint64_t(CursorCount) * 20 + uint64_t(QueryCount) * 12 + 4 + uint64_t(Tasks) * 32
+            + (P.objective == 14 ? uint64_t(FlatPairCount) * 44 + uint64_t(CursorCount + 1ull) * 4 + uint64_t(QueryCount) * 8 : 0)
+            + (P.objective == 17 ? CBMOrderedYetiWorkspace::PlannedBytes(yetiBlocks) : 0)
+            + (P.objective == 19 ? uint64_t(CursorCount) * 4 + CBMOrderedCombinationWorkspace::PlannedBytes(combinationBlocks,
+                CombinationOptions, options->Components, P.rows, options->Winners, options->Losers, options->PairWeights) : 0);
+        Require(WorkingBytes + bytes <= MemoryLimit, "Ordered query histories exceed the 1 GiB workspace guard");
+        auto& context = Context();
+        QueryTargets = context.Buffer(CursorCount * 4ull, expandedTargets.data());
+        QueryWeights = context.Buffer(CursorCount * 4ull, expandedWeights.data());
+        QueryPoint = context.Buffer(CursorCount * 4ull); QueryGradient = context.Buffer(CursorCount * 4ull);
+        QueryHessian = context.Buffer(CursorCount * 4ull); QueryOffsets = context.Buffer(offsets.size() * 4ull, offsets.data());
+        QueryStatistics = context.Buffer(QueryCount * 8ull); QueryTaskRanges = context.Buffer(Tasks * 16ull, HostQueryTaskRanges.data());
+        EstimationTasks = context.Buffer(Tasks * 16ull, estimateTasks.data());
+        if (P.objective == 14) {
+            for (uint32_t e = 0; e < FlatPairCount; ++e) { ++rowOffsets[winners[e] + 1]; ++rowOffsets[losers[e] + 1]; }
+            for (uint32_t row = 0; row < CursorCount; ++row) rowOffsets[row + 1] += rowOffsets[row];
+            auto next = rowOffsets;
+            std::vector<uint32_t> incidence(uint64_t(FlatPairCount) * 2);
+            std::vector<int32_t> signs(uint64_t(FlatPairCount) * 2);
+            for (uint32_t e = 0; e < FlatPairCount; ++e) {
+                const uint32_t win = next[winners[e]]++, lose = next[losers[e]]++;
+                incidence[win] = incidence[lose] = e; signs[win] = 1; signs[lose] = -1;
+            }
+            PairWinners = context.Buffer(FlatPairCount * 4ull, winners.data()); PairLosers = context.Buffer(FlatPairCount * 4ull, losers.data());
+            PairWeights = context.Buffer(FlatPairCount * 4ull, edgeWeights.data()); PairRowOffsets = context.Buffer(rowOffsets.size() * 4ull, rowOffsets.data());
+            PairIncidence = context.Buffer(incidence.size() * 4ull, incidence.data()); PairSigns = context.Buffer(signs.size() * 4ull, signs.data());
+            PairEdges = context.Buffer(FlatPairCount * 16ull); PairQueryRanges = context.Buffer(QueryCount * 8ull, queryEdges.data());
+        }
+        if (P.objective == 17) Yeti = std::make_unique<CBMOrderedYetiWorkspace>(context, yetiBlocks,
+            YetiOptions.permutations, YetiOptions.decay, YetiOptions.legacy_prefix_centering != 0);
+        if (P.objective == 19) {
+            Combination = std::make_unique<CBMOrderedCombinationWorkspace>(context, combinationBlocks, CombinationOptions,
+                options->Components, targets, weights, P.rows, options->Winners, options->Losers, options->PairWeights);
+            QueryGradientWeights = context.Buffer(CursorCount * 4ull);
+        }
+        WorkingBytes += bytes;
+    }
+    void EncodeQueryDerivatives(Command& command, id<MTLBuffer> values, uint32_t mode, uint32_t selected,
+        bool structure, bool objectiveOnly = false, id<MTLBuffer> predictions = nil, bool trial = false) {
+        const auto step = StepConfiguration(Pending.Active ? 1u << Pending.Selected.size() : 1, selected);
+        command.Dispatch("OrderedQueryPreparePoint", {Cursor, predictions ? predictions : Published, values, Permutations,
+            LeafIds, TaskBuffer, QueryPoint, Status}, P, P.rows, false, Tasks, 1, &step, &mode, sizeof(mode));
+        if (P.objective == 19) {
+            const auto& blocks = structure ? YetiWeakBlocks[selected] : YetiLeafBlocks;
+            auto& seeds = structure ? YetiSeeds : YetiLeafSeeds;
+            auto& position = structure ? YetiSeedPosition : YetiLeafSeedPosition;
+            const uint32_t count = objectiveOnly || Combination->HasYetiSeedCallback() ? 0 : CombinationYetiCount;
+            Require(position + uint64_t(blocks.size()) * count <= seeds.size(), "Ordered Combination Yeti seed packet is missing or exhausted");
+            if (structure) { command.Zero(QueryGradient); command.Zero(QueryHessian); command.Zero(QueryGradientWeights); }
+            for (uint32_t block : blocks) {
+                if (block != UINT32_MAX) Combination->EncodeBlock(command, block, QueryPoint, QueryGradient, QueryHessian,
+                    QueryGradientWeights, count ? seeds.data() + position : nullptr, count, trial, objectiveOnly);
+                else if (Combination->HasYetiSeedCallback() && !objectiveOnly) {
+                    for (uint32_t c = 0; c < CombinationYetiCount; ++c) {
+                        uint64_t unused; Require(!CombinationSeedCallback(CombinationSeedContext, &unused), "Ordered Combination seed callback failed");
+                    }
+                }
+                position += count;
+            }
+        } else if (P.objective == 17) {
+            if (structure) { command.Zero(QueryGradient); command.Zero(QueryHessian); }
+            Require(!objectiveOnly, "YetiRank does not support objective backtracking");
+            auto& seeds = structure ? YetiSeeds : YetiLeafSeeds;
+            auto& position = structure ? YetiSeedPosition : YetiLeafSeedPosition;
+            const auto& blocks = structure ? YetiWeakBlocks[selected] : YetiLeafBlocks;
+            Require(position + blocks.size() <= seeds.size(), "Ordered YetiRank oracle seed packet is missing or exhausted");
+            for (const uint32_t block : blocks) {
+                const uint64_t seed = seeds[position++];
+                if (block != UINT32_MAX) Yeti->EncodeBlock(command, block, QueryPoint, QueryTargets, QueryWeights,
+                    QueryGradient, QueryHessian, Status, seed);
+            }
+        } else if (P.objective == 14) {
+            const NativePairParams pairs = {CursorCount, FlatPairCount, 14, 0, 1, 0, 0, 0};
+            command.Dispatch("PairLogitEdgeDerivatives", {QueryPoint, PairWinners, PairLosers, PairWeights, PairEdges}, pairs, FlatPairCount);
+            if (!objectiveOnly) command.Dispatch("ReducePairwiseRows", {PairRowOffsets, PairIncidence, PairSigns, PairEdges,
+                QueryGradient, QueryHessian, QueryWeights}, pairs, CursorCount, true);
+            command.Dispatch("OrderedPairQueryStatistics", {PairEdges, PairQueryRanges, QueryStatistics}, QueryCount, QueryCount, true);
+        } else {
+            const NativeQueryParams query = {CursorCount, QueryCount, P.objective, 0, QueryOptions.beta, QueryOptions.lambda, 1, 0};
+            command.Dispatch(P.objective == 12 ? "QueryRmseDerivatives" : "QuerySoftMaxDerivatives",
+                {QueryTargets, QueryWeights, QueryPoint, QueryOffsets, QueryGradient, QueryHessian, QueryStatistics}, query, QueryCount, true);
+        }
+        if (structure) command.Dispatch("OrderedQueryPublishDerivatives", {QueryGradient, QueryHessian,
+            P.objective == 17 ? QueryHessian : (P.objective == 19 ? QueryGradientWeights : QueryWeights), Derivatives, Status},
+            P, CursorCount, false, 1, 1, &step);
+    }
+    float ReadQueryLoss(id<MTLBuffer> predictions) {
+        Command command(Stats, CustomContext.get());
+        EncodeQueryDerivatives(command, RawValues, 2, 0, false, true, predictions); command.Wait(); CheckStatus();
+        if (Combination) return Combination->ReadMetric(YetiLeafBlocks.back());
+        const auto& range = HostQueryTaskRanges.back();
+        const float* statistics = static_cast<const float*>(QueryStatistics.contents);
+        double value = 0, mass = 0;
+        for (uint32_t q = range[0]; q < range[2]; ++q) { value += statistics[2 * q]; mass += statistics[2 * q + 1]; }
+        Require(std::isfinite(value) && value >= 0 && std::isfinite(mass) && mass > 0, "Ordered query objective became invalid");
+        value /= mass;
+        if (P.objective == 12) value = std::sqrt(value);
+        Require(std::isfinite(value), "Ordered query objective became nonfinite"); return value;
+    }
+    void YetiSeedShape(uint32_t selected, uint32_t* weakCount, uint32_t* leafCount) const {
+        Require((Yeti || (Combination && CombinationYetiCount)) && selected < LearnPermutations && weakCount && leafCount, "Ordered YetiRank seed shape requires a valid learning permutation");
+        const uint32_t components = Combination ? CombinationYetiCount : 1;
+        *weakCount = YetiWeakBlocks[selected].size() * components;
+        *leafCount = YetiLeafBlocks.size() * (P.leaf_iterations == 1 ? 1 : P.leaf_iterations + 1) * components;
+    }
+    void SetYetiSeeds(uint32_t count, const uint64_t* seeds, bool leafOnly) {
+        Require(!Failed && (Yeti || (Combination && CombinationYetiCount)) && seeds, "Ordered YetiRank seed packet is required");
+        const uint32_t components = Combination ? CombinationYetiCount : 1;
+        if (leafOnly) {
+            Require(Pending.Active && YetiLeafSeedPosition == 0, "Set Ordered YetiRank leaf seeds after begin and before finish");
+            const uint32_t expected = YetiLeafBlocks.size() * (P.leaf_iterations == 1 ? 1 : P.leaf_iterations + 1) * components;
+            Require(count == expected, "Ordered YetiRank leaf seed packet has the wrong size");
+            YetiLeafSeeds.assign(seeds, seeds + count);
+        } else {
+            Require(!Pending.Active && Completed < P.iterations, "Set Ordered YetiRank weak seeds before begin");
+            Require(count && count <= 2 * FoldCount * components, "Ordered YetiRank weak seed packet has the wrong size");
+            YetiSeeds.assign(seeds, seeds + count); YetiSeedPosition = 0;
+            YetiLeafSeeds.clear(); YetiLeafSeedPosition = 0;
+        }
+    }
+    void SetCombinationSeedCallback(CBMCombinationYetiSeedCallback callback, void* context) {
+        Require(!Failed && Combination && (!callback || Pending.Active), "Configure Ordered Combination leaf seed callback after begin");
+        Combination->SetYetiSeedCallback(callback, context); CombinationSeedCallback = callback; CombinationSeedContext = context;
+    }
+    double ReadCombinationObjective(bool allowNonfinite = false) const {
+        double result = 0;
+        const float* masses = TaskMass ? static_cast<const float*>(TaskMass.contents) : nullptr;
+        for (uint32_t task = 0; task < YetiLeafBlocks.size(); ++task) {
+            const double value = Combination->ReadObjective(YetiLeafBlocks[task], allowNonfinite);
+            result += P.normalize ? (masses[task] > 0 ? value / masses[task] : 0) : value;
+        }
+        return result;
+    }
+    void EstimateCombinationBacktracking(const StepParams& step) {
+        auto project = [&](Command& command) {
+            command.Dispatch("OrderedQueryBacktrackingDirections", {QueryGradient, QueryHessian, QueryWeights, Permutations,
+                LeafIds, EstimationTasks, RawValues, Directions, LeafWeights, DirectionDot, TaskMass, Status},
+                P, step.Leaves, true, Tasks, 1, &step);
+        };
+        Command initial(Stats, CustomContext.get());
+        EncodeQueryDerivatives(initial, RawValues, 1, step.SelectedPermutation, false); project(initial);
+        initial.Wait(); CheckStatus();
+        double current = ReadCombinationObjective(), dot = ReadDirectionDot(step.Leaves);
+        BacktrackingParams backtracking = {1, BacktrackingType, 0, P.normalize};
+        bool updated = false, newDirection = false;
+        for (uint32_t attempt = 0; attempt < P.leaf_iterations || (!updated && attempt < 100); ++attempt) {
+            Command trial(Stats, CustomContext.get());
+            if (newDirection) project(trial);
+            trial.Dispatch("OrderedBacktrackingCandidate", {RawValues, Directions, LeafWeights, TrialValues},
+                P, uint64_t(Tasks) * step.Leaves, false, 1, 1, &step, &backtracking, sizeof(backtracking));
+            EncodeQueryDerivatives(trial, TrialValues, 1, step.SelectedPermutation, false, false, nil, true);
+            trial.Wait(); CheckStatus();
+            if (newDirection) dot = ReadDirectionDot(step.Leaves);
+            const double candidate = ReadCombinationObjective(true);
+            const double threshold = current + (BacktrackingType == 2 ? 1e-5 * backtracking.Step * dot : 0);
+            if (std::isfinite(candidate) && candidate >= threshold) {
+                std::swap(RawValues, TrialValues); current = candidate; updated = true; newDirection = true; backtracking.Step = 1;
+            } else { backtracking.Step *= .5f; newDirection = false; }
+        }
     }
     StepParams StepConfiguration(uint32_t leaves = 1, uint32_t selected = 0) const { return {Tasks, leaves, CursorCount, selected}; }
     void Info(CBMStepInfo& info) const {
@@ -380,7 +715,9 @@ public:
         info.loss = Loss; info.stats = Stats;
     }
     float ReadLoss(id<MTLBuffer> predictions) {
-        Command command(Stats);
+        if (P.objective == 17) return 0;
+        if (IsQuery) return ReadQueryLoss(predictions);
+        Command command(Stats, CustomContext.get());
         command.Dispatch("ReduceObjectiveLoss", {Targets, Weights, predictions, LossPartials}, K, LossGroups, true);
         command.Wait();
         const float* partials = static_cast<const float*>(LossPartials.contents);
@@ -388,7 +725,10 @@ public:
         if (P.objective == 0) sum = std::sqrt(sum);
         Require(std::isfinite(sum), "Ordered objective became nonfinite"); return sum;
     }
-    void CheckStatus() const { Require(!*static_cast<const uint32_t*>(Status.contents), "Ordered GPU arithmetic became nonfinite"); }
+    void CheckStatus() const {
+        Require(!*static_cast<const uint32_t*>(Status.contents), "Ordered GPU arithmetic became nonfinite");
+        if (Combination) Combination->CheckStatus();
+    }
     void ConfigureBootstrap(const CBMBootstrapOptions* options, uint32_t testOnly) {
         Require(!Completed && !Pending.Active && !Failed && options, "Configure Ordered bootstrap before the first step");
         Require(options->bootstrap_type <= 4 && testOnly <= 1, "Unknown Ordered bootstrap type");
@@ -433,6 +773,7 @@ public:
     }
     void ConfigureBacktracking(uint32_t type) {
         Require(!Completed && !Pending.Active && !Failed && type <= 2, "Configure valid Ordered backtracking before the first step");
+        Require(P.objective != 17 || type == 0, "Ordered YetiRank requires No leaf backtracking");
         const uint64_t extra = type && P.leaf_iterations > 1 && P.leaf_method != 2 ? uint64_t(Tasks) * (MaxLeaves * 16ull + 12) : 0;
         Require(WorkingBytes + BootstrapBytes + NoiseBytes + extra <= MemoryLimit, "Ordered backtracking exceeds 1 GiB workspace");
         BacktrackingType = type; BacktrackingBytes = extra;
@@ -460,14 +801,27 @@ public:
     }
     void EstimateBacktracking(const StepParams& step) {
         auto direction = [&](Command& command) {
+            if (IsQuery) {
+                EncodeQueryDerivatives(command, RawValues, 1, step.SelectedPermutation, false);
+                command.Dispatch("OrderedQueryBacktrackingDirections", {QueryGradient, QueryHessian, QueryWeights, Permutations,
+                    LeafIds, EstimationTasks, RawValues, Directions, LeafWeights, DirectionDot, TaskMass, Status},
+                    P, step.Leaves, true, Tasks, 1, &step);
+                return;
+            }
             command.Dispatch("OrderedBacktrackingDirections", {Targets, Weights, Cursor, Permutations, LeafIds, TaskBuffer,
                 RawValues, Directions, LeafWeights, DirectionDot, TaskMass, Status}, P, step.Leaves, true, Tasks, 1, &step);
         };
         auto objective = [&](Command& command, id<MTLBuffer> values) {
+            if (IsQuery) {
+                EncodeQueryDerivatives(command, values, 1, step.SelectedPermutation, false, true);
+                command.Dispatch("OrderedQueryBacktrackingObjective", {QueryStatistics, QueryTaskRanges, TaskMass, BacktrackingLoss},
+                    P, Tasks, true, 1, 1, &step);
+                return;
+            }
             command.Dispatch("OrderedBacktrackingObjective", {Targets, Weights, Cursor, Permutations, LeafIds, TaskBuffer,
                 values, TaskMass, BacktrackingLoss}, P, Tasks, true, 1, 1, &step);
         };
-        Command initialize(Stats); direction(initialize); objective(initialize, RawValues); initialize.Wait(); CheckStatus();
+        Command initialize(Stats, CustomContext.get()); direction(initialize); objective(initialize, RawValues); initialize.Wait(); CheckStatus();
         double current = ReadBacktrackingValue(), dot = ReadDirectionDot(step.Leaves);
         Require(std::isfinite(current), "Ordered initial backtracking objective became nonfinite");
         BacktrackingParams backtracking = {1, BacktrackingType, 0, P.normalize};
@@ -475,7 +829,7 @@ public:
         // CUDA counts rejected trials against the budget, but extends up to
         // 100 attempts until the first successful update.
         for (uint32_t attempt = 0; attempt < P.leaf_iterations || (!updated && attempt < 100); ++attempt) {
-            Command trial(Stats);
+            Command trial(Stats, CustomContext.get());
             if (newDirection) direction(trial);
             trial.Dispatch("OrderedBacktrackingCandidate", {RawValues, Directions, LeafWeights, TrialValues},
                 P, uint64_t(Tasks) * step.Leaves, false, 1, 1, &step, &backtracking, sizeof(backtracking));
@@ -495,7 +849,7 @@ public:
             const CBMExactLeafParams exact = {task.EstimateEnd, leaves, uint32_t(P.objective == 11),
                 std::min(ExactTiles, (task.EstimateEnd + 255) / 256), P.objective == 9 ? P.objective_param : .5f, 0, 0, 0};
             const uint64_t outputOffset = uint64_t(taskId) * MaxLeaves * 4;
-            Command command(Stats);
+            Command command(Stats, CustomContext.get());
             command.Dispatch("OrderedSessionGatherExact", {Targets, Weights, Cursor, Permutations, LeafIds, ExactTargets,
                 ExactWeights, ExactPredictions, ExactLeafIds}, P, task.EstimateEnd, false, 1, 1, &descriptor);
             command.Dispatch("PrepareExactResiduals", {ExactTargets, ExactWeights, ExactPredictions, ExactResiduals,
@@ -521,13 +875,19 @@ public:
         Require(!Failed && !Pending.Active && Completed < P.iterations,
                 "Ordered session is failed, already has an active tree, or has no remaining iterations");
         Require(selected < LearnPermutations, "Invalid Ordered search permutation");
+        if (Yeti || CombinationYetiCount) {
+            const uint32_t components = Combination ? CombinationYetiCount : 1;
+            Require(YetiSeedPosition == 0 && YetiSeeds.size() == YetiWeakBlocks[selected].size() * components,
+                    "Ordered YetiRank weak seed packet does not match the selected permutation");
+        }
         try {
             const uint32_t foldCount = PermutationFoldCounts[selected];
             const uint32_t packedRows = PermutationPackedRows[selected];
             const uint32_t taskOffset = PermutationTaskOffsets[selected];
             StepParams step = StepConfiguration(1, selected);
-            Command initialize(Stats); initialize.Zero(LeafIds); initialize.Zero(RawValues); initialize.Zero(LeafWeights); initialize.Zero(Status);
-            initialize.Dispatch("OrderedSessionDerivatives", {Targets, Weights, Cursor, Permutations, TaskBuffer, Derivatives, Status},
+            Command initialize(Stats, CustomContext.get()); initialize.Zero(LeafIds); initialize.Zero(RawValues); initialize.Zero(LeafWeights); initialize.Zero(Status);
+            if (IsQuery) EncodeQueryDerivatives(initialize, RawValues, 0, selected, true);
+            else initialize.Dispatch("OrderedSessionDerivatives", {Targets, Weights, Cursor, Permutations, TaskBuffer, Derivatives, Status},
                 P, P.rows, false, Tasks, 1, &step);
             if (Histogram) Histogram->Initialize(initialize, Binding(Permutations, uint64_t(selected) * P.rows * 4),
                 Binding(TaskBuffer, uint64_t(taskOffset) * 16), Descriptors[taskOffset].CursorOffset, foldCount, packedRows);
@@ -539,7 +899,7 @@ public:
                 Bootstrap.bagging_temperature, Bootstrap.subsample, 0, 0};
             float noiseScale = 0;
             if (QualityStatistics) {
-                Command noise(Stats);
+                Command noise(Stats, CustomContext.get());
                 noise.Dispatch("OrderedQualityStatistics", {Derivatives, {TaskBuffer, uint64_t(taskOffset) * 16},
                     QualityStatistics}, sampling, foldCount, true); noise.Wait();
                 const float* statistics = static_cast<const float*>(QualityStatistics.contents);
@@ -552,7 +912,7 @@ public:
             }
             if (Multipliers) {
                 if (MvsInput) {
-                    Command prepare(Stats);
+                    Command prepare(Stats, CustomContext.get());
                     prepare.Dispatch("OrderedSessionMvsInput", {Derivatives, {TaskBuffer, uint64_t(taskOffset) * 16}, MvsInput},
                         bootstrap, packedRows);
                     if (!Bootstrap.mvs_reg_is_set && !HasMvsLambda)
@@ -566,7 +926,7 @@ public:
                     }
                     bootstrap.MVSLambda = Bootstrap.mvs_reg_is_set ? Bootstrap.mvs_reg : MvsLambda;
                 }
-                Command sample(Stats);
+                Command sample(Stats, CustomContext.get());
                 if (MvsInput) {
                     sample.Dispatch("ComputeMvsThresholds", {MvsInput, MvsThresholds}, bootstrap, (packedRows + 8191) / 8192, true);
                     sample.Dispatch("GenerateMvsBootstrapWeights", {Multipliers, MvsInput, MvsThresholds}, bootstrap, packedRows);
@@ -596,10 +956,11 @@ public:
         try {
             const uint32_t selected = Pending.SelectedPermutation, level = Pending.Selected.size();
             StepParams step = StepConfiguration(1u << level, selected);
-            OrderedParams hist = {P.rows, P.features, PermutationFoldCounts[selected], step.Leaves, 0, CursorCount, 1, 0,
+            OrderedParams hist = {P.rows, P.features, PermutationFoldCounts[selected], step.Leaves, 0, CursorCount, 1,
+                P.objective == 19 ? CBMOrderedScoreCombinationRightMassClamp : 0u,
                 P.l2, P.normalize, Pending.ScoreBefore, P.learning_rate};
             UpdateFeaturePenalties();
-            Command search(Stats);
+            Command search(Stats, CustomContext.get());
             if (FeatureNoise) {
                 auto noise = Pending.Bootstrap; noise.Rows = P.features; noise.Stream = level + 1; noise.NoiseScale = Pending.NoiseScale;
                 search.Dispatch("GenerateScoreFeatureNoise", {FeatureNoise}, noise, P.features);
@@ -641,7 +1002,7 @@ public:
             if (Dynamic && (FeatureFlags[winner.Feature] & 1) && CtrCounts[winner.Feature]) {
                 UsedFeatures[winner.Feature] = 1; FeatureFlags[winner.Feature] |= 2;
             }
-            Command partition(Stats);
+            Command partition(Stats, CustomContext.get());
             partition.Dispatch("OrderedSessionUpdateLeafIds", {Bins, Winner, LeafIds}, P, P.rows, false, BinBanks, 1, &step);
             if (level + 1 < P.depth) Histogram->Partition(partition, Binding(LeafIds, uint64_t(selected) * P.reserved0 * 4), step.Leaves * 2);
             partition.Wait();
@@ -654,6 +1015,14 @@ public:
         Require(!Failed && Pending.Active, "Ordered finish requires an active tree");
         Require(info && depth && values && weights && (!P.depth || (splitFeatures && splitBins && splitTypes)),
                 "Ordered step output buffers are required");
+        Require(!(CombinationYetiCount && BacktrackingBytes) || Combination->HasYetiSeedCallback(),
+                "Ordered Combination YetiRank backtracking requires a seed callback");
+        if (Yeti || (CombinationYetiCount && !Combination->HasYetiSeedCallback())) {
+            const uint32_t components = Combination ? CombinationYetiCount : 1;
+            const uint32_t expected = YetiLeafBlocks.size() * (P.leaf_iterations == 1 ? 1 : P.leaf_iterations + 1) * components;
+            Require(YetiLeafSeedPosition == 0 && YetiLeafSeeds.size() == expected,
+                    "Ordered YetiRank leaf seed packet is missing or has the wrong size");
+        }
         try {
             if (P.depth) {
                 std::fill(splitFeatures, splitFeatures + P.depth, 0); std::fill(splitBins, splitBins + P.depth, 0);
@@ -666,14 +1035,26 @@ public:
             std::fill(values, values + MaxLeaves, 0); std::fill(weights, weights + MaxLeaves, 0);
             const auto step = StepConfiguration(1u << Pending.Selected.size(), Pending.SelectedPermutation);
             if (P.leaf_method == 2) EstimateExact(step.Leaves);
+            else if (BacktrackingBytes && Combination) EstimateCombinationBacktracking(step);
             else if (BacktrackingBytes) EstimateBacktracking(step);
             else for (uint32_t iteration = 0; iteration < P.leaf_iterations; ++iteration) {
-                Command estimate(Stats);
-                estimate.Dispatch("OrderedSessionEstimateLeaves", {Targets, Weights, Cursor, Permutations, LeafIds, TaskBuffer,
+                Command estimate(Stats, CustomContext.get());
+                if (IsQuery) {
+                    EncodeQueryDerivatives(estimate, RawValues, 1, step.SelectedPermutation, false);
+                    estimate.Dispatch("OrderedQueryEstimateLeaves", {QueryGradient, QueryHessian, QueryWeights, Permutations,
+                        LeafIds, EstimationTasks, RawValues, LeafWeights, Status}, P, step.Leaves, true, Tasks, 1, &step);
+                } else estimate.Dispatch("OrderedSessionEstimateLeaves", {Targets, Weights, Cursor, Permutations, LeafIds, TaskBuffer,
                     RawValues, LeafWeights, Status}, P, step.Leaves, true, Tasks, 1, &step);
                 estimate.Wait(); CheckStatus();
             }
-            Command update(Stats);
+            if ((P.objective == 17 || (CombinationYetiCount && !BacktrackingBytes)) && P.leaf_iterations > 1) {
+                Command finalEvaluation(Stats, CustomContext.get());
+                EncodeQueryDerivatives(finalEvaluation, RawValues, 1, step.SelectedPermutation, false);
+                finalEvaluation.Wait(); CheckStatus();
+            }
+            Command update(Stats, CustomContext.get());
+            if (P.objective == 14 || P.objective == 17)
+                update.Dispatch("OrderedQueryCenterLeaves", {RawValues, Status}, P, Tasks, true, 1, 1, &step);
             update.Dispatch("OrderedSessionApplyValues", {Cursor, Permutations, LeafIds, TaskBuffer, RawValues,
                 NextCursor, NextPublished, Status}, P, P.rows, false, Tasks, 1, &step);
             update.Wait(); CheckStatus();
@@ -687,7 +1068,10 @@ public:
                 Require(std::isfinite(MvsLambda), "Ordered MVS leaf regularization became nonfinite");
             }
             std::swap(Cursor, NextCursor); std::swap(Published, NextPublished);
-            ++Completed; Loss = nextLoss; *depth = Pending.Selected.size(); Pending = {}; Info(*info);
+            ++Completed; Loss = nextLoss; *depth = Pending.Selected.size(); Pending = {};
+            YetiSeeds.clear(); YetiLeafSeeds.clear(); YetiSeedPosition = YetiLeafSeedPosition = 0;
+            if (Combination) { Combination->SetYetiSeedCallback(nullptr, nullptr); CombinationSeedCallback = nullptr; CombinationSeedContext = nullptr; }
+            Info(*info);
         } catch (...) { Failed = true; throw; }
     }
     void Step(uint32_t selected, CBMStepInfo* info, uint32_t* depth, uint32_t* splitFeatures,
@@ -825,7 +1209,7 @@ public:
         if (plan) histogram = std::make_unique<CBMOrderedHistogramWorkspace>(context, std::move(*plan));
         if (Pending.Active && histogram && Pending.Selected.size() < P.depth) {
             const uint32_t selected = Pending.SelectedPermutation, offset = PermutationTaskOffsets[selected];
-            Command reconstruct(Stats);
+            Command reconstruct(Stats, CustomContext.get());
             histogram->Initialize(reconstruct, Binding(Permutations, uint64_t(selected) * P.rows * 4),
                 Binding(TaskBuffer, uint64_t(offset) * 16), Descriptors[offset].CursorOffset,
                 PermutationFoldCounts[selected], PermutationPackedRows[selected]);
@@ -902,12 +1286,32 @@ public:
         for (uint32_t i = 0; i < count; ++i) Require(std::isfinite(input[i]), "Ordered restored cursors must be finite");
         auto restored = Context().Buffer(count * 4ull, input);
         const auto step = StepConfiguration();
-        Command publish(Stats);
+        Command publish(Stats, CustomContext.get());
         publish.Dispatch("OrderedSessionPublish", {restored, Permutations, TaskBuffer, NextPublished}, P, P.rows, false, 1, 1, &step);
         publish.Wait(); const float nextLoss = ReadLoss(NextPublished);
         Cursor = restored; std::swap(Published, NextPublished); Loss = nextLoss;
     }
 private:
+    std::unique_ptr<Runtime> CustomContext;
+    bool IsQuery = false;
+    CBMQueryOptions QueryOptions = {};
+    CBMYetiRankOptions YetiOptions = {};
+    CBMCombinationOptions CombinationOptions = {};
+    std::unique_ptr<CBMOrderedCombinationWorkspace> Combination;
+    uint32_t CombinationYetiCount = 0;
+    CBMCombinationYetiSeedCallback CombinationSeedCallback = nullptr;
+    void* CombinationSeedContext = nullptr;
+    id<MTLBuffer> QueryGradientWeights;
+    uint32_t QueryCount = 0, FlatPairCount = 0;
+    id<MTLBuffer> QueryTargets, QueryWeights, QueryPoint, QueryOffsets, QueryStatistics, QueryGradient, QueryHessian;
+    id<MTLBuffer> QueryTaskRanges, EstimationTasks;
+    id<MTLBuffer> PairWinners, PairLosers, PairWeights, PairRowOffsets, PairIncidence, PairSigns, PairEdges, PairQueryRanges;
+    std::vector<std::array<uint32_t, 4>> HostQueryTaskRanges;
+    std::vector<std::vector<uint32_t>> YetiWeakBlocks;
+    std::vector<uint32_t> YetiLeafBlocks;
+    std::unique_ptr<CBMOrderedYetiWorkspace> Yeti;
+    std::vector<uint64_t> YetiSeeds, YetiLeafSeeds;
+    uint32_t YetiSeedPosition = 0, YetiLeafSeedPosition = 0;
     struct PendingTree {
         bool Active = false, Finished = false, HasSplit = false, Exhausted = false;
         uint32_t SelectedPermutation = 0;
@@ -1056,6 +1460,115 @@ extern "C" int cbm_ordered_session_create_banked(const CBMOrderedParams* params,
         std::lock_guard<std::mutex> lock(RegistryMutex); const uintptr_t handle = NextHandle++;
         Registry.emplace(handle, std::move(session)); *output = reinterpret_cast<void*>(handle);
     });
+}
+extern "C" int cbm_ordered_session_create_query_banked(const CBMOrderedParams* params, uint32_t banks, uint64_t cells,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initial, const uint32_t* features,
+    const uint32_t* borders, const uint8_t* types, const uint32_t* permutations, const CBMQueryOptions* query,
+    const uint32_t* offsets, double growth, void** output, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] {
+        Require(output, "Ordered session output is required"); *output = nullptr;
+        Require(params && query && (params->objective == 12 || params->objective == 13), "Ordered query objective/options mismatch");
+        Require(banks && banks <= 64 && params->rows && params->features &&
+                uint64_t(params->rows) * params->features <= MemoryLimit / banks &&
+                cells == uint64_t(params->rows) * params->features * banks, "Invalid Ordered query feature bank geometry");
+        OrderedTargetOptions target; target.Query = query;
+        auto session = std::make_shared<Session>(params, bins, targets, weights, initial, features, borders, permutations,
+            types, query->group_count, offsets, growth, banks, &target);
+        std::lock_guard<std::mutex> lock(RegistryMutex); const uintptr_t handle = NextHandle++;
+        Registry.emplace(handle, std::move(session)); *output = reinterpret_cast<void*>(handle);
+    });
+}
+extern "C" int cbm_ordered_session_create_pair_banked(const CBMOrderedParams* params, uint32_t banks, uint64_t cells,
+    const uint8_t* bins, const float* initial, const uint32_t* features, const uint32_t* borders, const uint8_t* types,
+    const uint32_t* permutations, const CBMPairOptions* pair, const uint32_t* winners, const uint32_t* losers,
+    const float* weights, const uint32_t* offsets, double growth, void** output, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] {
+        Require(output, "Ordered session output is required"); *output = nullptr;
+        Require(params && pair && params->objective == 14, "Ordered PairLogit objective/options mismatch");
+        Require(banks && banks <= 64 && params->rows && params->features &&
+                uint64_t(params->rows) * params->features <= MemoryLimit / banks &&
+                cells == uint64_t(params->rows) * params->features * banks, "Invalid Ordered pair feature bank geometry");
+        OrderedTargetOptions target; target.Pair = pair; target.Winners = winners; target.Losers = losers; target.PairWeights = weights;
+        auto session = std::make_shared<Session>(params, bins, nullptr, nullptr, initial, features, borders, permutations,
+            types, pair->group_count, offsets, growth, banks, &target);
+        std::lock_guard<std::mutex> lock(RegistryMutex); const uintptr_t handle = NextHandle++;
+        Registry.emplace(handle, std::move(session)); *output = reinterpret_cast<void*>(handle);
+    });
+}
+extern "C" int cbm_ordered_session_create_yeti_banked(const CBMOrderedParams* params, uint32_t banks, uint64_t cells,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initial, const uint32_t* features,
+    const uint32_t* borders, const uint8_t* types, const uint32_t* permutations, const CBMYetiRankOptions* yeti,
+    const uint32_t* offsets, double growth, void** output, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] {
+        Require(output, "Ordered session output is required"); *output = nullptr;
+        Require(params && yeti && params->objective == 17, "Ordered YetiRank objective/options mismatch");
+        Require(banks && banks <= 64 && params->rows && params->features &&
+                uint64_t(params->rows) * params->features <= MemoryLimit / banks &&
+                cells == uint64_t(params->rows) * params->features * banks, "Invalid Ordered Yeti feature bank geometry");
+        OrderedTargetOptions target; target.Yeti = yeti;
+        auto session = std::make_shared<Session>(params, bins, targets, weights, initial, features, borders, permutations,
+            types, yeti->group_count, offsets, growth, banks, &target);
+        std::lock_guard<std::mutex> lock(RegistryMutex); const uintptr_t handle = NextHandle++;
+        Registry.emplace(handle, std::move(session)); *output = reinterpret_cast<void*>(handle);
+    });
+}
+extern "C" int cbm_ordered_session_yeti_seed_shape(void* handle, uint32_t selected, uint32_t* weakCount,
+    uint32_t* leafCount, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->YetiSeedShape(selected, weakCount, leafCount); });
+}
+extern "C" int cbm_ordered_session_set_yeti_oracle_seeds(void* handle, uint32_t count,
+    const uint64_t* seeds, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->SetYetiSeeds(count, seeds, false); });
+}
+extern "C" int cbm_ordered_session_set_yeti_leaf_seeds(void* handle, uint32_t count,
+    const uint64_t* seeds, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->SetYetiSeeds(count, seeds, true); });
+}
+extern "C" int cbm_ordered_session_create_custom_banked(const CBMOrderedParams* params, uint32_t banks, uint64_t cells,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initial, const uint32_t* features,
+    const uint32_t* borders, const uint8_t* types, const uint32_t* permutations, const char* source,
+    uint32_t groups, const uint32_t* offsets, double growth, void** output, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] {
+        Require(output, "Ordered session output is required"); *output = nullptr;
+        Require(params && source && params->objective == 20, "Ordered Custom objective/source mismatch");
+        Require(banks && banks <= 64 && params->rows && params->features &&
+                uint64_t(params->rows) * params->features <= MemoryLimit / banks &&
+                cells == uint64_t(params->rows) * params->features * banks, "Invalid Ordered custom feature bank geometry");
+        Require(bool(groups) == bool(offsets), "Ordered Custom grouping count and offsets must be supplied together");
+        OrderedTargetOptions target; target.CustomSource = source;
+        auto session = std::make_shared<Session>(params, bins, targets, weights, initial, features, borders, permutations,
+            types, groups, offsets, growth, banks, &target);
+        std::lock_guard<std::mutex> lock(RegistryMutex); const uintptr_t handle = NextHandle++;
+        Registry.emplace(handle, std::move(session)); *output = reinterpret_cast<void*>(handle);
+    });
+}
+extern "C" int cbm_ordered_session_create_combination_banked(const CBMOrderedParams* params, uint32_t banks, uint64_t cells,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initial, const uint32_t* features,
+    const uint32_t* borders, const uint8_t* types, const uint32_t* permutations, const CBMCombinationOptions* combination,
+    const CBMCombinationComponent* components, uint32_t groups, const uint32_t* offsets, const uint32_t* winners,
+    const uint32_t* losers, const float* pairWeights, double growth, void** output, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] {
+        Require(output, "Ordered session output is required"); *output = nullptr;
+        Require(params && combination && components && params->objective == 19, "Ordered Combination objective/options mismatch");
+        Require(banks && banks <= 64 && params->rows && params->features &&
+                uint64_t(params->rows) * params->features <= MemoryLimit / banks &&
+                cells == uint64_t(params->rows) * params->features * banks, "Invalid Ordered Combination feature bank geometry");
+        Require(bool(groups) == bool(offsets), "Ordered Combination grouping count and offsets must be supplied together");
+        OrderedTargetOptions target; target.Combination = combination; target.Components = components;
+        target.Winners = winners; target.Losers = losers; target.PairWeights = pairWeights;
+        auto session = std::make_shared<Session>(params, bins, targets, weights, initial, features, borders, permutations,
+            types, groups, offsets, growth, banks, &target);
+        std::lock_guard<std::mutex> lock(RegistryMutex); const uintptr_t handle = NextHandle++;
+        Registry.emplace(handle, std::move(session)); *output = reinterpret_cast<void*>(handle);
+    });
+}
+extern "C" int cbm_ordered_session_set_combination_yeti_seed_callback(void* handle,
+    CBMCombinationYetiSeedCallback callback, void* context, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->SetCombinationSeedCallback(callback, context); });
 }
 extern "C" int cbm_ordered_session_step(void* handle, uint32_t selected, CBMStepInfo* info, uint32_t* depth,
     uint32_t* features, uint32_t* borders, uint8_t* types, float* values, float* weights, char* error, size_t capacity) {

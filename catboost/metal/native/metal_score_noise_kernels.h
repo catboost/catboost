@@ -31,9 +31,10 @@ kernel void ReduceScoreNoiseStatistics(const device float* gradients [[buffer(0)
         if (weight == 0.0f) continue;
         const float weak_target = ScoreNoiseWeakTarget(gradients[row], weight);
         // Scale before squaring to avoid avoidable float32 overflow. CUDA
-        // performs the dot-product reduction with wider intermediates.
-        const float normalized = weak_target * sqrt(weight / float(p.rows));
-        const float value = normalized * normalized - correction;
+        // performs a signed weighted dot product with wider intermediates;
+        // Combination's YetiRank coefficients can make row weights negative.
+        const float normalized = weak_target * sqrt(abs(weight) / float(p.rows));
+        const float value = copysign(normalized * normalized, weight) - correction;
         const float next = sum + value;
         correction = (next - sum) - value;
         sum = next;

@@ -16,6 +16,7 @@
 #include "metal_compact_histogram_kernels.h"
 #include "metal_querywise_kernels.h"
 #include "metal_pairwise_runtime.h"
+#include "metal_yeti_rank_runtime.h"
 
 #include <algorithm>
 #include <atomic>
@@ -230,7 +231,8 @@ public:
             const CBMObjectiveOptions* objectiveOptions = nullptr,
             const CBMQueryOptions* queryOptions = nullptr, const uint32_t* groupOffsets = nullptr,
             const CBMPairOptions* pairOptions = nullptr, const uint32_t* pairWinners = nullptr,
-            const uint32_t* pairLosers = nullptr, const float* pairWeights = nullptr) {
+            const uint32_t* pairLosers = nullptr, const float* pairWeights = nullptr,
+            const CBMYetiRankOptions* yetiOptions = nullptr) {
         Require(input && bins && targets, "Greedy parameters, bins and targets are required");
         Options = *input;
         const auto& p = Options;
@@ -242,10 +244,14 @@ public:
             "Invalid iteration count or depth");
         Require(p.max_leaves && p.max_leaves <= 65536 && p.policy <= 2, "Invalid grow policy or max_leaves");
         Require(p.min_data_in_leaf && p.min_data_in_leaf <= (1u << 24), "Invalid min_data_in_leaf");
-        Require(p.objective <= 14 && p.score_function <= 6 && p.leaf_method <= 2, "Unsupported greedy objective, score or leaf method");
+        Require((p.objective <= 14 || p.objective == 17) && p.score_function <= 6 && p.leaf_method <= 2,
+            "Unsupported greedy objective, score or leaf method");
         Require((p.objective == 12 || p.objective == 13) == bool(queryOptions),
             "QueryRMSE/QuerySoftMax require the query-aware greedy constructor");
         Require((p.objective == 14) == bool(pairOptions), "PairLogit requires the supplied-pair greedy constructor");
+        Require((p.objective == 17) == bool(yetiOptions), "YetiRank requires the stochastic greedy constructor");
+        if (yetiOptions) Require(p.leaf_method == 0 && yetiOptions->legacy_prefix_centering <= 1,
+            "Greedy YetiRank requires Newton leaves and a valid centering policy");
         if (pairOptions) {
             Require(pairOptions->pair_count && pairOptions->pair_count <= Missing / 2 &&
                 pairWinners && pairLosers && pairWeights && !pairOptions->reserved0 && !pairOptions->reserved1,
@@ -326,6 +332,17 @@ public:
             WorkingBytes += Pairwise->AllocatedBytes();
             Require(WorkingBytes <= MemoryLimit, "Greedy PairLogit combined workspace exceeds 1 GiB");
             weights = Pairwise->IncidentWeights().data();
+        }
+        if (yetiOptions) {
+            Require(yetiOptions->group_count && yetiOptions->group_count <= p.rows && groupOffsets,
+                "Greedy YetiRank requires query offsets and a valid query count");
+            Require(WorkingBytes + 24ull * p.rows + 12ull * yetiOptions->group_count + 8 <= MemoryLimit,
+                "Greedy YetiRank combined workspace exceeds 1 GiB");
+            Context = &GetRuntime();
+            Yeti = std::make_unique<CBMYetiRankRuntime>(Context->Device, p.rows, yetiOptions->group_count,
+                groupOffsets, yetiOptions->permutations, yetiOptions->decay, yetiOptions->legacy_prefix_centering);
+            WorkingBytes += Yeti->AllocatedBytes();
+            Require(WorkingBytes <= MemoryLimit, "Greedy YetiRank combined workspace exceeds 1 GiB");
         }
         std::vector<float> unitWeights;
         if (!weights) { unitWeights.assign(p.rows, 1); weights = unitWeights.data(); }
@@ -413,8 +430,35 @@ public:
     void Step() {
         Require(!Failed, "Greedy session failed and must be closed");
         Require(Info.completed_iterations < Options.iterations, "Greedy session is already complete");
+        Require(!Yeti || YetiSeeds.size() == uint64_t(YetiLeafSeedCount()) + 1,
+            "Greedy YetiRank requires its complete weak/leaf seed packet before estimation");
         try { StepImpl(); }
         catch (...) { Failed = true; throw; }
+    }
+    void RequireIdle() const {
+        Require(!YetiPrepared, "Finish the prepared greedy YetiRank tree before this operation");
+    }
+    void SetYetiOracleSeeds(uint32_t count, const uint64_t* seeds) {
+        RequireIdle();
+        Require(Yeti && !Failed && Info.completed_iterations < Options.iterations,
+            "An incomplete greedy YetiRank session is required for oracle seeds");
+        Require(seeds && (count == 1 || count == YetiLeafSeedCount() + 1),
+            "Greedy YetiRank needs its weak seed alone or complete weak/leaf seed packet");
+        YetiSeeds.assign(seeds, seeds + count); YetiSeedPosition = 0;
+    }
+    void PrepareYetiTree(uint32_t* attempts) {
+        RequireIdle();
+        Require(Yeti && !Failed && attempts && Info.completed_iterations < Options.iterations &&
+            !YetiSeeds.empty() && YetiSeedPosition == 0,
+            "Greedy YetiRank structure preparation requires its weak seed and an output pointer");
+        try { SearchTreeImpl(); YetiPrepared = true; *attempts = YetiSearchAttempts; }
+        catch (...) { Failed = true; throw; }
+    }
+    void SetYetiLeafSeeds(uint32_t count, const uint64_t* seeds) {
+        Require(Yeti && !Failed && YetiPrepared && YetiSeeds.size() == 1 && YetiSeedPosition == 1 &&
+            count == YetiLeafSeedCount() && seeds,
+            "Greedy YetiRank leaf seeds must follow structure preparation exactly once");
+        YetiSeeds.insert(YetiSeeds.end(), seeds, seeds + count);
     }
     void Copy(CBMGreedyStepInfo* info, CBMGreedyNode* nodes, float* values, float* weights) const {
         *info = Info;
@@ -423,11 +467,14 @@ public:
         std::memcpy(weights, OutputWeights.contents, Info.leaf_count * 4ull);
     }
     void Predictions(float* output) const {
+        RequireIdle();
         Require(!Failed, "Greedy session failed and must be closed");
         std::memcpy(output, DatasetPredictions.back().contents, Options.rows * 4ull);
     }
     void SetPermutations(uint32_t count, const uint8_t* const* bins, const float* const* predictions,
                          const float* lambdas, const uint8_t* valid) {
+        RequireIdle();
+        Require(!Yeti || YetiSeeds.empty(), "Configure greedy YetiRank histories before supplying oracle seeds");
         Require(!Failed && !Info.completed_iterations && !PermutationsConfigured,
             "Greedy permutations can be configured once before training");
         Require(count >= 1 && count <= 64 && bins && bool(lambdas) == bool(valid),
@@ -462,10 +509,12 @@ public:
         Command command(*Context, Info.stats); EncodeLoss(command); command.Wait(); Info.loss = ReadLoss();
     }
     void SelectPermutation(uint32_t index) {
+        RequireIdle();
         Require(!Failed && index < DatasetBins.size(), "Greedy search permutation is out of range");
         SearchPermutation = index;
     }
     void CopyPermutationState(uint32_t capacity, float* predictions, float* lambdas, uint8_t* valid) const {
+        RequireIdle();
         Require(!Failed && capacity >= DatasetPredictions.size() && predictions && lambdas && valid,
             "Greedy permutation state output buffers are too small or missing");
         for (uint32_t p = 0; p < DatasetPredictions.size(); ++p) {
@@ -474,6 +523,8 @@ public:
         }
     }
     void SetBacktracking(uint32_t type) {
+        RequireIdle();
+        Require(!Yeti || !type, "Greedy YetiRank supports No backtracking only");
         Require(!Failed && !Info.completed_iterations && type <= 2,
             "Backtracking must be No/AnyImprovement/Armijo and configured before the first tree");
         if (type && Options.leaf_iterations > 1 && Options.leaf_method != 2 && !Directions) {
@@ -487,6 +538,7 @@ public:
         BacktrackingType = type;
     }
     void SetBootstrap(const CBMBootstrapOptions* options) {
+        RequireIdle();
         Require(options && !Failed && !Info.completed_iterations,
             "Bootstrap must be configured before the first tree");
         Require(options->bootstrap_type <= 3 && !options->reserved0 && !options->reserved1 &&
@@ -513,6 +565,7 @@ public:
         Sampling = *options;
     }
     void SetScoreNoise(const CBMScoreNoiseOptions* options) {
+        RequireIdle();
         Require(options && !Failed && !Info.completed_iterations && !options->reserved0 &&
             !options->reserved1 && !options->reserved2, "Score noise must be configured before the first tree");
         Require(std::isfinite(options->random_strength) && options->random_strength >= 0,
@@ -548,6 +601,10 @@ private:
     id<MTLBuffer> HistSums, HistWeights, LeafSums, LeafWeights, RawValues, Values, OutputWeights, ObjectivePartials, LossPartials;
     id<MTLBuffer> WinnerPartials, Winners, Selected, RightIds, Frontier, Jobs, Active, WorkState, Arguments;
     std::unique_ptr<CBMPairwiseRuntime> Pairwise;
+    std::unique_ptr<CBMYetiRankRuntime> Yeti;
+    std::vector<uint64_t> YetiSeeds;
+    uint32_t YetiSeedPosition = 0, YetiSearchAttempts = 0;
+    bool YetiPrepared = false;
     CBMQueryOptions QueryOptions = {};
     id<MTLBuffer> QueryOffsets, QueryPoint, QueryStatistics, QueryLossPartials, QueryValidation;
     id<MTLBuffer> Directions, TrialValues, DirectionDot, BacktrackingLoss;
@@ -555,13 +612,22 @@ private:
     id<MTLBuffer> ExactTileOffsets, ExactTotals, ExactSelected;
     id<MTLBuffer> BootstrapMultipliers, StructureWeightStorage, StructureWeight, SampledOffsets, NoiseStatistics;
 
+    uint32_t YetiLeafSeedCount() const {
+        return DatasetBins.size() * (Options.leaf_iterations + uint32_t(Options.leaf_iterations > 1));
+    }
+    void EncodeYetiPoint(Command& command, bool apply) {
+        Require(YetiSeedPosition < YetiSeeds.size(), "Greedy YetiRank oracle seed packet is missing or exhausted");
+        Yeti->EncodePointDerivatives(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves, apply,
+            Target, Weight, Gradient, Hessian, YetiSeeds[YetiSeedPosition++], &Info.stats.kernel_dispatches);
+    }
+
     BootstrapParams SamplingParams() const {
         return {K.Rows, Sampling.bootstrap_type, Sampling.random_seed_low, Sampling.random_seed_high,
             Sampling.iteration_offset + Info.completed_iterations, 0, 0, 0,
             Sampling.bagging_temperature, Sampling.subsample, 0.f, 0.f};
     }
     void EncodeBootstrap(Command& command) {
-        const id<MTLBuffer> denominator = (K.ScoreFunction == 2 || K.ScoreFunction == 3) ? Hessian : Weight;
+        const id<MTLBuffer> denominator = (Yeti || K.ScoreFunction == 2 || K.ScoreFunction == 3) ? Hessian : Weight;
         StructureWeight = denominator;
         if (Sampling.bootstrap_type) {
             const auto p = SamplingParams();
@@ -629,10 +695,11 @@ private:
             MakeQueryParams(false), LossGroups, true);
     }
     void EncodeObjectivePartials(Command& command) {
-        if (QueryOffsets || Pairwise) {
+        if (QueryOffsets || Pairwise || Yeti) {
             // Normalize the entire query at the current point, then project its
             // original-row derivatives through this variable leaf partition.
-            if (Pairwise) Pairwise->EncodePointDerivatives(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves,
+            if (Yeti) EncodeYetiPoint(command, true);
+            else if (Pairwise) Pairwise->EncodePointDerivatives(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves,
                 true, Gradient, Hessian, Weight, &Info.stats.kernel_dispatches);
             else EncodeQueryPoint(command, RawValues, true);
             const QueryProjectionParams q = {K.Rows, K.Leaves, K.HistogramTiles, K.LeafMethod};
@@ -701,6 +768,7 @@ private:
     }
 
     void EncodeLoss(Command& command) {
+        if (Yeti) return;
         if (Pairwise) {
             Pairwise->EncodePointDerivatives(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves,
                 false, Gradient, Hessian, Weight, &Info.stats.kernel_dispatches);
@@ -711,6 +779,7 @@ private:
         command.Dispatch("ReduceObjectiveLoss", {Target, Weight, Prediction, LossPartials}, K, LossGroups, true);
     }
     float ReadLoss() const {
+        if (Yeti) { Yeti->CheckStatus(); return 0; }
         if (Pairwise) {
             const auto parts = Pairwise->ReadLossPartials();
             const float value = static_cast<float>(parts[0] / parts[1]);
@@ -756,14 +825,22 @@ private:
         command.Indirect("ScanCompactHistograms", {HistSums, HistWeights, FeatureTypes, FeatureOffsets,
             Active, WorkState}, p, Arguments, 12);
     }
-    void StepImpl() {
+    void SearchTreeImpl() {
         Data = DatasetBins[SearchPermutation]; Prediction = DatasetPredictions[SearchPermutation];
         K.Leaves = G.Leaves = 1;
         *static_cast<uint32_t*>(Depths.contents) = 0;
         Nodes = {{0, 0, 0, 0, 0, 0}};
         std::vector<uint32_t> leafNodes = {0};
+        std::vector<uint8_t> unscored(1, 1);
+        std::vector<CBMGreedySplit> cachedWinners(1);
+        YetiSearchAttempts = 0;
         Command initial(*Context, Info.stats);
-        if (Pairwise) {
+        if (Yeti) {
+            Require(YetiSeedPosition == 0 && !YetiSeeds.empty(), "Supply a fresh greedy YetiRank weak seed before search");
+            Yeti->ClearStatus();
+            initial.Dispatch("ResetQuerywiseLeafIds", {LeafIds}, MakeQueryParams(false), K.Rows);
+            EncodeYetiPoint(initial, false);
+        } else if (Pairwise) {
             Pairwise->ClearStatus();
             initial.Dispatch("ResetQuerywiseLeafIds", {LeafIds}, MakeQueryParams(false), K.Rows);
             Pairwise->EncodePointDerivatives(initial.Buffer, Prediction, RawValues, LeafIds, K.Leaves,
@@ -786,6 +863,7 @@ private:
                 p, LossGroups, true);
         }
         initial.Wait();
+        if (Yeti) Yeti->CheckStatus();
         if (Pairwise) Pairwise->CheckStatus();
         if (QueryOffsets && (K.ScoreFunction == 2 || K.ScoreFunction == 3))
             Require(*static_cast<const uint32_t*>(QueryValidation.contents) == 0,
@@ -793,9 +871,33 @@ private:
         const float noiseScale = noisy ? ReadScoreNoiseScale() : 0.f;
         uint32_t growthRound = 0;
         while (K.Leaves < MaxLeaves && Options.depth && Options.candidates) {
+            std::vector<uint8_t> scoreMask;
+            bool scoreNewLeaves = true;
+            if (Yeti) {
+                id<MTLBuffer> eligibilityOffsets = Offsets;
+                if (Sampling.bootstrap_type >= 2) {
+                    Command eligibility(*Context, Info.stats);
+                    const CBMGreedyBootstrapParams p = {K.Rows, K.Leaves, Sampling.bootstrap_type, 0};
+                    eligibility.Dispatch("CountGreedyBootstrapRows", {BootstrapMultipliers, Rows, Offsets, SampledOffsets},
+                        p, K.Leaves, true);
+                    eligibility.Dispatch("PrefixGreedyBootstrapOffsets", {SampledOffsets}, p, 1, true);
+                    eligibility.Wait(); eligibilityOffsets = SampledOffsets;
+                }
+                const auto* offsets = static_cast<const uint32_t*>(eligibilityOffsets.contents);
+                const auto* depths = static_cast<const uint32_t*>(Depths.contents);
+                scoreMask.resize(K.Leaves, 0); scoreNewLeaves = false;
+                for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf) {
+                    const bool root = K.Leaves == 1 && depths[leaf] == 0;
+                    scoreMask[leaf] = unscored[leaf] && (root ||
+                        (depths[leaf] < G.MaxDepth && offsets[leaf + 1] - offsets[leaf] > G.MinDataInLeaf));
+                    scoreNewLeaves |= scoreMask[leaf] != 0;
+                    unscored[leaf] = 0;
+                }
+                YetiSearchAttempts += scoreNewLeaves;
+            }
             id<MTLBuffer> scoreWeights = StructureWeight;
             Command search(*Context, Info.stats);
-            if (noisy) {
+            if (noisy && scoreNewLeaves) {
                 auto p = SamplingParams(); p.Rows = K.Features; p.Stream = ++growthRound; p.NoiseScale = noiseScale;
                 search.Dispatch("GenerateScoreFeatureNoise", {FeatureNoise}, p, K.Features);
             }
@@ -807,6 +909,17 @@ private:
                 CandidateFeatures, CandidateBins, CandidateTypes, FeatureOffsets, FeatureWeights,
                 FeatureNoise, WinnerPartials}, G, G.ScoreGroups, true, G.Leaves);
             search.Dispatch("ReduceGreedySplitWinners", {WinnerPartials, Winners}, G, G.Leaves, true);
+            if (Yeti) {
+                // CUDA scores only new nonterminal leaves. Keep cached winners
+                // (and their noise draws) for unsplit leaves of Lossguide/Region.
+                search.Wait();
+                auto* winners = static_cast<CBMGreedySplit*>(Winners.contents);
+                for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf) {
+                    if (scoreMask[leaf]) cachedWinners[leaf] = winners[leaf];
+                    else winners[leaf] = cachedWinners[leaf];
+                }
+                search.Reset();
+            }
             id<MTLBuffer> terminalOffsets = Offsets;
             if (Sampling.bootstrap_type >= 2) {
                 const CBMGreedyBootstrapParams p = {K.Rows, K.Leaves, Sampling.bootstrap_type, 0};
@@ -826,8 +939,10 @@ private:
             const auto* rightIds = static_cast<const uint32_t*>(RightIds.contents);
             const auto* winners = static_cast<const CBMGreedySplit*>(Winners.contents);
             leafNodes.resize(frontier.NewLeaves);
+            if (Yeti) { unscored.resize(frontier.NewLeaves, 0); cachedWinners.resize(frontier.NewLeaves); }
             for (uint32_t i = 0; i < frontier.Selected; ++i) {
                 const uint32_t parent = selected[i], rightLeaf = rightIds[parent];
+                if (Yeti) { unscored[parent] = unscored[rightLeaf] = 1; cachedWinners[parent] = {}; }
                 const auto split = winners[parent];
                 Require(parent < K.Leaves && rightLeaf < frontier.NewLeaves && split.Valid,
                     "Invalid GPU greedy frontier metadata");
@@ -851,7 +966,13 @@ private:
             std::swap(Rows, NextRows); std::swap(Offsets, NextOffsets); std::swap(Depths, NextDepths);
             K.Leaves = G.Leaves = frontier.NewLeaves;
         }
-        EstimateLeaves();
+        // CUDA visits the initial root before its first termination check.
+        // Retain this unused host scorer draw for a requested constant tree.
+        if (Yeti && Options.candidates && !YetiSearchAttempts) YetiSearchAttempts = 1;
+    }
+    void StepImpl() {
+        if (!YetiPrepared) SearchTreeImpl();
+        EstimateLeaves(SearchPermutation);
         const uint32_t last = DatasetBins.size() - 1;
         if (last) {
             const float searchLoss = Info.loss;
@@ -876,7 +997,7 @@ private:
                 const CBMExactLeafParams offsets = {K.Rows, K.Leaves, 0, K.HistogramTiles, 0, 0, 0, 0};
                 route.Dispatch("BuildExactLeafOffsets", {RowPrefix, Offsets}, offsets, uint64_t(K.Leaves) + 1);
                 route.Wait(); std::swap(Rows, NextRows);
-                EstimateLeaves();
+                EstimateLeaves(p);
             }
             if (SearchPermutation == last) {
                 std::memcpy(Values.contents, LeafSums.contents, 4ull * K.Leaves);
@@ -889,8 +1010,10 @@ private:
         Info.leaf_count = K.Leaves;
         ++Info.completed_iterations;
         Info.finished = Info.completed_iterations == Options.iterations;
+        if (Yeti) { YetiSeeds.clear(); YetiPrepared = false; YetiSeedPosition = 0; }
     }
-    void EstimateLeaves() {
+    void EstimateLeaves(uint32_t permutation) {
+        if (Yeti) YetiSeedPosition = 1 + permutation * (Options.leaf_iterations + uint32_t(Options.leaf_iterations > 1));
         Command estimate(*Context, Info.stats);
         estimate.Dispatch("InitializeLeafValues", {RawValues, OutputWeights}, K, K.Leaves);
         if (Options.leaf_method == 2) {
@@ -903,6 +1026,12 @@ private:
             K.LeafIteration = iteration;
             EncodeObjectivePartials(estimate);
             estimate.Dispatch("EstimateNewtonLeafValues", {ObjectivePartials, RawValues, OutputWeights}, K, K.Leaves, true);
+        }
+        if (Yeti) {
+            if (Options.leaf_iterations > 1) ++YetiSeedPosition;
+            Require(YetiSeedPosition == 1 + (permutation + 1) * (Options.leaf_iterations + uint32_t(Options.leaf_iterations > 1)),
+                "Greedy YetiRank did not consume its complete dataset leaf schedule");
+            Yeti->EncodeCenterLeafValues(estimate.Buffer, RawValues, K.Leaves, &Info.stats.kernel_dispatches);
         }
         if (Pairwise) Pairwise->EncodeCenterLeafValues(estimate.Buffer, RawValues, K.Leaves, &Info.stats.kernel_dispatches);
         estimate.Dispatch("FinalizeLeafValues", {RawValues, Values}, K, K.Leaves);
@@ -1128,6 +1257,51 @@ extern "C" int cbm_greedy_session_create_pair(const CBMGreedyTrainParams* params
         *handle = reinterpret_cast<void*>(id);
     });
 }
+extern "C" int cbm_greedy_session_create_yeti(const CBMGreedyTrainParams* params,
+    const CBMObjectiveOptions* objectiveOptions, const CBMYetiRankOptions* yetiOptions,
+    const uint32_t* groupOffsets, uint64_t groupOffsetsCount,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initial,
+    const uint32_t* features, const uint32_t* candidateBins, const uint8_t* types,
+    void** handle, char* error, size_t capacity) {
+    if (handle) *handle = nullptr;
+    return ApiCall(error, capacity, [&] {
+        Require(handle && params && objectiveOptions && yetiOptions && groupOffsets,
+            "Greedy YetiRank requires parameters, query offsets and an output handle");
+        Require(params->objective == 17 && objectiveOptions->objective == 17,
+            "Greedy YetiRank constructor requires objective 17");
+        Require(groupOffsetsCount == uint64_t(yetiOptions->group_count) + 1,
+            "Greedy YetiRank query offset count must match group_count + 1");
+        auto session = std::make_shared<Session>(params, bins, targets, weights, initial,
+            features, candidateBins, types, objectiveOptions, nullptr, groupOffsets,
+            nullptr, nullptr, nullptr, nullptr, yetiOptions);
+        const uintptr_t id = NextHandle.fetch_add(1);
+        Require(id != 0, "Greedy session identifier capacity exhausted");
+        std::lock_guard<std::mutex> guard(RegistryMutex);
+        Sessions.emplace(id, std::move(session));
+        *handle = reinterpret_cast<void*>(id);
+    });
+}
+extern "C" int cbm_greedy_session_set_yeti_oracle_seeds(void* handle, uint32_t count,
+    const uint64_t* seeds, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->SetYetiOracleSeeds(count, seeds);
+    });
+}
+extern "C" int cbm_greedy_session_prepare_yeti_tree(void* handle, uint32_t* attempts,
+    char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->PrepareYetiTree(attempts);
+    });
+}
+extern "C" int cbm_greedy_session_set_yeti_leaf_seeds(void* handle, uint32_t count,
+    const uint64_t* seeds, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->SetYetiLeafSeeds(count, seeds);
+    });
+}
 extern "C" int cbm_greedy_session_step(void* handle, CBMGreedyStepInfo* info,
     CBMGreedyNode* nodes, float* values, float* weights, char* error, size_t capacity) {
     return ApiCall(error, capacity, [&] {
@@ -1151,6 +1325,7 @@ extern "C" int cbm_greedy_session_info(void* handle, CBMGreedyStepInfo* info, ch
         Require(info != nullptr, "Greedy session info output is required");
         auto session = GetSession(handle);
         std::lock_guard<std::mutex> guard(session->Mutex);
+        session->RequireIdle();
         *info = session->Info;
     });
 }

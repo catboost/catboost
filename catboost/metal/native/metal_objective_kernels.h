@@ -8,6 +8,19 @@ inline float ObjectiveInvalidValue() {
     return as_type<float>(0x7fc00000u);
 }
 
+// Validate each row before reduction; negative curvatures must not cancel
+// against positive rows and become an apparently valid leaf statistic.
+inline float3 ObjectiveCustomValueDerivatives(float raw, float target, float weight) {
+    if (weight == 0.0f) return float3(0.0f);
+    if (!isfinite(raw) || !isfinite(target) || !isfinite(weight) || weight < 0.0f)
+        return float3(ObjectiveInvalidValue());
+#ifdef CBM_HAS_CUSTOM_OBJECTIVE
+    const float3 result = CBMUserObjectiveValueDerivatives(raw, target, weight);
+    if (all(isfinite(result)) && result.z >= 0.0f) return result;
+#endif
+    return float3(ObjectiveInvalidValue());
+}
+
 // Error-free TwoSum followed by renormalization of a two-float expansion.
 // Both parts must survive every reduction level: a final plain float tree
 // would otherwise lose the 1 in permutations of {2^24, 1, -2^24}.
@@ -86,6 +99,9 @@ inline float2 ObjectiveGradientAndHessian(float target, float weight,
     if (!isfinite(raw) || !isfinite(target) || !isfinite(weight) || weight < 0.0f) {
         return float2(ObjectiveInvalidValue());
     }
+#ifdef CBM_HAS_CUSTOM_OBJECTIVE
+    if (objective == 20) return ObjectiveCustomValueDerivatives(raw, target, weight).yz;
+#endif
     if (objective == 0) {
         return float2(weight * (target - raw), weight);
     }
@@ -248,9 +264,11 @@ kernel void EstimateNewtonLeafValues(const device float4* partials [[buffer(0)]]
         const float diagonal = (p.leaf_method == 1 ? weight : hessian) + p.l2;
         // QuerySoftMax permits signed curvature parameters. Preserve its
         // literal Hessian when the regularized Newton diagonal is positive.
-        const bool grouped = p.objective == 12 || p.objective == 13;
+        // Combination's negated YetiRank coefficient can also produce a
+        // nonpositive diagonal; CUDA leaves its move direction at zero.
+        const bool grouped = p.objective == 12 || p.objective == 13 || p.objective == 19;
         if (!all(isfinite(statistics)) || (!grouped && hessian < 0.0f) || weight < 0.0f
-            || (grouped && p.leaf_method == 0 && weight >= 1e-20f && diagonal <= 0.0f)
+            || (grouped && p.objective != 19 && p.leaf_method == 0 && weight >= 1e-20f && diagonal <= 0.0f)
             || !isfinite(diagonal) || !isfinite(raw_values[leaf])) {
             // Preserve a detectable error for the runtime's finite-output
             // checks, instead of silently selecting a finite replacement.
@@ -305,7 +323,13 @@ kernel void ReduceObjectiveLoss(const device float* targets [[buffer(0)]],
         if (!isfinite(raw) || !isfinite(target) || !isfinite(weight)
             || weight < 0.0f || !isfinite(p.total_weight) || p.total_weight <= 0.0f) {
             loss = ObjectiveInvalidValue();
-        } else if (p.objective == 0) {
+        }
+#ifdef CBM_HAS_CUSTOM_OBJECTIVE
+        else if (p.objective == 20) {
+            loss = -ObjectiveCustomValueDerivatives(raw, target, weight).x / p.total_weight;
+        }
+#endif
+        else if (p.objective == 0) {
             const float residual = target - raw;
             const float weighted_residual = residual * sqrt(weight / p.total_weight);
             loss = weighted_residual * weighted_residual;

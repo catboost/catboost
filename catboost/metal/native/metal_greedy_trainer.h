@@ -7,7 +7,8 @@ extern "C" {
 #endif
 
 // Experimental Plain scalar greedy training. Policy:
-// 0=Depthwise, 1=Lossguide, 2=Region; objective: shared scalar IDs 0..11, QueryRMSE=12, QuerySoftMax=13, PairLogit=14;
+// 0=Depthwise, 1=Lossguide, 2=Region; objective: shared scalar IDs 0..11,
+// QueryRMSE=12, QuerySoftMax=13, PairLogit=14, classic YetiRank=17;
 // score: 0=L2, 1=Cosine, 2=NewtonL2, 3=NewtonCosine, 4=SolarL2, 5=LOOL2, 6=SatL2;
 // leaf_method: 0=Newton, 1=Gradient, 2=Exact (Quantile/MAE/MAPE).
 // Backtracking is configured separately; no random score noise by default.
@@ -78,6 +79,29 @@ int cbm_greedy_session_create_pair(const CBMGreedyTrainParams* params,
     const uint8_t* bins, const float* targets, const float* initial_predictions,
     const uint32_t* candidate_features, const uint32_t* candidate_bins, const uint8_t* candidate_types,
     void** session, char* error, size_t error_capacity);
+
+// Classic stochastic YetiRank uses Newton leaves and no backtracking. Query
+// offsets are counted before reads. Loss is zero; the controller computes the
+// ranking metric separately. The centering policy matches symmetric YetiRank.
+int cbm_greedy_session_create_yeti(const CBMGreedyTrainParams* params,
+    const CBMObjectiveOptions* objective_options, const CBMYetiRankOptions* yeti_options,
+    const uint32_t* group_offsets, uint64_t group_offsets_count,
+    const uint8_t* bins, const float* targets, const float* sample_weights,
+    const float* initial_predictions, const uint32_t* candidate_features,
+    const uint32_t* candidate_bins, const uint8_t* candidate_types,
+    void** session, char* error, size_t error_capacity);
+// Supply one weak seed or the complete weak+leaf packet before search. Leaf
+// seeds are in dataset order: P*(I+(I>1)), including unused final evaluations.
+int cbm_greedy_session_set_yeti_oracle_seeds(void* session, uint32_t count,
+    const uint64_t* seeds, char* error, size_t error_capacity);
+// Searches and retains the full topology, bootstrap draw and row partitions.
+// The returned scorer attempt count lets the host consume CUDA's exact random
+// schedule before drawing leaf seeds. Snapshot/configuration operations are
+// unavailable until the existing step function completes the prepared tree.
+int cbm_greedy_session_prepare_yeti_tree(void* session, uint32_t* search_attempts,
+    char* error, size_t error_capacity);
+int cbm_greedy_session_set_yeti_leaf_seeds(void* session, uint32_t count,
+    const uint64_t* seeds, char* error, size_t error_capacity);
 
 // One completed tree; caller allocates 2*max_leaves-1 nodes and max_leaves
 // values/weights. Only info.node_count/info.leaf_count entries are meaningful.

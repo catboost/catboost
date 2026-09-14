@@ -510,15 +510,27 @@ def _read_snapshot(path, fingerprint, *, rows, features, depth, iterations,
             restored_rng = None
             if "selection_rng" in state:
                 rng = state["selection_rng"]
-                if not isinstance(rng, dict) or set(rng) != {
-                        "version", "index", "bootstrap_initialized", "completed_iterations"}:
+                ordered_yeti = ordered_options.get("objective") == "YetiRank"
+                rng_keys = {"version", "index", "bootstrap_initialized", "completed_iterations"}
+                if ordered_yeti:
+                    rng_keys |= {"policy", "random_seed", "permutation_count", "leaf_iterations", "score_sets"}
+                if not isinstance(rng, dict) or set(rng) != rng_keys:
                     raise ValueError("Invalid Ordered snapshot selection RNG metadata.")
                 words = arrays["ordered_selection_rng_words"]
                 checked_arrays["selection_rng_words"] = words
                 restored_rng = dict(rng, words=words.tolist())
-                from ._ordered_rng import OrderedSelectionRng
-                OrderedSelectionRng(ordered_options.get("random_seed", 0),
-                    ordered_options.get("permutation_count", 1), restored_rng, state["iteration_offset"])
+                if ordered_yeti:
+                    from ._ordered_yeti_rng import OrderedYetiRankRng
+                    ordered_permutations = ordered_options.get("permutation_count", 1)
+                    OrderedYetiRankRng(ordered_options.get("random_seed", 0), ordered_permutations,
+                        ordered_options.get("leaf_estimation_iterations", 1),
+                        score_sets=1 + int(ordered_permutations > 1 and
+                            ordered_options.get("simple_ctr_permutation_dependent", False)),
+                        initial_state=restored_rng, iteration_offset=state["iteration_offset"])
+                else:
+                    from ._ordered_rng import OrderedSelectionRng
+                    OrderedSelectionRng(ordered_options.get("random_seed", 0),
+                        ordered_options.get("permutation_count", 1), restored_rng, state["iteration_offset"])
                 if not rng["bootstrap_initialized"]:
                     raise ValueError("Completed Ordered snapshot has uninitialized selection RNG bootstrap state.")
             elif header.get("ordered_selection_rng_required"):
@@ -717,8 +729,8 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
             if (isinstance(value, bool) or not isinstance(value, numbers.Real)
                     or not np.isfinite(value) or abs(value) > np.finfo(np.float32).max):
                 raise ValueError(f"{name} must be a finite float32 number.")
-    if ordered and (grouped or paired):
-        raise ValueError("Query objectives currently require Plain boosting.")
+    if ordered and (coupled or yeti_pair or qce):
+        raise ValueError("Ordered ranking supports QueryRMSE, QuerySoftMax, PairLogit and classic YetiRank.")
     if not (grouped or paired) and (group_offsets is not None or eval_group_offsets is not None):
         raise ValueError("Query boundaries require a supported query objective.")
     if subgroup_hashes is not None and group_offsets is None:
@@ -835,6 +847,17 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         if grouped or group_offsets is not None:
             group_offsets = validate_offsets(group_offsets, training_shape[1])
         params["group_offsets"] = group_offsets
+        if ordered:
+            if group_offsets is None:
+                raise ValueError("Ordered ranking requires explicit contiguous query boundaries.")
+            group_sizes = np.diff(group_offsets).astype(np.uint32)
+            if (native_options.get("group_sizes") is not None and
+                    not np.array_equal(native_options["group_sizes"], group_sizes)):
+                raise ValueError("Ordered group_sizes disagree with query boundaries.")
+            # Persist the actual query partition so snapshot cursor validation
+            # reconstructs the same group-preserving estimation permutation.
+            native_options = {**native_options, "group_sizes": group_sizes.tolist()}
+            params["group_sizes"] = group_sizes
         if grouped:
             if qce:
                 qce_scales = _query_cross_entropy.select_scales(qce_parameters.get("raw_values_scale", ""), targets, group_offsets)
@@ -961,12 +984,13 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
             selection_metric=selection_metric, maximize=maximize,
             initial_iteration_offset=native_options.get("iteration_offset", 0), classes=classes,
             permutation_count=permutation_count, ctr_unique_values=ctr_unique_values,
-            ordered_options=native_options if ordered else None, yeti_options=native_options if yeti else None)
+            ordered_options={**native_options, "objective": objective} if ordered else None,
+            yeti_options=native_options if yeti and not ordered else None)
         permutation_state = state.get("permutation_state")
         feature_penalty_state = state.get("feature_penalty_state")
         optimization_predictions = state.get("optimization_predictions")
         ordered_state = state.get("ordered_state")
-        if yeti:
+        if yeti and not ordered:
             params["initial_rng_state"] = prior.stats["yeti_rng"]
         bootstrap_state = prior.stats.get("bootstrap_state")
         if native_options.get("bootstrap_type", "No") != "No" and bootstrap_state is None:

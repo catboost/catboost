@@ -488,9 +488,9 @@ def test_native_plain_compounds_preserve_exact_leaf_estimation(tmp_path, loss, c
 
 @pytest.mark.parametrize("overrides,error", (
     ({"data_partition": "DocParallel"}, "compound CTRs require.*FeatureParallel"),
-    ({"grow_policy": "Depthwise", "data_partition": "DocParallel"}, "compound CTRs support scalar pointwise.*symmetric"),
-    ({"grow_policy": "Lossguide", "max_leaves": 5, "data_partition": "DocParallel"}, "compound CTRs support scalar pointwise.*symmetric"),
-    ({"grow_policy": "Region", "data_partition": "DocParallel"}, "compound CTRs support scalar pointwise.*symmetric"),
+    ({"grow_policy": "Depthwise", "data_partition": "DocParallel"}, "compound CTRs support.*symmetric"),
+    ({"grow_policy": "Lossguide", "max_leaves": 5, "data_partition": "DocParallel"}, "compound CTRs support.*symmetric"),
+    ({"grow_policy": "Region", "data_partition": "DocParallel"}, "compound CTRs support.*symmetric"),
     ({"counter_calc_method": "Full"}, "learn-only CTR|SkipTest"),
     ({"max_ctr_complexity": 32}, "max ctr complexity"),
     ({"combinations_ctr": ["Borders:PriorEstimation=BetaPrior"]}, "(?i)prior estimation|prior.*unsupported|unsupported.*prior"),
@@ -504,15 +504,15 @@ def test_native_unsupported_compound_options_reject_explicitly(overrides, error)
         fit(options() | overrides, Pool(x, y, **pool_options))
 
 
-@pytest.mark.parametrize("objective", ("MultiClass", "MultiRMSE", "QueryRMSE", "PairLogit", "PairLogitPairwise"))
+@pytest.mark.parametrize("objective", ("MultiClass", "MultiRMSE", "QueryCrossEntropy", "YetiRankPairwise", "PairLogitPairwise"))
 def test_native_unsupported_compound_objective_families_reject_explicitly(objective):
     x, y, _, pool_options = categorical_problem()
     if objective == "MultiRMSE":
         y = np.column_stack((y, 1 - y))
-    elif objective in ("QueryRMSE", "PairLogit", "PairLogitPairwise"):
+    elif objective in ("QueryCrossEntropy", "YetiRankPairwise", "PairLogitPairwise"):
         pool_options["group_id"] = np.zeros(len(x), dtype=np.uint64)
     config = options(loss_function=objective, data_partition="DocParallel")
-    with pytest.raises(CatBoostError, match="compound CTRs support scalar pointwise.*symmetric"):
+    with pytest.raises(CatBoostError, match="compound CTRs support.*symmetric"):
         CatBoost(config).fit(Pool(x, y, **pool_options))
 
 

@@ -86,6 +86,8 @@ inline std::vector<CBMOrderedFold> CBMCreateGroupedOrderedFolds(
     return result;
 }
 
+constexpr uint32_t CBMOrderedScoreCombinationRightMassClamp = 1u << 1;
+
 static const char* CBMMetalOrderedSource = R"METAL(
 #include <metal_stdlib>
 using namespace metal;
@@ -97,6 +99,9 @@ struct OrderedParams {
     uint normalize;
     float score_before, learning_rate;
 };
+
+constant uint OrderedScoreSolarL2 = 1u;
+constant uint OrderedScoreCombinationRightMassClamp = 1u << 1;
 
 // Fold uint4 = estimate_end, quality_end, cursor_offset, reserved.
 // Every fold owns [0, quality_end) cursor values in its permutation order.
@@ -184,7 +189,8 @@ kernel void OrderedCandidateStatistics(const device uchar* bins [[buffer(0)]],
 // Lower scores/gains win; tie breaking by candidate index belongs to the
 // existing winner reducer. Feature options float4 = categorical multiplier,
 // feature penalty multiplier, already-scaled feature noise, reserved.
-// score_function 0: Cosine/NewtonCosine; 1: legacy dynamic SolarL2.
+// score_function bit0: Cosine/NewtonCosine=0, legacy dynamic SolarL2=1.
+// Bit1 enables CUDA's right-child mass clamp for signed Combination targets.
 // Current CUDA public options reject Ordered+SolarL2; do not expose this
 // diagnostic variant as public CUDA parity. CUDA dynamic dispatch has no L2.
 kernel void ScoreOrderedCandidates(const device float4* statistics [[buffer(0)]],
@@ -192,15 +198,23 @@ kernel void ScoreOrderedCandidates(const device float4* statistics [[buffer(0)]]
     device float2* scores [[buffer(3)]], constant OrderedParams& p [[buffer(4)]],
     uint candidate [[thread_position_in_grid]]) {
     if (candidate >= p.candidates) return;
+    const bool solar = p.score_function & OrderedScoreSolarL2;
+    const bool signed_combination = p.score_function & OrderedScoreCombinationRightMassClamp;
+    // CUDA stores the equality bucket as left before forming its complement;
+    // Metal's model routes equality to the logical right child instead.
+    const uint complement_side = (candidates[candidate].y >> 31) ? 0u : 1u;
     float score = 0.0f, norm = 1e-20f;
     for (uint leaf = 0; leaf < p.leaves; ++leaf) {
         float2 solar_score = 0.0f, quality_mass = 0.0f;
         for (uint fold = 0; fold < p.folds; ++fold) {
             for (uint side = 0; side < 2; ++side) {
-                const float4 s = statistics[((candidate * p.leaves + leaf) * p.folds + fold) * 2 + side];
+                float4 s = statistics[((candidate * p.leaves + leaf) * p.folds + fold) * 2 + side];
+                if (signed_combination && side == complement_side) {
+                    s.x = max(s.x, 0.0f); s.z = max(s.z, 0.0f);
+                }
                 const float lambda = p.normalize ? p.l2 * s.x : p.l2;
-                const float mu = s.x > 0.0f ? s.y / (s.x + (p.score_function ? 1e-15f : lambda)) : 0.0f;
-                if (!p.score_function) {
+                const float mu = s.x > 0.0f ? s.y / (s.x + (solar ? 1e-15f : lambda)) : 0.0f;
+                if (!solar) {
                     score += s.w * mu;
                     norm += s.z * mu * mu;
                 } else {
@@ -209,16 +223,16 @@ kernel void ScoreOrderedCandidates(const device float4* statistics [[buffer(0)]]
                 }
             }
         }
-        if (p.score_function) {
+        if (solar) {
             for (uint side = 0; side < 2; ++side) {
                 if (quality_mass[side] > 2.0f)
                     score += solar_score[side] * (1.0f + 2.0f * log(quality_mass[side] + 1.0f));
             }
         }
     }
-    if (!p.score_function) score = norm > 1e-15f ? -score / sqrt(norm) : FLT_MAX;
+    if (!solar) score = norm > 1e-15f ? -score / sqrt(norm) : FLT_MAX;
     const float4 options = feature_options[candidates[candidate].x];
-    score = score * options.x + (p.score_function ? 0.0f : options.z);
+    score = score * options.x + (solar ? 0.0f : options.z);
     scores[candidate] = float2(score, (score - p.score_before) * options.y);
 }
 

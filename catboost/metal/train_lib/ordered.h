@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ordered_random.h"
+#include "query.h"
+#include "combination.h"
 
 #include <catboost/libs/data/objects_grouping.h>
 #include <catboost/libs/helpers/exception.h>
@@ -46,7 +48,12 @@ namespace NCB {
             TConstArrayRef<ui8> candidateTypes = {},
             double groupFoldGrowth = 0,
             TConstArrayRef<TVector<ui8>> additionalBins = {},
-            bool dynamicTreeCtrs = false)
+            bool dynamicTreeCtrs = false,
+            const TMetalQueryData* query = nullptr,
+            const TMetalPairData* pair = nullptr,
+            const CBMYetiRankOptions* yeti = nullptr,
+            const TMetalCombinationData* combination = nullptr,
+            const char* customSource = nullptr)
             : Params(params)
             , RandomSeed(randomSeed)
             , Random(randomSeed, params.permutations, params.depth, params.candidates, dynamicTreeCtrs)
@@ -60,7 +67,7 @@ namespace NCB {
                 "Metal Ordered requires between 4 and 16777216 objects with matching grouping");
             CB_ENSURE(Params.features && bins.size() == ui64(Params.features) * Params.rows,
                 "Metal Ordered bins must contain one value per feature and object");
-            CB_ENSURE(targets.size() == Params.rows &&
+            CB_ENSURE((targets.size() == Params.rows || (pair && targets.empty())) &&
                 (weights.empty() || weights.size() == Params.rows) &&
                 (initialPredictions.empty() || initialPredictions.size() == Params.rows),
                 "Metal Ordered target, weight, and initial prediction dimensions must match the objects");
@@ -68,7 +75,7 @@ namespace NCB {
                 "Metal Ordered candidate dimensions differ from the configured count");
             CB_ENSURE(candidateTypes.empty() || candidateTypes.size() == Params.candidates,
                 "Metal Ordered candidate type count differs from the configured count");
-            CB_ENSURE(Params.leaf_method <= 1,
+            CB_ENSURE(Params.leaf_method <= 1 || Params.leaf_method == 3,
                 "Native Metal Ordered currently supports Newton or Gradient leaf estimation");
 
             CB_ENSURE(ui64(Params.permutations) * Params.rows * sizeof(ui32) <= (1ull << 30),
@@ -87,10 +94,20 @@ namespace NCB {
                 }
             }
             TVector<ui32> groupOffsets;
-            if (!grouping.IsTrivial()) {
+            if (!grouping.IsTrivial() || query || pair || yeti || (combination && combination->Options.group_count)) {
                 groupOffsets.reserve(grouping.GetGroupCount() + 1); groupOffsets.push_back(0);
-                for (const auto& group : grouping.GetNonTrivialGroups()) groupOffsets.push_back(group.End);
+                if (grouping.IsTrivial()) {
+                    for (ui32 row = 0; row < Params.rows; ++row) groupOffsets.push_back(row + 1);
+                } else {
+                    for (const auto& group : grouping.GetNonTrivialGroups()) groupOffsets.push_back(group.End);
+                }
             }
+            CB_ENSURE(!pair || (!query && !yeti && pair->GroupOffsets == groupOffsets),
+                "Metal Ordered PairLogit grouping differs from its prepared pairs");
+            CB_ENSURE(!query || query->Offsets == groupOffsets,
+                "Metal Ordered query grouping differs from its prepared target");
+            CB_ENSURE(!combination || !combination->Options.group_count || combination->GroupOffsets == groupOffsets,
+                "Metal Ordered Combination grouping differs from its prepared target");
             CB_ENSURE(additionalBins.empty() || additionalBins.size() + 1 == Params.permutations,
                 "Metal Ordered feature bank count must match the history maps");
             CB_ENSURE(ui64(bins.size()) * (additionalBins.size() + 1) <= (1ull << 30),
@@ -106,7 +123,38 @@ namespace NCB {
             }
             char error[2048] = {};
             const bool typed = std::any_of(candidateTypes.begin(), candidateTypes.end(), [](ui8 type) { return type != 0; });
-            const int status = !allBins.empty()
+            const ui8* bankData = allBins.empty() ? bins.data() : allBins.data();
+            const ui64 bankCells = allBins.empty() ? bins.size() : allBins.size();
+            const ui32 bankCount = additionalBins.size() + 1;
+            const double growth = groupFoldGrowth ? groupFoldGrowth : Params.fold_growth;
+            const int status = customSource
+                ? cbm_ordered_session_create_custom_banked(&Params, bankCount, bankCells, bankData,
+                    targets.data(), weights.empty() ? nullptr : weights.data(), initialPredictions.empty() ? nullptr : initialPredictions.data(),
+                    candidateFeatures.data(), candidateBins.data(), candidateTypes.empty() ? nullptr : candidateTypes.data(), maps.data(),
+                    customSource, groupOffsets.empty() ? 0 : grouping.GetGroupCount(), groupOffsets.empty() ? nullptr : groupOffsets.data(),
+                    growth, &Session.Value, error, sizeof(error))
+                : combination ? cbm_ordered_session_create_combination_banked(&Params, bankCount, bankCells, bankData,
+                    targets.data(), weights.empty() ? nullptr : weights.data(), initialPredictions.empty() ? nullptr : initialPredictions.data(),
+                    candidateFeatures.data(), candidateBins.data(), candidateTypes.empty() ? nullptr : candidateTypes.data(), maps.data(),
+                    &combination->Options, combination->Components.data(),
+                    groupOffsets.empty() ? 0 : grouping.GetGroupCount(), groupOffsets.empty() ? nullptr : groupOffsets.data(),
+                    combination->Winners.data(), combination->Losers.data(), combination->PairWeights.data(),
+                    growth, &Session.Value, error, sizeof(error))
+                : yeti
+                ? cbm_ordered_session_create_yeti_banked(&Params, bankCount, bankCells, bankData,
+                    targets.data(), weights.empty() ? nullptr : weights.data(), initialPredictions.empty() ? nullptr : initialPredictions.data(),
+                    candidateFeatures.data(), candidateBins.data(), candidateTypes.empty() ? nullptr : candidateTypes.data(), maps.data(),
+                    yeti, groupOffsets.data(), growth, &Session.Value, error, sizeof(error))
+                : pair ? cbm_ordered_session_create_pair_banked(&Params, bankCount, bankCells, bankData,
+                    initialPredictions.empty() ? nullptr : initialPredictions.data(), candidateFeatures.data(), candidateBins.data(),
+                    candidateTypes.empty() ? nullptr : candidateTypes.data(), maps.data(), &pair->Options,
+                    pair->Winners.data(), pair->Losers.data(), pair->Weights.data(), groupOffsets.data(), growth,
+                    &Session.Value, error, sizeof(error))
+                : query ? cbm_ordered_session_create_query_banked(&Params, bankCount, bankCells, bankData,
+                    targets.data(), weights.empty() ? nullptr : weights.data(), initialPredictions.empty() ? nullptr : initialPredictions.data(),
+                    candidateFeatures.data(), candidateBins.data(), candidateTypes.empty() ? nullptr : candidateTypes.data(), maps.data(),
+                    &query->Options, groupOffsets.data(), growth, &Session.Value, error, sizeof(error))
+                : !allBins.empty()
                 ? cbm_ordered_session_create_banked(&Params, Params.permutations, allBins.size(), allBins.data(),
                     targets.data(), weights.empty() ? nullptr : weights.data(), initialPredictions.empty() ? nullptr : initialPredictions.data(),
                     candidateFeatures.data(), candidateBins.data(), candidateTypes.empty() ? nullptr : candidateTypes.data(), maps.data(),
@@ -159,6 +207,35 @@ namespace NCB {
             CB_ENSURE(cbm_ordered_session_info(Session.Value, &result, error, sizeof(error)) == 0,
                 "Metal Ordered info query failed: " << error);
             return result;
+        }
+
+        std::pair<TVector<ui32>, ui32> GetYetiSeedShape() const {
+            TVector<ui32> weakCounts(Params.permutations, 1);
+            const ui32 evaluations = Params.leaf_iterations + ui32(Params.leaf_iterations > 1);
+            ui32 leafSeeds = 0;
+            char error[2048] = {};
+            const ui32 learnCount = Params.permutations > 1 ? Params.permutations - 1 : 1;
+            for (ui32 permutation = 0; permutation < learnCount; ++permutation) {
+                ui32 count = 0;
+                CB_ENSURE(cbm_ordered_session_yeti_seed_shape(Session.Value, permutation, &weakCounts[permutation],
+                    &count, error, sizeof(error)) == 0, "Metal Ordered YetiRank seed shape failed: " << error);
+                CB_ENSURE(count && count % evaluations == 0 && (!leafSeeds || leafSeeds == count),
+                    "Metal Ordered YetiRank leaf seed shape is inconsistent");
+                leafSeeds = count;
+            }
+            return {std::move(weakCounts), leafSeeds / evaluations};
+        }
+
+        void SetYetiWeakSeeds(TConstArrayRef<uint64_t> seeds) {
+            char error[2048] = {};
+            CB_ENSURE(cbm_ordered_session_set_yeti_oracle_seeds(Session.Value, seeds.size(), seeds.data(), error, sizeof(error)) == 0,
+                "Metal Ordered YetiRank weak seed setup failed: " << error);
+        }
+
+        void SetYetiLeafSeeds(TConstArrayRef<uint64_t> seeds) {
+            char error[2048] = {};
+            CB_ENSURE(cbm_ordered_session_set_yeti_leaf_seeds(Session.Value, seeds.size(), seeds.data(), error, sizeof(error)) == 0,
+                "Metal Ordered YetiRank leaf seed setup failed: " << error);
         }
 
         void SetBootstrap(const CBMBootstrapOptions& options, bool testOnly) {
@@ -245,6 +322,24 @@ namespace NCB {
             const std::function<void(ui32, const CBMStructureInfo&)>& split,
             const std::function<ui32()>& scoreDraws)
         {
+            const ui32 selected = Random.SelectPermutation();
+            const ui32 draws = StepDynamicSelected(absoluteIteration, selected, info, depth,
+                splitFeatures, splitBins, splitTypes, leafValues, leafWeights, begin, split, scoreDraws);
+            Random.FinishIterationWithDraws(*depth, draws);
+        }
+
+        // A target with its own shared host oracle stream supplies the chooser
+        // and receives a depth-search boundary before leaf estimation begins.
+        ui32 StepDynamicSelected(
+            ui64 absoluteIteration, ui32 selected,
+            CBMStepInfo* info, ui32* depth,
+            TArrayRef<ui32> splitFeatures, TArrayRef<ui32> splitBins,
+            TArrayRef<ui8> splitTypes, TArrayRef<float> leafValues, TArrayRef<float> leafWeights,
+            const std::function<void(ui32)>& begin,
+            const std::function<void(ui32, const CBMStructureInfo&)>& split,
+            const std::function<ui32()>& scoreDraws,
+            const std::function<void(ui32)>& beforeFinish = {})
+        {
             CB_ENSURE(absoluteIteration == ui64(IterationOffset) + CompletedIterations,
                 "Metal Ordered dynamic step must use the next absolute iteration");
             CB_ENSURE(info && depth && splitFeatures.size() >= Params.depth &&
@@ -252,7 +347,6 @@ namespace NCB {
                 leafValues.size() >= (1u << Params.depth) && leafWeights.size() >= (1u << Params.depth) &&
                 begin && split && scoreDraws,
                 "Metal Ordered dynamic step requires full output buffers and CTR callbacks");
-            const ui32 selected = Random.SelectPermutation();
             begin(selected);
             char error[2048] = {};
             CB_ENSURE(cbm_ordered_session_begin_tree(Session.Value, selected, error, sizeof(error)) == 0,
@@ -265,6 +359,7 @@ namespace NCB {
                     "Metal Ordered dynamic split search failed: " << error);
                 if (structure.has_split) split(selected, structure);
             } while (!structure.finished);
+            if (beforeFinish) beforeFinish(searchDrawCount);
             CB_ENSURE(cbm_ordered_session_finish_tree(Session.Value, info, depth,
                 splitFeatures.data(), splitBins.data(), splitTypes.data(), leafValues.data(), leafWeights.data(),
                 error, sizeof(error)) == 0,
@@ -272,7 +367,7 @@ namespace NCB {
             ++CompletedIterations;
             CB_ENSURE(info->completed_iterations == CompletedIterations && *depth <= Params.depth,
                 "Metal Ordered dynamic step returned inconsistent iteration or depth information");
-            Random.FinishIterationWithDraws(*depth, searchDrawCount);
+            return searchDrawCount;
         }
 
         void SetFeaturePenalties(TConstArrayRef<ui32> counts, float modelSizeReg) {

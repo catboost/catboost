@@ -5727,7 +5727,6 @@ namespace {
     public:
         explicit TCombinationLoss(const TLossParams& params)
         : TAdditiveSingleTargetMetric(ELossFunction::Combination, params)
-        , Params(params.GetParamsMap())
         {
         }
 
@@ -5748,8 +5747,6 @@ namespace {
         TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
         double GetFinalError(const TMetricHolder& error) const override;
-    private:
-        const TMap<TString, TString> Params;
     };
 }
 
@@ -5784,11 +5781,7 @@ EErrorType TCombinationLoss::GetErrorType() const {
 }
 
 TString TCombinationLoss::GetDescription() const {
-    TString description;
-    for (const auto& [param, value] : Params) {
-        description += BuildDescription(TMetricParam<TString>(param, value, /*userDefined*/true));
-    }
-    return description;
+    return TMetric::GetDescription();
 }
 
 void TCombinationLoss::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {

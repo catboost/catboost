@@ -89,9 +89,11 @@ kernel void PrepareBacktrackingDirection(
         }
         ObjectiveAddExpansion(diagonal_high, diagonal_low, p.l2);
         const float diagonal = diagonal_high + diagonal_low;
-        const bool grouped = p.objective == 12 || p.objective == 13;
+        // Combination may have negative YetiRank curvature. Its finite
+        // nonpositive diagonal yields a zero direction below, as in CUDA.
+        const bool grouped = p.objective == 12 || p.objective == 13 || p.objective == 19;
         if (!all(isfinite(statistics)) || (!grouped && statistics.y < 0.0f) || statistics.z < 0.0f
-            || (grouped && p.leaf_method == 0 && statistics.z >= 1e-20f && diagonal <= 0.0f)
+            || (grouped && p.objective != 19 && p.leaf_method == 0 && statistics.z >= 1e-20f && diagonal <= 0.0f)
             || !isfinite(current_values[leaf]) || !isfinite(gradient_high)
             || !isfinite(gradient_low) || !isfinite(diagonal)) {
             directions[leaf] = ObjectiveInvalidValue();
@@ -186,8 +188,16 @@ kernel void ReduceBacktrackingObjective(
         const float weight = sample_weights[row];
         if (weight == 0.0f) continue;
         const float raw = ensemble_predictions[row] + raw_point[leaf_ids[row]];
-        const float score = BacktrackingRowScore(targets[row], raw, p);
-        const float weighted_score = -weight * score;
+        float weighted_score;
+#ifdef CBM_HAS_CUSTOM_OBJECTIVE
+        if (p.objective == 20) {
+            weighted_score = ObjectiveCustomValueDerivatives(raw, targets[row], weight).x;
+        } else
+#endif
+        {
+            const float score = BacktrackingRowScore(targets[row], raw, p);
+            weighted_score = -weight * score;
+        }
         ObjectiveAddExpansion(high, low, weighted_score);
     }
     if (b.normalize != 0) {

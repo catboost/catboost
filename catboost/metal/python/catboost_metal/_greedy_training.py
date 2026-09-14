@@ -62,7 +62,8 @@ def _write_snapshot(path, fingerprint, result, history, best_iteration, best_val
 
 
 def _read_snapshot(path, fingerprint, *, rows, features, depth, max_leaves, iterations,
-                   objective, eval_rows=None, selection_metric=None, maximize=False, permutation_count=1, classes=None):
+                   objective, eval_rows=None, selection_metric=None, maximize=False, permutation_count=1, classes=None,
+                   yeti_options=None):
     selection_metric = selection_metric or objective
     try:
         with zipfile.ZipFile(path) as archive:
@@ -129,6 +130,14 @@ def _read_snapshot(path, fingerprint, *, rows, features, depth, max_leaves, iter
             value = stats.get(name, 0)
             if isinstance(value, bool) or not isinstance(value, numbers.Real) or not np.isfinite(value) or value < 0:
                 raise ValueError("Invalid greedy snapshot runtime statistics.")
+        if yeti_options is not None:
+            from ._greedy_yeti_rng import GreedyYetiRankRng
+            if "yeti_rng" not in stats:
+                raise ValueError("Greedy YetiRank snapshot RNG state is missing.")
+            GreedyYetiRankRng(yeti_options.get("random_seed", 0), yeti_options.get("bootstrap_type", "No"),
+                yeti_options.get("leaf_estimation_iterations", 1), initial_state=stats["yeti_rng"],
+                iteration_offset=yeti_options.get("iteration_offset", 0) + count,
+                dataset_permutations=permutation_count)
         trees = []
         for index in range(count):
             a, b = map(int, arrays["node_offsets"][index:index + 2])
@@ -204,9 +213,10 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
     if objective not in (*_greedy.OBJECTIVES, *_VECTOR_OBJECTIVES) or boosting_type != "Plain":
         raise ValueError("Greedy lifecycle requires a CUDA-registered scalar or vector objective with Plain boosting.")
     grouped = objective in ("QueryRMSE", "QuerySoftMax")
+    yeti = objective == "YetiRank"
     paired = objective == "PairLogit"
-    if not (grouped or paired) and any(value is not None for value in (group_offsets, eval_group_offsets, subgroup_hashes, eval_subgroup_hashes)):
-        raise ValueError("Greedy query grouping requires QueryRMSE, QuerySoftMax or PairLogit.")
+    if not (grouped or paired or yeti) and any(value is not None for value in (group_offsets, eval_group_offsets, subgroup_hashes, eval_subgroup_hashes)):
+        raise ValueError("Greedy query grouping requires QueryRMSE, QuerySoftMax, PairLogit or YetiRank.")
     if not grouped and (query_beta != 1 or query_lambda != .01):
         raise ValueError("Query parameters require QueryRMSE or QuerySoftMax.")
     if paired and sample_weight is not None:
@@ -225,7 +235,7 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         native_options = {**native_options, "classes": classes}
     else:
         parameter = _greedy.objective_parameter(objective, native_options.get("objective_param"))
-    objective_metric = objective
+    objective_metric = "PFound" if yeti else objective
     if objective in _greedy.OBJECTIVE_PARAMETERS:
         display_parameter = native_options.get("objective_param")
         if display_parameter is None:
@@ -291,15 +301,21 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         eval_bins = np.ascontiguousarray(eval_bins, np.uint8)
         eval_targets = _vector(eval_targets, eval_bins.shape[1], "eval_targets", objective=objective, classes=classes)
         if eval_weight is not None: eval_weight = _vector(eval_weight, len(eval_targets), "eval_weight", weight=True)
-    if grouped:
+    if grouped or yeti:
         from ._query_data import validate_offsets, validate_subgroup_hashes, query_metric
         group_offsets = validate_offsets(group_offsets, rows)
         subgroup_hashes = validate_subgroup_hashes(subgroup_hashes, rows)
-        query_metric(np.zeros(rows), targets, sample_weight, group_offsets, objective, query_beta, query_lambda)
+        if grouped:
+            query_metric(np.zeros(rows), targets, sample_weight, group_offsets, objective, query_beta, query_lambda)
+        elif ((targets < 0) | (targets > 1)).any() or not (np.diff(group_offsets) > 1).any():
+            raise ValueError("Classic YetiRank requires relevance in [0, 1] and at least one query containing multiple rows.")
         if has_eval:
             eval_group_offsets = validate_offsets(eval_group_offsets, len(eval_targets), "eval_group_offsets")
             eval_subgroup_hashes = validate_subgroup_hashes(eval_subgroup_hashes, len(eval_targets), "eval_subgroup_hashes")
-            query_metric(np.zeros(len(eval_targets)), eval_targets, eval_weight, eval_group_offsets, objective, query_beta, query_lambda)
+            if grouped:
+                query_metric(np.zeros(len(eval_targets)), eval_targets, eval_weight, eval_group_offsets, objective, query_beta, query_lambda)
+            elif ((eval_targets < 0) | (eval_targets > 1)).any():
+                raise ValueError("Classic YetiRank validation relevance must be in [0, 1].")
         elif eval_subgroup_hashes is not None:
             raise ValueError("Validation subgroup hashes require validation data.")
     train_pairs = eval_pairs = None
@@ -315,8 +331,8 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         elif eval_subgroup_hashes is not None:
             raise ValueError("Validation subgroup hashes require validation data.")
     selection = objective_metric if eval_metric is None else eval_metric
-    maximize = False if eval_metric is None else _metric_direction(selection)
-    if eval_metric is not None:
+    maximize = _metric_direction(selection) if yeti or eval_metric is not None else False
+    if yeti or eval_metric is not None:
         selected_y, selected_w = (eval_targets, eval_weight) if has_eval else (targets, sample_weight)
         _shared_metric(selection, _initial_cursor(len(selected_y), bias, classes), selected_y, selected_w,
             eval_group_offsets if has_eval else group_offsets, eval_pairs if has_eval else train_pairs,
@@ -333,6 +349,11 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         **native_options)
     if grouped:
         params.update(group_offsets=group_offsets, query_beta=query_beta, query_lambda=query_lambda)
+    if yeti:
+        if native_options.get("dataset_permutations", permutation_count) != permutation_count:
+            raise ValueError("YetiRank dataset_permutations must match the supplied permutation matrices.")
+        params.update(group_offsets=group_offsets, subgroup_hashes=subgroup_hashes,
+                      dataset_permutations=permutation_count)
     if paired:
         params.update(group_offsets=group_offsets,pair_winners=train_pairs[0],pair_losers=train_pairs[1],pair_weights=train_pairs[2])
     if classes:
@@ -348,8 +369,11 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         fingerprint_arrays = dict(bins=bins, targets=targets, candidate_features=candidate_features,
             candidate_bins=candidate_bins, sample_weight=sample_weight, eval_bins=eval_bins,
             eval_targets=eval_targets, eval_weight=eval_weight)
-        if grouped:
-            settings.update(query_beta=query_beta, query_lambda=query_lambda)
+        if grouped or yeti:
+            if grouped:
+                settings.update(query_beta=query_beta, query_lambda=query_lambda)
+            if yeti:
+                settings["yeti_rng_protocol"] = "greedy_v1"
             fingerprint_arrays.update(group_offsets=group_offsets, eval_group_offsets=eval_group_offsets,
                 subgroup_hashes=subgroup_hashes, eval_subgroup_hashes=eval_subgroup_hashes)
         if paired:
@@ -373,7 +397,7 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         prior, state, eval_raw = _read_snapshot(path, fingerprint, rows=rows, features=features, depth=depth,
             max_leaves=capacity, iterations=iterations, objective=objective_metric,
             eval_rows=len(eval_targets) if has_eval else None, selection_metric=selection, maximize=maximize,
-            permutation_count=permutation_count, classes=classes)
+            permutation_count=permutation_count, classes=classes, yeti_options=params if yeti else None)
         permutation_predictions = state.get("permutation_predictions")
         optimization_predictions = state.get("optimization_predictions")
         history, best = state["history"], state["best_iteration"]
@@ -388,6 +412,8 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         params["iteration_offset"] = offset + resumed
         if prior is not None:
             params["initial_predictions"] = prior.predictions
+            if yeti:
+                params["initial_rng_state"] = prior.stats["yeti_rng"]
             if classes:
                 params["initial_optimization_predictions"] = optimization_predictions[-1]
         last_snapshot = time.monotonic()
@@ -410,13 +436,14 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
                 return merged
 
             while completed < iterations:
-                if permutation_count > 1:
+                if permutation_count > 1 and not yeti:
                     session.select_permutation(cuda_search_permutation(random_seed, offset + completed, permutation_count))
                 step = session.step(); completed += 1
                 history["learn"][objective_metric].append(float(step.loss))
                 if has_eval:
                     eval_raw = cursor.add_tree(step)
                     value = metric(eval_raw, eval_targets, eval_weight, objective_metric, group_offsets=eval_group_offsets,
+                        **({"subgroup_hashes": eval_subgroup_hashes} if yeti else {}),
                         **({} if eval_pairs is None else dict(pair_winners=eval_pairs[0],pair_losers=eval_pairs[1],pair_weights=eval_pairs[2])))
                     history["validation"][objective_metric].append(value)
                     if eval_metric is not None:
@@ -459,7 +486,7 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
             result.predictions = cursor.predictions()
         eval_raw = predict_bins(eval_bins, result.trees, bias)
     result.best_iteration, result.evals_result = best, copy.deepcopy(history)
-    result.best_score = {dataset: {name: (max(values) if name == selection and maximize else min(values))
+    result.best_score = {dataset: {name: (max(values) if (name == selection and maximize) or (yeti and name == objective_metric) else min(values))
         for name, values in metrics.items()} for dataset, metrics in history.items()}
     result.stopped_iteration = completed - 1
     result.eval_predictions = None if eval_raw is None else eval_raw.copy()

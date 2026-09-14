@@ -1,4 +1,5 @@
 #include "progress.h"
+#include "combination.h"
 #include "query_cross_entropy.h"
 
 #include <catboost/libs/eval_result/eval_result.h>
@@ -157,6 +158,107 @@ namespace NCB {
             THashMap<const TTrainingDataProvider*,THolder<TQueryCrossEntropyMetricWorkspace>> Workspaces;
         };
 
+        class TMetalCombinationMetric final: public TMetric {
+        public:
+            struct TComponent {
+                NCatboostOptions::TLossDescription Loss;
+                THolder<IMetric> Metric;
+                double Weight;
+            };
+
+            TMetalCombinationMetric(
+                const NCatboostOptions::TLossDescription& description,
+                const IMetric& original)
+                : TMetric(ELossFunction::Combination, description.GetLossParams())
+            {
+                UseWeights = original.UseWeights;
+                auto componentDescription = description;
+                componentDescription.LossParams->Erase("use_weights");
+                componentDescription.LossParams->Erase("hints");
+                // Keep the training and progress component vocabulary identical.
+                ParseMetalCombinationComponents(componentDescription);
+                TVector<TComponent> pointwise;
+                IterateOverCombination(componentDescription.GetLossParamsMap(), [&](const auto& loss, float weight) {
+                    const auto function = loss.GetLossFunction();
+                    const bool querywise = function == ELossFunction::QueryRMSE ||
+                        function == ELossFunction::QuerySoftMax || function == ELossFunction::PairLogit ||
+                        function == ELossFunction::YetiRank;
+                    auto metricLoss = loss;
+                    if (function == ELossFunction::YetiRank) {
+                        // CUDA identifies classic YetiRank's score as PFound
+                        // and negates its coefficient in Combination. Its
+                        // ComputeStats currently cannot evaluate that score;
+                        // use the same default PFound metric as top-level YetiRank.
+                        metricLoss = NCatboostOptions::ParseLossDescription("PFound");
+                        weight = -weight;
+                    }
+                    auto metrics = CreateMetricFromDescription(metricLoss, 1);
+                    CB_ENSURE(metrics.size() == 1,
+                        "Metal Combination progress requires one value per component");
+                    if (!metrics[0]->UseWeights.IsIgnored()) {
+                        if (UseWeights.IsUserDefined()) {
+                            metrics[0]->UseWeights = UseWeights.Get();
+                        } else if (!metrics[0]->UseWeights.IsUserDefined()) {
+                            metrics[0]->UseWeights.SetDefaultValue(UseWeights.Get());
+                        }
+                    }
+                    TComponent component{loss, std::move(metrics[0]), weight};
+                    (querywise ? Components : pointwise).push_back(std::move(component));
+                });
+                for (auto& component : pointwise) {
+                    Components.push_back(std::move(component));
+                }
+                for (const auto& [key, value] : original.GetHints()) {
+                    AddHint(key, value);
+                }
+            }
+
+            void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override {
+                *valueType = EMetricBestValue::Min;
+                if (bestValue) {
+                    *bestValue = 0;
+                }
+            }
+
+            bool IsAdditiveMetric() const override {
+                // Components such as RMSE are finalized before summation.
+                return false;
+            }
+
+            EErrorType GetErrorType() const override {
+                return EErrorType::QuerywiseError;
+            }
+
+            bool NeedTarget() const override {
+                for (const auto& component : Components) {
+                    if (component.Metric->NeedTarget()) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            double GetFinalError(const TMetricHolder& error) const override {
+                return error.Stats[0];
+            }
+
+            TVector<TComponent> Components;
+        };
+
+        void ReplaceCombinationMetrics(TVector<THolder<IMetric>>* metrics)
+        {
+            for (auto& metric : *metrics) {
+                const auto description = metric->GetDescription();
+                if (TStringBuf(description).Before(':') == "Combination") {
+                    // Each factory result retains its own component parameters,
+                    // including separate eval/objective/custom configurations
+                    // and the weighted/unweighted custom-metric variants.
+                    metric = MakeHolder<TMetalCombinationMetric>(
+                        NCatboostOptions::ParseLossDescription(description), *metric);
+                }
+            }
+        }
+
         double EvaluateMetric(
             const IMetric& metric,
             const TTrainingDataProvider& data,
@@ -165,6 +267,14 @@ namespace NCB {
             const NCatboostOptions::TLossDescription& loss,
             TQueryCrossEntropyMetricCache& qceMetrics)
         {
+            if (const auto* combination = dynamic_cast<const TMetalCombinationMetric*>(&metric)) {
+                double result = 0;
+                for (const auto& component : combination->Components) {
+                    result += component.Weight * EvaluateMetric(*component.Metric, data, cursor,
+                        executor, component.Loss, qceMetrics);
+                }
+                return result;
+            }
             const auto target = data.TargetData->GetTarget();
             const auto groupInfo = data.TargetData->GetGroupInfo();
             const auto weights = GetWeights(*data.TargetData);
@@ -249,6 +359,7 @@ namespace NCB {
             InitializeEvalMetricIfNotSet(Options.LossFunctionDescription, &Options.MetricOptions->EvalMetric);
             Metrics = CreateMetrics(Options.MetricOptions, evalMetricDescriptor, ApproxDimension,
                 data.Learn->MetaInfo.HasWeights);
+            ReplaceCombinationMetrics(&Metrics);
             CheckMetrics(Metrics, Options.LossFunctionDescription->GetLossFunction());
             CB_ENSURE(!Metrics.empty(), "Eval metric is not defined");
             const auto metricPointers = GetConstPointers(Metrics);

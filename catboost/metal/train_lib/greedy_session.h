@@ -54,7 +54,7 @@ namespace NCB {
             TConstArrayRef<ui32> groupOffsets = {},
             const CBMPairOptions* pairOptions = nullptr,
             TConstArrayRef<ui32> pairWinners = {}, TConstArrayRef<ui32> pairLosers = {},
-            TConstArrayRef<float> pairWeights = {})
+            TConstArrayRef<float> pairWeights = {}, const CBMYetiRankOptions* yetiOptions = nullptr)
             : Params(params)
         {
             CB_ENSURE(Params.rows && Params.rows <= (1u << 24) && Params.features &&
@@ -73,7 +73,15 @@ namespace NCB {
                 objectiveOptions.leaf_estimation_method == Params.leaf_method,
                 "Metal greedy objective configuration must match the session parameters");
             char error[2048] = {};
-            if (pairOptions) {
+            if (yetiOptions) {
+                CB_ENSURE(!pairOptions && !queryOptions && groupOffsets.size() == ui64(yetiOptions->group_count) + 1,
+                    "Metal greedy YetiRank requires matching query offsets");
+                CB_ENSURE(cbm_greedy_session_create_yeti(&Params, &objectiveOptions, yetiOptions,
+                    groupOffsets.data(), groupOffsets.size(), bins.data(), targets.data(),
+                    weights.empty() ? nullptr : weights.data(), initialPredictions.empty() ? nullptr : initialPredictions.data(),
+                    candidateFeatures.data(), candidateBins.data(), candidateTypes.empty() ? nullptr : candidateTypes.data(),
+                    &Session.Value, error, sizeof(error)) == 0, "Metal greedy YetiRank initialization failed: " << error);
+            } else if (pairOptions) {
                 CB_ENSURE(!queryOptions && pairWinners.size() == pairOptions->pair_count &&
                     pairLosers.size() == pairWinners.size() && pairWeights.size() == pairWinners.size(),
                     "Metal greedy PairLogit requires matching original pair arrays");
@@ -157,6 +165,22 @@ namespace NCB {
             tree.Values.resize(tree.Info.leaf_count);
             tree.Weights.resize(tree.Info.leaf_count);
             return tree;
+        }
+
+        ui32 PrepareYetiTree(ui64 weakSeed) {
+            const uint64_t seed = weakSeed;
+            ui32 attempts = 0;
+            char error[2048] = {};
+            CB_ENSURE(cbm_greedy_session_set_yeti_oracle_seeds(Session.Value, 1, &seed, error, sizeof(error)) == 0 &&
+                cbm_greedy_session_prepare_yeti_tree(Session.Value, &attempts, error, sizeof(error)) == 0,
+                "Metal greedy YetiRank structure search failed: " << error);
+            return attempts;
+        }
+
+        void SetYetiLeafSeeds(TConstArrayRef<uint64_t> seeds) {
+            char error[2048] = {};
+            CB_ENSURE(cbm_greedy_session_set_yeti_leaf_seeds(Session.Value, seeds.size(), seeds.data(), error, sizeof(error)) == 0,
+                "Metal greedy YetiRank leaf seed setup failed: " << error);
         }
 
         void Step(

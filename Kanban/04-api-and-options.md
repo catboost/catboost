@@ -12,7 +12,9 @@ tags: [catboost, metal, parity]
 
 - [ ] Integrate shared text and embedding estimated-feature pipelines and model finalization.
 - [ ] Support native cross-validation.
-- [ ] Support Plain boosting with FeatureParallel partitioning.
+- [x] Support native scalar/query Plain boosting with FeatureParallel partitioning, including Combination/custom objectives (completed in card 3).
+- [ ] Expose native compound CTR and Plain FeatureParallel training through the standalone estimator frontend.
+- [ ] Connect CUDA-supported greedy Simple leaf estimation; current native greedy training rejects it explicitly.
 - [ ] Support fixed binary splits.
 - [ ] Support feature subsampling where CUDA supports it.
 - [ ] Support automatic CTR prior estimation.

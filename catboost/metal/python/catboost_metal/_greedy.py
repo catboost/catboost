@@ -21,7 +21,8 @@ from ._native import BootstrapOptions, ObjectiveOptions, QueryOptions, PairOptio
 
 MISSING_LEAF = np.iinfo(np.uint32).max
 OBJECTIVES = ("RMSE", "Logloss", "CrossEntropy", "Poisson", "Huber", "Expectile",
-              "Lq", "Tweedie", "LogLinQuantile", "Quantile", "MAE", "MAPE", "QueryRMSE", "QuerySoftMax", "PairLogit")
+              "Lq", "Tweedie", "LogLinQuantile", "Quantile", "MAE", "MAPE", "QueryRMSE", "QuerySoftMax", "PairLogit", "YetiRank")
+OBJECTIVE_IDS = {**{name: index for index, name in enumerate(OBJECTIVES[:-1])}, "YetiRank": 17}
 SCORES = ("L2", "Cosine", "NewtonL2", "NewtonCosine", "SolarL2", "LOOL2", "SatL2")
 BOOTSTRAPS = ("No", "Bayesian", "Bernoulli", "Poisson")
 OBJECTIVE_PARAMETERS = {"Huber": "delta", "Expectile": "alpha", "Lq": "q",
@@ -119,6 +120,7 @@ def build_library():
 
 @functools.lru_cache(maxsize=4)
 def _load(path):
+    from ._yeti import YetiOptions
     lib = ct.CDLL(str(path))
     u8, u32, f32 = ct.POINTER(ct.c_uint8), ct.POINTER(ct.c_uint32), ct.POINTER(ct.c_float)
     text = [ct.c_char_p, ct.c_size_t]
@@ -131,6 +133,12 @@ def _load(path):
     lib.cbm_greedy_session_create_pair.argtypes = [ct.POINTER(Params), ct.POINTER(ObjectiveOptions),
         ct.POINTER(PairOptions), u32, u32, f32, ct.c_uint64, u32, ct.c_uint64,
         u8, f32, f32, u32, u32, u8, ct.POINTER(ct.c_void_p)] + text
+    lib.cbm_greedy_session_create_yeti.argtypes = [ct.POINTER(Params), ct.POINTER(ObjectiveOptions),
+        ct.POINTER(YetiOptions), u32, ct.c_uint64, u8, f32, f32, f32,
+        u32, u32, u8, ct.POINTER(ct.c_void_p)] + text
+    lib.cbm_greedy_session_set_yeti_oracle_seeds.argtypes = [ct.c_void_p, ct.c_uint32, ct.POINTER(ct.c_uint64)] + text
+    lib.cbm_greedy_session_set_yeti_leaf_seeds.argtypes = lib.cbm_greedy_session_set_yeti_oracle_seeds.argtypes
+    lib.cbm_greedy_session_prepare_yeti_tree.argtypes = [ct.c_void_p, u32] + text
     lib.cbm_greedy_session_step.argtypes = [ct.c_void_p, ct.POINTER(StepInfo), ct.POINTER(Node), f32, f32] + text
     lib.cbm_greedy_session_copy_predictions.argtypes = [ct.c_void_p, f32] + text
     lib.cbm_greedy_session_info.argtypes = [ct.c_void_p, ct.POINTER(StepInfo)] + text
@@ -143,7 +151,8 @@ def _load(path):
     lib.cbm_greedy_session_copy_permutation_state.argtypes = [ct.c_void_p, ct.c_uint32, f32, f32, u8] + text
     lib.cbm_greedy_session_close.argtypes = [ct.c_void_p]
     lib.cbm_greedy_session_close.restype = None
-    for name in ("create", "create_configured", "create_query", "create_pair", "step", "copy_predictions", "info", "set_backtracking",
+    for name in ("create", "create_configured", "create_query", "create_pair", "create_yeti",
+                 "set_yeti_oracle_seeds", "set_yeti_leaf_seeds", "prepare_yeti_tree", "step", "copy_predictions", "info", "set_backtracking",
                  "set_bootstrap", "set_score_noise", "set_permutations", "select_permutation", "copy_permutation_state"):
         getattr(lib, "cbm_greedy_session_" + name).restype = ct.c_int
     return lib
@@ -205,7 +214,9 @@ class TrainingSession:
                  bootstrap_type="No", leaf_estimation_backtracking="No", random_strength=0.,
                  objective_param=None, random_seed=0, iteration_offset=0,
                  bagging_temperature=1., subsample=1., group_offsets=None, query_beta=1., query_lambda=.01,
-                 pair_winners=None, pair_losers=None, pair_weights=None):
+                 pair_winners=None, pair_losers=None, pair_weights=None,
+                 permutations=10, decay=.85, legacy_prefix_centering=False,
+                 initial_rng_state=None, dataset_permutations=1, subgroup_hashes=None):
         self._handle = ct.c_void_p(); self._lib = None; self._lock = threading.RLock()
         self._steps = []
         self._permutation_count = 1
@@ -218,6 +229,19 @@ class TrainingSession:
             if value not in supported:
                 raise ValueError(f"{name} must be one of {', '.join(supported)}.")
         parameter = objective_parameter(objective, objective_param)
+        yeti = objective == "YetiRank"
+        if yeti:
+            if leaf_estimation_method != "Newton" or leaf_estimation_backtracking != "No":
+                raise ValueError("YetiRank requires Newton leaves and no backtracking like CUDA.")
+            permutations = _integer("YetiRank permutations", permutations, 1, 10000)
+            decay = float(_finite_array("YetiRank decay", decay, ()))
+            if not 0 <= decay <= 1:
+                raise ValueError("YetiRank decay must be in [0, 1].")
+            if not isinstance(legacy_prefix_centering, bool):
+                raise ValueError("YetiRank legacy_prefix_centering must be boolean.")
+        elif (permutations != 10 or decay != .85 or legacy_prefix_centering is not False
+              or initial_rng_state is not None or dataset_permutations != 1 or subgroup_hashes is not None):
+            raise ValueError("YetiRank parameters require objective=YetiRank.")
         if leaf_estimation_method == "Newton" and (objective in ("LogLinQuantile", "Quantile", "MAE", "MAPE")
                                                     or (objective == "Lq" and parameter < 2)):
             raise ValueError("Newton is unsupported for this objective or objective parameter.")
@@ -265,6 +289,14 @@ class TrainingSession:
             raise ValueError("Poisson/Tweedie targets must be nonnegative.")
         paired = objective == "PairLogit"
         grouped = objective in ("QueryRMSE", "QuerySoftMax")
+        if yeti:
+            from ._query_data import validate_offsets, validate_subgroup_hashes
+            group_offsets = validate_offsets(group_offsets, rows)
+            self._subgroups = validate_subgroup_hashes(subgroup_hashes, rows)
+            if ((targets < 0) | (targets > 1)).any():
+                raise ValueError("Classic YetiRank with PFound requires relevance labels in [0, 1].")
+            if not (np.diff(group_offsets) > 1).any():
+                raise ValueError("YetiRank requires at least one query containing multiple rows.")
         if paired:
             from ._query_data import validate_offsets, prepare_pair_arrays
             if sample_weight is not None:
@@ -278,7 +310,7 @@ class TrainingSession:
             group_offsets = validate_offsets(group_offsets, rows)
             query_beta = float(_finite_array("query_beta", query_beta, ()))
             query_lambda = float(_finite_array("query_lambda", query_lambda, ()))
-        elif (group_offsets is not None and not paired) or query_beta != 1 or query_lambda != .01:
+        elif (group_offsets is not None and not paired and not yeti) or query_beta != 1 or query_lambda != .01:
             raise ValueError("Query options require QueryRMSE or QuerySoftMax.")
         weights = np.ones(rows, np.float32) if sample_weight is None else _finite_array("sample_weight", sample_weight, (rows,))
         if (weights < 0).any() or not 0 < weights.sum(dtype=np.float64) < 1e30:
@@ -309,12 +341,19 @@ class TrainingSession:
         if not 0 < scalars[0] <= 1 or scalars[1] < 0:
             raise ValueError("learning_rate must be in (0,1] and l2_leaf_reg nonnegative.")
         initial = None if initial_predictions is None else _finite_array("initial_predictions", initial_predictions, (rows,))
+        if yeti:
+            from ._greedy_yeti_rng import GreedyYetiRankRng
+            self.rng = GreedyYetiRankRng(self.random_seed, bootstrap_type, leaf_iterations,
+                initial_state=initial_rng_state, iteration_offset=self.iteration_offset,
+                dataset_permutations=dataset_permutations)
+            self._targets, self._weights, self._offsets = targets.copy(), weights.copy(), group_offsets.copy()
+            self._legacy_centering = legacy_prefix_centering
         self._params = Params(rows, features, len(cf), bins_per_feature, iterations, depth,
-            max_leaves, min_data_in_leaf, policies.index(grow_policy), objectives.index(objective),
+            max_leaves, min_data_in_leaf, policies.index(grow_policy), OBJECTIVE_IDS[objective],
             scores.index(score_function), methods.index(leaf_estimation_method), leaf_iterations,
             0, 0, 0, *map(float, scalars), 0)
         self.objective, self.grow_policy, self.objective_param = objective, grow_policy, parameter
-        self._objective_options = ObjectiveOptions(objectives.index(objective),
+        self._objective_options = ObjectiveOptions(OBJECTIVE_IDS[objective],
             methods.index(leaf_estimation_method), parameter, 0)
         self._bootstrap_options = BootstrapOptions(BOOTSTRAPS.index(bootstrap_type),
             self.random_seed & 0xffffffff, self.random_seed >> 32, self.iteration_offset,
@@ -331,6 +370,11 @@ class TrainingSession:
                 create = self._lib.cbm_greedy_session_create_query
                 query = QueryOptions(len(group_offsets) - 1, query_beta, query_lambda, 0)
                 arguments += [ct.byref(query), _u32(group_offsets), len(group_offsets)]
+            if yeti:
+                from ._yeti import YetiOptions
+                create = self._lib.cbm_greedy_session_create_yeti
+                yeti_options = YetiOptions(len(group_offsets) - 1, permutations, decay, legacy_prefix_centering)
+                arguments += [ct.byref(yeti_options), _u32(group_offsets), len(group_offsets)]
             if paired:
                 pair = PairOptions(len(pair_winners), 0 if group_offsets is None else len(group_offsets)-1, 0, 0)
                 _check(self._lib.cbm_greedy_session_create_pair(*arguments, ct.byref(pair), _u32(pair_winners),
@@ -348,7 +392,7 @@ class TrainingSession:
                 ct.byref(self._bootstrap_options), error, len(error)), error)
             _check(self._lib.cbm_greedy_session_set_score_noise(self._handle,
                 ct.byref(self._noise_options), error, len(error)), error)
-            self._initial_loss = float(self._info().loss)
+            self._initial_loss = self._metric() if yeti else float(self._info().loss)
         except Exception:
             self.close()
             raise
@@ -356,6 +400,11 @@ class TrainingSession:
     def _require_open(self):
         if not self._handle.value:
             raise RuntimeError("Greedy training session is closed.")
+
+    def _metric(self):
+        from ._training import _shared_metric
+        return _shared_metric("PFound", self.predictions(), self._targets, self._weights,
+                              self._offsets, subgroup_hashes=self._subgroups)
 
     def _info(self):
         self._require_open()
@@ -398,6 +447,8 @@ class TrainingSession:
                 raise ValueError("Permutation bins must have shape (1..64, features, rows) within the original bin range.")
             matrices = np.ascontiguousarray(matrices, np.uint8)
             count = len(matrices)
+            if self.objective == "YetiRank" and count != self.rng.dataset_permutations:
+                raise ValueError("Permutation matrices must match the YetiRank RNG dataset_permutations.")
             cursors = None if initial_predictions is None else _finite_array(
                 "Permutation raw cursors", initial_predictions, (count, p.rows))
             pointers = (ct.POINTER(ct.c_uint8) * count)(*(_u8(matrix) for matrix in matrices))
@@ -407,7 +458,7 @@ class TrainingSession:
                 cursor_pointers, None, None, error, len(error)), error)
             self._permutation_count = count
             self._permutations_configured = True
-            self._initial_loss = float(self._info().loss)
+            self._initial_loss = self._metric() if self.objective == "YetiRank" else float(self._info().loss)
 
     def select_permutation(self, index):
         with self._lock:
@@ -433,6 +484,23 @@ class TrainingSession:
             self._require_open()
             if self.completed_iterations >= self._params.iterations:
                 raise RuntimeError("Greedy session has no remaining iterations.")
+            attempts = None
+            if self.objective == "YetiRank":
+                if self._permutation_count != self.rng.dataset_permutations:
+                    raise ValueError("Configure every YetiRank permutation matrix before training.")
+                from ._data import cuda_search_permutation
+                self.select_permutation(cuda_search_permutation(self.rng.seed, self.rng.completed_iterations,
+                                                               self._permutation_count))
+                error = ct.create_string_buffer(2048)
+                weak = ct.c_uint64(self.rng.begin())
+                _check(self._lib.cbm_greedy_session_set_yeti_oracle_seeds(
+                    self._handle, 1, ct.byref(weak), error, len(error)), error)
+                attempts = ct.c_uint32()
+                _check(self._lib.cbm_greedy_session_prepare_yeti_tree(
+                    self._handle, ct.byref(attempts), error, len(error)), error)
+                seeds = np.ascontiguousarray(self.rng.leaves(attempts.value), np.uint64)
+                _check(self._lib.cbm_greedy_session_set_yeti_leaf_seeds(self._handle, len(seeds),
+                    seeds.ctypes.data_as(ct.POINTER(ct.c_uint64)), error, len(error)), error)
             capacity = self._params.max_leaves
             nodes = np.zeros((2 * capacity - 1, 6), np.uint32)
             values, weights = np.zeros(capacity, np.float32), np.zeros(capacity, np.float32)
@@ -444,6 +512,10 @@ class TrainingSession:
             result = StepResult(int(info.completed_iterations), bool(info.finished),
                 nodes[:info.node_count].copy(), values[:info.leaf_count].copy(),
                 weights[:info.leaf_count].copy(), float(info.loss), _stats(info.stats))
+            if self.objective == "YetiRank":
+                self.rng.complete()
+                result.loss = self._metric()
+                result.stats["yeti_search_attempts"] = attempts.value
             self._steps.append(result)
             return result
 
@@ -454,6 +526,9 @@ class TrainingSession:
                 np.array([self._initial_loss, *[step.loss for step in self._steps]], np.float32),
                 _stats(self._info().stats))
             result.stats["bootstrap_state"] = self.bootstrap_state
+            if self.objective == "YetiRank":
+                result.stats["yeti_rng"] = self.rng.state()
+                result.stats["yeti_centering"] = "legacy_prefix" if self._legacy_centering else "all_rows"
             return result
 
     def close(self):

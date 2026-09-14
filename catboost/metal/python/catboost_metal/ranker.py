@@ -51,8 +51,10 @@ def _query_loss(description):
 
 
 class CatBoostMetalRanker(CatBoostMetalRegressor):
-    """Plain Metal ranker with explicit contiguous query groups.
+    """Metal ranker with explicit contiguous query groups.
 
+    QueryRMSE, QuerySoftMax, PairLogit and classic YetiRank support Ordered
+    symmetric trees and Plain symmetric, Depthwise, Lossguide or Region trees.
     ``fit`` accepts arrays plus ``group_id``, optional object/group weights and
     ``subgroup_id`` for PFound's duplicate-subgroup handling,
     or a numeric Pool from a CatBoost build exposing ``get_group_weight``.
@@ -101,10 +103,12 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
                 options["eval_metric"] = "PFound"
         if boost_from_average:
             raise ValueError("Query objectives initialize raw predictions at zero.")
-        if options.get("boosting_type", "Plain") != "Plain":
-            raise ValueError("Query objectives currently require Plain boosting.")
-        if options.get("grow_policy", "SymmetricTree") != "SymmetricTree" and objective not in ("QueryRMSE", "QuerySoftMax", "PairLogit"):
-            raise ValueError("Greedy ranking currently supports QueryRMSE, QuerySoftMax and PairLogit.")
+        if options.get("boosting_type", "Plain") == "Ordered" and objective not in (
+                "QueryRMSE", "QuerySoftMax", "PairLogit", "YetiRank"):
+            raise ValueError("Ordered ranking supports QueryRMSE, QuerySoftMax, PairLogit and classic YetiRank.")
+        if options.get("grow_policy", "SymmetricTree") != "SymmetricTree" and objective not in (
+                "QueryRMSE", "QuerySoftMax", "PairLogit", "YetiRank"):
+            raise ValueError("Greedy ranking supports QueryRMSE, QuerySoftMax, PairLogit and classic YetiRank.")
         method = leaf_estimation_method or ("Simple" if yeti_pair else "Gradient" if objective == "QuerySoftMax" else "Newton")
         if objective == "YetiRank" and (method != "Newton" or options.get("leaf_estimation_backtracking", "No") != "No"):
             raise ValueError("YetiRank requires Newton leaves and no leaf backtracking like CUDA.")
@@ -260,6 +264,13 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
             native.update(permutations=self._loss_parameters.get("permutations", 10),
                           decay=self._loss_parameters.get("decay", .85),
                           legacy_prefix_centering=self.yeti_legacy_prefix_centering)
+        if self.boosting_type == "Ordered":
+            native.update(boosting_type="Ordered", permutation_count=self.permutation_count or 4,
+                          fold_len_multiplier=self.fold_len_multiplier, min_fold_size=self.min_fold_size,
+                          fold_permutation_block=self.fold_permutation_block,
+                          fold_size_loss_normalization=self.fold_size_loss_normalization)
+            if self._objective == "YetiRank":
+                native["yeti_permutations"] = native.pop("permutations")
         if yeti_pair:
             native.pop("query_beta")
             native.pop("query_lambda")
@@ -314,7 +325,12 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
             categorical=bool(cats), one_hot_max_size=self.one_hot_max_size,
             eval_metric=self.eval_metric, use_best_model=eval_set is not None if use_best_model is None else use_best_model,
             bootstrap=bootstrap, random_seed=self.random_seed, random_strength=self.random_strength,
-            grow_policy=self.grow_policy, max_leaves=self.max_leaves, min_data_in_leaf=self.min_data_in_leaf))
+            grow_policy=self.grow_policy, max_leaves=self.max_leaves, min_data_in_leaf=self.min_data_in_leaf,
+            boosting_type=self.boosting_type,
+            permutation_count=(self.permutation_count or 4) if self.boosting_type == "Ordered" else 1,
+            fold_len_multiplier=self.fold_len_multiplier, min_fold_size=self.min_fold_size,
+            fold_permutation_block=self.fold_permutation_block,
+            fold_size_loss_normalization=self.fold_size_loss_normalization))
         if coupled or qce or yeti_pair:
             parameters = json.loads(model_data["model_info"]["params"])
             parameters["tree_learner_options"]["bayesian_matrix_reg"] = self.bayesian_matrix_reg

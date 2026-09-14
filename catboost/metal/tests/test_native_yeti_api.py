@@ -123,7 +123,7 @@ def test_native_initial_model_and_baseline_snapshot(tmp_path):
 @pytest.mark.parametrize('options', [dict(loss_function='YetiRank:mode=NDCG'),
     dict(loss_function='YetiRank:permutations=0'), dict(loss_function='YetiRank:decay=-1'),
     dict(leaf_estimation_method='Gradient'), dict(leaf_estimation_backtracking='Armijo'),
-    dict(boosting_type='Ordered')])
+    dict(boosting_type='Ordered', score_function='L2')])
 def test_native_unsupported_options_rejected(options):
     x, y, groups, _ = data()
     with pytest.raises(CatBoostError):

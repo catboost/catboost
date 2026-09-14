@@ -103,3 +103,13 @@ def test_grouped_categorical_query_datasets_raw_quantized_snapshot(tmp_path,poli
     changed=x.copy();changed[0,0]='changed-original-category'
     with pytest.raises(CatBoostError,match='(?i)snapshot.*differ|differ.*snapshot'):
         CatBoostRanker().set_params(**saved).fit(Pool(changed,y,**po),eval_set=evaluation,use_best_model=False)
+
+
+@pytest.mark.parametrize('policy', POLICIES)
+@pytest.mark.parametrize('loss', LOSSES)
+def test_native_greedy_query_simple_leaves_rejected_before_runtime(policy, loss):
+    pool, *_ = pool_for(loss)
+    options = config(policy, loss, iterations=1, leaf_estimation_method='Simple',
+                     leaf_estimation_iterations=1, leaf_estimation_backtracking='No')
+    with pytest.raises(CatBoostError, match='Metal greedy training does not support Simple leaf estimation'):
+        CatBoostRanker().set_params(**options).fit(pool)

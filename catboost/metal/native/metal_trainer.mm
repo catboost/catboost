@@ -2,6 +2,7 @@
 #import <Metal/Metal.h>
 
 #include "metal_trainer.h"
+#include "metal_exception.h"
 #include "metal_kernels.h"
 #include "metal_objective_kernels.h"
 #include "metal_histogram_kernels.h"
@@ -17,6 +18,8 @@
 #include "metal_sort.h"
 #include "metal_streaming_score_kernels.h"
 #include "metal_dynamic_score_kernels.h"
+#include "metal_custom_objective.h"
+#include "metal_combination_runtime.h"
 #include "metal_querywise_kernels.h"
 #include "metal_pairwise_runtime.h"
 #include "metal_yeti_rank_runtime.h"
@@ -114,9 +117,35 @@ uint64_t FullMatrixTargetBudget(const CBMSessionParams& options) {
     return MaxWorkingBytes - coreBytes;
 }
 
+static const char* SimpleLeafSource = R"METAL(
+struct SimpleLeafParams { uint leaves; uint bootstrap; float l2; uint reserved; };
+kernel void EstimateSimpleWeakLeaves(const device float* sums [[buffer(0)]],
+    const device float* masses [[buffer(1)]], const device uint* offsets [[buffer(2)]],
+    const device uint* rows [[buffer(3)]], const device float* multipliers [[buffer(4)]],
+    device float* values [[buffer(5)]], device float* weights [[buffer(6)]],
+    constant SimpleLeafParams& p [[buffer(7)]], uint leaf [[threadgroup_position_in_grid]],
+    uint tid [[thread_position_in_threadgroup]]) {
+    if (leaf >= p.leaves) return;
+    threadgroup uint counts[256];
+    uint count = 0;
+    for (uint i = offsets[leaf] + tid; i < offsets[leaf + 1]; i += 256)
+        count += p.bootstrap == 0 || multipliers[rows[i]] != 0.0f;
+    counts[tid] = count;
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    for (uint width = 128; width; width >>= 1) {
+        if (tid < width) counts[tid] += counts[tid + width];
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
+    if (tid == 0) {
+        values[leaf] = counts[0] ? sums[leaf] / (masses[leaf] + p.l2) : 0.0f;
+        weights[leaf] = masses[leaf];
+    }
+}
+)METAL";
+
 void ValidateObjectiveOptions(const CBMObjectiveOptions* options) {
     Require(options != nullptr, "Objective configuration is required");
-        Require((options->objective <= 18) && options->leaf_estimation_method <= 3 && options->reserved == 0,
+        Require((options->objective <= 20) && options->leaf_estimation_method <= 3 && options->reserved == 0,
                 "Unsupported objective or leaf estimation method");
         Require(std::isfinite(options->objective_param), "Objective parameter must be finite");
         if (options->objective == 4) Require(options->objective_param >= 0, "Huber delta must be nonnegative");
@@ -134,7 +163,7 @@ void ValidateObjectiveOptions(const CBMObjectiveOptions* options) {
     if (options->leaf_estimation_method == 2)
         Require(options->objective >= 9 && options->objective <= 11, "Exact supports Quantile, MAE and MAPE");
     if (options->leaf_estimation_method == 3)
-        Require(options->objective == 15 || options->objective == 16 || options->objective == 18, "Simple leaves require a full-matrix target");
+        Require(options->objective != 17, "YetiRank requires Newton leaves");
     if (options->objective == 16) {
         Require(options->leaf_estimation_method == 0 || options->leaf_estimation_method == 3,
                 "QueryCrossEntropy requires Newton or Simple leaves like CUDA");
@@ -148,7 +177,8 @@ struct Runtime {
     id<MTLDevice> Device;
     id<MTLCommandQueue> Queue;
     std::unordered_map<std::string, id<MTLComputePipelineState>> Pipelines;
-    Runtime() {
+    explicit Runtime(const char* customSource = nullptr) {
+        const auto customPrefix = CBMCustomObjectivePrefix(customSource);
         Device = MTLCreateSystemDefaultDevice();
         Require(Device != nil, "No Metal GPU device is available");
         Require([Device hasUnifiedMemory] && [Device supportsFamily:MTLGPUFamilyApple7],
@@ -165,11 +195,14 @@ struct Runtime {
             CBMMetalScoreNoiseSource, CBMMetalBacktrackingSource,
             CBMMetalDeepPartitionSource, CBMMetalCompactHistogramSource, CBMMetalExactLeafSource,
             CBMMetalStreamingScoreSource, CBMMetalQuerywiseSource, CBMMetalDynamicScoreSource];
+        if (!customPrefix.empty()) source = [NSString stringWithFormat:@"%s\n%@", customPrefix.c_str(), source];
+        source = [NSString stringWithFormat:@"%@\n%s", source, SimpleLeafSource];
         NSError* error = nil;
         id<MTLLibrary> library = [Device newLibraryWithSource:source options:options error:&error];
         Require(library != nil, "Metal shader compilation failed: " + ErrorText(error));
         const char* names[] = {
             "InitializeObjectivePredictions", "ObjectiveDerivatives", "InitializeLeafValues",
+            "EstimateSimpleWeakLeaves",
             "ReduceLeafObjectivePartials", "EstimateNewtonLeafValues", "FinalizeLeafValues",
             "AddObjectiveBinModelValue", "ReduceObjectiveLoss", "CollectPartitionStatistics",
             "CountPartitionTiles", "PrefixPartitionTiles", "ScatterPartitionRows",
@@ -291,12 +324,14 @@ public:
             const CBMQueryOptions* queryOptions = nullptr, const uint32_t* groupOffsets = nullptr,
             std::shared_ptr<CBMPairwiseRuntime> pairwise = nullptr,
             std::shared_ptr<CBMYetiRankRuntime> yeti = nullptr,
-            std::shared_ptr<CBMFullMatrixRuntime> coupled = nullptr, float coupledNonDiag = 0.1f) {
+            std::shared_ptr<CBMFullMatrixRuntime> coupled = nullptr, float coupledNonDiag = 0.1f,
+            std::shared_ptr<CBMCombinationRuntime> combination = nullptr, const char* customSource = nullptr) {
         Require(input != nullptr, "Training parameters are required");
         Options = *input;
         Pairwise = std::move(pairwise);
         Yeti = std::move(yeti);
         Coupled = std::move(coupled); CoupledNonDiag = coupledNonDiag;
+        Combination = std::move(combination);
         Require(std::isfinite(coupledNonDiag) && coupledNonDiag >= 0, "Invalid pairwise non-diagonal regularization");
         if (objectiveOptions) {
             ValidateObjectiveOptions(objectiveOptions);
@@ -314,7 +349,9 @@ public:
         Require(p.depth <= 16, "This Metal port supports tree depth from 0 through 16");
         Deep = Compact = p.depth > 8;
         Require(p.score_function <= 6, "Unsupported Metal split score function");
-        Require(Options.objective <= 18, "objective is not implemented by the Metal backend");
+        Require(Options.objective <= 20, "objective is not implemented by the Metal backend");
+        Require((Options.objective == 19) == bool(Combination), "Combination requires its component-aware constructor");
+        Require((Options.objective == 20) == bool(customSource), "Custom objectives require a Metal source constructor");
         Require((Options.objective == 15 || Options.objective == 16 || Options.objective == 18) == bool(Coupled), "This objective requires its full-matrix constructor");
         Require(Options.objective != 16 || p.score_function != 0, "QueryCrossEntropy does not support L2 structure score like CUDA");
         Require(!Coupled || p.depth <= 8, "Full-matrix pairwise training requires depth <= 8 like CUDA");
@@ -340,8 +377,8 @@ public:
         Require((!Yeti && Options.objective != 18) || Options.leaf_estimation_backtracking == 0, "YetiRank objectives do not support leaf backtracking");
         Require(Options.reserved == 0, "Reserved session options must be zero");
         Require(!objectiveOptions || objectiveOptions->leaf_estimation_method != 3 ||
-                (Options.leaf_estimation_iterations == 1 && p.depth > 0 && p.candidates > 0),
-                "Simple leaves require one estimation iteration and depth 1..8 with split candidates");
+                (Options.leaf_estimation_iterations == 1 && (!Coupled || (p.depth > 0 && p.candidates > 0))),
+                "Simple leaves require one estimation iteration; full-matrix Simple also requires split candidates");
         Require(std::isfinite(p.learning_rate) && p.learning_rate > 0 && p.learning_rate <= 1,
                 "learning_rate must be finite and in (0, 1]");
         Require(std::isfinite(p.l2_leaf_reg) && p.l2_leaf_reg >= 0,
@@ -389,6 +426,7 @@ public:
         if (queryOptions) WorkingBytes += 4ull * p.rows + 12ull * queryOptions->group_count + 8 + 8ull * LossGroups;
         if (Pairwise) WorkingBytes += Pairwise->AllocatedBytes();
         if (Yeti) WorkingBytes += Yeti->AllocatedBytes();
+        if (Combination) WorkingBytes += Combination->AllocatedBytes() + 4ull * p.rows;
         if (Coupled) {
             WorkingBytes -= 8ull * (p.rows - 1) + 8ull * (MaxLeaves - 1)
                 + 32ull * (uint64_t(MaxLeaves) * histogramTiles - 1);
@@ -473,7 +511,8 @@ public:
         if (!candidateTypes)
             Require(p.candidates <= CheckedProduct(p.features, p.bins_per_feature - 1, "Candidate count"),
                     "Candidate count exceeds feature/border combinations");
-        Context = &GetRuntime();
+        if (customSource) OwnedContext = std::make_unique<Runtime>(customSource);
+        Context = OwnedContext ? OwnedContext.get() : &GetRuntime();
         CopyText(Stats.device_name, sizeof(Stats.device_name), [Context->Device.name UTF8String]);
         Data = Context->Buffer(DataCells, bins);
         Target = Context->Buffer(4ull * p.rows, targets);
@@ -483,6 +522,7 @@ public:
         StructureWeight = SampleWeight;
         Gradient = Context->Buffer(Coupled ? 4 : 4ull * p.rows);
         Hessian = Context->Buffer(Coupled ? 4 : 4ull * p.rows);
+        if (Combination) CombinationGradientWeights = Context->Buffer(4ull * p.rows);
         LeafIds = Context->Buffer(4ull * p.rows);
         RowIndices = Context->Buffer(4ull * p.rows);
         NextRowIndices = Context->Buffer(4ull * p.rows);
@@ -601,9 +641,11 @@ public:
         Require((options->objective == 14) == bool(Pairwise), "Objective configuration cannot change supplied-pair sessions");
         Require((options->objective == 15 || options->objective == 16 || options->objective == 18) == bool(Coupled), "Objective configuration cannot change full-matrix pairwise sessions");
         Require((options->objective == 17) == bool(Yeti), "Objective configuration cannot change YetiRank sessions");
+        Require((options->objective == 19) == bool(Combination), "Objective configuration cannot change Combination sessions");
+        Require((options->objective == 20) == bool(OwnedContext), "Objective configuration cannot change custom Metal sessions");
         Require(options->leaf_estimation_method != 3 ||
-                (Options.leaf_estimation_iterations == 1 && Options.train.depth > 0 && K.Candidates > 0),
-                "Simple leaves require one estimation iteration and depth 1..8 with split candidates");
+                (Options.leaf_estimation_iterations == 1 && (!Coupled || (Options.train.depth > 0 && K.Candidates > 0))),
+                "Simple leaves require one estimation iteration; full-matrix Simple also requires split candidates");
         Require(!Coupled || (options->objective == K.Objective && options->objective_param == K.ObjectiveParam),
                 "Changing a full-matrix target requires a new session");
         Require(!QueryOffsets || options->objective == K.Objective,
@@ -641,7 +683,7 @@ public:
         }
         Options.objective = K.Objective = options->objective;
         K.ObjectiveParam = options->objective_param;
-        K.LeafMethod = options->leaf_estimation_method;
+        K.LeafMethod = Dynamic && options->leaf_estimation_method == 3 ? 1 : options->leaf_estimation_method;
         Command command(*Context, Stats);
         EncodeLoss(command); command.Wait(); Losses[0] = ReadLoss();
     }
@@ -651,6 +693,7 @@ public:
         Require((count == 1 || count == YetiLeafSeedCount() + 1) && seeds,
             "YetiRank needs its weak seed alone or the complete weak/leaf oracle seed schedule");
         YetiSeeds.assign(seeds, seeds + count);
+        if (Dynamic && count > 1) ReorderFeatureParallelYetiSeeds();
         YetiSeedPosition = 0;
     }
     void SetYetiLeafSeeds(uint32_t count, const uint64_t* seeds) {
@@ -661,6 +704,21 @@ public:
         Require(YetiSeeds.size() == 1 && YetiSeedPosition <= 1 && count == YetiLeafSeedCount() && seeds,
             "YetiRank leaf seed schedule is invalid or already supplied");
         YetiSeeds.insert(YetiSeeds.end(), seeds, seeds + count);
+        if (Dynamic) ReorderFeatureParallelYetiSeeds();
+    }
+    void SetCombinationYetiSeeds(uint32_t count, const uint64_t* seeds) {
+        Require(Combination && Combination->HasYeti() && !Failed,
+            "A valid Combination with YetiRank is required for oracle seeds");
+        Require(!Pending.Active || Pending.Finished,
+            "Combination YetiRank seeds can only change at a tree or leaf-estimation boundary");
+        Combination->SetYetiSeeds(count, seeds);
+    }
+    void SetCombinationYetiSeedCallback(CBMCombinationYetiSeedCallback callback, void* context) {
+        Require(Combination && Combination->HasYeti() && !Failed,
+            "A valid Combination with YetiRank is required for an oracle seed callback");
+        Require(!Pending.Active || Pending.Finished,
+            "Combination YetiRank seed callbacks can only change at a tree or leaf-estimation boundary");
+        Combination->SetYetiSeedCallback(callback, context);
     }
     void ConfigureBootstrap(const CBMBootstrapOptions* options) {
         RequireCompletedState();
@@ -1004,6 +1062,9 @@ public:
         CtrUniqueValues = std::move(newCounts); BinFeatureWeights = std::move(newFeatureWeights);
         UsedFeatures = std::move(newUsed); FeatureFlags = std::move(newFlags); ActiveFeatures = std::move(newFeatureActivity);
         Dynamic = Compact = true;
+        // FeatureParallel still estimates Simple leaves through its one-step
+        // Gradient walker; DocParallel exports sampled weak statistics.
+        if (K.LeafMethod == 3) K.LeafMethod = 1;
         Pending.HistogramValid = false;
         UpdateFeaturePenalties();
         ReopenCandidateExhaustion();
@@ -1128,6 +1189,7 @@ public:
         if (stats) *stats = Stats;
     }
 private:
+    std::unique_ptr<Runtime> OwnedContext;
     Runtime* Context = nullptr;
     KernelParams K = {};
     uint64_t DataCells = 0, HistogramCells = 0;
@@ -1201,6 +1263,8 @@ private:
     CBMQueryOptions QueryOptions = {};
     std::shared_ptr<CBMPairwiseRuntime> Pairwise;
     std::shared_ptr<CBMYetiRankRuntime> Yeti;
+    std::shared_ptr<CBMCombinationRuntime> Combination;
+    id<MTLBuffer> CombinationGradientWeights;
     std::shared_ptr<CBMFullMatrixRuntime> Coupled;
     float CoupledNonDiag = 0.1f;
     std::vector<uint64_t> YetiSeeds;
@@ -1239,6 +1303,15 @@ private:
     uint32_t YetiPermutationLeafSeedCount() const {
         return Options.leaf_estimation_iterations + uint32_t(Options.leaf_estimation_iterations > 1);
     }
+    void ReorderFeatureParallelYetiSeeds() {
+        // FeatureParallel's batch estimator evaluates each history once per
+        // walker iteration. DocParallel retains its dataset-major packet ABI.
+        const auto source = YetiSeeds;
+        const uint32_t evaluations = YetiPermutationLeafSeedCount(), histories = PermutationCount();
+        for (uint32_t history = 0; history < histories; ++history)
+            for (uint32_t evaluation = 0; evaluation < evaluations; ++evaluation)
+                YetiSeeds[1 + history * evaluations + evaluation] = source[1 + evaluation * histories + history];
+    }
     double ReadBacktrackingScalar(id<MTLBuffer> buffer, uint32_t count) const {
         const float* parts = static_cast<const float*>(buffer.contents);
         double value = 0;
@@ -1259,6 +1332,12 @@ private:
             q, q.Groups, true);
     }
     void EncodeDerivatives(Command& command) {
+        if (Combination) {
+            command.Dispatch("ResetQuerywiseLeafIds", {LeafIds}, QueryParams(false), K.Rows);
+            Combination->EncodePointDerivatives(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves,
+                false, Target, SampleWeight, Gradient, Hessian, CombinationGradientWeights, &Stats.kernel_dispatches);
+            return;
+        }
         if (Coupled) {
             command.Dispatch("ResetQuerywiseLeafIds", {LeafIds}, QueryParams(false), K.Rows);
             Coupled->SetTargetPoint(Prediction, BootstrapOptions, BootstrapOptions.iteration_offset + Completed, SearchPermutation);
@@ -1295,6 +1374,7 @@ private:
         }
     }
     void ValidateQueryStructure() const {
+        if (Combination) Combination->CheckStatus();
         if (Coupled) Coupled->CheckStatus();
         if (Pairwise) Pairwise->CheckStatus();
         if (Yeti) Yeti->CheckStatus();
@@ -1318,7 +1398,10 @@ private:
     }
     void EncodeBacktrackingObjective(Command& command, id<MTLBuffer> leafValues,
                                     const NativeBacktrackingParams& b, bool trial = false) {
-        if (Pairwise) {
+        if (Combination) {
+            Combination->EncodeLoss(command.Buffer, Prediction, leafValues, LeafIds, K.Leaves,
+                true, Target, SampleWeight, &Stats.kernel_dispatches, trial);
+        } else if (Pairwise) {
             Pairwise->EncodePointDerivatives(command.Buffer, Prediction, leafValues, LeafIds, K.Leaves,
                 true, Gradient, Hessian, SampleWeight, &Stats.kernel_dispatches, trial);
             Pairwise->EncodeLossReduction(command.Buffer, &Stats.kernel_dispatches);
@@ -1330,6 +1413,7 @@ private:
             K, LossGroups, true, 1, 1, &b, sizeof(b));
     }
     double ReadCurrentBacktrackingObjective() const {
+        if (Combination) return Combination->ReadObjective(true);
         if (Pairwise) return -Pairwise->ReadLossPartials(true)[0];
         return QueryOffsets ? -QueryLossNumerator() : ReadBacktrackingScalar(BacktrackingLoss, LossGroups);
     }
@@ -1416,6 +1500,62 @@ private:
             }
         }
     }
+    void EstimateCombinationYetiLeaves() {
+        NativeBacktrackingParams b = {1.0f, Options.leaf_estimation_backtracking, 0, 0};
+        auto oracle = [&](Command& command, id<MTLBuffer> values, bool trial = false) {
+            Combination->EncodeOracle(command.Buffer, Prediction, values, LeafIds, K.Leaves, true,
+                Target, SampleWeight, Gradient, Hessian, CombinationGradientWeights, &Stats.kernel_dispatches, trial);
+        };
+        auto project = [&](Command& command) {
+            const NativeQueryProjectionParams q = {K.Rows, K.Leaves, K.HistogramTiles, K.LeafMethod};
+            command.Dispatch("ReduceQuerywiseLeafPartials",
+                {Gradient, Hessian, SampleWeight, RowIndices, PartitionOffsets, ObjectivePartials},
+                q, K.HistogramTiles, true, K.Leaves);
+        };
+        Command initial(*Context, Stats);
+        oracle(initial, RawValues); initial.Wait();
+        double currentValue = Combination->ReadObjective();
+        // CUDA performs one initial evaluation for I=1. Longer walks jointly
+        // evaluate value/gradient/Hessian at EVERY trial, including the last.
+        if (!UsesBacktracking()) {
+            for (uint32_t iteration = 0; iteration < Options.leaf_estimation_iterations; ++iteration) {
+                Command update(*Context, Stats);
+                project(update);
+                update.Dispatch("EstimateNewtonLeafValues", {ObjectivePartials, RawValues, Weights}, K, K.Leaves, true);
+                if (Options.leaf_estimation_iterations > 1) oracle(update, RawValues);
+                update.Wait(); Combination->CheckStatus();
+            }
+            return;
+        }
+        bool updated = false, newDirection = true;
+        double directionDot = 0;
+        for (uint32_t attempt = 0; attempt < Options.leaf_estimation_iterations || (!updated && attempt < 100); ++attempt) {
+            Command trial(*Context, Stats);
+            if (newDirection) {
+                // Accepted-trial derivatives already reside in these buffers;
+                // rejected trials keep the preceding direction until accepted.
+                project(trial);
+                trial.Dispatch("PrepareBacktrackingDirection", {ObjectivePartials, RawValues, Directions, Weights, DirectionDot},
+                    K, K.Leaves, true, 1, 1, &b, sizeof(b));
+            }
+            trial.Dispatch("BuildBacktrackingCandidate", {RawValues, Directions, Weights, TrialValues},
+                K, K.Leaves, false, 1, 1, &b, sizeof(b));
+            oracle(trial, TrialValues, true);
+            trial.Wait();
+            if (newDirection) {
+                directionDot = ReadBacktrackingScalar(DirectionDot, K.Leaves);
+                Require(std::isfinite(directionDot), "Non-finite Combination leaf direction");
+            }
+            const double value = Combination->ReadObjective(true);
+            const double threshold = currentValue + (b.Type == 2 ? 1e-5 * b.Step * directionDot : 0);
+            if (std::isfinite(value) && value >= threshold) {
+                std::swap(RawValues, TrialValues);
+                currentValue = value; updated = true; newDirection = true; b.Step = 1;
+            } else {
+                b.Step *= 0.5f; newDirection = false;
+            }
+        }
+    }
     void EncodeExactLeaves(Command& command) {
         const CBMExactLeafParams e = {K.Rows, K.Leaves, uint32_t(K.Objective == 11), K.HistogramTiles,
                                      K.Objective == 9 ? K.ObjectiveParam : 0.5f, 0, 0, 0};
@@ -1477,8 +1617,10 @@ private:
             PartitionOffsets, HistogramActive, HistogramState}, h, HistogramArguments, 24);
     }
     void EncodeObjectivePartials(Command& command) {
-        if (QueryOffsets || Pairwise || Yeti) {
-            if (Yeti) EncodeYetiPoint(command, true);
+        if (QueryOffsets || Pairwise || Yeti || Combination) {
+            if (Combination) Combination->EncodePointDerivatives(command.Buffer, Prediction, RawValues, LeafIds,
+                K.Leaves, true, Target, SampleWeight, Gradient, Hessian, CombinationGradientWeights, &Stats.kernel_dispatches);
+            else if (Yeti) EncodeYetiPoint(command, true);
             else if (Pairwise) Pairwise->EncodePointDerivatives(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves,
                 true, Gradient, Hessian, SampleWeight, &Stats.kernel_dispatches);
             else EncodeQueryPoint(command, RawValues, true);
@@ -1501,7 +1643,8 @@ private:
     void EncodeBootstrap(Command& command) {
         if (Coupled) return; // The frozen weak target samples edges before differentiation.
 
-        const id<MTLBuffer> weakWeight = (Yeti || K.ScoreFunction == 2 || K.ScoreFunction == 3) ? Hessian : SampleWeight;
+        const id<MTLBuffer> weakWeight = (Yeti || K.ScoreFunction == 2 || K.ScoreFunction == 3) ? Hessian :
+            Combination ? CombinationGradientWeights : SampleWeight;
         if (!BootstrapOptions.bootstrap_type) { StructureWeight = weakWeight; return; }
         const auto params = BootstrapParams();
         if (BootstrapOptions.bootstrap_type == 4) {
@@ -1516,6 +1659,11 @@ private:
                          params, K.Rows);
     }
     void EncodeLoss(Command& command) {
+        if (Combination) {
+            Combination->EncodeLoss(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves,
+                false, Target, SampleWeight, &Stats.kernel_dispatches);
+            return;
+        }
         if (Coupled && !Coupled->HasObjectiveValue()) return;
         if (Coupled) {
             Coupled->EncodeEdges(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves, false,
@@ -1538,6 +1686,7 @@ private:
         command.Dispatch("ReduceObjectiveLoss", {Target, SampleWeight, Prediction, LossPartials}, K, LossGroups, true);
     }
     float ReadLoss() const {
+        if (Combination) return Combination->ReadMetric();
         if (Coupled && !Coupled->HasObjectiveValue()) { Coupled->CheckStatus();return 0.f; }
         if (Coupled) {
             const auto parts = Coupled->ReadLoss();
@@ -1570,7 +1719,7 @@ private:
         const float* partials = static_cast<const float*>(LossPartials.contents);
         double sum = 0;
         for (uint32_t i = 0; i < LossGroups; ++i) {
-            Require(std::isfinite(partials[i]) && (Options.objective == 3 || partials[i] >= 0),
+            Require(std::isfinite(partials[i]) && (Options.objective == 3 || Options.objective == 20 || partials[i] >= 0),
                     "Non-finite GPU loss; rescale targets, predictions or weights");
             sum += partials[i];
         }
@@ -1582,6 +1731,7 @@ private:
         const auto& p = Options.train;
         if (Pairwise) Pairwise->ClearStatus();
         if (Coupled) Coupled->ClearStatus();
+        if (Combination) Combination->ClearStatus();
         if (Yeti) {
             Require(YetiSeedPosition == 0 && (YetiSeeds.size() == 1 || YetiSeeds.size() == YetiLeafSeedCount() + 1),
                 "Supply a fresh YetiRank oracle seed schedule before every tree");
@@ -1596,13 +1746,18 @@ private:
         const bool initializeMVS = BootstrapOptions.bootstrap_type == 4
             && !BootstrapOptions.mvs_reg_is_set && !HasMVSLambda;
         const bool scoreNoise = !Coupled && RandomStrength > 0 && (K.ScoreFunction == 1 || K.ScoreFunction == 3);
+        // A staged Combination callback replaces the weak packet after search.
+        // Consume that packet at begin even for a stump/no-candidate tree.
+        const bool combinationWeak = Combination && Combination->HasYeti();
         float scoreNoiseScale = 0;
-        if (initializeMVS || scoreNoise) {
+        if (initializeMVS || scoreNoise || combinationWeak) {
             Command statistics(*Context, Stats);
             EncodeDerivatives(statistics);
             if (initializeMVS) statistics.Dispatch("ReduceBootstrapStatistics", {Gradient, BootstrapStatistics},
                                                    BootstrapParams(), LossGroups, true);
-            if (scoreNoise) statistics.Dispatch("ReduceScoreNoiseStatistics", {Gradient, (Yeti || K.ScoreFunction == 2 || K.ScoreFunction == 3) ? Hessian : SampleWeight, NoiseStatistics},
+            if (scoreNoise) statistics.Dispatch("ReduceScoreNoiseStatistics", {Gradient,
+                (Yeti || K.ScoreFunction == 2 || K.ScoreFunction == 3) ? Hessian :
+                    Combination ? CombinationGradientWeights : SampleWeight, NoiseStatistics},
                                                 BootstrapParams(), LossGroups, true);
             statistics.Wait();
             ValidateQueryStructure();
@@ -1622,9 +1777,12 @@ private:
                 const float* partials = static_cast<const float*>(NoiseStatistics.contents);
                 double variance = 0;
                 for (uint32_t i = 0; i < LossGroups; ++i) {
-                    Require(std::isfinite(partials[i]) && partials[i] >= 0, "Non-finite GPU score noise statistic");
+                    Require(std::isfinite(partials[i]) && (Combination || partials[i] >= 0),
+                        "Non-finite GPU score noise statistic");
                     variance += partials[i];
                 }
+                Require(std::isfinite(variance) && variance >= 0,
+                    "GPU score noise requires a finite nonnegative signed weighted variance");
                 // CUDA random_score_helper.h and doc_parallel_boosting.h use
                 // model size = absolute iteration * learning rate, before bootstrap.
                 const double logRemaining = std::log(double(K.Rows))
@@ -1638,7 +1796,7 @@ private:
         Pending = PendingTree{};
         // Stochastic targets must reuse the draw used for noise/MVS statistics,
         // instead of silently drawing a second weak target for the same tree.
-        Pending.DerivativesReady = bool(Yeti) && (initializeMVS || scoreNoise);
+        Pending.DerivativesReady = (Yeti || combinationWeak) && (initializeMVS || scoreNoise || combinationWeak);
         Pending.Active = true;
         Pending.Exhausted = !HasActiveCandidates();
         Pending.Finished = p.depth == 0 || Pending.Exhausted;
@@ -1795,6 +1953,141 @@ private:
         Pending.HasSplit = true;
         Pending.Finished = Pending.Depth == p.depth;
     }
+    PermutationTree EstimateFeatureParallelCombinationLeaves() {
+        // CUDA FeatureParallel has one walker over all full-data tasks. Keep
+        // each task's accepted point and derivatives on the GPU, and reduce
+        // only scalar objective/direction values to make one shared decision.
+        struct Task {
+            id<MTLBuffer> Ids, Rows, Offsets, Raw, Weights, Gradient, Hessian, Trial, Direction, Dot;
+        };
+        const uint32_t count = PermutationCount(), leaves = K.Leaves;
+        const uint64_t extra = uint64_t(count) * (16ull * K.Rows + 28ull * leaves + 4)
+            + 32ull * Pending.Depth;
+        Require(WorkspaceBytes() + extra <= MaxWorkingBytes,
+            "FeatureParallel Combination leaf tasks exceed the 1 GiB GPU memory limit");
+        DynamicPeakBytes = std::max(DynamicPeakBytes, WorkspaceBytes() + extra);
+        std::vector<Task> tasks(count);
+        auto fixedSplits = Context->Buffer(32ull * Pending.Depth, Pending.Selected.data());
+        Command layout(*Context, Stats);
+        for (uint32_t i = 0; i < count; ++i) {
+            if (!Permutations.empty()) { Data = Permutations[i].Bins; Prediction = Permutations[i].Cursor; }
+            auto& t = tasks[i];
+            t.Ids = Context->Buffer(4ull * K.Rows); t.Rows = Context->Buffer(4ull * K.Rows);
+            t.Offsets = Context->Buffer(4ull * (leaves + 1));
+            t.Gradient = Context->Buffer(4ull * K.Rows); t.Hessian = Context->Buffer(4ull * K.Rows);
+            t.Raw = Context->Buffer(4ull * leaves); t.Weights = Context->Buffer(4ull * leaves);
+            t.Trial = Context->Buffer(4ull * leaves); t.Direction = Context->Buffer(4ull * leaves);
+            t.Dot = Context->Buffer(8ull * leaves);
+            layout.Dispatch("ResetQuerywiseLeafIds", {LeafIds}, QueryParams(false), K.Rows);
+            K.Leaves = 1; EncodePartitions(layout);
+            for (uint32_t level = 0; level < Pending.Depth; ++level) {
+                K.SplitLevel = level;
+                layout.Dispatch("UpdateFixedPermutationSplit", {Data, LeafIds, fixedSplits}, K, K.Rows);
+                K.Leaves = uint32_t(1) << (level + 1); EncodePartitions(layout);
+            }
+            layout.Dispatch("InitializeLeafValues", {t.Raw, t.Weights}, K, leaves);
+            id<MTLBlitCommandEncoder> copy = [layout.Buffer blitCommandEncoder];
+            Require(copy != nil, "Could not allocate FeatureParallel leaf layout encoder");
+            [copy copyFromBuffer:LeafIds sourceOffset:0 toBuffer:t.Ids destinationOffset:0 size:4ull * K.Rows];
+            [copy copyFromBuffer:RowIndices sourceOffset:0 toBuffer:t.Rows destinationOffset:0 size:4ull * K.Rows];
+            [copy copyFromBuffer:PartitionOffsets sourceOffset:0 toBuffer:t.Offsets destinationOffset:0 size:4ull * (leaves + 1)];
+            [copy endEncoding];
+        }
+        layout.Wait();
+        const Task saved = {LeafIds, RowIndices, PartitionOffsets, RawValues, Weights, Gradient, Hessian,
+                            TrialValues, Directions, DirectionDot};
+        auto bind = [&](const Task& t) {
+            LeafIds = t.Ids; RowIndices = t.Rows; PartitionOffsets = t.Offsets;
+            RawValues = t.Raw; Weights = t.Weights; Gradient = t.Gradient; Hessian = t.Hessian;
+            TrialValues = t.Trial; Directions = t.Direction; DirectionDot = t.Dot;
+        };
+        auto select = [&](uint32_t i) {
+            bind(tasks[i]);
+            if (!Permutations.empty()) { Data = Permutations[i].Bins; Prediction = Permutations[i].Cursor; }
+        };
+        auto project = [&](Command& command) {
+            const NativeQueryProjectionParams q = {K.Rows, leaves, K.HistogramTiles, K.LeafMethod};
+            command.Dispatch("ReduceQuerywiseLeafPartials",
+                {Gradient, Hessian, SampleWeight, RowIndices, PartitionOffsets, ObjectivePartials},
+                q, K.HistogramTiles, true, leaves);
+        };
+        auto evaluate = [&](bool trial) {
+            double value = 0;
+            for (uint32_t i = 0; i < count; ++i) {
+                select(i); Command oracle(*Context, Stats);
+                Combination->EncodeOracle(oracle.Buffer, Prediction, trial ? TrialValues : RawValues,
+                    LeafIds, leaves, true, Target, SampleWeight, Gradient, Hessian,
+                    CombinationGradientWeights, &Stats.kernel_dispatches, trial);
+                oracle.Wait(); value += Combination->ReadObjective(trial);
+            }
+            return value;
+        };
+        double currentValue = evaluate(false);
+        if (!UsesBacktracking()) {
+            for (uint32_t iteration = 0; iteration < Options.leaf_estimation_iterations; ++iteration) {
+                for (uint32_t i = 0; i < count; ++i) {
+                    select(i); Command update(*Context, Stats); project(update);
+                    update.Dispatch("EstimateNewtonLeafValues", {ObjectivePartials, RawValues, Weights}, K, leaves, true);
+                    update.Wait();
+                }
+                if (Options.leaf_estimation_iterations > 1) evaluate(false);
+            }
+        } else {
+            NativeBacktrackingParams b = {1, Options.leaf_estimation_backtracking, 0, 0};
+            bool updated = false, newDirection = true;
+            double directionDot = 0;
+            for (uint32_t attempt = 0; attempt < Options.leaf_estimation_iterations || (!updated && attempt < 100); ++attempt) {
+                if (newDirection) directionDot = 0;
+                for (uint32_t i = 0; i < count; ++i) {
+                    select(i); Command trial(*Context, Stats);
+                    if (newDirection) {
+                        project(trial);
+                        trial.Dispatch("PrepareBacktrackingDirection", {ObjectivePartials, RawValues, Directions, Weights, DirectionDot},
+                            K, leaves, true, 1, 1, &b, sizeof(b));
+                    }
+                    trial.Dispatch("BuildBacktrackingCandidate", {RawValues, Directions, Weights, TrialValues},
+                        K, leaves, false, 1, 1, &b, sizeof(b));
+                    trial.Wait();
+                    if (newDirection) directionDot += ReadBacktrackingScalar(DirectionDot, leaves);
+                }
+                Require(std::isfinite(directionDot), "Non-finite FeatureParallel Combination direction");
+                const double value = evaluate(true);
+                const double threshold = currentValue + (b.Type == 2 ? 1e-5 * b.Step * directionDot : 0);
+                if (std::isfinite(value) && value >= threshold) {
+                    for (auto& t : tasks) std::swap(t.Raw, t.Trial);
+                    currentValue = value; updated = true; newDirection = true; b.Step = 1;
+                } else { b.Step *= 0.5f; newDirection = false; }
+            }
+        }
+        PermutationTree exported;
+        for (uint32_t i = 0; i < count; ++i) {
+            select(i); Command finish(*Context, Stats);
+            finish.Dispatch("FinalizeLeafValues", {RawValues, Values}, K, leaves);
+            finish.Dispatch("AddObjectiveBinModelValue", {LeafIds, Values, Prediction}, K, K.Rows);
+            EncodeLoss(finish); finish.Wait();
+            const auto* values = static_cast<const float*>(Values.contents);
+            const auto* weights = static_cast<const float*>(Weights.contents);
+            double mass = 0, meanAbsoluteLeaf = 0;
+            for (uint32_t leaf = 0; leaf < leaves; ++leaf) {
+                Require(std::isfinite(values[leaf]) && std::isfinite(weights[leaf]) && weights[leaf] >= 0,
+                    "Invalid FeatureParallel Combination leaf statistics");
+                mass += weights[leaf]; meanAbsoluteLeaf += std::abs(values[leaf]);
+            }
+            Require(std::abs(mass - TotalWeight) <= std::max(1e-6, TotalWeight * 2e-5),
+                "FeatureParallel Combination leaf weights do not cover the training sample weights");
+            if (!Permutations.empty()) { MVSLambda = Permutations[i].Lambda; HasMVSLambda = Permutations[i].HasLambda; }
+            if (BootstrapOptions.bootstrap_type == 4 && !BootstrapOptions.mvs_reg_is_set) {
+                meanAbsoluteLeaf /= leaves; MVSLambda = float(meanAbsoluteLeaf * meanAbsoluteLeaf); HasMVSLambda = true;
+                Require(std::isfinite(MVSLambda), "Automatic MVS regularization overflowed float32");
+            }
+            if (!Permutations.empty()) { Permutations[i].Lambda = MVSLambda; Permutations[i].HasLambda = HasMVSLambda; }
+            const float loss = ReadLoss();
+            if (i + 1 == count) exported = {std::vector<float>(values, values + leaves),
+                std::vector<float>(weights, weights + leaves), loss};
+        }
+        bind(saved);
+        return exported;
+    }
     void FinishTreeImpl() {
         const auto& p = Options.train;
         const uint32_t actualDepth = Pending.Depth;
@@ -1809,7 +2102,19 @@ private:
         // CUDA estimates complete leaf walks in dataset order. Structure
         // search runs first here, but explicit seeds retain that host order.
         if (Yeti) YetiSeedPosition = 1 + permutation * YetiPermutationLeafSeedCount();
-        if (Coupled && K.LeafMethod == 3) {
+        if (!Coupled && K.LeafMethod == 3) {
+            // DocParallel Simple exports the searched, bootstrapped weak
+            // target statistics and copies those values to every history.
+            command.Dispatch("ReduceStructurePartials",
+                {Gradient, StructureWeight, RowIndices, PartitionOffsets, ObjectivePartials},
+                K, K.HistogramTiles, true, K.Leaves);
+            command.Dispatch("CollectPartitionStatistics", {ObjectivePartials, LeafSums, LeafWeights}, K, K.Leaves, true);
+            const struct { uint32_t Leaves, Bootstrap; float L2; uint32_t Reserved; } simple =
+                {K.Leaves, uint32_t(BootstrapOptions.bootstrap_type == 2 || BootstrapOptions.bootstrap_type == 3), K.L2, 0};
+            command.Dispatch("EstimateSimpleWeakLeaves", {LeafSums, LeafWeights, PartitionOffsets, RowIndices,
+                BootstrapOptions.bootstrap_type ? BootstrapMultipliers : SampleWeight, RawValues, Weights},
+                simple, K.Leaves, true);
+        } else if (Coupled && K.LeafMethod == 3) {
             Require(actualDepth == p.depth && !selected.empty(), "Simple leaves need a complete selected structure");
             // RawValues and Weights came from the final weak-target solution.
         } else if (Coupled) {
@@ -1831,6 +2136,8 @@ private:
                 Coupled->EncodeLeafUpdate(command.Buffer, RawValues, Weights, RawValues, K.Leaves, 1, &Stats.kernel_dispatches);
             }
             Coupled->EncodeCenterSolvedPoint(command.Buffer, RawValues, K.Leaves, &Stats.kernel_dispatches);
+        } else if (Combination && Combination->HasYeti()) {
+            command.Wait(); EstimateCombinationYetiLeaves(); command.Restart();
         } else if (K.LeafMethod == 2) {
             EncodeExactLeaves(command);
         } else if (UsesBacktracking()) {
@@ -1852,7 +2159,7 @@ private:
         }
         // CUDA PairLogit makes the solved point zero-average across ALL leaves,
         // including empty leaves, before applying the learning rate.
-        if (Pairwise) Pairwise->EncodeCenterLeafValues(command.Buffer, RawValues, K.Leaves, &Stats.kernel_dispatches);
+        if (Pairwise && K.LeafMethod != 3) Pairwise->EncodeCenterLeafValues(command.Buffer, RawValues, K.Leaves, &Stats.kernel_dispatches);
         if (Yeti) Yeti->EncodeCenterLeafValues(command.Buffer, RawValues, K.Leaves, &Stats.kernel_dispatches);
         if (Yeti) Require(YetiSeedPosition == 1 + (permutation + 1) * YetiPermutationLeafSeedCount(),
             "YetiRank did not consume the permutation's complete leaf seed schedule");
@@ -1864,12 +2171,13 @@ private:
         const float* weights = static_cast<const float*>(Weights.contents);
         double totalWeight = 0;
         for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf) {
-            Require(std::isfinite(values[leaf]) && std::isfinite(weights[leaf]) && weights[leaf] >= 0,
+            Require(std::isfinite(values[leaf]) && std::isfinite(weights[leaf])
+                    && (weights[leaf] >= 0 || (Combination && K.LeafMethod == 3)),
                     QueryOffsets ? "Invalid GPU query leaf statistics: Newton requires a finite positive regularized Hessian"
                                  : "Invalid GPU leaf statistics");
             totalWeight += weights[leaf];
         }
-        Require((Coupled && K.LeafMethod == 3) || std::abs(totalWeight - TotalWeight) <= std::max(1e-6, TotalWeight * 2e-5),
+        Require(K.LeafMethod == 3 || std::abs(totalWeight - TotalWeight) <= std::max(1e-6, TotalWeight * 2e-5),
                 "GPU leaf weights do not cover the training sample weights");
         const float loss = ReadLoss();
         if (BootstrapOptions.bootstrap_type == 4 && !BootstrapOptions.mvs_reg_is_set) {
@@ -1882,18 +2190,15 @@ private:
         }
             return {std::vector<float>(values, values + K.Leaves), std::vector<float>(weights, weights + K.Leaves), loss};
         };
-        PermutationTree exported = EstimatePermutation(command, SearchPermutation);
-        if (!Permutations.empty()) {
-            Permutations[SearchPermutation].Lambda = MVSLambda;
-            Permutations[SearchPermutation].HasLambda = HasMVSLambda;
-            if (actualDepth) std::memcpy(FixedPermutationSplits.contents, selected.data(), sizeof(SplitState) * actualDepth);
-            for (uint32_t permutation = 0; permutation < Permutations.size(); ++permutation) {
-                if (permutation == SearchPermutation) continue;
+        PermutationTree exported;
+        if (!Permutations.empty() && actualDepth)
+            std::memcpy(FixedPermutationSplits.contents, selected.data(), sizeof(SplitState) * actualDepth);
+        auto EstimateOtherPermutation = [&](uint32_t permutation) {
                 Data = Permutations[permutation].Bins; Prediction = Permutations[permutation].Cursor;
                 MVSLambda = Permutations[permutation].Lambda; HasMVSLambda = Permutations[permutation].HasLambda;
                 Command other(*Context, Stats);
-                const bool reuseSimple = Coupled && K.LeafMethod == 3;
-                if (Coupled || Yeti) {
+                const bool reuseSimple = K.LeafMethod == 3;
+                if (Coupled || Yeti || Combination || reuseSimple) {
                     // CUDA only samples the searched weak target. Leaf
                     // estimation uses the original objective for each cursor.
                     other.Dispatch("ResetQuerywiseLeafIds", {LeafIds}, QueryParams(false), K.Rows);
@@ -1925,10 +2230,35 @@ private:
                 }
                 Permutations[permutation].Lambda = MVSLambda;
                 Permutations[permutation].HasLambda = HasMVSLambda;
+                return estimate;
+        };
+        if (Combination && Dynamic) {
+            command.Wait();
+            exported = EstimateFeatureParallelCombinationLeaves();
+        } else {
+        // The callback advances the actual shared host RNG. Complete each
+        // DocParallel Combination task in dataset order even when structure
+        // search chose a later history; legacy seed-packet targets keep their
+        // preceding search-first execution order.
+        const bool orderedCombinationTasks = Combination && Combination->HasYeti() && K.LeafMethod != 3;
+        const uint32_t firstPermutation = orderedCombinationTasks ? 0 : SearchPermutation;
+        if (firstPermutation != SearchPermutation) {
+            command.Wait();
+            exported = EstimateOtherPermutation(firstPermutation);
+        } else {
+            exported = EstimatePermutation(command, firstPermutation);
+        }
+        if (!Permutations.empty()) {
+            Permutations[firstPermutation].Lambda = MVSLambda;
+            Permutations[firstPermutation].HasLambda = HasMVSLambda;
+            for (uint32_t permutation = 0; permutation < Permutations.size(); ++permutation) {
+                if (permutation == firstPermutation) continue;
+                auto estimate = EstimateOtherPermutation(permutation);
                 if (permutation + 1 == Permutations.size()) exported = std::move(estimate);
             }
             Data = Permutations.back().Bins; Prediction = Permutations.back().Cursor;
             MVSLambda = Permutations.back().Lambda; HasMVSLambda = Permutations.back().HasLambda;
+        }
         }
         if (Yeti) YetiSeeds.clear();
         const float* values = exported.Values.data();
@@ -1981,16 +2311,18 @@ std::shared_ptr<QueryCrossEntropyMetricSession> GetQueryCrossEntropyMetric(void*
 template <class Callback>
 int ApiCall(char* error, size_t capacity, Callback callback) {
     CopyText(error, capacity, "");
+    struct Invocation { Callback& Function; char* Error; size_t Capacity; } invocation = {callback, error, capacity};
+    auto invoke = [](void* context) -> int {
+        auto& call = *static_cast<Invocation*>(context);
+        // Catch Objective-C exceptions before they can reach the pure C++
+        // catch-all, preserving Metal's actual exception reason.
+        @try { call.Function(); return 0; }
+        @catch (NSException* exception) { CopyText(call.Error, call.Capacity, [[exception reason] UTF8String]); }
+        return 1;
+    };
     @autoreleasepool {
-        try {
-            // Objective-C exceptions can also match C++ catch(...). Catch
-            // them first so Metal's actual reason survives the C ABI.
-            @try { callback(); return 0; }
-            @catch (NSException* exception) { CopyText(error, capacity, [[exception reason] UTF8String]); }
-        } catch (const std::exception& exception) { CopyText(error, capacity, exception.what()); }
-        catch (...) { CopyText(error, capacity, "Unexpected failure in Metal training"); }
+        return CBMInvokeCppGuard(invoke, &invocation, error, capacity);
     }
-    return 1;
 }
 } // namespace
 
@@ -2039,6 +2371,75 @@ extern "C" int cbm_session_create_configured(const CBMSessionParams* params,
         std::lock_guard<std::mutex> guard(RegistryMutex);
         Sessions.emplace(id, std::move(session));
         *handle = reinterpret_cast<void*>(id);
+    });
+}
+extern "C" int cbm_session_create_custom(const CBMSessionParams* params,
+    const CBMObjectiveOptions* objectiveOptions, const char* source,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initialPredictions,
+    const uint32_t* candidateFeatures, const uint32_t* candidateBins, const uint8_t* candidateTypes,
+    void** handle, char* error, size_t errorCapacity) {
+    if (handle) *handle = nullptr;
+    return ApiCall(error, errorCapacity, [&] {
+        Require(params && objectiveOptions && handle && source,
+            "Custom Metal objective requires parameters, source and output handle");
+        ValidateObjectiveOptions(objectiveOptions);
+        Require(params->objective == 20 && objectiveOptions->objective == 20,
+            "Custom Metal constructor requires objective 20");
+        auto session = std::make_shared<Session>(params, bins, targets, weights, initialPredictions,
+            candidateFeatures, candidateBins, candidateTypes, objectiveOptions, nullptr, nullptr,
+            nullptr, nullptr, nullptr, 0.1f, nullptr, source);
+        session->ConfigureObjective(objectiveOptions);
+        const uintptr_t id = NextHandle.fetch_add(1);
+        Require(id != 0, "Session identifier capacity exhausted");
+        std::lock_guard<std::mutex> guard(RegistryMutex);
+        Sessions.emplace(id, std::move(session));
+        *handle = reinterpret_cast<void*>(id);
+    });
+}
+extern "C" int cbm_session_create_combination(const CBMSessionParams* params,
+    const CBMObjectiveOptions* objectiveOptions, const CBMCombinationOptions* combinationOptions,
+    const CBMCombinationComponent* components, const uint32_t* groupOffsets,
+    const uint32_t* pairWinners, const uint32_t* pairLosers, const float* pairWeights,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initialPredictions,
+    const uint32_t* candidateFeatures, const uint32_t* candidateBins, const uint8_t* candidateTypes,
+    void** handle, char* error, size_t errorCapacity) {
+    if (handle) *handle = nullptr;
+    return ApiCall(error, errorCapacity, [&] {
+        Require(params && objectiveOptions && combinationOptions && handle && !combinationOptions->reserved,
+            "Combination requires parameters, component options and output handle");
+        ValidateObjectiveOptions(objectiveOptions);
+        Require(params->objective == 19 && objectiveOptions->objective == 19,
+            "Combination constructor requires objective 19");
+        Require(params->train.rows && params->train.rows <= MaxRows && params->train.depth <= 16,
+            "Invalid Combination row or depth capacity");
+        auto combination = std::make_shared<CBMCombinationRuntime>(GetRuntime().Device, params->train.rows,
+            combinationOptions->component_count, components, combinationOptions->group_count, groupOffsets,
+            combinationOptions->pair_count, pairWinners, pairLosers, pairWeights, uint32_t(1) << params->train.depth,
+            std::min<uint32_t>((params->train.rows + 255) / 256, 4096));
+        combination->ValidateTargets(targets, weights);
+        auto session = std::make_shared<Session>(params, bins, targets, weights, initialPredictions,
+            candidateFeatures, candidateBins, candidateTypes, objectiveOptions, nullptr, nullptr,
+            nullptr, nullptr, nullptr, 0.1f, combination);
+        session->ConfigureObjective(objectiveOptions);
+        const uintptr_t id = NextHandle.fetch_add(1);
+        Require(id != 0, "Session identifier capacity exhausted");
+        std::lock_guard<std::mutex> guard(RegistryMutex);
+        Sessions.emplace(id, std::move(session));
+        *handle = reinterpret_cast<void*>(id);
+    });
+}
+extern "C" int cbm_session_set_combination_yeti_seeds(void* handle, uint32_t count,
+    const uint64_t* seeds, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->SetCombinationYetiSeeds(count, seeds);
+    });
+}
+extern "C" int cbm_session_set_combination_yeti_seed_callback(void* handle,
+    CBMCombinationYetiSeedCallback callback, void* context, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->SetCombinationYetiSeedCallback(callback, context);
     });
 }
 extern "C" int cbm_session_step(void* handle, CBMStepInfo* info, uint32_t* depth,

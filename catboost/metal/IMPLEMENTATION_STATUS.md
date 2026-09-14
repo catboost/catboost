@@ -7,16 +7,19 @@ components awaiting integration are distinguished below. The earlier
 
 ## Current local checkpoint
 
-Compound categorical CTRs are complete for native scalar symmetric Plain/Ordered
-FeatureParallel training and installed in checkpoint `20260913T220233Z`.
-The release includes Sample/Group histories, retained permutation grids, exact
-snapshots and standard model tables. Full regression, alternate-extension,
-CLI, prior-snapshot and installed-package checks pass; see
-[COMPOUND_CTR_PORT.md](COMPOUND_CTR_PORT.md).
-The release records base commit `470931d02c`, the local source patch and added
-files. Greedy PairLogit acceptance remains included; the previous installed
-checkpoint `20260913T195124Z` is preserved. Earlier dated checkpoint notes below
-are historical.
+Training-mode card 3 is installed in checkpoint `20260914T000929Z`. It adds
+classic YetiRank Depthwise/Lossguide/Region, Ordered query/ranking, native
+Plain/Ordered FeatureParallel for the registered scalar/query objectives,
+Combination losses and custom per-object Metal shaders. Those native symmetric
+routes share simple/compound categorical histories, final model tables and exact
+continuation. See [TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md) and the
+[custom shader contract](docs/custom_objectives.md).
+
+The release records source base `f0a029e742`, 655 frozen source-file identities,
+the reconstruction patch and added files. The preceding compound checkpoint
+`20260913T220233Z` remains preserved. Earlier dated integration notes below
+are historical; their then-open restrictions do not supersede the current
+interface matrix or remaining-work list.
 
 ## Verified interfaces on M3 Pro
 
@@ -25,17 +28,22 @@ are historical.
 | Entry points | Regressor, Classifier, Ranker | Ordinary CatBoost estimators, Pool, CLI, `task_type="GPU"` |
 | Scalar losses | RMSE, Logloss, CrossEntropy, Poisson, Huber, Expectile, Lq, Tweedie, LogLinQuantile, Quantile, MAE, MAPE | All twelve |
 | Vector losses | MultiClass, MultiClassOneVsAll, MultiRMSE, RMSEWithUncertainty, MultiLogloss, MultiCrossEntropy | All six, including weighted metrics, baselines and snapshots |
-| Grouped losses | QueryRMSE, QuerySoftMax, supplied-pair PairLogit/PairLogitPairwise, QueryCrossEntropy, classic YetiRank and YetiRankPairwise; one-hot arrays/DataFrames for all seven | All seven; all seven support native one-hot/CTR P4, metrics and snapshots |
-| Symmetric trees | Numeric and simple categorical training, depth 0–16 | Raw/prequantized Pools; scalar Plain/Ordered FeatureParallel compound CTRs |
-| Non-symmetric trees | Numeric/one-hot/CTR Depthwise, Lossguide, Region; eleven scalar, three vector and QueryRMSE/QuerySoftMax/PairLogit CUDA-registered losses, seven scalar/five vector scores, Newton/Gradient/Exact where applicable and backtracking | Numeric/one-hot/CTR P4, eleven scalar, three vector and QueryRMSE/QuerySoftMax/PairLogit objectives, snapshots, callbacks, best-model trimming and GPU evaluation |
-| Ordered boosting | Numeric/one-hot/simple CTR scalar training, Sample/Group CTR histories, grouped folds, P1-P64 prefix recovery and static FeatureParallel penalties | All four simple/compound CTR types, Sample/Group histories, raw/quantized Pools, baselines/initial models and exact lifecycle |
-| Categoricals | One-hot and simple Borders/FeatureFreq CTRs with P4 scalar/multiclass cursors | All four simple CUDA CTR types; scalar symmetric FeatureParallel combinations with category/numeric/one-hot projections, Sample/Group histories, retained P1/P4 grids and final tables |
+| Grouped losses | All seven existing query/ranking objectives with one-hot inputs; QueryRMSE/QuerySoftMax/PairLogit/classic YetiRank additionally support Ordered and Plain greedy routes | All seven support simple CTR P4; the four diagonal query/ranking objectives additionally support symmetric Plain/Ordered FeatureParallel and compound CTRs |
+| Symmetric trees | Numeric and simple categorical training, depth 0–16 | Raw/prequantized Pools; registered scalar/query Plain/Ordered FeatureParallel including Combination/custom and compound CTRs |
+| Non-symmetric trees | Numeric/one-hot/CTR Depthwise, Lossguide, Region; eleven scalar, three vector and QueryRMSE/QuerySoftMax/PairLogit/classic YetiRank; seven scalar/five vector scores and applicable Newton/Gradient/Exact/backtracking | Same registered objectives with P4 cursors, snapshots, callbacks, best-model trimming and GPU evaluation; YetiRank keeps Newton/No backtracking |
+| Ordered boosting | Scalar and QueryRMSE/QuerySoftMax/PairLogit/classic YetiRank; existing numeric/one-hot/simple CTR banks and complete prefix recovery | Same objective families plus Combination/custom; all four simple/compound CTR types, Sample/Group histories, raw/quantized Pools and exact lifecycle |
+| Categoricals | One-hot and simple Borders/FeatureFreq CTRs; standalone Plain FeatureParallel and dynamic compounds remain open | Four simple CTR types; native symmetric Plain/Ordered FeatureParallel compounds for registered scalar/query objectives, Combination/custom, retained grids and final tables |
+| Combination/custom | No estimator frontend for these objectives | Symmetric Plain DocParallel or Plain/Ordered FeatureParallel; supported scalar/query Combination components and per-object Metal shader source |
 | Scores | Seven symmetric/greedy scalar scores; vector L2/Cosine/SolarL2/LOOL2/SatL2 | All seven scalar and five vector scores |
 | Bootstrap | Symmetric scalar/query: No/Bayesian/Bernoulli/Poisson/MVS; vector and greedy exclude MVS | Scalar/multiclass sampling and exact continuation verified |
 | Lifecycle | Weighted validation, stopping, best models, callbacks, safe numeric snapshots, exact optimizer/permutation state | Multiple evaluation sets, shared metrics, callbacks, baselines, initial models, snapshots |
 | Inference/export | GPU symmetric and variable-tree evaluation; standard CBM/JSON | Normal GPU prediction for symmetric and variable trees, numeric/category/CTR/prequantized Pools and vector outputs |
 
-Restrictions are checked explicitly. Ordered+Exact remains rejected like CUDA;
+Restrictions are checked explicitly. Full-matrix objectives remain symmetric
+Plain DocParallel; Combination/custom have no greedy route. Newly enabled Simple
+query/Combination/custom leaves are symmetric only, with distinct DocParallel
+weak-statistic and FeatureParallel Gradient-step semantics. Greedy Simple remains
+rejected. Ordered+Exact remains rejected like CUDA;
 private experimental coverage is not a public CUDA capability. Public greedy
 Lq is also excluded because CUDA does not register it for those policies.
 Lossguide accepts larger requested depth, bounded by max_leaves; actual GPU
@@ -49,29 +57,53 @@ native fork includes Metal and uses the existing GPU task type.
 
 ## Current verification and packaged checkpoints
 
-The installed checkpoint **20260913T220233Z** passes **11,323 cases plus 16 subtests**. The alternate extension passes **3,892 tests**; the C++ tensor/history/RNG/snapshot/helper suites pass **41 checks**. Counts overlap and are not summed; no native acceptance file is excluded.
+The installed checkpoint **20260914T000929Z** passes **12,745 cases plus 16
+subtests**. The alternate extension passes **4,901 tests**. Host C++ acceptance
+passes **54 Metal helper checks**, **2 Combination metric checks** and **3
+quantized categorical apply checks**. Counts overlap and are not summed; the
+final source identities remained unchanged throughout coherent acceptance.
 
-Native numeric/one-hot/CTR Depthwise/Lossguide/Region now includes eleven CUDA-registered
-scalar objectives plus MultiClass/MultiClassOneVsAll/RMSEWithUncertainty and QueryRMSE/QuerySoftMax/PairLogit, all seven scalar and five vector scores, four samplers, applicable leaf estimators
-and backtracking, snapshots, initial models, baselines, callbacks, multiple
-validation sets and best-model selection. Compact native GPU evaluation also
-supports non-symmetric categorical/CTR and vector models. The shared model
-trimmer now handles variable trees, rebasing node/leaf offsets and retaining
-weights and scale/bias without exponential tree padding.
+New native/standalone greedy YetiRank and Ordered query/ranking acceptance is
+included in that matrix. Native Plain FeatureParallel, Combination and custom
+shader coverage includes supported scores/samplers/leaves, compound projections,
+independent objective/table/reader oracles, baselines, initial models, callbacks,
+metrics, best-model trimming and saved state. The
+[training-mode report](TRAINING_MODES_PORT.md) records source contracts and
+corrected CUDA defects; host seed accounting does not establish CUDA device RNG
+or tie-order equivalence.
 
 Wheel installed in `catboost/metal/.venv`:
 
 ```text
-catboost/metal/.build/releases/20260913T220233Z/
+catboost/metal/.build/releases/20260914T000929Z/
   catboost-1.2.10-cp312-cp312-macosx_11_0_arm64.whl
-SHA256 f1d79ee43aeebfbb65341ac70d10caf83150636f0663c00b11537bf24ba41ffe
+SHA256 0514c3b4414b5b9dd197fd40d9b84fae95e362f0e9bd0e201c3d7bcc3cf436a5
+Standard extension SHA256 431e44e746ee8418a5b81560658728af40d187bebcd767c63cb2b1f04bf8170c
 ```
 
-The embedded extension hash matches the tested isolated package. 385 installed
-acceptance cases plus 34 GPU smoke configurations pass. All 187 CLI configurations
-and 214 preceding snapshot recoveries pass. Compound CTR acceptance includes
-148 native cases with independent table/prediction checks and exact lifecycle,
-plus 238 private dynamic runtime/scoring cases in the full matrix.
+The installed extension matches the frozen tested binary.
+**1,267 installed acceptance cases**, **134 GPU smoke
+configurations**, **287 CLI configurations** and **244 exact preceding snapshot
+recoveries** pass. Original old-build fixtures remain preserved; recovery does
+not substitute regenerated current-build expectations. Release artifacts retain
+both extensions, CLI, source reconstruction material, commands, hashes and raw
+reports. The prior `20260913T220233Z` release remains intact.
+
+### Historical objective checkpoints
+
+The following component counts and checkpoint descriptions record earlier
+integration milestones. Current aggregate acceptance and installed identity are
+listed above; old restrictions describe their own checkpoint only.
+
+The preceding compound checkpoint `20260913T220233Z` passed 11,323 tests plus
+16 subtests, 3,892 alternate tests, 41 C++ checks, 385 installed acceptance cases,
+34 GPU smokes, 187 CLI configurations and 214 exact preceding snapshot recoveries.
+Its wheel SHA256 is `f1d79ee43aeebfbb65341ac70d10caf83150636f0663c00b11537bf24ba41ffe`.
+That release recorded base `470931d02c` plus its source patch and added files;
+[COMPOUND_CTR_PORT.md](COMPOUND_CTR_PORT.md) preserves its categorical acceptance,
+including 148 native and 238 private runtime/scoring cases. Its artifacts remain
+intact alongside the earlier `20260913T195124Z` greedy PairLogit checkpoint.
+
 Classic numeric YetiRank adds
 resident target/search/leaves, complete host target RNG, real PFound evaluation,
 seven scores, five samplers, snapshots, baseline/initial models and export.
@@ -162,17 +194,17 @@ configuration-matched CUDA quality evidence.
 
 ## Remaining work
 
-- Extend the standalone estimator frontend to the compound CTR machinery now
-  connected through native scalar Plain/Ordered FeatureParallel training.
-- Finish remaining CUDA ranking/combination/custom objectives and complete
-  CUDA GPU random state. All seven connected grouped objectives now support
-  native simple CTR P4, including both classic YetiRank variants and the
-  full-matrix objectives. Generated-pair sampling uses explicitly recorded
-  Metal streams; see YETIRANK_PAIRWISE_CTR_PERMUTATIONS.md.
-- Finish Ordered query objectives, query/ranking FeatureParallel training,
-  greedy YetiRank objectives and CUDA GPU random-stream agreement.
-- Integrate shared text/embedding estimated features and remaining training
-  options/feature penalties; avoid CPU-training fallback.
+- Connect standalone Plain FeatureParallel and dynamic compound CTR frontends.
+  Native scalar/query Plain and Ordered FeatureParallel, Combination and custom
+  shaders are connected; standalone fixed categorical banks remain distinct.
+- Extend remaining CUDA-registered API/option combinations, including greedy
+  Simple leaves. Full-matrix, vector and non-symmetric trainers retain their
+  registered partition boundaries; they do not use the compound scheduler.
+- Integrate shared text/embedding estimated features, remaining training
+  options and feature penalties without CPU-training fallback.
+- Complete CUDA device random-buffer agreement and investigate numerical/tied
+  split differences. Audited host seed order and exact same-build snapshots do
+  not prove equivalence of device bootstrap, score noise or pack visitation.
 - Validate complete memory use, wider/deeper workloads, packed feature layouts,
   and performance across M-series generations. Current major working/output
   guards are 1 GiB/512 MiB; host copies and retained category tables need their
@@ -184,6 +216,12 @@ configuration-matched CUDA quality evidence.
 Only the M3 Pro (18 GPU cores, 18 GB unified memory) has been exercised. No
 M1/M2/M4 or live NVIDIA speed/quality comparison has been performed. Full CUDA
 feature, numerical, and performance parity is not established.
+
+## Historical optimization and integration evidence
+
+The following entries preserve earlier measured results and checkpoint scope.
+Their references to installation and open work apply to the named milestone;
+the current checkpoint and remaining-work sections above take precedence.
 
 QCE now chooses 32/64/128/256 query threads, with 18 bitwise boundary checks.
 Three alternating warmed runs show 2.05x/1.61x median native speedups at
@@ -198,7 +236,7 @@ cases pass. It exports the winning sampled split solution and raw matrix
 diagonal in model leaf order. See SIMPLE_LEAVES_PORT.md; coherent acceptance, both CLI targets
 and packaging passed.
 
-## New YetiRankPairwise integration
+### YetiRankPairwise and later categorical integrations (historical)
 
 The installed native/standalone build passes 91 native API and 23 standalone
 lifecycle cases, plus 111 private forests and GPU component tests. It connects
@@ -294,7 +332,7 @@ Grouped scalar Ordered is installed with whole-group block permutations, variabl
 
 Correction after tracing the upstream option type: `FoldLenMultiplier` is `TOption<float>` and is promoted to double only inside CUDA fold construction. The native and standalone public frontends already follow that normalization. An attempted raw-double migration was rejected and its seven source edits were restored byte-for-byte from checkpoint 20260913T142818Z; no attempted wheel was installed. Private raw-double group helper tests do not change the public option contract.
 
-Ordered simple CTR checkpoint: Checkpoint `20260913T151643Z` is installed in `catboost/metal/.venv`.
+Ordered simple CTR checkpoint: Checkpoint `20260913T151643Z` was installed in `catboost/metal/.venv`.
 
 - Wheel: `catboost-1.2.10-cp312-cp312-macosx_11_0_arm64.whl`
 - Wheel SHA256: `54fd3d73943ed12d9c5e2d799b0ab177aee778d0582cc662e2d6590d9af8c81d`
@@ -319,7 +357,7 @@ No CPU CatBoost fitting, NVIDIA comparison or other M-series run occurred.
 
 See ORDERED_CTR_PORT.md for source mappings and limits.
 
-Greedy query checkpoint: Checkpoint `20260913T155047Z` is installed in `catboost/metal/.venv`.
+Greedy query checkpoint: Checkpoint `20260913T155047Z` was installed in `catboost/metal/.venv`.
 
 - Wheel: `catboost-1.2.10-cp312-cp312-macosx_11_0_arm64.whl`
 - Wheel SHA256: `ed582f8039f7f7041ea05a36ee319e204c7dd5dc902fa915e76521134b2a3ef5`
@@ -349,9 +387,9 @@ execution occurred.
 
 See GREEDY_QUERY_PORT.md for source mappings and precision limits.
 
-## Greedy PairLogit installed checkpoint
+### Greedy PairLogit checkpoint (historical)
 
-Checkpoint `20260913T195124Z` is installed in `catboost/metal/.venv`.
+Checkpoint `20260913T195124Z` was installed in `catboost/metal/.venv`.
 
 - Full matrix: **11,099 passed plus 16 subtests**, with no skipped cases.
 - Alternate extension: **3,744 passed** (3,665 main cases plus 79 supplemental one-hot reader cases; disjoint selections).

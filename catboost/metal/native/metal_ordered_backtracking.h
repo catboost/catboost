@@ -122,6 +122,10 @@ kernel void OrderedBacktrackingObjective(const device float* targets [[buffer(0)
         const float weight = weights[row];
         if (weight == 0) continue;
         const float raw = cursors[task.z + position] + values[task_id * (1u << p.depth) + leaf_ids[task.w * p.reserved0 + row]];
+#ifdef CBM_HAS_CUSTOM_OBJECTIVE
+        if (p.objective == 20) ObjectiveAddExpansion(high, low, ObjectiveCustomValueDerivatives(raw, targets[row], weight).x);
+        else
+#endif
         ObjectiveAddExpansion(high, low, -weight * OrderedBacktrackingScore(targets[row], raw, p));
     }
     if (p.normalize) {

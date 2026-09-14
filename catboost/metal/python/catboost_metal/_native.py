@@ -65,6 +65,11 @@ class PairOptions(ct.Structure):
                 ("reserved0", ct.c_uint32), ("reserved1", ct.c_uint32)]
 
 
+class YetiRankOptions(ct.Structure):
+    _fields_ = [("group_count", ct.c_uint32), ("permutations", ct.c_uint32),
+                ("decay", ct.c_float), ("legacy_prefix_centering", ct.c_uint32)]
+
+
 class BootstrapOptions(ct.Structure):
     _fields_ = [("bootstrap_type", ct.c_uint32), ("random_seed_low", ct.c_uint32),
                 ("random_seed_high", ct.c_uint32), ("iteration_offset", ct.c_uint32),
@@ -130,7 +135,8 @@ def build_library():
     import fcntl
     root = Path(__file__).resolve().parents[2]
     native = root / "native"
-    sources = [native / "metal_trainer.mm", native / "metal_sort.mm", *sorted(native.glob("*.h"))]
+    sources = [native / "metal_trainer.mm", native / "metal_sort.mm", native / "metal_exception.cpp",
+               *sorted(native.glob("*.h"))]
     digest = hashlib.sha256(platform.platform().encode())
     for source in sources:
         digest.update(source.name.encode())
@@ -144,7 +150,8 @@ def build_library():
             temporary = destination.with_suffix(".tmp.dylib")
             command = ["xcrun", "clang++", "-std=c++17", "-O2", "-fobjc-arc", "-dynamiclib",
                        "-framework", "Foundation", "-framework", "Metal",
-                       str(native / "metal_trainer.mm"), str(native / "metal_sort.mm"), "-o", str(temporary)]
+                       str(native / "metal_trainer.mm"), str(native / "metal_sort.mm"),
+                       str(native / "metal_exception.cpp"), "-o", str(temporary)]
             try:
                 result = subprocess.run(command, capture_output=True, text=True, check=False)
                 if result.returncode:

@@ -152,7 +152,7 @@ def test_native_query_prequantized_pool_and_initial_model():
     assert np.isfinite(continued.predict(x)).all()
 
 
-def test_native_query_rejects_ordered_boosting():
+def test_native_query_rejects_ordered_exact_leaves():
     pool, *_ = pool_for("QueryRMSE")
-    with pytest.raises(CatBoostError, match="(?i)query.*plain|plain.*query|ordered"):
-        CatBoostRanker(**params(boosting_type="Ordered")).fit(pool)
+    with pytest.raises(CatBoostError, match="(?i)exact|ordered"):
+        CatBoostRanker(**params(boosting_type="Ordered", leaf_estimation_method="Exact")).fit(pool)

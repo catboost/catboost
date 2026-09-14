@@ -1,5 +1,6 @@
 #pragma once
 #include "metal_trainer.h"
+#include "metal_combination.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,6 +54,55 @@ int cbm_ordered_session_create_banked(const CBMOrderedParams* params, uint32_t b
     const uint32_t* candidate_features, const uint32_t* candidate_bins, const uint8_t* candidate_types,
     const uint32_t* permutation_maps, uint32_t group_count, const uint32_t* offsets, double fold_growth,
     void** session, char* error, size_t capacity);
+
+// Whole-query Ordered variants. Offsets and all input columns use original
+// source row order; every permutation must preserve entire queries. At least
+// four queries are required. IDs12/13=QueryRMSE/QuerySoftMax,14=PairLogit,17=YetiRank.
+int cbm_ordered_session_create_query_banked(const CBMOrderedParams* params, uint32_t bank_count, uint64_t bin_cells,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initial_predictions,
+    const uint32_t* candidate_features, const uint32_t* candidate_bins, const uint8_t* candidate_types,
+    const uint32_t* permutation_maps, const CBMQueryOptions* query_options, const uint32_t* group_offsets, double fold_growth,
+    void** session, char* error, size_t capacity);
+int cbm_ordered_session_create_pair_banked(const CBMOrderedParams* params, uint32_t bank_count, uint64_t bin_cells,
+    const uint8_t* bins, const float* initial_predictions, const uint32_t* candidate_features, const uint32_t* candidate_bins,
+    const uint8_t* candidate_types, const uint32_t* permutation_maps, const CBMPairOptions* pair_options,
+    const uint32_t* pair_winners, const uint32_t* pair_losers, const float* pair_weights,
+    const uint32_t* group_offsets, double fold_growth, void** session, char* error, size_t capacity);
+int cbm_ordered_session_create_yeti_banked(const CBMOrderedParams* params, uint32_t bank_count, uint64_t bin_cells,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initial_predictions,
+    const uint32_t* candidate_features, const uint32_t* candidate_bins, const uint8_t* candidate_types,
+    const uint32_t* permutation_maps, const CBMYetiRankOptions* yeti_options, const uint32_t* group_offsets, double fold_growth,
+    void** session, char* error, size_t capacity);
+// Weak seed packets have one Learn then Quality draw for each selected fold,
+// including empty quality slices. Leaf packets are evaluation-major/task-major
+// over defined prefix tasks and the full task, with I+1 evaluations when I>1.
+// Combination with Yeti components requires the callback below for backtracking
+// with I>1, whose rejected trials consume a variable number of evaluations.
+int cbm_ordered_session_yeti_seed_shape(void* session, uint32_t search_permutation,
+    uint32_t* weak_seed_count, uint32_t* leaf_seed_count, char* error, size_t capacity);
+int cbm_ordered_session_set_yeti_oracle_seeds(void* session, uint32_t count,
+    const uint64_t* seeds, char* error, size_t capacity);
+int cbm_ordered_session_set_yeti_leaf_seeds(void* session, uint32_t count,
+    const uint64_t* seeds, char* error, size_t capacity);
+
+// Custom ID20 supplies a compiled MSL objective body; pipelines are immutable
+// and private to the session. Shared numeric/grouped banks keep the same ABI.
+int cbm_ordered_session_create_custom_banked(const CBMOrderedParams* params, uint32_t bank_count, uint64_t bin_cells,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initial_predictions,
+    const uint32_t* candidate_features, const uint32_t* candidate_bins, const uint8_t* candidate_types,
+    const uint32_t* permutation_maps, const char* source, uint32_t group_count, const uint32_t* group_offsets,
+    double fold_growth, void** session, char* error, size_t capacity);
+
+// Combination ID19 uses the same independent prefix/full tasks. Grouping
+// for Ordered folds is explicit even when every component is pointwise.
+int cbm_ordered_session_create_combination_banked(const CBMOrderedParams* params, uint32_t bank_count, uint64_t bin_cells,
+    const uint8_t* bins, const float* targets, const float* weights, const float* initial_predictions,
+    const uint32_t* candidate_features, const uint32_t* candidate_bins, const uint8_t* candidate_types,
+    const uint32_t* permutation_maps, const CBMCombinationOptions* combination_options, const CBMCombinationComponent* components,
+    uint32_t group_count, const uint32_t* group_offsets, const uint32_t* pair_winners, const uint32_t* pair_losers,
+    const float* pair_weights, double fold_growth, void** session, char* error, size_t capacity);
+int cbm_ordered_session_set_combination_yeti_seed_callback(void* session,
+    CBMCombinationYetiSeedCallback callback, void* context, char* error, size_t capacity);
 
 // Structure is chosen using the selected learning permutation. Every learning
 // fold and the independent full-model estimation task is updated each step.

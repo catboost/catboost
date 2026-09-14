@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from catboost_metal import _ordered
-from catboost_metal._native import StepInfo, _u8, _u32, _f32
+from catboost_metal._native import StepInfo, StructureInfo, _u8, _u32, _f32
 from test_ordered_feature_banks import bank_problem
 from test_ordered_training import apple_silicon, prohibit_cpu_training
 
@@ -22,7 +22,11 @@ class Append(ct.Structure):
 
 class Runtime:
     def __init__(self, session):
-        self.session, self.lib, self.features = session, session._lib, session._params.features
+        self.session, self.features = session, session._params.features
+        # A CDLL owns its ctypes function wrappers even when dlopen shares the
+        # native session registry. Keep private structure types off the cached
+        # public wrappers, which later Yeti sessions use for incremental steps.
+        self.lib = ct.CDLL(session._lib._name)
         u8, u32, f32 = ct.POINTER(ct.c_uint8), ct.POINTER(ct.c_uint32), ct.POINTER(ct.c_float)
         error = [ct.c_char_p, ct.c_size_t]
         signatures = {
@@ -35,7 +39,8 @@ class Runtime:
             'copy_feature_metadata': [ct.c_void_p, ct.c_uint32, u32, f32, u8, u8, u8],
         }
         for name, signature in signatures.items():
-            getattr(self.lib, 'cbm_ordered_session_' + name).argtypes = signature + error
+            operation = getattr(self.lib, 'cbm_ordered_session_' + name)
+            operation.argtypes, operation.restype = signature + error, ct.c_int
 
     def call(self, name, *args):
         error = ct.create_string_buffer(4096)
@@ -97,6 +102,23 @@ def complete(runtime):
         if runtime.grow().finished:
             return runtime.finish()
     pytest.fail('Ordered incremental structure did not terminate')
+
+
+def test_private_bindings_do_not_mutate_cached_public_library():
+    bins, targets, cf, cb, config = bank_problem()
+    with _ordered.Session(bins, targets, cf, cb, **config) as session:
+        public_grow = session._lib.cbm_ordered_session_grow_tree
+        original_types = tuple(public_grow.argtypes)
+        assert original_types[1] is ct.POINTER(StructureInfo)
+        runtime = Runtime(session)
+        assert runtime.lib.cbm_ordered_session_grow_tree is not public_grow
+        assert tuple(public_grow.argtypes) == original_types
+        runtime.begin()
+        public_info, error = StructureInfo(), ct.create_string_buffer(4096)
+        result = public_grow(session._handle, ct.byref(public_info), error, len(error))
+        assert result == 0, error.value.decode()
+        complete(runtime)
+        assert tuple(public_grow.argtypes) == original_types
 
 
 @pytest.mark.parametrize('sampler', ['No', 'Bayesian', 'Bernoulli', 'Poisson', 'MVS'])

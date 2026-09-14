@@ -251,7 +251,7 @@ def model_json(result, borders, *, bias=0., objective="RMSE", feature_names=None
     elif objective_param is not None and objective_param != 1:
         raise ValueError("Vector greedy objectives do not have a scalar objective parameter.")
     description = objective + (":" + ";".join(f"{key}={value}" for key, value in parameters.items()) if parameters else "")
-    if objective in ("QueryRMSE", "QuerySoftMax", "PairLogit"):
+    if objective in ("QueryRMSE", "QuerySoftMax", "PairLogit", "YetiRank"):
         from .ranker import _query_loss
         _, parameters = _query_loss(description)
     else:

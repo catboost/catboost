@@ -14,6 +14,17 @@ namespace NCB {
         TVector<ui32> Offsets;
     };
 
+    inline CBMYetiRankOptions PrepareMetalYetiRankOptions(
+        const NCatboostOptions::TLossDescription& loss, ui32 groupCount)
+    {
+        CB_ENSURE(loss.GetLossFunction() == ELossFunction::YetiRank,
+            "Metal YetiRank options require the classic YetiRank objective");
+        const int permutations = NCatboostOptions::GetYetiRankPermutations(loss);
+        CB_ENSURE(permutations >= 1 && permutations <= 10000, "Metal YetiRank permutations must be in [1,10000]");
+        return {groupCount, static_cast<ui32>(permutations),
+            static_cast<float>(NCatboostOptions::GetYetiRankDecay(loss)), 0};
+    }
+
     // Shared GPU target preparation has already multiplied object and group
     // weights. These boundaries describe the same prepared object order;
     // query training must not multiply TQueryInfo::Weight a second time.

@@ -14,6 +14,7 @@ find_library(CATBOOST_METAL_FRAMEWORK Metal REQUIRED)
 find_library(CATBOOST_FOUNDATION_FRAMEWORK Foundation REQUIRED)
 
 add_library(catboost-metal-native STATIC
+  native/metal_exception.cpp
   native/metal_trainer.mm
   native/metal_ordered_trainer.mm
   native/metal_greedy_trainer.mm
@@ -23,7 +24,7 @@ add_library(catboost-metal-native STATIC
   native/metal_sort.mm
   native/metal_projection.mm
 )
-target_compile_options(catboost-metal-native PRIVATE -fobjc-arc)
+target_compile_options(catboost-metal-native PRIVATE $<$<COMPILE_LANGUAGE:OBJCXX>:-fobjc-arc>)
 target_link_libraries(catboost-metal-native PUBLIC
   contrib-libs-cxxsupp
   ${CATBOOST_METAL_FRAMEWORK}

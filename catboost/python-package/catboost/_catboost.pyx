@@ -698,6 +698,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
 
 cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor.h":
     cdef cppclass TCustomObjectiveDescriptor:
+        TString MetalSource
         void* CustomData
 
         void (*GpuCalcDersRange)(
@@ -1958,6 +1959,20 @@ cdef TCustomObjectiveDescriptor _BuildCustomGpuObjectiveDescriptor(object object
     descriptor.GpuCalcDersRange = &_GpuObjectiveCalcDersRange
     return descriptor
 
+cdef TCustomObjectiveDescriptor _BuildCustomMetalObjectiveDescriptor(object objectiveObject) except *:
+    cdef TCustomObjectiveDescriptor descriptor
+    if isinstance(objectiveObject, MultiTargetCustomObjective):
+        raise CatBoostError("Metal custom objectives support scalar per-object training only")
+    if not callable(getattr(objectiveObject, "calc_ders_range_metal", None)):
+        raise CatBoostError("Metal custom objectives require calc_ders_range_metal() returning a Metal shader function body")
+    source = objectiveObject.calc_ders_range_metal()
+    if not isinstance(source, str) or not source.strip() or '\x00' in source:
+        raise CatBoostError("calc_ders_range_metal() must return a nonempty string without NUL characters")
+    descriptor.MetalSource = to_arcadia_string(source)
+    if descriptor.MetalSource.size() > 65536:
+        raise CatBoostError("Metal custom objective source exceeds the 64 KiB limit")
+    return descriptor
+
 cdef EPredictionType string_to_prediction_type(prediction_type_str) except *:
     cdef EPredictionType prediction_type
     if not TryFromString[EPredictionType](to_arcadia_string(prediction_type_str), prediction_type):
@@ -2028,8 +2043,6 @@ cdef class _PreprocessParams:
         is_custom_eval_metric = eval_metric is not None and not isinstance(eval_metric, string_types)
         is_custom_objective = objective is not None and not isinstance(objective, string_types)
         is_custom_callback = callback is not None
-        if params.get("task_type") == "GPU" and IsMetalBackend() and is_custom_objective:
-            raise CatBoostError("Metal does not yet support custom training objectives")
 
         devices = params.get('devices')
         if devices is not None and isinstance(devices, list):
@@ -2066,7 +2079,10 @@ cdef class _PreprocessParams:
 
         if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
             if params.get("task_type") == "GPU":
-                self.customObjectiveDescriptor = _BuildCustomGpuObjectiveDescriptor(params["loss_function"])
+                if IsMetalBackend():
+                    self.customObjectiveDescriptor = _BuildCustomMetalObjectiveDescriptor(params["loss_function"])
+                else:
+                    self.customObjectiveDescriptor = _BuildCustomGpuObjectiveDescriptor(params["loss_function"])
             else:
                 self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
             if (issubclass(params["loss_function"].__class__, MultiTargetCustomObjective)):

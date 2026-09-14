@@ -171,6 +171,17 @@ int cbm_session_create_configured(
     const uint32_t* candidate_bins, const uint8_t* candidate_types,
     void** session, char* error, size_t error_capacity);
 
+// Objective 20 compiles one Metal function body into this session's pipelines.
+// The function receives float approx/target/weight and returns float3 of the
+// weighted maximized value, negative loss derivative, and positive curvature.
+// Source must contain 1..65536 UTF-8 bytes and remains local to this session.
+int cbm_session_create_custom(
+    const CBMSessionParams* params, const CBMObjectiveOptions* objective_options,
+    const char* metal_source, const uint8_t* bins, const float* targets,
+    const float* sample_weights, const float* initial_predictions,
+    const uint32_t* candidate_features, const uint32_t* candidate_bins,
+    const uint8_t* candidate_types, void** session, char* error, size_t error_capacity);
+
 // Group boundaries are in original row order, strictly increasing from zero
 // through train.rows. QueryRMSE=12 and QuerySoftMax=13 require this constructor
 // so the initial objective uses the supplied groups and parameters.

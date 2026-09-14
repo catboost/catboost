@@ -12,6 +12,9 @@
 #include "query_cross_entropy.h"
 #include "greedy_model.h"
 #include "tree_ctr_session.h"
+#include "combination.h"
+#include "ordered_shape.h"
+#include "feature_parallel_yeti_random.h"
 
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/metal/native/metal_trainer.h>
@@ -39,6 +42,16 @@
 namespace NCB {
 namespace {
 
+    template <class TRandom>
+    int MetalCombinationLeafSeed(void* context, uint64_t* seed) noexcept {
+        try {
+            *seed = static_cast<TRandom*>(context)->NextLeafSeed();
+            return 0;
+        } catch (...) {
+            return 1;
+        }
+    }
+
     void SetMetalDefaultsAndValidate(NCatboostOptions::TCatBoostOptions* options) {
         auto& boosting = options->BoostingOptions.Get();
         auto& tree = options->ObliviousTreeOptions.Get();
@@ -52,7 +65,17 @@ namespace {
         const bool querywise = objective == ELossFunction::QueryRMSE || objective == ELossFunction::QuerySoftMax || yeti || yetiPair || qce;
         const bool coupled = objective == ELossFunction::PairLogitPairwise;
         const bool pairwise = objective == ELossFunction::PairLogit || coupled;
+        const bool featureParallelQuery = objective == ELossFunction::QueryRMSE ||
+            objective == ELossFunction::QuerySoftMax || objective == ELossFunction::PairLogit || yeti;
         const bool greedy = tree.GrowPolicy != EGrowPolicy::SymmetricTree;
+        const bool combination = objective == ELossFunction::Combination;
+        const bool custom = objective == ELossFunction::PythonUserDefinedPerObject;
+        if (combination || custom) {
+            CB_ENSURE(!greedy, "Metal Combination and custom objectives require symmetric trees");
+            CB_ENSURE(tree.LeavesEstimationMethod != ELeavesEstimation::Exact,
+                "Metal Combination and custom objectives require Newton, Gradient or Simple leaf estimation");
+        }
+        if (combination) ParseMetalCombinationComponents(options->LossFunctionDescription.Get());
         boosting.BoostingType.SetDefault(EBoostingType::Plain);
         options->CatFeatureParams->MaxTensorComplexity.SetDefault(1);
         const bool treeCtrs = options->CatFeatureParams->MaxTensorComplexity > 1;
@@ -60,8 +83,8 @@ namespace {
         boosting.DataPartitionType.SetDefault(ordered || treeCtrs ? EDataPartitionType::FeatureParallel : EDataPartitionType::DocParallel);
         boosting.PermutationCount.SetDefault(4);
         if (treeCtrs) {
-            CB_ENSURE(!greedy && !vectorBackend && !querywise && !pairwise,
-                      "Metal compound CTRs support scalar pointwise objectives with symmetric trees");
+            CB_ENSURE(!greedy && !vectorBackend && (!(querywise || pairwise) || featureParallelQuery),
+                      "Metal compound CTRs support scalar and registered query objectives with symmetric trees");
             CB_ENSURE(boosting.DataPartitionType == EDataPartitionType::FeatureParallel,
                       "Metal compound CTRs require data_partition='FeatureParallel'");
         }
@@ -73,7 +96,8 @@ namespace {
                       "Native Metal Ordered supports Cosine and NewtonCosine scores");
         }
         if (querywise || pairwise) {
-            CB_ENSURE(!ordered, "Native Metal query and pairwise objectives currently require Plain boosting");
+            CB_ENSURE(!ordered || featureParallelQuery,
+                      "Native Metal full-matrix query and pairwise objectives require Plain boosting");
             CB_ENSURE(tree.LeavesEstimationMethod != ELeavesEstimation::Exact,
                       "Native Metal query and pairwise objectives support Newton or Gradient leaves");
         }
@@ -108,14 +132,15 @@ namespace {
                     "Metal YetiRank supports classic permutations and decay parameters only");
                 if (item.first == "mode") CB_ENSURE(item.second == "Classic", "Metal YetiRank requires mode=Classic");
             }
-        } else options->MetricOptions->EvalMetric.SetDefault(options->LossFunctionDescription.Get());
+        } else if (!custom) options->MetricOptions->EvalMetric.SetDefault(options->LossFunctionDescription.Get());
 
         CB_ENSURE(objective == ELossFunction::RMSE || objective == ELossFunction::Logloss ||
                   objective == ELossFunction::CrossEntropy || objective == ELossFunction::Poisson ||
                   objective == ELossFunction::Huber || objective == ELossFunction::Expectile ||
                   objective == ELossFunction::Lq || objective == ELossFunction::Tweedie ||
                   objective == ELossFunction::LogLinQuantile || objective == ELossFunction::Quantile ||
-                  objective == ELossFunction::MAE || objective == ELossFunction::MAPE || vectorBackend || querywise || pairwise,
+                  objective == ELossFunction::MAE || objective == ELossFunction::MAPE || vectorBackend || querywise || pairwise ||
+                  combination || custom,
                   "Metal supports RMSE, Logloss, CrossEntropy, Poisson, Huber, Expectile, Lq, "
                   "Tweedie, LogLinQuantile, Quantile, MAE, MAPE, MultiClass, MultiClassOneVsAll, "
                   "QueryRMSE, QuerySoftMax, PairLogit, PairLogitPairwise, QueryCrossEntropy, YetiRank, MultiRMSE, RMSEWithUncertainty, MultiLogloss, and MultiCrossEntropy objectives");
@@ -125,14 +150,17 @@ namespace {
         }
         CB_ENSURE(ordered ? boosting.DataPartitionType == EDataPartitionType::FeatureParallel :
                   boosting.BoostingType == EBoostingType::Plain &&
-                  (boosting.DataPartitionType == EDataPartitionType::DocParallel || treeCtrs),
-                  "Metal supports Plain/DocParallel, compound CTR Plain/FeatureParallel, or Ordered/FeatureParallel training");
+                  (boosting.DataPartitionType == EDataPartitionType::DocParallel ||
+                   (!greedy && !vectorBackend && !coupled && !qce && !yetiPair)),
+                  "Metal FeatureParallel supports symmetric scalar and registered query objectives");
         if (greedy) {
             CB_ENSURE(!ordered, "Metal non-symmetric training requires Plain boosting");
-            CB_ENSURE((!querywise || objective == ELossFunction::QueryRMSE || objective == ELossFunction::QuerySoftMax) &&
+            CB_ENSURE(tree.LeavesEstimationMethod != ELeavesEstimation::Simple,
+                "Metal greedy training does not support Simple leaf estimation");
+            CB_ENSURE((!querywise || objective == ELossFunction::QueryRMSE || objective == ELossFunction::QuerySoftMax || yeti) &&
                 (!pairwise || objective == ELossFunction::PairLogit) && objective != ELossFunction::Lq &&
                 (!multioutput || objective == ELossFunction::RMSEWithUncertainty),
-                "Metal greedy training supports the eleven CUDA-registered scalar objectives, MultiClass, MultiClassOneVsAll, RMSEWithUncertainty, QueryRMSE, QuerySoftMax and PairLogit; Lq and remaining ranking are unsupported");
+                "Metal greedy training supports the eleven CUDA-registered scalar objectives, MultiClass, MultiClassOneVsAll, RMSEWithUncertainty, QueryRMSE, QuerySoftMax, PairLogit and YetiRank; Lq and full-matrix ranking are unsupported");
             CB_ENSURE(tree.GrowPolicy == EGrowPolicy::Depthwise || tree.GrowPolicy == EGrowPolicy::Lossguide ||
                 tree.GrowPolicy == EGrowPolicy::Region, "Unsupported Metal grow policy");
             CB_ENSURE(tree.BootstrapConfig->GetBootstrapType() != EBootstrapType::MVS,
@@ -148,11 +176,12 @@ namespace {
         CB_ENSURE(tree.LeavesEstimationMethod == ELeavesEstimation::Newton ||
                   tree.LeavesEstimationMethod == ELeavesEstimation::Gradient ||
                   tree.LeavesEstimationMethod == ELeavesEstimation::Exact ||
-                  ((coupled || qce || yetiPair) && tree.LeavesEstimationMethod == ELeavesEstimation::Simple),
-                  "Metal supports Newton/Gradient/Exact and full-matrix Simple leaf estimation");
+                  (!greedy && (coupled || qce || yetiPair || (featureParallelQuery && !yeti) || combination || custom) &&
+                   tree.LeavesEstimationMethod == ELeavesEstimation::Simple),
+                  "Metal supports Newton/Gradient/Exact and scalar Simple leaf estimation");
         if (tree.LeavesEstimationMethod == ELeavesEstimation::Simple)
-            CB_ENSURE(tree.MaxDepth > 0 && tree.LeavesEstimationIterations == 1,
-                "Metal Simple leaves require depth 1..8 and one estimation iteration");
+            CB_ENSURE((!(coupled || qce || yetiPair) || tree.MaxDepth > 0) && tree.LeavesEstimationIterations == 1,
+                "Metal Simple leaves require one estimation iteration and full-matrix objectives require positive depth");
         CB_ENSURE(tree.LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::No ||
                   tree.LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::AnyImprovement ||
                   tree.LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::Armijo,
@@ -196,6 +225,8 @@ namespace {
             case ELossFunction::QueryCrossEntropy: return 16;
             case ELossFunction::YetiRank: return 17;
             case ELossFunction::YetiRankPairwise: return 18;
+            case ELossFunction::Combination: return 19;
+            case ELossFunction::PythonUserDefinedPerObject: return 20;
             default: CB_ENSURE(false, "Unsupported Metal objective");
         }
     }
@@ -471,8 +502,14 @@ namespace {
             Y_UNUSED(initLearnProgress);
             Y_UNUSED(rand);
             CB_ENSURE(!internalOptions.CalcMetricsOnly, "Metal cross-validation is not yet supported");
-            CB_ENSURE(!objectiveDescriptor && !precomputedCtrs,
-                      "Metal does not yet support custom objectives or precomputed CTRs");
+            CB_ENSURE(!precomputedCtrs, "Metal does not yet support precomputed CTRs");
+            const bool custom = catboostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject;
+            const TString customSource = objectiveDescriptor ? objectiveDescriptor->MetalSource : TString();
+            CB_ENSURE(!objectiveDescriptor || custom,
+                      "Metal custom objective descriptors require a scalar custom loss");
+            CB_ENSURE(!custom || (objectiveDescriptor && !customSource.empty() && customSource.size() <= 65536 &&
+                      customSource.find('\0') == TString::npos),
+                      "Metal custom objectives require 1..65536 source bytes without NUL via calc_ders_range_metal");
             CB_ENSURE(!dstLearnProgress, "Metal does not expose CPU learn-progress state");
             NCatboostOptions::TCatBoostOptions options(catboostOptions);
             const auto baseline = trainingData.Learn->TargetData->GetBaseline();
@@ -484,7 +521,7 @@ namespace {
             SetMetalDefaultsAndValidate(&options);
             const bool ordered = options.BoostingOptions->BoostingType == EBoostingType::Ordered;
             const bool compoundCtrs = options.CatFeatureParams->MaxTensorComplexity > 1;
-            const bool featureParallel = ordered || compoundCtrs;
+            const bool featureParallel = options.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel;
             const auto growPolicy = options.ObliviousTreeOptions->GrowPolicy.Get();
             const bool greedy = growPolicy != EGrowPolicy::SymmetricTree;
             const ui32 greedyPolicy = growPolicy == EGrowPolicy::Depthwise ? 0u : growPolicy == EGrowPolicy::Lossguide ? 1u : 2u;
@@ -505,13 +542,27 @@ namespace {
                 TVector<TVector<ui32>>();
             const ui32 permutationCount = featureParallel ? orderedHistories.size() : data.Categorical.GetPermutationCount();
             const auto objective = options.LossFunctionDescription->GetLossFunction();
+            const bool combination = objective == ELossFunction::Combination;
+            const bool orderedQuery = ordered && (objective == ELossFunction::QueryRMSE ||
+                objective == ELossFunction::QuerySoftMax || objective == ELossFunction::PairLogit || yeti);
+            // A custom derivative body shares the existing scalar Ordered
+            // chooser for simple CTRs. Enabling the compound search stream
+            // here would add dependent-CTR draws and change later histories.
+            const bool incrementalFeatureParallel = compoundCtrs || orderedQuery || (featureParallel && (!ordered || combination));
             const bool pairwise = objective == ELossFunction::PairLogit || coupled;
             const bool multioutput = IsMetalMultiOutput(objective);
             const auto target = trainingData.Learn->TargetData->GetTarget();
             CB_ENSURE((target && (target->size() == 1 || (multioutput && !target->empty()))) || (pairwise && !target),
                       "Metal requires scalar targets or matching multioutput target columns");
             const TConstArrayRef<float> targets = target ? (*target)[0] : TConstArrayRef<float>();
+            if (yeti) for (float value : targets) CB_ENSURE(value >= 0 && value <= 1,
+                "Metal classic YetiRank with PFound requires targets in [0,1]");
             const auto sampleWeights = GetWeights(*trainingData.Learn->TargetData);
+            TMaybe<TMetalCombinationData> combinationData;
+            if (combination) combinationData = PrepareMetalCombinationData(options.LossFunctionDescription.Get(),
+                *trainingData.Learn->TargetData, *trainingData.Learn->ObjectsGrouping);
+            const ui32 combinationYetiCount = combination ? combinationData->YetiCount : 0;
+            const bool stochasticTarget = yeti || combinationYetiCount;
             const bool multiclass = IsMultiClassOnlyMetric(objective);
             const bool vectorBackend = multiclass || multioutput;
             const ui32 approxDimension = GetApproxDimension(options, labelConverter, target ? target->size() : 1);
@@ -597,7 +648,8 @@ namespace {
             }
             TMetalSnapshot snapshot;
             snapshot.Greedy = greedy;
-            snapshot.YetiRank = yeti;
+            snapshot.YetiRank = yeti && !featureParallel;
+            snapshot.CombinationYeti = combinationYetiCount && !featureParallel;
             snapshot.TreeCtrs = compoundCtrs;
             TString snapshotPath;
             ui32 restoredIterations = 0;
@@ -606,6 +658,7 @@ namespace {
                 options.Save(&jsonOptions);
                 snapshot.Params = ToString(jsonOptions);
                 snapshot.Checksum = SnapshotDataChecksum(trainingData, initModel, executor);
+                if (custom) snapshot.Checksum = UpdateCheckSum(snapshot.Checksum, TStringBuf(customSource));
                 if (featureParallel) {
                     snapshot.Checksum = UpdateCheckSum(snapshot.Checksum, permutationCount);
                     for (const auto& history : orderedHistories) snapshot.Checksum = UpdateCheckSum(snapshot.Checksum, history);
@@ -641,6 +694,20 @@ namespace {
             const auto backtracking = options.ObliviousTreeOptions->LeavesEstimationBacktrackingType.Get();
             params.leaf_estimation_backtracking = backtracking == ELeavesEstimationStepBacktracking::No ? 0u :
                 backtracking == ELeavesEstimationStepBacktracking::AnyImprovement ? 1u : 2u;
+            CBMOrderedParams orderedParams = {};
+            if (ordered) {
+                const auto objectiveOptions = MetalObjectiveOptions(options, objectiveId);
+                const auto& boosting = options.BoostingOptions.Get();
+                orderedParams = {
+                    data.Rows, data.FeatureCount(), static_cast<ui32>(data.CandidateFeatures.size()),
+                    iterations - restoredIterations, depth, objectiveId,
+                    options.ObliviousTreeOptions->ScoreFunction == EScoreFunction::NewtonCosine ? 1u : 0u,
+                    objectiveOptions.leaf_estimation_method, params.leaf_estimation_iterations,
+                    permutationCount, boosting.MinFoldSize,
+                    options.ObliviousTreeOptions->FoldSizeLossNormalization ? 1u : 0u,
+                    params.train.learning_rate, params.train.l2_leaf_reg, bias,
+                    static_cast<float>(boosting.FoldLenMultiplier), objectiveOptions.objective_param, 0, 0, 0};
+            }
             TVector<ui32> splitFeatures(greedy ? 0 : depth), splitBins(greedy ? 0 : depth);
             TVector<ui8> splitTypes(greedy ? 0 : depth);
             TVector<float> leaves(ui64(maxLeaves) * approxDimension), weights(maxLeaves),
@@ -659,7 +726,9 @@ namespace {
             THolder<TMetalGreedySession> greedySession;
             THolder<TMetalTreeCtrSession> treeCtrSession;
             THolder<TMetalOrderedRandom> featureParallelRandom;
-            if (compoundCtrs && !ordered) {
+            THolder<TMetalFeatureParallelYetiRandom> featureParallelYetiRandom;
+            TMaybe<TMetalOrderedStochasticShape> orderedStochasticShape;
+            if (featureParallel && !ordered && !stochasticTarget) {
                 featureParallelRandom = MakeHolder<TMetalOrderedRandom>(options.RandomSeed, permutationCount,
                     depth, data.CandidateFeatures.size(), true);
                 if (restoredIterations) featureParallelRandom->RestoreState({snapshot.OrderedRandomDrawCount,
@@ -694,11 +763,37 @@ namespace {
                 ValidateMetalTreeCtrSnapshot(*restoredTreeCtrBatch, ctrUniqueValues, snapshot, ordered);
             }
             THolder<TMetalYetiRandom> yetiRandom;
-            if (yeti) {
+            if (stochasticTarget && !featureParallel) {
                 yetiRandom = MakeHolder<TMetalYetiRandom>(options.RandomSeed,
                     options.ObliviousTreeOptions->BootstrapConfig->GetBootstrapType() != EBootstrapType::No,
-                    params.leaf_estimation_iterations, depth, data.CandidateFeatures.size(), permutationCount);
-                if (restoredIterations) yetiRandom->Restore(snapshot.YetiRandom, snapshot.Depths);
+                    params.leaf_estimation_iterations, depth, data.CandidateFeatures.size(), permutationCount,
+                    greedy, greedy ? 2 * maxLeaves : 0, combinationYetiCount ? combinationYetiCount : 1,
+                    combinationYetiCount != 0,
+                    combinationYetiCount && options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple);
+                if (restoredIterations) yetiRandom->Restore(snapshot.YetiRandom, snapshot.Depths, snapshot.YetiSearchAttempts);
+            }
+            if (featureParallel && stochasticTarget && !ordered) {
+                const ui32 components = combinationYetiCount ? combinationYetiCount : 1;
+                featureParallelYetiRandom = MakeHolder<TMetalFeatureParallelYetiRandom>(options.RandomSeed,
+                    permutationCount, depth, data.CandidateFeatures.size(), params.leaf_estimation_iterations,
+                    TVector<ui32>(permutationCount, components), permutationCount * components, combinationYetiCount != 0);
+                if (restoredIterations) featureParallelYetiRandom->Restore({snapshot.OrderedRandomDrawCount,
+                    snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
+            }
+            if (ordered && stochasticTarget) {
+                orderedStochasticShape = MakeMetalOrderedStochasticShape(orderedParams,
+                    *trainingData.Learn->ObjectsGrouping, orderedHistories,
+                    options.BoostingOptions->FoldLenMultiplier.Get(), combinationYetiCount ? combinationYetiCount : 1,
+                    combinationYetiCount != 0);
+                const auto& shape = *orderedStochasticShape;
+                if (restoredIterations) CB_ENSURE(snapshot.OrderedDescriptors == shape.Descriptors &&
+                    snapshot.OrderedCursors.size() == shape.CursorCount,
+                    "Saved Metal Ordered stochastic prefix state differs from the prepared histories");
+                featureParallelYetiRandom = MakeHolder<TMetalFeatureParallelYetiRandom>(options.RandomSeed,
+                    permutationCount, depth, data.CandidateFeatures.size(), params.leaf_estimation_iterations,
+                    shape.WeakSeedCounts, shape.LeafTaskCount, combinationYetiCount != 0);
+                if (restoredIterations) featureParallelYetiRandom->Restore({snapshot.OrderedRandomDrawCount,
+                    snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
             }
             char error[2048] = {};
             if (restoredIterations < iterations) {
@@ -712,29 +807,32 @@ namespace {
                     TMetalPairData pairs;
                     if (objectiveId == 14) pairs = PrepareMetalPairData(*trainingData.Learn->TargetData, data.Rows);
                     TMetalQueryData query;
-                    if (objectiveId == 12 || objectiveId == 13)
+                    if (objectiveId == 12 || objectiveId == 13 || yeti)
                         query = PrepareMetalQueryData(*trainingData.Learn->ObjectsGrouping, options.LossFunctionDescription.Get());
+                    const auto yetiOptions = yeti ? PrepareMetalYetiRankOptions(options.LossFunctionDescription.Get(), query.Options.group_count)
+                                                 : CBMYetiRankOptions{};
                     greedySession = MakeHolder<TMetalGreedySession>(greedyParams, objectiveOptions,
                         data.Bins, targets, sampleWeights, initialPredictions,
                         data.CandidateFeatures, data.CandidateBins, data.CandidateTypes,
-                        query.Offsets.empty() ? nullptr : &query.Options,
+                        objectiveId == 12 || objectiveId == 13 ? &query.Options : nullptr,
                         objectiveId == 14 ? pairs.GroupOffsets : query.Offsets,
-                        objectiveId == 14 ? &pairs.Options : nullptr, pairs.Winners, pairs.Losers, pairs.Weights);
+                        objectiveId == 14 ? &pairs.Options : nullptr, pairs.Winners, pairs.Losers, pairs.Weights,
+                        yeti ? &yetiOptions : nullptr);
                 } else if (ordered) {
-                    const auto objectiveOptions = MetalObjectiveOptions(options, objectiveId);
+                    TMetalQueryData query;
+                    TMetalPairData pairs;
+                    if (objectiveId == 14) pairs = PrepareMetalPairData(*trainingData.Learn->TargetData, data.Rows);
+                    else if (orderedQuery) query = PrepareMetalQueryData(*trainingData.Learn->ObjectsGrouping, options.LossFunctionDescription.Get());
+                    const auto yetiOptions = yeti ? PrepareMetalYetiRankOptions(options.LossFunctionDescription.Get(), query.Options.group_count)
+                                                 : CBMYetiRankOptions{};
                     const auto& boosting = options.BoostingOptions.Get();
-                    CBMOrderedParams orderedParams = {
-                        data.Rows, data.FeatureCount(), static_cast<ui32>(data.CandidateFeatures.size()),
-                        iterations - restoredIterations, depth, objectiveId,
-                        options.ObliviousTreeOptions->ScoreFunction == EScoreFunction::NewtonCosine ? 1u : 0u,
-                        objectiveOptions.leaf_estimation_method, params.leaf_estimation_iterations,
-                        permutationCount, boosting.MinFoldSize,
-                        options.ObliviousTreeOptions->FoldSizeLossNormalization ? 1u : 0u,
-                        params.train.learning_rate, params.train.l2_leaf_reg, bias,
-                        static_cast<float>(boosting.FoldLenMultiplier), objectiveOptions.objective_param, 0, 0, 0};
                     orderedSession = MakeHolder<TMetalOrderedSession>(orderedParams, data.Bins, targets,
                         sampleWeights, initialPredictions, data.CandidateFeatures, data.CandidateBins,
-                        options.RandomSeed, *trainingData.Learn->ObjectsData->GetObjectsGrouping(), orderedHistories, data.CandidateTypes, boosting.FoldLenMultiplier.Get(), data.AdditionalPermutationBins, compoundCtrs);
+                        options.RandomSeed, *trainingData.Learn->ObjectsData->GetObjectsGrouping(), orderedHistories,
+                        data.CandidateTypes, boosting.FoldLenMultiplier.Get(), data.AdditionalPermutationBins,
+                        incrementalFeatureParallel, orderedQuery && objectiveId != 14 ? &query : nullptr,
+                        objectiveId == 14 ? &pairs : nullptr, yeti ? &yetiOptions : nullptr,
+                        combination ? &*combinationData : nullptr, custom ? customSource.c_str() : nullptr);
                     if (outputOptions.SaveSnapshot()) {
                         CB_ENSURE(ui64(iterations) * (ui64(maxLeaves) * 8 + ui64(depth) * 9) +
                                   ui64(data.Rows) * sizeof(float) + orderedSession->GetStateBytes() <= (1ull << 29),
@@ -792,7 +890,24 @@ namespace {
                         "Metal multiclass backtracking configuration failed: " << error);
                 } else {
                     const auto objectiveOptions = MetalObjectiveOptions(options, objectiveId);
-                    if (yeti) {
+                    if (custom) {
+                        CB_ENSURE(cbm_session_create_custom(&params, &objectiveOptions, customSource.c_str(),
+                            data.Bins.data(), targets.data(), sampleWeights.empty() ? nullptr : sampleWeights.data(),
+                            initialPredictions.empty() ? nullptr : initialPredictions.data(), data.CandidateFeatures.data(),
+                            data.CandidateBins.data(), data.CandidateTypes.data(), &session.Handle, error, sizeof(error)) == 0,
+                            "Metal custom objective initialization failed: " << error);
+                    } else if (combination) {
+                        const auto& combined = *combinationData;
+                        CB_ENSURE(cbm_session_create_combination(&params, &objectiveOptions, &combined.Options,
+                            combined.Components.data(), combined.GroupOffsets.empty() ? nullptr : combined.GroupOffsets.data(),
+                            combined.Winners.empty() ? nullptr : combined.Winners.data(),
+                            combined.Losers.empty() ? nullptr : combined.Losers.data(),
+                            combined.PairWeights.empty() ? nullptr : combined.PairWeights.data(),
+                            data.Bins.data(), targets.data(), sampleWeights.empty() ? nullptr : sampleWeights.data(),
+                            initialPredictions.empty() ? nullptr : initialPredictions.data(), data.CandidateFeatures.data(),
+                            data.CandidateBins.data(), data.CandidateTypes.data(), &session.Handle, error, sizeof(error)) == 0,
+                            "Metal Combination initialization failed: " << error);
+                    } else if (yeti) {
                         const auto query = PrepareMetalQueryData(*trainingData.Learn->ObjectsGrouping,
                             options.LossFunctionDescription.Get());
                         const int draws = NCatboostOptions::GetYetiRankPermutations(options.LossFunctionDescription.Get());
@@ -904,7 +1019,7 @@ namespace {
                         orderedSession->SetFeaturePenalties(ctrUniqueValues, options.ObliviousTreeOptions->ModelSizeReg);
                     if (restoredIterations && !compoundCtrs) {
                         orderedSession->RestoreState({snapshot.OrderedDescriptors, snapshot.OrderedCursors});
-                        orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,
+                        if (!stochasticTarget) orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,
                             snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
                     }
                 } else {
@@ -925,7 +1040,7 @@ namespace {
                     }
                     TVector<TConstArrayRef<ui8>> permutationBins{MakeConstArrayRef(data.Bins)};
                     for (const auto& bins : data.AdditionalPermutationBins) permutationBins.push_back(MakeConstArrayRef(bins));
-                    if (compoundCtrs && permutationBins.size() == 1) permutationBins.resize(permutationCount, permutationBins.front());
+                    if (featureParallel && permutationBins.size() == 1) permutationBins.resize(permutationCount, permutationBins.front());
                     permutations = MakeHolder<TMetalDocParallelPermutations>(session.Handle, data.Rows, data.FeatureCount(),
                         options.RandomSeed, permutationBins, snapshot.PermutationPredictions,
                         snapshot.PermutationMvsLambdas, snapshot.PermutationMvsValid, approxDimension);
@@ -942,9 +1057,20 @@ namespace {
                     if (restoredTreeCtrBatch) treeCtrSession->Restore(*restoredTreeCtrBatch, snapshot);
                     if (ordered && restoredIterations) {
                         orderedSession->RestoreState({snapshot.OrderedDescriptors, snapshot.OrderedCursors});
-                        orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,
+                        if (!stochasticTarget) orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,
                             snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
                     }
+                }
+                if (featureParallel && !ordered && !compoundCtrs) {
+                    TVector<ui8> activity(data.StaticFeatureCount(), 1);
+                    CB_ENSURE(cbm_session_set_feature_activity(session.Handle, activity.size(), activity.data(), error, sizeof(error)) == 0,
+                        "Metal FeatureParallel static feature setup failed: " << error);
+                }
+                if (ordered && stochasticTarget) {
+                    const auto shape = orderedSession->GetYetiSeedShape();
+                    CB_ENSURE(shape.first == orderedStochasticShape->WeakSeedCounts &&
+                        shape.second == orderedStochasticShape->LeafTaskCount,
+                        "Metal Ordered runtime stochastic shape differs from its host geometry");
                 }
             }
             // The constructors consume only the original static matrices.
@@ -985,18 +1111,52 @@ namespace {
                 ui32 treeDepth = 0;
                 TMetalGreedyTree greedyTree;
                 const ui64 absoluteIteration = (initModel ? (*initModel)->GetTreeCount() : 0) + tree;
-                if (compoundCtrs) {
-                    auto begin = [&](ui32) { treeCtrSession->BeginTree(); };
+                ui32 yetiSearchAttempts = 0;
+                if (incrementalFeatureParallel) {
+                    auto begin = [&](ui32) {
+                        if (treeCtrSession) treeCtrSession->BeginTree();
+                        if (featureParallelYetiRandom) {
+                            const auto seeds = featureParallelYetiRandom->WeakSeeds();
+                            if (orderedSession) orderedSession->SetYetiWeakSeeds(seeds);
+                            else if (combinationYetiCount) CB_ENSURE(cbm_session_set_combination_yeti_seeds(session.Handle,
+                                seeds.size(), seeds.data(), error, sizeof(error)) == 0,
+                                "Metal Combination weak seed setup failed: " << error);
+                            else CB_ENSURE(cbm_session_set_yeti_oracle_seeds(session.Handle, seeds.size(), seeds.data(), error, sizeof(error)) == 0,
+                                "Metal FeatureParallel YetiRank weak seed setup failed: " << error);
+                        }
+                    };
                     auto selectedSplit = [&](ui32 permutation, const CBMStructureInfo& structure) {
-                        treeCtrSession->Selected(data.GetSplit(structure.feature, structure.bin, structure.type),
+                        if (treeCtrSession) treeCtrSession->Selected(data.GetSplit(structure.feature, structure.bin, structure.type),
                             structure, permutation);
                     };
-                    auto scoreDraws = [&]() { return treeCtrSession->ScoreDraws(); };
+                    auto scoreDraws = [&]() { return treeCtrSession ? treeCtrSession->ScoreDraws() :
+                        1u + (permutationCount > 1 && data.Categorical.HasPermutationDependentCtrs); };
+                    auto beforeFinish = [&](ui32 searchDrawCount) {
+                        if (featureParallelYetiRandom) {
+                            if (combinationYetiCount) {
+                                featureParallelYetiRandom->BeginLeafCalls(searchDrawCount);
+                                const auto setter = orderedSession ? cbm_ordered_session_set_combination_yeti_seed_callback :
+                                    cbm_session_set_combination_yeti_seed_callback;
+                                CB_ENSURE(setter(orderedSession ? orderedSession->GetHandle() : session.Handle,
+                                    MetalCombinationLeafSeed<TMetalFeatureParallelYetiRandom>, featureParallelYetiRandom.Get(),
+                                    error, sizeof(error)) == 0, "Metal Combination leaf seed callback setup failed: " << error);
+                            } else {
+                                const auto seeds = featureParallelYetiRandom->LeafSeeds(searchDrawCount);
+                                if (orderedSession) orderedSession->SetYetiLeafSeeds(seeds);
+                                else CB_ENSURE(cbm_session_set_yeti_leaf_seeds(session.Handle, seeds.size(), seeds.data(), error, sizeof(error)) == 0,
+                                    "Metal FeatureParallel YetiRank leaf seed setup failed: " << error);
+                            }
+                        }
+                    };
                     if (orderedSession) {
-                        orderedSession->StepDynamic(absoluteIteration, &info, &treeDepth,
+                        if (featureParallelYetiRandom) orderedSession->StepDynamicSelected(absoluteIteration,
+                            featureParallelYetiRandom->SelectPermutation(), &info, &treeDepth,
+                            splitFeatures, splitBins, splitTypes, leaves, weights, begin, selectedSplit, scoreDraws, beforeFinish);
+                        else orderedSession->StepDynamic(absoluteIteration, &info, &treeDepth,
                             splitFeatures, splitBins, splitTypes, leaves, weights, begin, selectedSplit, scoreDraws);
                     } else {
-                        const ui32 selected = featureParallelRandom->SelectPermutation();
+                        const ui32 selected = featureParallelYetiRandom ? featureParallelYetiRandom->SelectPermutation() :
+                            featureParallelRandom->SelectPermutation();
                         begin(selected);
                         CB_ENSURE(cbm_session_select_permutation(session.Handle, selected, error, sizeof(error)) == 0 &&
                             cbm_session_begin_tree(session.Handle, error, sizeof(error)) == 0,
@@ -1009,10 +1169,20 @@ namespace {
                                 "Metal FeatureParallel split search failed: " << error);
                             if (structure.has_split) selectedSplit(selected, structure);
                         } while (!structure.finished);
+                        beforeFinish(searchDrawCount);
                         CB_ENSURE(cbm_session_finish_tree(session.Handle, &info, &treeDepth,
                             splitFeatures.data(), splitBins.data(), splitTypes.data(), leaves.data(), weights.data(),
                             error, sizeof(error)) == 0, "Metal FeatureParallel leaf estimation failed: " << error);
-                        featureParallelRandom->FinishIterationWithDraws(treeDepth, searchDrawCount);
+                        if (featureParallelRandom) featureParallelRandom->FinishIterationWithDraws(treeDepth, searchDrawCount);
+                    }
+                    if (featureParallelYetiRandom) {
+                        if (combinationYetiCount) {
+                            const auto setter = orderedSession ? cbm_ordered_session_set_combination_yeti_seed_callback :
+                                cbm_session_set_combination_yeti_seed_callback;
+                            CB_ENSURE(setter(orderedSession ? orderedSession->GetHandle() : session.Handle, nullptr, nullptr,
+                                error, sizeof(error)) == 0, "Metal Combination leaf seed callback reset failed: " << error);
+                        }
+                        featureParallelYetiRandom->Complete();
                     }
                 } else if (greedy && vectorBackend) {
                     if (permutations) permutations->SelectForIteration(absoluteIteration);
@@ -1033,7 +1203,12 @@ namespace {
                         data.FeatureCount(), greedyDepthBound, approxDimension).Depth;
                 } else if (greedySession) {
                     if (permutations) permutations->SelectForIteration(absoluteIteration);
+                    if (yetiRandom) {
+                        yetiSearchAttempts = greedySession->PrepareYetiTree(yetiRandom->Begin());
+                        greedySession->SetYetiLeafSeeds(yetiRandom->LeafSeeds(yetiSearchAttempts));
+                    }
                     greedyTree = greedySession->Step(absoluteIteration);
+                    if (yetiRandom) yetiRandom->Complete();
                     info.completed_iterations = greedyTree.Info.completed_iterations;
                     info.finished = greedyTree.Info.finished;
                     info.stats = greedyTree.Info.stats;
@@ -1044,8 +1219,9 @@ namespace {
                         splitFeatures, splitBins, splitTypes, leaves, weights);
                 } else if (yetiRandom) {
                     if (permutations) permutations->SelectForIteration(absoluteIteration);
-                    const uint64_t weakSeed = yetiRandom->Begin();
-                    CB_ENSURE(cbm_session_set_yeti_oracle_seeds(session.Handle, 1, &weakSeed, error, sizeof(error)) == 0 &&
+                    const auto weakSeeds = yetiRandom->BeginSeeds();
+                    const auto weakSetter = combinationYetiCount ? cbm_session_set_combination_yeti_seeds : cbm_session_set_yeti_oracle_seeds;
+                    CB_ENSURE(weakSetter(session.Handle, weakSeeds.size(), weakSeeds.data(), error, sizeof(error)) == 0 &&
                         cbm_session_begin_tree(session.Handle, error, sizeof(error)) == 0,
                         "Metal YetiRank weak target failed: " << error);
                     CBMStructureInfo structure = {};
@@ -1055,11 +1231,21 @@ namespace {
                             "Metal YetiRank split search failed: " << error);
                         if (depth && !data.CandidateFeatures.empty()) ++attempts;
                     } while (!structure.finished);
-                    const auto seeds = yetiRandom->LeafSeeds(attempts);
-                    CB_ENSURE(cbm_session_set_yeti_leaf_seeds(session.Handle, seeds.size(), seeds.data(), error, sizeof(error)) == 0 &&
-                        cbm_session_finish_tree(session.Handle, &info, &treeDepth, splitFeatures.data(),
+                    if (combinationYetiCount) {
+                        yetiRandom->BeginLeafCalls(attempts);
+                        CB_ENSURE(cbm_session_set_combination_yeti_seed_callback(session.Handle,
+                            MetalCombinationLeafSeed<TMetalYetiRandom>, yetiRandom.Get(), error, sizeof(error)) == 0,
+                            "Metal Combination leaf seed callback setup failed: " << error);
+                    } else {
+                        const auto seeds = yetiRandom->LeafSeeds(attempts);
+                        CB_ENSURE(cbm_session_set_yeti_leaf_seeds(session.Handle, seeds.size(), seeds.data(), error, sizeof(error)) == 0,
+                            "Metal YetiRank leaf seed setup failed: " << error);
+                    }
+                    CB_ENSURE(cbm_session_finish_tree(session.Handle, &info, &treeDepth, splitFeatures.data(),
                             splitBins.data(), splitTypes.data(), leaves.data(), weights.data(), error, sizeof(error)) == 0,
                         "Metal YetiRank leaf estimation failed: " << error);
+                    if (combinationYetiCount) CB_ENSURE(cbm_session_set_combination_yeti_seed_callback(session.Handle,
+                        nullptr, nullptr, error, sizeof(error)) == 0, "Metal Combination leaf seed callback reset failed: " << error);
                     yetiRandom->Complete();
                 } else {
                     if (permutations) permutations->SelectForIteration(absoluteIteration);
@@ -1087,6 +1273,7 @@ namespace {
                     (!customCallbacks || customCallbacks->AfterIteration(history));
                 if (outputOptions.SaveSnapshot()) {
                     snapshot.Depths.push_back(treeDepth);
+                    if (greedy && yeti) snapshot.YetiSearchAttempts.push_back(yetiSearchAttempts);
                     if (greedy) {
                         snapshot.GreedyTrees.Append(greedyTree, data.FeatureCount(), greedyDepthBound, approxDimension);
                     } else {
@@ -1152,6 +1339,12 @@ namespace {
                             snapshot.OrderedRandomCompletedIterations = randomState.CompletedIterations;
                             snapshot.OrderedBootstrapInitialized = randomState.BootstrapInitialized;
                         }
+                        if (featureParallelYetiRandom) {
+                            const auto randomState = featureParallelYetiRandom->GetState();
+                            snapshot.OrderedRandomDrawCount = randomState.DrawCount;
+                            snapshot.OrderedRandomCompletedIterations = randomState.CompletedIterations;
+                            snapshot.OrderedBootstrapInitialized = randomState.BootstrapInitialized;
+                        }
                         if (yetiRandom) snapshot.YetiRandom = yetiRandom->GetState();
                         snapshot.History = history;
                         snapshot.Save(snapshotPath, info.stats.device_name, trainingCallbacks);
@@ -1184,7 +1377,7 @@ namespace {
             model.ModelInfo["metal_device"] = info.stats.device_name;
             model.ModelInfo["metal_permutations"] = ToString(permutationCount);
             model.ModelInfo["metal_port"] = ordered ? "Native CUDA Ordered/FeatureParallel translation" :
-                compoundCtrs ? "Native CUDA Plain/FeatureParallel translation" : "Native CUDA Plain/DocParallel translation";
+                featureParallel ? "Native CUDA Plain/FeatureParallel translation" : "Native CUDA Plain/DocParallel translation";
             if (treeCtrFeatures) model.ModelInfo["metal_tree_ctr_features"] = ToString(treeCtrFeatures->GetFeatureCount());
             TCoreModelToFullModelConverter converter(options, outputOptions, classificationTargetHelper,
                 0, false, EFinalCtrComputationMode::Skip, EFinalFeatureCalcersComputationMode::Skip);

@@ -16,7 +16,13 @@ There are two entry points:
 
 Installing an upstream CatBoost wheel alone does not install this Metal port.
 [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) tracks tested capabilities,
-remaining CUDA gaps, and native versus standalone evidence.
+remaining CUDA gaps, and native versus standalone evidence. Installed checkpoint
+`20260914T000929Z` includes greedy YetiRank, Ordered query/ranking, native
+Plain/Ordered FeatureParallel compound training for the registered scalar/query
+objectives, Combination losses and custom per-object Metal shaders. Its full
+matrix passes 12,745 tests plus 16 subtests; the alternate extension passes
+4,901 tests. See [TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md) for the supported
+matrix, source corrections, exact lifecycle and final release evidence.
 
 ## Run the standalone adapter
 
@@ -66,17 +72,23 @@ depths through 16. Inputs include observation/class weights, numeric NaNs,
 one-hot categories, and simple CTRs. Native Pool preparation exposes the
 widest categorical and prequantized-data support.
 
-Numeric scalar training also supports `boosting_type="Ordered"`, and Plain
-training supports `grow_policy="Depthwise"`, `"Lossguide"`, or `"Region"`.
+Scalar and the registered query/ranking objectives support
+`boosting_type="Ordered"`; Plain training supports `grow_policy="Depthwise"`,
+`"Lossguide"`, or `"Region"`.
 Lossguide growth is bounded by `max_leaves`; Region grows a chain with at most
 `depth + 1` leaves. Eleven CUDA-registered scalar objectives support these
 policies, with all seven structure scores, No/Bayesian/Bernoulli/Poisson
 sampling, score noise, and the applicable leaf estimators/backtracking.
 
 `CatBoostMetalRanker` supports QueryRMSE, QuerySoftMax, supplied-pair
-PairLogit/PairLogitPairwise, QueryCrossEntropy, and classic YetiRank. YetiRank uses numeric Plain training with
-PFound evaluation, explicit stochastic target seeds, and exact snapshot
-continuation; see [YETIRANK_PORT.md](YETIRANK_PORT.md). Pass contiguous `group_id` values to `fit`; PairLogit additionally
+PairLogit/PairLogitPairwise, QueryCrossEntropy, classic YetiRank and
+YetiRankPairwise. QueryRMSE, QuerySoftMax, PairLogit and classic YetiRank also
+support Ordered training and Plain Depthwise/Lossguide/Region. These routes
+retain their objective-specific numeric, one-hot and simple CTR surface, with
+PFound evaluation and saved target RNG for classic YetiRank. Full-matrix
+PairLogitPairwise, QueryCrossEntropy and YetiRankPairwise remain symmetric Plain
+DocParallel. See [TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md). Pass contiguous
+`group_id` values to `fit`; PairLogit additionally
 accepts `pairs` and `pairs_weight`. NDCG, MAP, and PFound can select the best
 iteration and drive early stopping, with the CUDA query-weight conventions
 documented in [RANKING_METRICS.md](RANKING_METRICS.md). Native
@@ -150,7 +162,13 @@ assert model.get_metadata()["metal_backend"] == "METAL"
 ```
 
 The native factory uses the existing GPU task type, not a third METAL enum.
-Native integration and standalone options are tested separately.
+Native integration and standalone options are tested separately. Native symmetric
+training also accepts supported `Combination` losses and custom per-object GPU
+objectives through `calc_ders_range_metal()`. The
+[custom shader interface](docs/custom_objectives.md) defines the weighted
+value/gradient/curvature contract and supplies an example. These two interfaces,
+Plain FeatureParallel and dynamic compound CTR generation are native capabilities;
+the standalone estimator frontend does not expose them.
 
 ## Validation and examples
 
@@ -187,27 +205,35 @@ sibling subtraction reuse parent statistics. GPU reductions select split
 winners. Compensated partition/leaf and prediction sums improve accuracy,
 while mixed-precision CUDA parity remains unproven for close scores.
 
-The current native wheel supports Plain/DocParallel symmetric trees through
-depth 16, twelve scalar losses, six vector families, all seven connected grouped objectives including both classic YetiRank variants,
-simple CTRs with multiple training permutations, numeric/one-hot Ordered P4, and numeric/one-hot/CTR scalar/vector
-Depthwise/Lossguide/Region training with compact GPU evaluation. Working buffers are capped at 1 GiB,
-outputs at 512 MiB, and rows at 2²⁴; numeric features support up to 255 borders.
-These are software caps, not M-series hardware limits.
+The installed native wheel supports Plain DocParallel symmetric trees through
+depth 16, twelve scalar losses, six vector families and all seven connected
+grouped objectives. Symmetric Plain and Ordered FeatureParallel support scalar
+losses, QueryRMSE, QuerySoftMax, PairLogit, classic YetiRank, Combination and
+custom per-object shaders. Numeric/one-hot/simple CTR Depthwise, Lossguide and
+Region cover the CUDA-registered scalar/vector/query objectives, now including
+classic YetiRank. Working buffers are capped at 1 GiB, outputs at 512 MiB and
+rows at 2²⁴; numeric features support up to 255 borders. These are software caps.
 
-Public and native Ordered training have tested numeric/one-hot paths with multiple
-permutations and exact saved-state continuation. [ORDERED_ONEHOT_PORT.md](ORDERED_ONEHOT_PORT.md)
-records category thresholds, original hashes and the recovered release. [ORDERED_PORT.md](ORDERED_PORT.md) describes its
-supported options and cursor state. Public Ordered+Exact remains rejected,
-matching CUDA; private extension tests do not change that supported surface.
-Grouped scalar Ordered is connected through native Pools and standalone raw inputs;
-[ORDERED_GROUPS_PORT.md](ORDERED_GROUPS_PORT.md) records whole-group folds, weights and recovery.
-Native scalar symmetric FeatureParallel training now connects compound CTRs to
-Plain and Ordered tree search, with Sample/Group histories, retained P1/P4 grids,
-exact snapshots and standard model tables. Set `max_ctr_complexity=2` or `3`;
-see [COMPOUND_CTR_PORT.md](COMPOUND_CTR_PORT.md) for supported options and release evidence.
-Ordered query objectives, text/embeddings, and broader CUDA parity remain active work. The installable preserved wheel
-and the latest source capabilities differ; check IMPLEMENTATION_STATUS before
-choosing a package.
+Native and standalone Ordered retain complete prefix cursors and whole-group
+histories for the supported scalar/query/ranking objectives. Public
+Ordered+Exact remains rejected like CUDA. The new Simple query/Combination/custom
+leaf methods are native symmetric capabilities: DocParallel exports sampled weak
+statistics, while FeatureParallel performs one Gradient-style leaf step.
+Greedy Simple remains unsupported. See
+[TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md) for leaf, score, sampler and
+seed-order restrictions.
+
+Native symmetric Plain/Ordered FeatureParallel connects compound CTRs to the
+registered scalar/query/ranking objectives and Combination/custom targets, with
+Sample/Group histories, retained P1/P4 grids, exact snapshots and standard model
+tables. Set `max_ctr_complexity=2` or `3`; see
+[COMPOUND_CTR_PORT.md](COMPOUND_CTR_PORT.md) for the categorical machinery and its
+preceding checkpoint, and [TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md) for
+current objective coverage. Full-matrix, vector and greedy training do not use
+that compound scheduler. Standalone Plain FeatureParallel and compound CTR
+frontends, remaining APIs/options, text/embeddings, CUDA device RNG agreement,
+numerical ties, memory scaling and wider hardware/performance validation remain
+open. No full CUDA feature, numerical or performance parity is claimed.
 The [source map](CUDA_PORT.md) explains correspondence and precision differences;
 [BOOTSTRAP_PORT.md](BOOTSTRAP_PORT.md) records sampling semantics.
 [PORT_REVIEW.md](PORT_REVIEW.md) preserves the earlier dated review; use
@@ -250,3 +276,10 @@ CatBoost and standalone Metal APIs. Native one-hot/simple CTR permutations,
 unlabeled supplied-pair Pools, metrics, model readers and exact snapshot
 continuation are accepted. [GREEDY_PAIRLOGIT_PORT.md](GREEDY_PAIRLOGIT_PORT.md)
 records the installed release, numerical fix and full validation evidence.
+
+Classic YetiRank now joins those greedy policies in both interfaces, and
+QueryRMSE/QuerySoftMax/PairLogit/YetiRank connect Ordered query histories and
+native Plain FeatureParallel training. Native Combination and custom shaders
+retain baselines, initial models, callbacks, metrics, exact snapshots and ordinary
+CBM/JSON export. [TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md) records the
+accepted matrix and the explicit corrections to pinned CUDA source defects.

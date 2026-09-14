@@ -38,7 +38,9 @@ namespace NCB {
         bool Greedy = false;
         TMetalGreedySnapshotTrees GreedyTrees;
         bool YetiRank = false;
+        bool CombinationYeti = false;
         TMetalYetiRandomState YetiRandom;
+        TVector<ui32> YetiSearchAttempts;
         // Enabled by the current configuration. Keep legacy v6 payloads
         // byte-for-byte unchanged when compound CTRs are disabled.
         bool TreeCtrs = false;
@@ -74,6 +76,16 @@ namespace NCB {
                     TString tag;
                     ::LoadMany(in, tag, YetiRandom.DrawCount, YetiRandom.CompletedIterations, YetiRandom.BootstrapInitialized);
                     CB_ENSURE(tag == "Metal YetiRank random v1", "Unknown Metal YetiRank snapshot payload");
+                    if (Greedy) {
+                        ::LoadMany(in, tag, YetiSearchAttempts);
+                        CB_ENSURE(tag == "Metal greedy YetiRank search v1" && YetiSearchAttempts.size() == Depths.size(),
+                            "Unknown or inconsistent Metal greedy YetiRank search payload");
+                    }
+                }
+                if (CombinationYeti) {
+                    TString tag;
+                    ::LoadMany(in, tag, YetiRandom.DrawCount, YetiRandom.CompletedIterations, YetiRandom.BootstrapInitialized);
+                    CB_ENSURE(tag == "Metal Combination target random v1", "Unknown Metal Combination random payload");
                 }
                 if (TreeCtrs) {
                     TString tag;
@@ -106,6 +118,9 @@ namespace NCB {
                     OrderedRandomDrawCount, OrderedRandomCompletedIterations, OrderedBootstrapInitialized);
                 if (Greedy) ::SaveMany(out, TString("Metal greedy trees v1"), GreedyTrees);
                 if (YetiRank) ::SaveMany(out, TString("Metal YetiRank random v1"),
+                    YetiRandom.DrawCount, YetiRandom.CompletedIterations, YetiRandom.BootstrapInitialized);
+                if (YetiRank && Greedy) ::SaveMany(out, TString("Metal greedy YetiRank search v1"), YetiSearchAttempts);
+                if (CombinationYeti) ::SaveMany(out, TString("Metal Combination target random v1"),
                     YetiRandom.DrawCount, YetiRandom.CompletedIterations, YetiRandom.BootstrapInitialized);
                 if (TreeCtrs) {
                     ValidateTreeCtrMetadata();

@@ -6,13 +6,15 @@ import json
 import numbers
 from pathlib import Path
 import platform
+import re
 import subprocess
 import threading
 
 import numpy as np
 
 from ._ordered_rng import OrderedSelectionRng, cuda_ordered_block_size, cuda_ordered_history_order, cuda_ordered_group_history_order
-from ._native import TrainResult, StepResult, StepInfo, BootstrapOptions, ScoreNoiseOptions, FeaturePenaltyOptions, _u8, _u32, _f32, _stats
+from ._native import (TrainResult, StepResult, StepInfo, StructureInfo, BootstrapOptions, ScoreNoiseOptions,
+                     FeaturePenaltyOptions, QueryOptions, PairOptions, YetiRankOptions, _u8, _u32, _f32, _stats)
 
 
 class Params(ct.Structure):
@@ -34,11 +36,27 @@ def build_library():
              "metal_score_noise_kernels.h", "metal_kernels.h", "metal_kernel_abi.h", "metal_additional_objective_kernels.h",
              "metal_objective_kernels.h", "metal_backtracking_kernels.h", "metal_ordered_backtracking.h",
              "metal_deep_partition_kernels.h", "metal_ordered_histogram_kernels.h", "metal_ordered_histogram_runtime.h",
-             "metal_exact_leaf_kernels.h", "metal_sort.mm", "metal_sort.h", "metal_sort_kernels.h")
+             "metal_exact_leaf_kernels.h", "metal_sort.mm", "metal_sort.h", "metal_sort_kernels.h",
+             "metal_querywise_kernels.h", "metal_pairwise_kernels.h", "metal_ordered_query_kernels.h",
+             "metal_ordered_yeti_runtime.h", "metal_yeti_rank_kernels.h")
+    # Keep the established hash order, then include every transitive local
+    # header so changes to newly integrated targets invalidate the cache too.
+    explicit = [native / name for name in names]
+    pending, sources = explicit.copy(), {}
+    while pending:
+        source = pending.pop()
+        if source in sources:
+            continue
+        data = source.read_bytes()
+        sources[source] = data
+        for name in re.findall(rb'^\s*#include\s+"([^"\n]+)"', data, flags=re.MULTILINE):
+            dependency = source.parent / name.decode()
+            if dependency.is_file():
+                pending.append(dependency)
     digest = hashlib.sha256(platform.platform().encode())
-    for name in names:
-        digest.update(name.encode())
-        digest.update((native / name).read_bytes())
+    for source in explicit + sorted(sources.keys() - set(explicit)):
+        digest.update(source.name.encode())
+        digest.update(sources[source])
     build = root / ".build"
     build.mkdir(exist_ok=True)
     destination = build / f"libcatboost_metal_ordered_{digest.hexdigest()[:20]}.dylib"
@@ -74,10 +92,32 @@ def _load(path):
     library.cbm_ordered_session_create_banked.argtypes = [ct.POINTER(Params), ct.c_uint32, ct.c_uint64,
         u8, f32, f32, f32, u32, u32, u8, u32, ct.c_uint32, u32, ct.c_double, ct.POINTER(ct.c_void_p)] + error
     library.cbm_ordered_session_create_banked.restype = ct.c_int
+    ranked_prefix = [ct.POINTER(Params), ct.c_uint32, ct.c_uint64, u8]
+    ranked_data = [f32, f32, f32, u32, u32, u8, u32]
+    ranked_tail = [u32, ct.c_double, ct.POINTER(ct.c_void_p)] + error
+    library.cbm_ordered_session_create_query_banked.argtypes = ranked_prefix + ranked_data + [ct.POINTER(QueryOptions)] + ranked_tail
+    library.cbm_ordered_session_create_query_banked.restype = ct.c_int
+    library.cbm_ordered_session_create_pair_banked.argtypes = ranked_prefix + [f32, u32, u32, u8, u32,
+        ct.POINTER(PairOptions), u32, u32, f32] + ranked_tail
+    library.cbm_ordered_session_create_pair_banked.restype = ct.c_int
+    library.cbm_ordered_session_create_yeti_banked.argtypes = ranked_prefix + ranked_data + [ct.POINTER(YetiRankOptions)] + ranked_tail
+    library.cbm_ordered_session_create_yeti_banked.restype = ct.c_int
     library.cbm_ordered_session_set_feature_penalties.argtypes = [ct.c_void_p, ct.POINTER(FeaturePenaltyOptions), u32, f32] + error
     library.cbm_ordered_session_set_feature_penalties.restype = ct.c_int
     library.cbm_ordered_session_step.argtypes = [ct.c_void_p, ct.c_uint32, ct.POINTER(StepInfo), u32,
                                                 u32, u32, u8, f32, f32] + error
+    library.cbm_ordered_session_begin_tree.argtypes = [ct.c_void_p, ct.c_uint32] + error
+    library.cbm_ordered_session_begin_tree.restype = ct.c_int
+    library.cbm_ordered_session_grow_tree.argtypes = [ct.c_void_p, ct.POINTER(StructureInfo)] + error
+    library.cbm_ordered_session_grow_tree.restype = ct.c_int
+    library.cbm_ordered_session_finish_tree.argtypes = [ct.c_void_p, ct.POINTER(StepInfo), u32, u32, u32, u8, f32, f32] + error
+    library.cbm_ordered_session_finish_tree.restype = ct.c_int
+    for name in ("set_yeti_oracle_seeds", "set_yeti_leaf_seeds"):
+        operation = getattr(library, "cbm_ordered_session_" + name)
+        operation.argtypes = [ct.c_void_p, ct.c_uint32, ct.POINTER(ct.c_uint64)] + error
+        operation.restype = ct.c_int
+    library.cbm_ordered_session_yeti_seed_shape.argtypes = [ct.c_void_p, ct.c_uint32, u32, u32] + error
+    library.cbm_ordered_session_yeti_seed_shape.restype = ct.c_int
     library.cbm_ordered_session_info.argtypes = [ct.c_void_p, ct.POINTER(StepInfo)] + error
     library.cbm_ordered_session_copy_predictions.argtypes = [ct.c_void_p, f32] + error
     library.cbm_ordered_session_set_bootstrap.argtypes = [ct.c_void_p, ct.POINTER(BootstrapOptions), ct.c_uint32] + error
@@ -131,7 +171,11 @@ class Session:
                  min_fold_size=100, fold_size_loss_normalization=False, random_seed=0, iteration_offset=0,
                  initial_state=None, bootstrap_type="No", random_strength=0., objective_param=None,
                  bagging_temperature=1., subsample=1., mvs_reg=None, initial_mvs_lambda=None,
-                 observations_to_bootstrap="TestOnly", fold_permutation_block=64, group_sizes=None, permutation_bins=None, ctr_unique_values=None, model_size_reg=.5, feature_weights=None):
+                 observations_to_bootstrap="TestOnly", fold_permutation_block=64, group_sizes=None, permutation_bins=None,
+                 ctr_unique_values=None, model_size_reg=.5, feature_weights=None, group_offsets=None,
+                 query_beta=1., query_lambda=.01, pair_winners=None, pair_losers=None, pair_weights=None,
+                 yeti_permutations=10, decay=.85, legacy_prefix_centering=False, subgroup_hashes=None,
+                 simple_ctr_permutation_dependent=False):
         self._handle, self._lib, self._lock = ct.c_void_p(), None, threading.RLock()
         self._steps = []
         iterations = _integer("iterations", iterations, 1, 100000)
@@ -141,10 +185,37 @@ class Session:
         minimum = _integer("min_fold_size", min_fold_size, 1, 2**32 - 1)
         self._random_seed = _integer("random_seed", random_seed, 0, 2**64 - 1)
         self._iteration_offset = _integer("iteration_offset", iteration_offset, 0, 2**32 - 1 - iterations)
-        objectives = ("RMSE", "Logloss", "CrossEntropy", "Poisson", "Huber", "Expectile", "Lq", "Tweedie",
-                      "LogLinQuantile", "Quantile", "MAE", "MAPE")
+        objectives = dict(zip(("RMSE", "Logloss", "CrossEntropy", "Poisson", "Huber", "Expectile", "Lq", "Tweedie",
+                               "LogLinQuantile", "Quantile", "MAE", "MAPE", "QueryRMSE", "QuerySoftMax", "PairLogit"), range(15)))
+        objectives["YetiRank"] = 17
         if objective not in objectives:
-            raise ValueError("Unsupported Ordered scalar objective.")
+            raise ValueError("Unsupported Ordered objective.")
+        queried = objective in ("QueryRMSE", "QuerySoftMax")
+        paired, yeti = objective == "PairLogit", objective == "YetiRank"
+        ranking = queried or paired or yeti
+        self._yeti = yeti
+        if not isinstance(simple_ctr_permutation_dependent, (bool, np.bool_)):
+            raise ValueError("simple_ctr_permutation_dependent must be boolean.")
+        if simple_ctr_permutation_dependent and not yeti:
+            raise ValueError("Explicit CTR seed scheduling is supported for Ordered YetiRank only.")
+        if not paired and any(value is not None for value in (pair_winners, pair_losers, pair_weights)):
+            raise ValueError("Supplied pair arrays require Ordered PairLogit.")
+        if paired and sample_weight is not None:
+            raise ValueError("Ordered PairLogit uses incident pair mass; sample_weight must be None.")
+        if not queried and (query_beta != 1. or query_lambda != .01):
+            raise ValueError("Query parameters require Ordered QueryRMSE or QuerySoftMax.")
+        query_parameters = _finite("query parameters", [query_beta, query_lambda], (2,))
+        if yeti:
+            yeti_permutations = _integer("yeti_permutations", yeti_permutations, 1, 10000)
+            decay = float(_finite("decay", decay, ()))
+            if not 0 <= decay <= 1:
+                raise ValueError("YetiRank decay must be in [0,1].")
+            if not isinstance(legacy_prefix_centering, (bool, np.bool_)):
+                raise ValueError("YetiRank legacy_prefix_centering must be boolean.")
+            if leaf_estimation_method != "Newton" or leaf_estimation_backtracking != "No":
+                raise ValueError("Ordered YetiRank requires Newton leaves and no backtracking like CUDA.")
+        elif yeti_permutations != 10 or decay != .85 or legacy_prefix_centering or subgroup_hashes is not None:
+            raise ValueError("YetiRank options require the Ordered YetiRank objective.")
         if score_function not in ("Cosine", "NewtonCosine"):
             raise ValueError("Ordered supports Cosine and NewtonCosine scoring.")
         if leaf_estimation_method not in ("Newton", "Gradient", "Exact"):
@@ -195,13 +266,15 @@ class Session:
                 raise ValueError("permutation_bins bank zero must equal bins.")
             # Shared banks retain the preceding numeric/one-hot snapshot identity.
             permutation_bins = None if all(np.array_equal(bank, bins) for bank in banks) else np.ascontiguousarray(banks, np.uint8)
-        targets = _finite("targets", targets, (rows,))
+        targets = np.zeros(rows, np.float32) if paired and targets is None else _finite("targets", targets, (rows,))
         if objective == "Logloss" and ((targets != 0) & (targets != 1)).any():
             raise ValueError("Logloss targets must be zero or one.")
         if objective == "CrossEntropy" and ((targets < 0) | (targets > 1)).any():
             raise ValueError("CrossEntropy targets must be in [0,1].")
         if objective in ("Poisson", "Tweedie") and (targets < 0).any():
             raise ValueError("Poisson/Tweedie targets must be nonnegative.")
+        if yeti and ((targets < 0).any() or (targets > 1).any()):
+            raise ValueError("Classic YetiRank with PFound requires relevance labels in [0,1].")
         weights = np.ones(rows, np.float32) if sample_weight is None else _finite("sample_weight", sample_weight, (rows,))
         if (weights < 0).any() or not 0 < weights.sum(dtype=np.float64) < 1e30:
             raise ValueError("sample_weight must be nonnegative with positive total below 1e30.")
@@ -223,6 +296,15 @@ class Session:
                 raise ValueError("An Ordered feature cannot mix numeric and one-hot candidates.")
         cf, cb = np.ascontiguousarray(cf, np.uint32), np.ascontiguousarray(cb, np.uint32)
         candidate_types = np.ascontiguousarray(candidate_types, np.uint8)
+        if group_offsets is not None:
+            from ._query_data import validate_offsets
+            group_offsets = validate_offsets(group_offsets, rows)
+            offset_sizes = np.diff(group_offsets)
+            if group_sizes is not None and not np.array_equal(group_sizes, offset_sizes):
+                raise ValueError("Ordered group_sizes and group_offsets must describe the same groups.")
+            group_sizes = offset_sizes
+        if ranking and group_sizes is None:
+            raise ValueError("Ordered ranking requires explicit group_offsets or group_sizes.")
         scalars = _finite("training scalars", [learning_rate, l2_leaf_reg, bias, fold_len_multiplier], (4,))
         if not 0 < scalars[0] <= 1 or scalars[1] < 0 or (scalars[3] <= 1 and
                 (group_sizes is None or float(fold_len_multiplier) <= 1)):
@@ -235,8 +317,29 @@ class Session:
                     or (group_sizes <= 0).any() or (group_sizes > rows).any()
                     or int(group_sizes.sum(dtype=np.uint64)) != rows):
                 raise ValueError("Ordered requires at least four positive integer group sizes covering all rows.")
-            if (group_sizes != 1).any():
+            if ranking or (group_sizes != 1).any():
                 group_offsets = np.r_[np.uint32(0), np.cumsum(group_sizes, dtype=np.uint32)]
+        if paired:
+            from ._query_data import prepare_pair_arrays
+            pair_winners, pair_losers, pair_weights = prepare_pair_arrays(
+                pair_winners, pair_losers, pair_weights, rows, group_offsets)
+            mass = np.bincount(pair_winners, weights=pair_weights, minlength=rows)
+            mass += np.bincount(pair_losers, weights=pair_weights, minlength=rows)
+            weights = np.ascontiguousarray(mass, np.float32)
+        if queried:
+            from ._query_data import query_metric
+            query_metric(initial, targets, weights, group_offsets, objective, *map(float, query_parameters))
+        if yeti:
+            from ._query_data import validate_subgroup_hashes
+            if (group_sizes > 1023).any():
+                raise ValueError("Ordered YetiRank supports at most 1023 rows per query.")
+            if not (group_sizes > 1).any():
+                raise ValueError("YetiRank requires at least one query containing multiple rows.")
+            self._targets, self._weights, self._offsets = targets.copy(), weights.copy(), group_offsets.copy()
+            self._subgroups = validate_subgroup_hashes(subgroup_hashes, rows)
+            if self._subgroups is not None:
+                self._subgroups = self._subgroups.copy()
+            self._legacy_centering = bool(legacy_prefix_centering)
         if permutations is None:
             permutations = np.stack([cuda_ordered_group_history_order(group_sizes, index, block_size)
                 if group_offsets is not None else cuda_ordered_history_order(rows, index, block_size)
@@ -261,7 +364,7 @@ class Session:
                     if position + size > rows or not np.array_equal(order[position:position + size], np.arange(first, first + size)):
                         raise ValueError("Ordered permutations must preserve whole groups and their row order.")
                     position += size
-        self._params = Params(rows, features, len(cf), iterations, depth, objectives.index(objective),
+        self._params = Params(rows, features, len(cf), iterations, depth, objectives[objective],
             int(score_function == "NewtonCosine"), ("Newton", "Gradient", "Exact").index(leaf_estimation_method), leaf_steps, permutation_count,
             minimum, int(fold_size_loss_normalization), *map(float, scalars), parameter, 0, 0, 0)
         from ._training import _prepare_feature_penalties
@@ -285,6 +388,14 @@ class Session:
             digest.update(b"ordered_group_offsets_v1")
             digest.update(group_offsets.tobytes())
             digest.update(np.float64(fold_len_multiplier).tobytes())
+        if paired:
+            digest.update(b"ordered_supplied_pairs_v1")
+            for array in (pair_winners, pair_losers, pair_weights):
+                digest.update(str(array.shape).encode())
+                digest.update(array.tobytes())
+        if yeti and self._subgroups is not None:
+            digest.update(b"ordered_yeti_subgroups_v1")
+            digest.update(self._subgroups.tobytes())
         if self._has_penalties:
             digest.update(b"ordered_static_ctr_penalties_v1")
             digest.update(ctr_unique_values.tobytes()); digest.update(feature_weights.tobytes())
@@ -293,6 +404,12 @@ class Session:
         options["random_seed"] = self._random_seed
         options["leaf_estimation_backtracking"] = leaf_estimation_backtracking
         options["selection_rng_policy"] = "numeric_ordered_host_v1"
+        if queried:
+            options.update(query_beta=float(query_parameters[0]), query_lambda=float(query_parameters[1]))
+        if yeti:
+            options.update(selection_rng_policy="ordered_yeti_host_v1", yeti_permutations=yeti_permutations,
+                           decay=decay, legacy_prefix_centering=bool(legacy_prefix_centering),
+                           simple_ctr_permutation_dependent=bool(simple_ctr_permutation_dependent))
         options["fold_permutation_block"] = block_size
         options.update(bootstrap_type=bootstrap_type, bagging_temperature=float(sampling[0]), subsample=float(sampling[1]),
                        random_strength=float(sampling[2]), observations_to_bootstrap=observations_to_bootstrap, mvs_reg=regularization)
@@ -310,11 +427,38 @@ class Session:
             selection_state = initial_state.get("selection_rng")
             if selection_state is None:
                 raise ValueError("Ordered state requires persistent selection_rng state.")
-        self._selection_rng = OrderedSelectionRng(self._random_seed, permutation_count, selection_state,
-                                                 iteration_offset=self._iteration_offset)
+        if yeti:
+            from ._ordered_yeti_rng import OrderedYetiRankRng
+            self._selection_rng = OrderedYetiRankRng(self._random_seed, permutation_count, leaf_steps,
+                score_sets=1 + int(permutation_count > 1 and simple_ctr_permutation_dependent),
+                initial_state=selection_state, iteration_offset=self._iteration_offset)
+        else:
+            self._selection_rng = OrderedSelectionRng(self._random_seed, permutation_count, selection_state,
+                                                     iteration_offset=self._iteration_offset)
         self._lib = _load(build_library())
         error = ct.create_string_buffer(4096)
-        if permutation_bins is not None:
+        if ranking:
+            banks = bins if permutation_bins is None else permutation_bins
+            arguments = [ct.byref(self._params), 1 if permutation_bins is None else permutation_count,
+                         banks.size, _u8(banks)]
+            if not paired:
+                arguments += [_f32(targets), _f32(weights)]
+            arguments += [_f32(initial), _u32(cf), _u32(cb), _u8(candidate_types), _u32(permutations)]
+            if paired:
+                objective_options = PairOptions(len(pair_winners), len(group_sizes), 0, 0)
+                arguments += [ct.byref(objective_options), _u32(pair_winners), _u32(pair_losers), _f32(pair_weights)]
+                operation = self._lib.cbm_ordered_session_create_pair_banked
+            elif queried:
+                objective_options = QueryOptions(len(group_sizes), *map(float, query_parameters), 0)
+                arguments += [ct.byref(objective_options)]
+                operation = self._lib.cbm_ordered_session_create_query_banked
+            else:
+                objective_options = YetiRankOptions(len(group_sizes), yeti_permutations, decay, int(legacy_prefix_centering))
+                arguments += [ct.byref(objective_options)]
+                operation = self._lib.cbm_ordered_session_create_yeti_banked
+            arguments += [_u32(group_offsets), float(fold_len_multiplier), ct.byref(self._handle), error, len(error)]
+            _check(operation(*arguments), error)
+        elif permutation_bins is not None:
             _check(self._lib.cbm_ordered_session_create_banked(ct.byref(self._params), permutation_count, permutation_bins.size,
                 _u8(permutation_bins), _f32(targets), _f32(weights), _f32(initial), _u32(cf), _u32(cb), _u8(candidate_types),
                 _u32(permutations), len(group_sizes) if group_offsets is not None else 0,
@@ -371,7 +515,7 @@ class Session:
                 penalty = FeaturePenaltyOptions(float(model_size_reg), 0, 0, 0)
                 _check(self._lib.cbm_ordered_session_set_feature_penalties(self._handle, ct.byref(penalty),
                     _u32(ctr_unique_values), _f32(feature_weights), error, len(error)), error)
-            self._initial_loss = self._info().loss
+            self._initial_loss = self._metric() if yeti else self._info().loss
         except Exception:
             self.close()
             raise
@@ -385,6 +529,19 @@ class Session:
         info, error = StepInfo(), ct.create_string_buffer(4096)
         _check(self._lib.cbm_ordered_session_info(self._handle, ct.byref(info), error, len(error)), error)
         return info
+
+    def _metric(self):
+        from ._training import _shared_metric
+        return _shared_metric("PFound", self.predictions(), self._targets, self._weights,
+                              self._offsets, subgroup_hashes=self._subgroups)
+
+    def _set_yeti_seeds(self, seeds, *, leaves=False):
+        values = np.ascontiguousarray(seeds, np.uint64)
+        error = ct.create_string_buffer(4096)
+        operation = (self._lib.cbm_ordered_session_set_yeti_leaf_seeds if leaves
+                     else self._lib.cbm_ordered_session_set_yeti_oracle_seeds)
+        _check(operation(self._handle, len(values), values.ctypes.data_as(ct.POINTER(ct.c_uint64)),
+                         error, len(error)), error)
 
     @property
     def completed_iterations(self):
@@ -435,17 +592,39 @@ class Session:
             values, weights = np.zeros(1 << p.depth, np.float32), np.zeros(1 << p.depth, np.float32)
             info, depth, error = StepInfo(), ct.c_uint32(), ct.create_string_buffer(4096)
             selected = self._selection_rng.select()
-            _check(self._lib.cbm_ordered_session_step(self._handle, selected, ct.byref(info), ct.byref(depth),
-                _u32(features), _u32(borders), _u8(types), _f32(values), _f32(weights), error, len(error)), error)
+            if self._yeti:
+                weak_count, leaf_count = ct.c_uint32(), ct.c_uint32()
+                _check(self._lib.cbm_ordered_session_yeti_seed_shape(self._handle, selected,
+                    ct.byref(weak_count), ct.byref(leaf_count), error, len(error)), error)
+                self._set_yeti_seeds(self._selection_rng.weak(weak_count.value))
+                _check(self._lib.cbm_ordered_session_begin_tree(self._handle, selected, error, len(error)), error)
+                attempts = 0
+                while True:
+                    structure = StructureInfo()
+                    _check(self._lib.cbm_ordered_session_grow_tree(self._handle, ct.byref(structure), error, len(error)), error)
+                    if p.candidates and p.depth:
+                        attempts += 1
+                    if structure.finished:
+                        break
+                self._set_yeti_seeds(self._selection_rng.leaves(attempts, leaf_count.value), leaves=True)
+                _check(self._lib.cbm_ordered_session_finish_tree(self._handle, ct.byref(info), ct.byref(depth),
+                    _u32(features), _u32(borders), _u8(types), _f32(values), _f32(weights), error, len(error)), error)
+                self._selection_rng.finish()
+                loss = self._metric()
+            else:
+                _check(self._lib.cbm_ordered_session_step(self._handle, selected, ct.byref(info), ct.byref(depth),
+                    _u32(features), _u32(borders), _u8(types), _f32(values), _f32(weights), error, len(error)), error)
+                loss = float(info.loss)
             count = depth.value
             # The numeric native loop only exits early for an invalid/repeated
             # winner. Its final unsuccessful attempt still consumes a CUDA host
             # score seed; empty candidates and depth zero never enter that loop.
-            attempts = 0 if not p.candidates or not p.depth else min(count + 1, p.depth)
-            self._selection_rng.finish(attempts)
+            if not self._yeti:
+                attempts = 0 if not p.candidates or not p.depth else min(count + 1, p.depth)
+                self._selection_rng.finish(attempts)
             result = StepResult(info.completed_iterations, bool(info.finished), count, features[:count].copy(),
                 borders[:count].copy(), types[:count].copy(), values[:1 << count].copy(), weights[:1 << count].copy(),
-                float(info.loss), _stats(info.stats))
+                loss, _stats(info.stats))
             result.stats.update(boosting_type="Ordered", search_permutation=selected)
             self._steps.append(result)
             return result
@@ -472,6 +651,8 @@ class Session:
                 ordered_tasks=self._task_count, ordered_cursor_count=self._cursor_count,
                 bootstrap_state=self.bootstrap_state,
                 search_permutations=[step.stats["search_permutation"] for step in self._steps])
+            if self._yeti:
+                result.stats["yeti_centering"] = "legacy_prefix" if self._legacy_centering else "all_rows"
             return result
 
     def close(self):
