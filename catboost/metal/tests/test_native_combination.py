@@ -404,12 +404,19 @@ def test_native_combination_rejects_corrupt_stochastic_draw_count_even_when_comp
     assert model.tree_count_ == (4 if completed else 2)
     path = tmp_path / saved["snapshot_file"]
     raw = bytearray(path.read_bytes())
-    # Numeric symmetric v6 snapshots end with Q/I/bool RNG metadata. DP adds
-    # a tagged Combination RNG record; FP stores it in the common Ordered slot.
+    # DP adds a tagged Combination RNG record before its optional model-history
+    # tail; FP stores RNG metadata in the terminal common Ordered slot.
     # TProgressHelper logs its MD5 but appends no checksum to these bytes.
     tag = b"Metal Combination target random v1"
     assert (tag in raw) == (mode == "PlainDP")
-    position = len(raw) - struct.calcsize("<QIB")
+    if mode == "PlainDP":
+        from native_snapshot_tail import stochastic_tail
+        offset, expected_state = stochastic_tail(raw, tag, trees=model.tree_count_,
+            permutations=int(model.get_metadata()["metal_permutations"]), leaf_capacity=1 << saved["depth"], dimension=1)
+        position = offset + len(tag)
+        assert stochastic_tail(raw[:position + 13], tag) == (offset, expected_state)
+    else:
+        position = len(raw) - struct.calcsize("<QIB")
     draws, iterations, initialized = struct.unpack_from("<QIB", raw, position)
     # DocParallel creates its bootstrap cache only for a sampled bootstrap;
     # FeatureParallel initializes the CUDA-compatible cache even for No.
@@ -419,6 +426,7 @@ def test_native_combination_rejects_corrupt_stochastic_draw_count_even_when_comp
     path.write_bytes(raw)
     with pytest.raises(CatBoostError, match="(?i)draw count|random.*snapshot|snapshot.*random"):
         fit(saved, pool, eval_set=pool, use_best_model=False)
+    assert path.read_bytes() == raw
 
 
 def compound_config(profile, mode, count=4, kind="Borders", history="Group", **extra):

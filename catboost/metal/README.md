@@ -19,18 +19,25 @@ There are two entry points:
 
 Installing an upstream CatBoost wheel alone does not install this Metal port.
 [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) tracks tested capabilities,
-remaining CUDA gaps, and native versus standalone evidence. **Card 4 is complete and its coherent release acceptance passed.** Installed checkpoint:
-`20260914T025201Z`; final accepted counts: 14,376 tests plus 16 subtests in the full matrix; 6,118 tests alternate; 2,431 tests installed; 348 CLI; 203 preinstall smoke; 203 installed smoke; 350 exact preceding snapshot recoveries.
-It connects shared cross-validation, text/embedding training, registered Simple
-leaves, fixed splits, RSM, automatic CTR priors, feature weights, Full counters,
-normalization/ridge/Meta-L2 and Langevin. See
-[API_OPTIONS_PORT.md](API_OPTIONS_PORT.md) for exact consumers and limitations.
+remaining CUDA gaps, and native versus standalone evidence. **Card 7 is complete
+and its coherent release acceptance passed.** Installed checkpoint:
+`20260914T052913Z`; 14,551 full tests plus 16 subtests, 6,187 alternate tests,
+2,606 installed tests, 348 CLI configurations, 203 preinstall and 203 installed
+smoke configurations, 350 exact preceding snapshot recoveries, and 143 C++
+checks. These selections overlap and must not be summed.
 
-The preceding published checkpoint `20260914T000929Z` passed 12,745 tests plus
-16 subtests and 4,901 alternate-extension tests. Those historical counts cover
-card 3, including greedy YetiRank, Ordered query/ranking, native FeatureParallel
-compounds, Combination and custom shaders; they do not certify card 4. Its
-release evidence is preserved in [TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md).
+Native `model-based-eval` now runs supported Plain/DocParallel feature experiments
+from prefixes of a compatible baseline snapshot. It writes metric histories and
+retains per-permutation prefix state. See
+[MODEL_BASED_EVAL_PORT.md](MODEL_BASED_EVAL_PORT.md) for scope, commands and the
+remaining numerical/RNG limits.
+
+The preceding card 4 checkpoint `20260914T025201Z` added shared cross-validation,
+text/embedding training, registered Simple leaves, fixed splits, RSM, automatic
+CTR priors, feature weights, Full counters, normalization/ridge/Meta-L2 and
+Langevin. Its historical evidence remains in
+[API_OPTIONS_PORT.md](API_OPTIONS_PORT.md); card 3 training-mode evidence is
+preserved in [TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md).
 
 ## Run the standalone adapter
 
@@ -276,11 +283,17 @@ activate it. Metal preserves its published Plain/complexity-one defaults and
 implicit Simple default for YetiRankPairwise; automatic-prior initialization and
 dynamic CTR feature-weight aliasing have documented corrections.
 
-CUDA device RNG agreement, numerical/tied split
-differences, memory scaling and wider hardware/performance validation remain
-open. The separate [model-based feature analysis workflow](../../Kanban/07-model-based-feature-analysis.md)
-is card 7; ordinary training and cross-validation do not implement it. No full
-CUDA feature, numerical or performance parity is claimed.
+[Numerical agreement](../../Kanban/05-numerical-agreement.md) remains deferred,
+as does [scale/performance validation](../../Kanban/06-scale-and-performance.md)
+given the available 18 GB M3 Pro and missing comparison hardware. CUDA device
+RNG, tied split behavior and complete memory accounting remain unresolved.
+
+The separate [model-based feature analysis command](MODEL_BASED_EVAL_PORT.md)
+restarts Metal's random-state helpers for each experiment; CUDA retains a shared
+generator across experiments. Vector prefixes replay rounded float32 leaf
+increments, which can differ from live fused updates and change tied CTR
+choices. Both limitations remain in card 5. Full CUDA feature, numerical and
+performance parity is not established.
 The [source map](CUDA_PORT.md) explains correspondence and precision differences;
 [BOOTSTRAP_PORT.md](BOOTSTRAP_PORT.md) records sampling semantics.
 [PORT_REVIEW.md](PORT_REVIEW.md) preserves the earlier dated review; use

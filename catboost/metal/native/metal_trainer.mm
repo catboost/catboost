@@ -887,6 +887,18 @@ public:
                 ? (Permutations.empty() ? MVSLambda : Permutations[permutation].Lambda) : 0;
         }
     }
+    void CopyLastPermutationLeaves(uint32_t count, uint32_t maxLeaves, float* output) const {
+        RequireCompletedState();
+        Require(!Failed, "This training session failed and must be closed");
+        Require(!Dynamic, "Permutation leaf export requires a DocParallel session");
+        Require(Completed > 0 && LastPermutationLeafTree == Completed,
+                "Permutation leaf export requires a successfully finished tree");
+        Require(count == PermutationCount() && maxLeaves == MaxLeaves && output,
+                "Permutation leaf output dimensions must match the session and its buffer must not be null");
+        const uint64_t cells = CheckedProduct(count, maxLeaves, "Permutation leaf output");
+        Require(LastPermutationLeaves.size() == cells, "Completed permutation leaf values are unavailable");
+        std::memcpy(output, LastPermutationLeaves.data(), cells * sizeof(float));
+    }
     void CopyBootstrapState(uint32_t* absolute, float* lambda, uint32_t* valid) const {
         RequireCompletedState();
         Require(absolute && lambda && valid, "Bootstrap state output buffers are required");
@@ -1419,6 +1431,10 @@ private:
     struct PermutationData { id<MTLBuffer> Bins, Cursor; float Lambda = 0; bool HasLambda = false; };
     struct PermutationTree { std::vector<float> Values, Weights; float Loss; };
     std::vector<PermutationData> Permutations;
+    // Only the latest completed DocParallel tree is retained. At most 16 MiB
+    // per vector under the existing 64-permutation/depth-16 limits.
+    std::vector<float> LastPermutationLeaves;
+    uint32_t LastPermutationLeafTree = 0;
     uint32_t SearchPermutation = 0;
     id<MTLBuffer> FixedPermutationSplits;
     CBMBootstrapOptions BootstrapOptions = {0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0};
@@ -2105,7 +2121,7 @@ private:
         Pending.HasSplit = true;
         Pending.Finished = Pending.Depth == p.depth;
     }
-    PermutationTree EstimateFeatureParallelCombinationLeaves() {
+    PermutationTree EstimateFeatureParallelCombinationLeaves(std::vector<float>& permutationLeaves) {
         // CUDA symmetric scalar estimation has one walker over all tasks. Keep
         // each task's accepted point and derivatives on the GPU, and reduce
         // only scalar objective/direction values to make one shared decision.
@@ -2281,6 +2297,8 @@ private:
             }
             if (!Permutations.empty()) { Permutations[i].Lambda = MVSLambda; Permutations[i].HasLambda = HasMVSLambda; }
             const float loss = ReadLoss();
+            if (!permutationLeaves.empty())
+                std::memcpy(permutationLeaves.data() + uint64_t(i) * MaxLeaves, values, sizeof(float) * leaves);
             if (i + 1 == count) exported = {std::vector<float>(values, values + leaves),
                 std::vector<float>(weights, weights + leaves), loss};
         }
@@ -2291,6 +2309,13 @@ private:
         const auto& p = Options.train;
         const uint32_t actualDepth = Pending.Depth;
         const auto& selected = Pending.Selected;
+        // Allocate before estimation can update a cursor. Preserve finalized
+        // increments already produced by each estimator without recomputation.
+        // A successful finish publishes this staging buffer with a no-throw swap.
+        const uint64_t permutationLeafCells = Dynamic ? 0 : CheckedProduct(PermutationCount(), MaxLeaves,
+            "Permutation leaf capture");
+        Require(permutationLeafCells <= 64ull * 65536, "Permutation leaf capture exceeds the 16 MiB limit");
+        std::vector<float> permutationLeaves(permutationLeafCells, 0.0f);
 
         K.Leaves = uint32_t(1) << actualDepth;
         Command command(*Context, Stats);
@@ -2435,7 +2460,7 @@ private:
         if (LangevinLeaves() || (Combination && Dynamic) || (RegularizedLeaves() && !Coupled && !Yeti &&
             PermutationCount() > 1 && UsesBacktracking())) {
             command.Wait();
-            exported = EstimateFeatureParallelCombinationLeaves();
+            exported = EstimateFeatureParallelCombinationLeaves(permutationLeaves);
         } else {
         // The callback advances the actual shared host RNG. Complete each
         // DocParallel Combination task in dataset order even when structure
@@ -2449,12 +2474,18 @@ private:
         } else {
             exported = EstimatePermutation(command, firstPermutation);
         }
+        if (!permutationLeaves.empty())
+            std::memcpy(permutationLeaves.data() + uint64_t(firstPermutation) * MaxLeaves,
+                exported.Values.data(), sizeof(float) * K.Leaves);
         if (!Permutations.empty()) {
             Permutations[firstPermutation].Lambda = MVSLambda;
             Permutations[firstPermutation].HasLambda = HasMVSLambda;
             for (uint32_t permutation = 0; permutation < Permutations.size(); ++permutation) {
                 if (permutation == firstPermutation) continue;
                 auto estimate = EstimateOtherPermutation(permutation);
+                if (!permutationLeaves.empty())
+                    std::memcpy(permutationLeaves.data() + uint64_t(permutation) * MaxLeaves,
+                        estimate.Values.data(), sizeof(float) * K.Leaves);
                 if (permutation + 1 == Permutations.size()) exported = std::move(estimate);
             }
             Data = Permutations.back().Bins; Prediction = Permutations.back().Cursor;
@@ -2482,6 +2513,8 @@ private:
             std::memcpy(TreeWeights.data() + uint64_t(Completed) * MaxLeaves, weights, 4ull * K.Leaves);
         }
         Losses[++Completed] = loss;
+        LastPermutationLeaves.swap(permutationLeaves);
+        LastPermutationLeafTree = Dynamic ? 0 : Completed;
     }
 };
 
@@ -3021,6 +3054,13 @@ extern "C" int cbm_session_copy_permutation_state(void* handle, uint32_t capacit
     return ApiCall(error, errorCapacity, [&] {
         auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
         session->CopyPermutationState(capacity, cursors, lambdas, valid);
+    });
+}
+extern "C" int cbm_session_copy_last_permutation_leaves(void* handle, uint32_t count,
+    uint32_t maxLeaves, float* output, char* error, size_t errorCapacity) {
+    return ApiCall(error, errorCapacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->CopyLastPermutationLeaves(count, maxLeaves, output);
     });
 }
 extern "C" int cbm_session_set_feature_penalties(void* handle, const CBMFeaturePenaltyOptions* options,

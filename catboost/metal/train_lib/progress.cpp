@@ -90,6 +90,24 @@ namespace NCB {
             return cursor;
         }
 
+        TVector<TVector<double>> MakeInitialCursorFromOverride(
+            TConstArrayRef<float> initialCursor,
+            ui32 objectCount,
+            ui32 approxDimension)
+        {
+            CB_ENSURE(initialCursor.size() == ui64(objectCount) * approxDimension,
+                "Initial Metal cursor dimensions differ from the pool");
+            TVector<TVector<double>> cursor(approxDimension, TVector<double>(objectCount));
+            for (ui32 row = 0; row < objectCount; ++row) {
+                for (ui32 dim = 0; dim < approxDimension; ++dim) {
+                    const float value = initialCursor[ui64(row) * approxDimension + dim];
+                    CB_ENSURE(std::isfinite(value), "Initial Metal cursor contains a nonfinite value");
+                    cursor[dim][row] = value;
+                }
+            }
+            return cursor;
+        }
+
         void AddTreeToCursor(
             const TFullModel& tree,
             const TTrainingDataProvider& data,
@@ -336,7 +354,9 @@ namespace NCB {
             bool forceCalcEvalMetricOnEveryIteration,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             ui32 approxDimension,
-            TConstArrayRef<ui32> baselineColumns)
+            TConstArrayRef<ui32> baselineColumns,
+            TConstArrayRef<float> initialLearnCursor,
+            TConstArrayRef<float> initialTestCursor)
             : Options(options)
             , OutputOptions(outputOptions)
             , Data(data)
@@ -358,6 +378,32 @@ namespace NCB {
                 BaselineColumns.resize(ApproxDimension);
                 for (ui32 dim = 0; dim < ApproxDimension; ++dim) {
                     BaselineColumns[dim] = dim;
+                }
+            }
+            CB_ENSURE(initialLearnCursor.empty() == initialTestCursor.empty(),
+                "Initial Metal learn and test cursors must be supplied together");
+            if (!initialLearnCursor.empty()) {
+                CB_ENSURE(Data.Test.size() == 1,
+                    "Initial Metal cursor overrides require exactly one evaluation pool");
+                // Model-based experiments start from an existing float32 point
+                // without adding prefix trees or entries to metric history.
+                LearnCursor = MakeInitialCursorFromOverride(
+                    initialLearnCursor, Data.Learn->GetObjectCount(), ApproxDimension);
+                TestCursor.push_back(MakeInitialCursorFromOverride(
+                    initialTestCursor, Data.Test[0]->GetObjectCount(), ApproxDimension));
+            } else {
+                if (initModelApplyCompatiblePools) {
+                    CB_ENSURE(initModelApplyCompatiblePools->Learn &&
+                        initModelApplyCompatiblePools->Test.size() == Data.Test.size(),
+                        "Initial model apply pools must match the training and evaluation pools");
+                }
+                LearnCursor = MakeInitialCursor(*Data.Learn, bias, initModel,
+                    initModelApplyCompatiblePools ? initModelApplyCompatiblePools->Learn->ObjectsData.Get() : nullptr,
+                    executor, ApproxDimension, BaselineColumns);
+                for (size_t test = 0; test < Data.Test.size(); ++test) {
+                    TestCursor.push_back(MakeInitialCursor(*Data.Test[test], bias, initModel,
+                        initModelApplyCompatiblePools ? initModelApplyCompatiblePools->Test[test]->ObjectsData.Get() : nullptr,
+                        executor, ApproxDimension, BaselineColumns));
                 }
             }
             CB_ENSURE(OutputOptions.GetMetricPeriod() > 0, "metric_period must be positive");
@@ -389,14 +435,6 @@ namespace NCB {
                     << " needs Target data, but the test dataset does not have it so it won't be calculated" << Endl;
             }
 
-            if (initModelApplyCompatiblePools) {
-                CB_ENSURE(initModelApplyCompatiblePools->Learn &&
-                    initModelApplyCompatiblePools->Test.size() == Data.Test.size(),
-                    "Initial model apply pools must match the training and evaluation pools");
-            }
-            LearnCursor = MakeInitialCursor(*Data.Learn, bias, initModel,
-                initModelApplyCompatiblePools ? initModelApplyCompatiblePools->Learn->ObjectsData.Get() : nullptr,
-                executor, ApproxDimension, BaselineColumns);
             if (Options.LossFunctionDescription->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
                 // Shared defaults map training-only objectives to their metric
                 // counterparts, including PairLogitPairwise and both Yeti modes.
@@ -411,12 +449,6 @@ namespace NCB {
                 History.MetalInitialLoss = EvaluateMetric(*objectiveMetrics[0], *Data.Learn, LearnCursor, Executor,
                     Options.LossFunctionDescription.Get(), QceMetrics);
             }
-            for (size_t test = 0; test < Data.Test.size(); ++test) {
-                TestCursor.push_back(MakeInitialCursor(*Data.Test[test], bias, initModel,
-                    initModelApplyCompatiblePools ? initModelApplyCompatiblePools->Test[test]->ObjectsData.Get() : nullptr,
-                    executor, ApproxDimension, BaselineColumns));
-            }
-
             if (OutputOptions.AllowWriteFiles()) {
                 InitializeFileLoggers(Options, OutputFiles, metricPointers, LearnToken, TestTokens,
                     OutputOptions.GetMetricPeriod(), &Logger);
@@ -736,10 +768,12 @@ namespace NCB {
         bool forceCalcEvalMetricOnEveryIteration,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         ui32 approxDimension,
-        TConstArrayRef<ui32> baselineColumns)
+        TConstArrayRef<ui32> baselineColumns,
+        TConstArrayRef<float> initialLearnCursor,
+        TConstArrayRef<float> initialTestCursor)
         : Impl(MakeHolder<TImpl>(options, outputOptions, data, bias, executor, initModel,
             initModelApplyCompatiblePools, forceCalcEvalMetricOnEveryIteration, evalMetricDescriptor,
-            approxDimension, baselineColumns))
+            approxDimension, baselineColumns, initialLearnCursor, initialTestCursor))
     {}
 
     TMetalTrainingProgress::~TMetalTrainingProgress() = default;

@@ -561,6 +561,20 @@ public:
             lambdas[p] = 0; valid[p] = 0;
         }
     }
+    void CopyLastPermutationLeaves(uint32_t count, uint32_t maxLeaves, float* output) const {
+        RequireIdle();
+        Require(!Failed && Info.completed_iterations && LastPermutationLeafCount,
+                "Greedy permutation leaves require a successfully completed tree");
+        Require(count == DatasetBins.size() && maxLeaves == MaxLeaves && output,
+                "Greedy permutation leaf output must match the history count and session leaf capacity");
+        Require(LastPermutationLeafCount <= maxLeaves &&
+                LastPermutationLeaves.size() == uint64_t(count) * LastPermutationLeafCount,
+                "Greedy completed permutation leaf state is inconsistent");
+        std::fill_n(output, uint64_t(count) * maxLeaves, 0.0f);
+        for (uint32_t permutation = 0; permutation < count; ++permutation)
+            std::copy_n(LastPermutationLeaves.data() + uint64_t(permutation) * LastPermutationLeafCount,
+                LastPermutationLeafCount, output + uint64_t(permutation) * maxLeaves);
+    }
     void SetBacktracking(uint32_t type) {
         RequireIdle();
         Require(!Yeti || !type, "Greedy YetiRank supports No backtracking only");
@@ -678,6 +692,11 @@ private:
     std::vector<id<MTLBuffer>> DatasetBins, DatasetPredictions;
     id<MTLBuffer> PermutationNodes;
     std::unique_ptr<CBMSortU32Workspace> PermutationSort;
+    // Compact host-only copy of the most recent complete tree. Session bounds
+    // (64 histories, 65536 leaves) cap this at 16 MiB, with one equally bounded
+    // staging vector while the next tree is estimated. No GPU values change.
+    std::vector<float> LastPermutationLeaves;
+    uint32_t LastPermutationLeafCount = 0;
     uint32_t BacktrackingType = 0;
     uint32_t AddRidge = 0;
     bool Langevin = false;
@@ -1201,6 +1220,14 @@ private:
     }
     void StepImpl() {
         if (!YetiPrepared) SearchTreeImpl();
+        const uint64_t retainedCount = uint64_t(DatasetBins.size()) * K.Leaves;
+        Require(K.Leaves && K.Leaves <= MaxLeaves && retainedCount <= 64ull * 65536,
+                "Greedy permutation leaf retention exceeds its bounded capacity");
+        std::vector<float> nextPermutationLeaves(retainedCount);
+        const auto captureLeaves = [&](uint32_t permutation) {
+            std::memcpy(nextPermutationLeaves.data() + uint64_t(permutation) * K.Leaves,
+                        Values.contents, 4ull * K.Leaves);
+        };
         if (Langevin && Options.leaf_method <= 1) {
             // Source DocParallel visits each leaf task in permutation order.
             // Search may have used any history, so reconstruct each partition
@@ -1211,9 +1238,11 @@ private:
                 Data = DatasetBins[p]; Prediction = DatasetPredictions[p];
                 if (DatasetBins.size() > 1) RoutePermutation();
                 EstimateLeaves(p);
+                captureLeaves(p);
             }
         } else {
         EstimateLeaves(SearchPermutation);
+        captureLeaves(SearchPermutation);
         const uint32_t last = DatasetBins.size() - 1;
         if (last) {
             const float searchLoss = Info.loss;
@@ -1229,6 +1258,7 @@ private:
                 Data = DatasetBins[p]; Prediction = DatasetPredictions[p];
                 RoutePermutation();
                 EstimateLeaves(p, Options.leaf_method == 3);
+                captureLeaves(p);
             }
             if (SearchPermutation == last) {
                 std::memcpy(Values.contents, LeafSums.contents, 4ull * K.Leaves);
@@ -1240,6 +1270,8 @@ private:
         }
         Info.node_count = static_cast<uint32_t>(Nodes.size());
         Info.leaf_count = K.Leaves;
+        LastPermutationLeaves.swap(nextPermutationLeaves);
+        LastPermutationLeafCount = K.Leaves;
         ++Info.completed_iterations;
         Info.finished = Info.completed_iterations == Options.iterations;
         if (Yeti) { YetiSeeds.clear(); YetiPrepared = false; YetiSeedPosition = 0; }
@@ -1673,6 +1705,13 @@ extern "C" int cbm_greedy_session_copy_permutation_state(void* handle, uint32_t 
     return ApiCall(error, capacity, [&] {
         auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
         session->CopyPermutationState(count, predictions, lambdas, valid);
+    });
+}
+extern "C" int cbm_greedy_session_copy_last_permutation_leaves(void* handle, uint32_t count,
+    uint32_t maxLeaves, float* output, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->CopyLastPermutationLeaves(count, maxLeaves, output);
     });
 }
 

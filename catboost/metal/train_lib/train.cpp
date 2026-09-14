@@ -28,7 +28,11 @@
 #include <catboost/metal/native/metal_trainer.h>
 #include <catboost/metal/native/metal_multiclass.h>
 
+#include <catboost/libs/eval_result/eval_result.h>
+#include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/data/objects.h>
+#include <util/stream/file.h>
+#include <util/generic/set.h>
 #include <catboost/libs/data/target.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/checksum.h>
@@ -524,6 +528,141 @@ namespace {
         return UpdateMetalEstimatedSourceChecksum(checksum, data, executor);
     }
 
+    // An analysis experiment starts from saved prediction cursors, while its
+    // model age, metric history and optimization state start at iteration zero.
+    struct TMetalModelBasedRun {
+        bool LoadBaseline = false;
+        ui32 PermutationCount = 1;
+        ui32 ApproxDimension = 1;
+        ui32 LeafCapacity = 0;
+        ui32 Depth = 0;
+        ui64 PermutationOffset = 0;
+        bool SignedWeights = false;
+        TVector<float> InitialLearn;
+        TVector<float> InitialTest;
+        TMetalSnapshot BaselineSnapshot;
+        TMetalData BaselineData;
+    };
+
+    TTrainingDataProviders MetalModelBasedFeatureSubset(
+        const TTrainingDataProviders& source, const TVector<ui32>& ignored,
+        NPar::ILocalExecutor* executor) {
+        TTrainingDataProviders result;
+        auto subset = [&](const TTrainingDataProviderPtr& pool) {
+            auto objects = pool->ObjectsData->GetFeaturesSubset(ignored, executor);
+            TQuantizedObjectsDataProviderPtr quantized = dynamic_cast<TQuantizedObjectsDataProvider*>(objects.Get());
+            CB_ENSURE(quantized, "Metal model-based evaluation requires quantized pools");
+            auto meta = pool->MetaInfo;
+            meta.FeaturesLayout = quantized->GetFeaturesLayout();
+            return MakeIntrusive<TTrainingDataProvider>(pool->OriginalFeaturesLayout,
+                std::move(meta), pool->ObjectsGrouping, quantized, pool->TargetData);
+        };
+        result.Learn = subset(source.Learn);
+        for (const auto& test : source.Test) result.Test.push_back(subset(test));
+        return result;
+    }
+
+    ui32 MetalModelBasedBaselineSize(const TMetalModelBasedRun& base,
+        const NCatboostOptions::TCatBoostOptions& options,
+        const NCatboostOptions::TOutputFilesOptions& output,
+        bool hasWeights) {
+        const auto& snapshot = base.BaselineSnapshot;
+        const ui32 count = snapshot.Depths.size();
+        if (!output.UseBestModel) return count;
+        auto metrics = CreateMetrics(options.MetricOptions, Nothing(), base.ApproxDimension, hasWeights);
+        CB_ENSURE(!metrics.empty(), "Metal model-based evaluation requires an evaluation metric");
+        EMetricBestValue bestType;
+        float bestValue;
+        metrics.front()->GetBestValue(&bestType, &bestValue);
+        TErrorTracker tracker(EOverfittingDetectorType::IncToDec, bestType, bestValue, 0, 20, true, true);
+        const TString description = metrics.front()->GetDescription();
+        for (ui32 tree = 0; tree < snapshot.History.TestMetricsHistory.size(); ++tree) {
+            const auto& test = snapshot.History.TestMetricsHistory[tree];
+            if (tree + 1 < static_cast<ui32>(Max(0, output.BestModelMinTrees.Get())) || test.empty()) continue;
+            const auto value = test.front().find(description);
+            if (value != test.front().end()) tracker.AddError(value->second, tree);
+        }
+        return tracker.GetBestIteration() >= 0 ? Min(count, ui32(tracker.GetBestIteration()) + 1) : count;
+    }
+
+    // Replay saved trees against each original quantized history. These are
+    // model applications only: no target derivatives or leaf estimates are run.
+    void MetalModelBasedAppendPrefix(const TMetalModelBasedRun& base,
+        const TTrainingDataProviders& pools, ui32 begin, ui32 end,
+        TVector<float>* learn, TVector<float>* test, NPar::ILocalExecutor* executor) {
+        const auto& snapshot = base.BaselineSnapshot;
+        const auto& data = base.BaselineData;
+        const ui32 dimensions = base.ApproxDimension, count = base.PermutationCount;
+        CB_ENSURE(begin <= end && end <= snapshot.Depths.size(), "Invalid Metal baseline prefix range");
+        CB_ENSURE(learn->size() == ui64(count) * data.Rows * dimensions &&
+            test->size() == ui64(pools.Test.front()->GetObjectCount()) * dimensions,
+            "Invalid Metal baseline prefix cursor sizes");
+        for (ui32 tree = begin; tree < end; ++tree) {
+            CheckInterrupted();
+            TMetalGreedyTree greedyTree;
+            if (snapshot.Greedy) greedyTree = snapshot.GreedyTrees.GetTree(tree, dimensions);
+            const ui32 leafCount = snapshot.Greedy ? greedyTree.Info.leaf_count : 1u << snapshot.Depths[tree];
+            for (ui32 p = 0; p < count; ++p) {
+                const auto& bins = p ? data.AdditionalPermutationBins[p - 1] : data.Bins;
+                const float* leaves = snapshot.ModelBasedPermutationCount
+                    ? snapshot.ModelBasedPermutationLeaves.data() + (ui64(tree) * count + p) * snapshot.ModelBasedLeafCapacity * dimensions
+                    : snapshot.Greedy ? greedyTree.Values.data()
+                    : snapshot.Leaves.data() + ui64(tree) * base.LeafCapacity * dimensions;
+                for (ui32 row = 0; row < data.Rows; ++row) {
+                    ui32 leaf = 0;
+                    auto right = [&](ui32 feature, ui32 bin, ui32 type) {
+                        CB_ENSURE(feature < data.FeatureCount() && type <= 1 && bin < data.BinsPerFeature,
+                            "Saved Metal baseline split is outside the prepared feature grid");
+                        const ui8 value = bins[ui64(feature) * data.Rows + row];
+                        return type ? value == bin : value > bin;
+                    };
+                    if (snapshot.Greedy) {
+                        ui32 node = 0;
+                        for (ui32 step = 0;; ++step) {
+                            CB_ENSURE(step < greedyTree.Nodes.size() && node < greedyTree.Nodes.size(),
+                                "Saved Metal baseline has an invalid greedy topology");
+                            const auto& n = greedyTree.Nodes[node];
+                            if (n.leaf != Max<ui32>()) { leaf = n.leaf; break; }
+                            node = right(n.feature, n.bin, n.type) ? n.right : n.left;
+                        }
+                    } else {
+                        for (ui32 level = 0; level < snapshot.Depths[tree]; ++level) {
+                            const ui64 split = ui64(tree) * base.Depth + level;
+                            if (right(snapshot.SplitFeatures[split], snapshot.SplitBins[split], snapshot.SplitTypes[split]))
+                                leaf |= 1u << level;
+                        }
+                    }
+                    CB_ENSURE(leaf < leafCount, "Saved Metal baseline leaf index is out of range");
+                    for (ui32 dim = 0; dim < dimensions; ++dim) {
+                        float& value = (*learn)[(ui64(p) * data.Rows + row) * dimensions + dim];
+                        value += leaves[ui64(leaf) * dimensions + dim];
+                        CB_ENSURE(std::isfinite(value), "Metal baseline prefix cursor is nonfinite");
+                    }
+                }
+            }
+            const auto single = snapshot.Greedy
+                ? AppendMetalGreedyTree(data, greedyTree, Min(base.Depth, base.LeafCapacity - 1), nullptr,
+                    dimensions, base.SignedWeights)
+                : AppendMetalTree(data, snapshot.Depths[tree], base.Depth,
+                    MakeConstArrayRef(snapshot.SplitFeatures).Slice(ui64(tree) * base.Depth, base.Depth),
+                    MakeConstArrayRef(snapshot.SplitBins).Slice(ui64(tree) * base.Depth, base.Depth),
+                    MakeConstArrayRef(snapshot.SplitTypes).Slice(ui64(tree) * base.Depth, base.Depth),
+                    MakeConstArrayRef(snapshot.Leaves).Slice(ui64(tree) * base.LeafCapacity * dimensions,
+                        ui64(base.LeafCapacity) * dimensions),
+                    MakeConstArrayRef(snapshot.Weights).Slice(ui64(tree) * base.LeafCapacity, base.LeafCapacity),
+                    nullptr, dimensions, base.SignedWeights);
+            const auto delta = ApplyModelMulti(single, *pools.Test.front()->ObjectsData,
+                EPredictionType::InternalRawFormulaVal, 0, 0, executor);
+            for (ui32 row = 0; row < pools.Test.front()->GetObjectCount(); ++row) {
+                for (ui32 dim = 0; dim < dimensions; ++dim) {
+                    float& value = (*test)[ui64(row) * dimensions + dim];
+                    value = static_cast<float>(double(value) + delta[dim][row]);
+                    CB_ENSURE(std::isfinite(value), "Metal baseline evaluation prefix is nonfinite");
+                }
+            }
+        }
+    }
+
     class TMetalModelTrainer final : public IModelTrainer {
     public:
         void TrainModel(
@@ -546,6 +685,34 @@ namespace {
             const TVector<TEvalResult*>& evalResultPtrs,
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
             THolder<TLearnProgress>* dstLearnProgress) const override {
+            TrainModelImpl(internalOptions, catboostOptions, outputOptions, objectiveDescriptor,
+                evalMetricDescriptor, std::move(trainingData), std::move(precomputedCtrs), labelConverter,
+                trainingCallbacks, customCallbacks, initModel, std::move(initLearnProgress),
+                std::move(initModelApplyCompatiblePools), executor, rand, dstModel, evalResultPtrs,
+                metricsAndTimeHistory, dstLearnProgress, nullptr);
+        }
+
+        void TrainModelImpl(
+            const TTrainModelInternalOptions& internalOptions,
+            const NCatboostOptions::TCatBoostOptions& catboostOptions,
+            const NCatboostOptions::TOutputFilesOptions& outputOptions,
+            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+            TTrainingDataProviders trainingData,
+            TMaybe<TPrecomputedOnlineCtrData> precomputedCtrs,
+            const TLabelConverter& labelConverter,
+            ITrainingCallbacks* trainingCallbacks,
+            ICustomCallbacks* customCallbacks,
+            TMaybe<TFullModel*> initModel,
+            THolder<TLearnProgress> initLearnProgress,
+            TDataProviders initModelApplyCompatiblePools,
+            NPar::ILocalExecutor* executor,
+            const TMaybe<TRestorableFastRng64*> rand,
+            TFullModel* dstModel,
+            const TVector<TEvalResult*>& evalResultPtrs,
+            TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+            THolder<TLearnProgress>* dstLearnProgress,
+            TMetalModelBasedRun* modelBased) const {
             Y_UNUSED(initLearnProgress);
             Y_UNUSED(rand);
             CB_ENSURE(!precomputedCtrs, "Metal does not yet support precomputed CTRs");
@@ -558,6 +725,9 @@ namespace {
                       "Metal custom objectives require 1..65536 source bytes without NUL via calc_ders_range_metal");
             CB_ENSURE(!dstLearnProgress, "Metal does not expose CPU learn-progress state");
             NCatboostOptions::TCatBoostOptions options(catboostOptions);
+            if (modelBased && !modelBased->LoadBaseline) {
+                options.BoostingOptions->BoostFromAverage.Set(false);
+            }
             const auto baseline = trainingData.Learn->TargetData->GetBaseline();
             if (initModel || baseline) {
                 options.BoostingOptions->BoostFromAverage.SetDefault(false);
@@ -589,6 +759,14 @@ namespace {
             const bool qce = options.LossFunctionDescription->GetLossFunction() == ELossFunction::QueryCrossEntropy;
             EstimateMetalCtrPriors(*trainingData.Learn, &options);
             TMetalData data = PrepareData(trainingData, options, executor);
+            if (modelBased && !modelBased->LoadBaseline) {
+                const ui32 count = Max(data.GetPermutationCount(), modelBased->PermutationCount);
+                CB_ENSURE(data.GetPermutationCount() == 1 || modelBased->PermutationCount == 1 ||
+                    data.GetPermutationCount() == modelBased->PermutationCount,
+                    "Metal model-based evaluation permutation histories differ");
+                if (data.GetPermutationCount() == 1 && count > 1)
+                    data.AdditionalPermutationBins.assign(count - 1, data.Bins);
+            }
             TVector<float> featureWeights(data.StaticFeatureCount(), 1.0f);
             if (!options.ObliviousTreeOptions->FeaturePenalties->FeatureWeights.Get().empty()) {
                 featureWeights = MakeMetalFeatureWeights(options.ObliviousTreeOptions->FeaturePenalties.Get(),
@@ -663,16 +841,21 @@ namespace {
             }
             const ui32 maxLeaves = greedy ? MetalGreedyLeafCapacity(greedyPolicy, depth,
                 options.ObliviousTreeOptions->MaxLeaves) : 1u << depth;
+            // Greedy runtimes cap their leaf banks by the reachable depth even
+            // when the ordinary Lossguide snapshot reserves requested MaxLeaves.
+            const ui32 modelBasedLeafCapacity = greedy ? Min(maxLeaves,
+                greedyPolicy == 2 ? depth + 1 : (1u << Min(depth, 16u))) : maxLeaves;
             const ui32 greedyDepthBound = greedy ? Min(depth, maxLeaves - 1) : 0;
             // Normal training retains actual tree sizes. The checkpoint format
             // still stores padded per-tree buffers, so bound that allocation only
             // when snapshots are requested.
-            if (outputOptions.SaveSnapshot()) {
+            if (outputOptions.SaveSnapshot() && !(modelBased && modelBased->LoadBaseline)) {
                 const ui64 leavesCount = ui64(iterations) * maxLeaves;
                 CB_ENSURE((greedy ? leavesCount * (52 + 4 * approxDimension) + ui64(iterations) * 24 :
                           leavesCount * 4 * (approxDimension + 1) + ui64(iterations) * depth * 9) +
                           ui64(data.Rows) * 4 * (2 * approxDimension + optimizerDimension) *
-                          permutationCount <= (1ull << 29),
+                          permutationCount + (!featureParallel ? ui64(iterations) * modelBasedLeafCapacity * 4 * approxDimension * permutationCount : 0)
+                          <= (1ull << 29),
                           "Metal snapshot output exceeds the experimental 512 MiB limit");
             }
             float bias = 0;
@@ -720,6 +903,36 @@ namespace {
                     }
                 }
             }
+            if (modelBased) {
+                if (modelBased->LoadBaseline) {
+                    modelBased->PermutationCount = permutationCount;
+                    modelBased->ApproxDimension = approxDimension;
+                    modelBased->LeafCapacity = maxLeaves;
+                    modelBased->Depth = depth;
+                    modelBased->SignedWeights = greedySimple || signedSimpleWeights;
+                    modelBased->InitialLearn = initialPredictions;
+                    if (modelBased->InitialLearn.empty())
+                        modelBased->InitialLearn.assign(ui64(data.Rows) * approxDimension, bias);
+                    const auto& test = *trainingData.Test.front();
+                    modelBased->InitialTest.resize(ui64(test.GetObjectCount()) * approxDimension);
+                    const auto testBaseline = test.TargetData->GetBaseline();
+                    for (ui32 row = 0; row < test.GetObjectCount(); ++row) {
+                        for (ui32 dim = 0; dim < approxDimension; ++dim) {
+                            const ui32 column = testBaseline && testBaseline->size() != approxDimension
+                                ? baselineColumns[dim] : dim;
+                            const double value = modelBias[dim] +
+                                (testBaseline ? (*testBaseline)[column][row] : 0.0);
+                            modelBased->InitialTest[ui64(row) * approxDimension + dim] = static_cast<float>(value);
+                        }
+                    }
+                } else {
+                    CB_ENSURE(modelBased->ApproxDimension == approxDimension &&
+                        modelBased->InitialLearn.size() == ui64(modelBased->PermutationCount) * data.Rows * approxDimension,
+                        "Metal model-based evaluation initial cursor dimensions differ");
+                    const ui64 stride = ui64(data.Rows) * approxDimension;
+                    initialPredictions.assign(modelBased->InitialLearn.end() - stride, modelBased->InitialLearn.end());
+                }
+            }
             TMetalSnapshot snapshot;
             snapshot.Greedy = greedy;
             snapshot.YetiRank = yeti && !featureParallel && !langevin;
@@ -742,8 +955,8 @@ namespace {
                 snapshot.Bias = bias;
                 snapshotPath = outputOptions.CreateSnapshotFullPath();
                 if (snapshot.Load(snapshotPath, trainingCallbacks)) {
-                    if (greedy) snapshot.ValidateGreedy(data.Rows, data.FeatureCount(), greedyPolicy, depth, maxLeaves, iterations, permutationCount, approxDimension, optimizerDimension, greedySimple);
-                    else snapshot.Validate(data.Rows, depth, iterations, approxDimension,
+                    if (greedy) snapshot.ValidateGreedy(data.Rows, data.FeatureCount(), greedyPolicy, depth, maxLeaves, modelBased && modelBased->LoadBaseline ? Max<ui32>() : iterations, permutationCount, approxDimension, optimizerDimension, greedySimple);
+                    else snapshot.Validate(data.Rows, depth, modelBased && modelBased->LoadBaseline ? Max<ui32>() : iterations, approxDimension,
                                            permutationCount, optimizerDimension, ordered, featureParallel, signedSimpleWeights);
                     if (compoundCtrs) {
                         TStringInput input(snapshot.TreeCtrState);
@@ -756,6 +969,31 @@ namespace {
                     bias = snapshot.Bias;
                     if (!multioutput) std::fill(modelBias.begin(), modelBias.end(), bias);
                 }
+            }
+            if (modelBased && modelBased->LoadBaseline) {
+                CB_ENSURE(restoredIterations, "Metal model-based evaluation requires an existing nonempty baseline snapshot");
+                snapshot.ModelBasedValidate(permutationCount, modelBasedLeafCapacity, approxDimension);
+                CB_ENSURE(permutationCount == 1 || snapshot.ModelBasedPermutationCount,
+                    "Metal model-based evaluation requires per-permutation baseline history; create a new baseline snapshot with this build");
+                modelBased->BaselineSnapshot = std::move(snapshot);
+                modelBased->BaselineData = std::move(data);
+                return;
+            }
+            if (modelBased) {
+                snapshot.PermutationPredictions = modelBased->InitialLearn;
+                if (modelBased->PermutationCount == 1 && permutationCount > 1) {
+                    for (ui32 p = 1; p < permutationCount; ++p)
+                        snapshot.PermutationPredictions.insert(snapshot.PermutationPredictions.end(),
+                            modelBased->InitialLearn.begin(), modelBased->InitialLearn.end());
+                }
+            }
+            if (outputOptions.SaveSnapshot() && !featureParallel) {
+                if (!restoredIterations) {
+                    snapshot.ModelBasedPermutationCount = permutationCount;
+                    snapshot.ModelBasedLeafCapacity = modelBasedLeafCapacity;
+                    snapshot.ModelBasedApproxDimension = approxDimension;
+                }
+                snapshot.ModelBasedValidate(permutationCount, modelBasedLeafCapacity, approxDimension);
             }
             THolder<TMetalFullMatrixRsm> featureSampler;
             if (options.ObliviousTreeOptions->Rsm.Get() < 1.0) {
@@ -1309,7 +1547,9 @@ namespace {
             TMetalTrainingProgress progress(options, outputOptions, trainingData, bias, executor,
                 progressInitialModel,
                 initModel ? &initModelApplyCompatiblePools : nullptr,
-                internalOptions.ForceCalcEvalMetricOnEveryIteration, evalMetricDescriptor, approxDimension, baselineColumns);
+                internalOptions.ForceCalcEvalMetricOnEveryIteration, evalMetricDescriptor, approxDimension, baselineColumns,
+                modelBased ? MakeConstArrayRef(initialPredictions) : TConstArrayRef<float>(),
+                modelBased ? MakeConstArrayRef(modelBased->InitialTest) : TConstArrayRef<float>());
             TObliviousTreeBuilder builder(data.AllFloatFeatures, data.Categorical.AllCatFeatures,
             data.Estimated.AllTextFeatures, data.Estimated.AllEmbeddingFeatures, approxDimension);
             TNonSymmetricTreeModelBuilder greedyBuilder(data.AllFloatFeatures, data.Categorical.AllCatFeatures,
@@ -1444,7 +1684,7 @@ namespace {
                         featureParallelYetiRandom->Complete();
                     }
                 } else if (greedy && vectorBackend) {
-                    if (permutations) permutations->SelectForIteration(absoluteIteration);
+                    if (permutations) permutations->SelectForIteration(absoluteIteration + (modelBased ? modelBased->PermutationOffset : 0));
                     greedyTree.Nodes.resize(ui64(maxLeaves) * 2 - 1);
                     greedyTree.Values.resize(ui64(maxLeaves) * approxDimension); greedyTree.Weights.resize(maxLeaves);
                     CB_ENSURE(cbm_multiclass_session_step_greedy(session.Handle, &greedyTree.Info, greedyTree.Nodes.data(),
@@ -1461,7 +1701,7 @@ namespace {
                     treeDepth = ValidateMetalGreedyTree(greedyTree.Nodes, greedyTree.Values, greedyTree.Weights,
                         data.FeatureCount(), greedyDepthBound, approxDimension, greedySimple).Depth;
                 } else if (greedySession) {
-                    if (permutations) permutations->SelectForIteration(absoluteIteration);
+                    if (permutations) permutations->SelectForIteration(absoluteIteration + (modelBased ? modelBased->PermutationOffset : 0));
                     if (yetiRandom) {
                         yetiSearchAttempts = greedySession->PrepareYetiTree(yetiRandom->Begin());
                         greedySession->SetYetiLeafSeeds(yetiRandom->LeafSeeds(yetiSearchAttempts));
@@ -1477,7 +1717,7 @@ namespace {
                     orderedSession->Step(absoluteIteration, &info, &treeDepth,
                         splitFeatures, splitBins, splitTypes, leaves, weights);
                 } else if (langevinRandom && !vectorBackend) {
-                    if (permutations) permutations->SelectForIteration(absoluteIteration);
+                    if (permutations) permutations->SelectForIteration(absoluteIteration + (modelBased ? modelBased->PermutationOffset : 0));
                     CB_ENSURE(cbm_session_begin_tree(session.Handle, error, sizeof(error)) == 0,
                         "Metal Langevin tree initialization failed: " << error);
                     CBMStructureInfo structure = {};
@@ -1497,7 +1737,7 @@ namespace {
                         splitFeatures.data(), splitBins.data(), splitTypes.data(), leaves.data(), weights.data(),
                         error, sizeof(error)) == 0, "Metal Langevin leaf estimation failed: " << error);
                 } else if (yetiRandom) {
-                    if (permutations) permutations->SelectForIteration(absoluteIteration);
+                    if (permutations) permutations->SelectForIteration(absoluteIteration + (modelBased ? modelBased->PermutationOffset : 0));
                     const auto weakSeeds = yetiRandom->BeginSeeds();
                     const auto weakSetter = combinationYetiCount ? cbm_session_set_combination_yeti_seeds : cbm_session_set_yeti_oracle_seeds;
                     CB_ENSURE(weakSetter(session.Handle, weakSeeds.size(), weakSeeds.data(), error, sizeof(error)) == 0 &&
@@ -1527,7 +1767,7 @@ namespace {
                         nullptr, nullptr, error, sizeof(error)) == 0, "Metal Combination leaf seed callback reset failed: " << error);
                     yetiRandom->Complete();
                 } else {
-                    if (permutations) permutations->SelectForIteration(absoluteIteration);
+                    if (permutations) permutations->SelectForIteration(absoluteIteration + (modelBased ? modelBased->PermutationOffset : 0));
                     const auto step = vectorBackend ? cbm_multiclass_session_step : cbm_session_step;
                     CB_ENSURE(step(session.Handle, &info, &treeDepth, splitFeatures.data(),
                         splitBins.data(), splitTypes.data(), leaves.data(), weights.data(), error, sizeof(error)) == 0,
@@ -1557,6 +1797,16 @@ namespace {
                     (!customCallbacks || customCallbacks->AfterIteration(history));
                 if (outputOptions.SaveSnapshot()) {
                     snapshot.Depths.push_back(treeDepth);
+                    if (snapshot.ModelBasedPermutationCount) {
+                        const ui64 size = ui64(permutationCount) * modelBasedLeafCapacity * approxDimension;
+                        const ui64 begin = snapshot.ModelBasedPermutationLeaves.size();
+                        snapshot.ModelBasedPermutationLeaves.resize(begin + size);
+                        const auto copy = vectorBackend ? cbm_multiclass_session_copy_last_permutation_leaves :
+                            greedy ? cbm_greedy_session_copy_last_permutation_leaves : cbm_session_copy_last_permutation_leaves;
+                        CB_ENSURE(copy(greedySession ? greedySession->GetHandle() : session.Handle,
+                            permutationCount, modelBasedLeafCapacity, snapshot.ModelBasedPermutationLeaves.data() + begin,
+                            error, sizeof(error)) == 0, "Metal baseline permutation leaf export failed: " << error);
+                    }
                     if (greedy && yeti && !langevin) snapshot.YetiSearchAttempts.push_back(yetiSearchAttempts);
                     if (greedy) {
                         snapshot.GreedyTrees.Append(greedyTree, data.FeatureCount(), greedyDepthBound, approxDimension, greedySimple);
@@ -1706,12 +1956,125 @@ namespace {
             }
         }
 
-        void ModelBasedEval(const NCatboostOptions::TCatBoostOptions&,
-                            const NCatboostOptions::TOutputFilesOptions&,
-                            TTrainingDataProviders,
-                            const TLabelConverter&,
-                            NPar::ILocalExecutor*) const override {
-            CB_ENSURE(false, "Metal model-based feature evaluation is not yet implemented");
+        void ModelBasedEval(const NCatboostOptions::TCatBoostOptions& catboostOptions,
+                            const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                            TTrainingDataProviders trainingData,
+                            const TLabelConverter& labelConverter,
+                            NPar::ILocalExecutor* executor) const override {
+            CB_ENSURE(trainingData.Test.size() == 1 && trainingData.Test.front()->GetObjectCount(),
+                "Metal model-based evaluation requires exactly one nonempty eval set");
+            CB_ENSURE(outputOptions.AllowWriteFiles(), "Metal model-based evaluation requires allow_writing_files=true");
+            auto options = catboostOptions;
+            SetMetalDefaultsAndValidate(&options);
+            const auto objective = options.LossFunctionDescription->GetLossFunction();
+            CB_ENSURE(!IsMultiTargetObjective(objective), "Metal model-based evaluation does not support multitarget objectives, like CUDA");
+            CB_ENSURE(objective != ELossFunction::PythonUserDefinedPerObject,
+                "Metal model-based evaluation does not accept custom objective descriptors");
+            CB_ENSURE(options.BoostingOptions->BoostingType == EBoostingType::Plain &&
+                options.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
+                "Metal model-based evaluation supports Plain DocParallel training only");
+            const auto& layout = *trainingData.Learn->ObjectsData->GetFeaturesLayout();
+            for (const auto& feature : layout.GetExternalFeaturesMetaInfo()) {
+                CB_ENSURE(!feature.IsAvailable || (feature.Type != EFeatureType::Text && feature.Type != EFeatureType::Embedding),
+                    "Metal model-based evaluation does not support text or embedding estimators, like CUDA");
+            }
+            const auto& config = options.ModelBasedEvalOptions.Get();
+            CB_ENSURE(config.Offset > 0 && config.ExperimentCount > 0 && config.ExperimentSize > 0 &&
+                ui64(config.ExperimentCount.Get()) * config.ExperimentSize.Get() <= ui64(config.Offset.Get()),
+                "Metal model-based evaluation needs positive offset, experiment_count and experiment_size with count*size <= offset");
+            CB_ENSURE(!config.FeaturesToEvaluate->empty(), "Metal model-based evaluation requires features to evaluate");
+            TSet<ui32> allEvaluated;
+            for (const auto& group : config.FeaturesToEvaluate.Get()) {
+                for (ui32 feature : group) {
+                    CB_ENSURE(feature < layout.GetExternalFeatureCount(), "Metal evaluated feature index is out of range");
+                    CB_ENSURE(Count(options.DataProcessingOptions->IgnoredFeatures.Get(), feature) == 0,
+                        "Metal evaluated feature is explicitly ignored");
+                    allEvaluated.insert(feature);
+                }
+            }
+            TSet<ui32> baselineIgnored(options.DataProcessingOptions->IgnoredFeatures->begin(),
+                options.DataProcessingOptions->IgnoredFeatures->end());
+            if (!config.UseEvaluatedFeaturesInBaselineModel)
+                baselineIgnored.insert(allEvaluated.begin(), allEvaluated.end());
+            TVector<ui32> baselineIgnoredVector(baselineIgnored.begin(), baselineIgnored.end());
+            auto baselinePools = MetalModelBasedFeatureSubset(trainingData, baselineIgnoredVector, executor);
+            auto baselineOptions = options;
+            baselineOptions.DataProcessingOptions->IgnoredFeatures.Set(baselineIgnoredVector);
+            auto baselineOutput = outputOptions;
+            baselineOutput.SetSaveSnapshotFlag(true);
+            baselineOutput.SetSnapshotFilename(config.BaselineModelSnapshot.Get());
+            CB_ENSURE(TFsPath(baselineOutput.CreateSnapshotFullPath()).Exists(),
+                "Metal model-based evaluation requires an existing baseline snapshot: " << baselineOutput.CreateSnapshotFullPath());
+            TTrainModelInternalOptions internal;
+            internal.CalcMetricsOnly = true;
+            internal.ForceCalcEvalMetricOnEveryIteration = true;
+            TMetalModelBasedRun base;
+            base.LoadBaseline = true;
+            TrainModelImpl(internal, baselineOptions, baselineOutput, Nothing(), Nothing(), baselinePools,
+                Nothing(), labelConverter, nullptr, nullptr, Nothing(), nullptr, {}, executor, Nothing(),
+                nullptr, {}, nullptr, nullptr, &base);
+            const ui32 baselineSize = MetalModelBasedBaselineSize(base, options, outputOptions,
+                trainingData.Learn->MetaInfo.HasWeights);
+            CB_ENSURE(baselineSize >= ui32(config.Offset.Get()),
+                "Metal model-based evaluation offset must not exceed the retained baseline tree count");
+            const ui32 first = baselineSize - config.Offset.Get();
+            const ui32 stride = config.Offset.Get() / config.ExperimentCount.Get();
+            const auto initialOne = base.InitialLearn;
+            for (ui32 p = 1; p < base.PermutationCount; ++p)
+                base.InitialLearn.insert(base.InitialLearn.end(), initialOne.begin(), initialOne.end());
+            MetalModelBasedAppendPrefix(base, baselinePools, 0, first, &base.InitialLearn, &base.InitialTest, executor);
+            for (ui32 set = 0; set < config.FeaturesToEvaluate->size(); ++set) {
+                TSet<ui32> ignored = allEvaluated;
+                bool active = false;
+                for (ui32 feature : config.FeaturesToEvaluate.Get()[set]) {
+                    const auto& meta = layout.GetExternalFeatureMetaInfo(feature);
+                    // CUDA's evaluated candidates are border-bearing numeric
+                    // features; categoricals remain supported background inputs.
+                    if (meta.IsAvailable && meta.Type == EFeatureType::Float) {
+                        const auto internalFeature = layout.GetInternalFeatureIdx<EFeatureType::Float>(feature);
+                        if (!trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo()->GetBorders(internalFeature).empty()) {
+                            ignored.erase(feature);
+                            active = true;
+                            continue;
+                        }
+                    }
+                    CATBOOST_WARNING_LOG << "Ignoring constant or non-numeric evaluated feature " << feature << Endl;
+                }
+                if (!active) {
+                    CATBOOST_WARNING_LOG << "Feature set " << set << " is not evaluated because it consists of ignored, constant or non-numeric features" << Endl;
+                    continue;
+                }
+                ignored.insert(options.DataProcessingOptions->IgnoredFeatures->begin(),
+                    options.DataProcessingOptions->IgnoredFeatures->end());
+                TVector<ui32> ignoredVector(ignored.begin(), ignored.end());
+                auto experimentPools = MetalModelBasedFeatureSubset(trainingData, ignoredVector, executor);
+                auto experimentOptions = options;
+                experimentOptions.DataProcessingOptions->IgnoredFeatures.Set(ignoredVector);
+                experimentOptions.BoostingOptions->IterationCount.Set(config.ExperimentSize.Get());
+                auto learn = base.InitialLearn;
+                auto test = base.InitialTest;
+                for (ui32 fold = 0; fold < ui32(config.ExperimentCount.Get()); ++fold) {
+                    CheckInterrupted();
+                    auto experimentOutput = outputOptions;
+                    experimentOutput.SetSaveSnapshotFlag(false);
+                    experimentOutput.SetMetricPeriod(1);
+                    experimentOutput.SetTrainDir(JoinFsPaths(outputOptions.GetTrainDir(),
+                        NCatboostOptions::GetExperimentName(set, fold)));
+                    TMetalModelBasedRun experiment;
+                    experiment.PermutationCount = base.PermutationCount;
+                    experiment.ApproxDimension = base.ApproxDimension;
+                    experiment.PermutationOffset = first + ui64(stride) * fold;
+                    experiment.InitialLearn = learn;
+                    experiment.InitialTest = test;
+                    TEvalResult eval;
+                    TrainModelImpl(internal, experimentOptions, experimentOutput, Nothing(), Nothing(), experimentPools,
+                        Nothing(), labelConverter, nullptr, nullptr, Nothing(), nullptr, {}, executor, Nothing(),
+                        nullptr, {&eval}, nullptr, nullptr, &experiment);
+                    if (fold + 1 < ui32(config.ExperimentCount.Get()))
+                        MetalModelBasedAppendPrefix(base, baselinePools, first + stride * fold,
+                            first + stride * (fold + 1), &learn, &test, executor);
+                }
+            }
         }
     };
 

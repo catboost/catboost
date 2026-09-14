@@ -9,6 +9,7 @@ from catboost import CatBoost, CatBoostError, Pool
 
 from test_native_training_modes import numeric_problem, compound_problem
 from test_native_compound_ctrs import options as compound_options
+from native_snapshot_tail import stochastic_tail
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("CATBOOST_NATIVE_METAL_TESTS") != "1"
@@ -68,10 +69,8 @@ def check_same(first, second, pool):
     assert first.get_metadata()["metal_langevin_host_draw_count"] == second.get_metadata()["metal_langevin_host_draw_count"]
 
 
-def tail(raw):
-    at = raw.rfind(struct.pack("<I", TAG))
-    assert at >= 0 and len(raw) == at + 17
-    return at, struct.unpack_from("<QIB", raw, at + 4)
+def tail(raw, **expected_history):
+    return stochastic_tail(raw, struct.pack("<I", TAG), **expected_history)
 
 
 @pytest.mark.parametrize("mode", MODES)
@@ -221,15 +220,27 @@ def test_snapshot_random_corruption_rejected_without_replacing_file(field, tmp_p
     pool = numeric(); config = snapshot_options(options(depth=0), tmp_path, 2)
     fit(config, pool)
     path = tmp_path / "langevin.snapshot"
-    raw = bytearray(path.read_bytes()); offset, _ = tail(raw)
-    if field == "missing": del raw[offset:]
+    raw = bytearray(path.read_bytes()); offset, saved = tail(raw, trees=2, permutations=1, leaf_capacity=1, dimension=1)
+    # Removing the optional model history recreates the preceding v6 trailer.
+    assert tail(raw[:offset + 17]) == (offset, saved)
+    original = raw[:]
+    if field == "missing": del raw[offset:offset + 17]
     elif field == "draw_count": struct.pack_into("<Q", raw, offset + 4, 2 ** 64 - 1)
     elif field == "completed": struct.pack_into("<I", raw, offset + 12, 3)
     else: raw[offset + 16] = 0
     path.write_bytes(raw)
-    with pytest.raises(CatBoostError, match="Langevin"):
+    message = "out-of-order Metal model-based history payload" if field == "missing" and len(original) > offset + 17 else "Langevin"
+    with pytest.raises(CatBoostError, match=message):
         fit(config, pool)
     assert path.read_bytes() == raw
+    if field == "missing":
+        # A legacy snapshot also still requires its Langevin record, even
+        # when there is no following optional model history to retain.
+        legacy_missing = original[:offset]
+        path.write_bytes(legacy_missing)
+        with pytest.raises(CatBoostError, match="Langevin"):
+            fit(config, pool)
+        assert path.read_bytes() == legacy_missing
 
 
 @pytest.mark.parametrize("changed", ({"diffusion_temperature": 2000.}, {"langevin": False},

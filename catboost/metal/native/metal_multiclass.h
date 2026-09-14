@@ -113,6 +113,13 @@ int cbm_multiclass_session_set_permutations(void* session, uint32_t count,
 int cbm_multiclass_session_select_permutation(void* session, uint32_t index, char* error, size_t error_capacity);
 int cbm_multiclass_session_copy_permutation_state(void* session, uint32_t capacity,
     float* predictions, float* mvs_lambdas, uint8_t* mvs_valid, char* error, size_t error_capacity);
+// Last successfully completed tree, in [permutation][max_leaves][classes]
+// order. Values include learning_rate; unused leaves and MultiClass's final
+// gauge class are zero. count and max_leaves must exactly match the configured
+// session. Requires an idle session with a preceding successful tree. A failed
+// step that rolls back successfully retains the preceding successful values.
+int cbm_multiclass_session_copy_last_permutation_leaves(void* session,
+    uint32_t count, uint32_t max_leaves, float* values, char* error, size_t error_capacity);
 // Exact resume requires the optimizer cursor separately from published raw
 // predictions: float32 gauge subtraction is not reversible. Class-major
 // [permutations,D,rows], D=C-1 for MultiClass and C for OneVsAll.

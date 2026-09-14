@@ -71,6 +71,7 @@ if (HAVE_METAL)
     ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/meta_l2_ut.cpp
     ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/langevin_random_ut.cpp
     ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/langevin_snapshot_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/model_based_snapshot_ut.cpp
     ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctr_meta_ut.cpp
     ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/feature_parallel_yeti_random_ut.cpp
     ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/yeti_random_ut.cpp

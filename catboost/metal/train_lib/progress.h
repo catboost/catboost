@@ -16,6 +16,8 @@ namespace NCB {
     // overfitting detection use the same components as the existing trainers.
     class TMetalTrainingProgress {
     public:
+        // Initial cursor overrides are paired row-major [object][dimension]
+        // float32 arrays and require exactly one evaluation pool.
         TMetalTrainingProgress(
             const NCatboostOptions::TCatBoostOptions& options,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -27,7 +29,9 @@ namespace NCB {
             bool forceCalcEvalMetricOnEveryIteration = false,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor = Nothing(),
             ui32 approxDimension = 1,
-            TConstArrayRef<ui32> baselineColumns = {});
+            TConstArrayRef<ui32> baselineColumns = {},
+            TConstArrayRef<float> initialLearnCursor = {},
+            TConstArrayRef<float> initialTestCursor = {});
         ~TMetalTrainingProgress();
 
         void StartIteration();

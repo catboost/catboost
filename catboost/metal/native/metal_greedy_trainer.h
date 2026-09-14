@@ -161,6 +161,15 @@ int cbm_greedy_session_select_permutation(void* session, uint32_t search_index,
 int cbm_greedy_session_copy_permutation_state(void* session, uint32_t capacity,
     float* predictions, float* mvs_lambdas, uint8_t* mvs_valid,
     char* error, size_t error_capacity);
+// Most recent successfully finished tree, indexed by dataset/history, with
+// the shared topology returned by step. Values already include learning_rate
+// and any objective centering; Simple copies the searched leaves to every
+// history. count and max_leaves must equal the configured history count and
+// effective session leaf capacity. Output is float[count][max_leaves], with
+// zero padding after the completed tree's leaf_count. Requires a healthy,
+// idle session with at least one completed tree; performs no GPU work.
+int cbm_greedy_session_copy_last_permutation_leaves(void* session, uint32_t count,
+    uint32_t max_leaves, float* output, char* error, size_t error_capacity);
 void cbm_greedy_session_close(void* session);
 
 // Resident scalar prediction cursor for variable-node trees. Counts are checked

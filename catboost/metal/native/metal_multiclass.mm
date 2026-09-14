@@ -261,7 +261,12 @@ public:
             (32 * std::min(256u, std::max(1u, (p.candidates + 255) / 256)) + 32 + 5 * 4) +
             uint64_t(p.features + 1) * 4 + 20 : 0;
         Require(bytes + targetExtra + greedyExtra <= MemoryLimit, "Vector greedy working set exceeds 1 GiB");
-        WorkingBytes = bytes + targetExtra + greedyExtra;
+        const uint64_t retainedLeafBytes = uint64_t(MaxLeaves) * p.classes * sizeof(float) * 2;
+        Require(bytes + targetExtra + greedyExtra + retainedLeafBytes <= MemoryLimit,
+                "Multiclass retained permutation leaves exceed 1 GiB working set");
+        WorkingBytes = bytes + targetExtra + greedyExtra + retainedLeafBytes;
+        LastPermutationLeaves.resize(uint64_t(MaxLeaves) * p.classes);
+        PendingPermutationLeaves.resize(LastPermutationLeaves.size());
         std::vector<float> unitWeights;
         if (!weights) { unitWeights.assign(p.rows, 1); weights = unitWeights.data(); }
         TotalWeight = 0; for (uint32_t row = 0; row < p.rows; ++row) TotalWeight += weights[row];
@@ -459,11 +464,19 @@ public:
     void Step(CBMStepInfo* info, uint32_t* depth, uint32_t* splitFeatures, uint32_t* splitBins,
               uint8_t* splitTypes, float* leafValues, float* leafWeights) {
         Require(!Greedy, "Use step_greedy for a vector greedy session");
-        if (!Permutations.empty()) {
-            StepPermutations(info, depth, splitFeatures, splitBins, splitTypes, leafValues, leafWeights);
-            return;
+        BeginLeafCapture();
+        try {
+            if (!Permutations.empty()) {
+                StepPermutations(info, depth, splitFeatures, splitBins, splitTypes, leafValues, leafWeights);
+            } else {
+                StepOne(info, depth, splitFeatures, splitBins, splitTypes, leafValues, leafWeights);
+                StagePermutationLeaves(0, leafValues);
+            }
+            CommitLeafCapture();
+        } catch (...) {
+            CapturingLeaves = false;
+            throw;
         }
-        StepOne(info, depth, splitFeatures, splitBins, splitTypes, leafValues, leafWeights);
     }
     void StepOne(CBMStepInfo* info, uint32_t* depth, uint32_t* splitFeatures, uint32_t* splitBins,
                  uint8_t* splitTypes, float* leafValues, float* leafWeights) {
@@ -479,6 +492,7 @@ public:
             // A failed Newton iteration must not expose its unshrunk trial
             // cursor as a completed ensemble or corrupt a later retry.
             if (TreeActive) {
+                LeafCaptureHealthy = false;
                 Command restore(Stats);
                 restore.Copy(Base, Cursor, uint64_t(Options.rows) * D * 4);
                 restore.Wait();
@@ -486,6 +500,7 @@ public:
                 MVSLambda = previousLambda; HasMVSLambda = previousHasLambda;
                 UsedFeatures = previousUsed;
                 TreeActive = false;
+                LeafCaptureHealthy = true;
             }
             throw;
         }
@@ -660,8 +675,19 @@ public:
     void StepGreedy(CBMGreedyStepInfo* info, CBMGreedyNode* nodes, float* values, float* weights) {
         Require(Greedy && info && nodes && values && weights, "Vector greedy session and output buffers are required");
         Require(Completed < Options.iterations, "Vector greedy session is already complete");
+        BeginLeafCapture();
+        try {
+            StepGreedyImpl(info, nodes, values, weights);
+            CommitLeafCapture();
+        } catch (...) {
+            CapturingLeaves = false;
+            throw;
+        }
+    }
+    void StepGreedyImpl(CBMGreedyStepInfo* info, CBMGreedyNode* nodes, float* values, float* weights) {
         if (Permutations.empty()) {
             StepGreedyOne(info, nodes, values, weights);
+            StagePermutationLeaves(0, values);
             return;
         }
         const uint32_t priorCompleted = Completed, count = Permutations.size();
@@ -690,6 +716,8 @@ public:
                 CBMGreedyStepInfo temporaryInfo;
                 StepGreedyOne(exported ? info : &temporaryInfo, exported ? nodes : temporaryNodes.data(),
                     exported ? values : temporaryValues.data(), exported ? weights : temporaryWeights.data());
+                if (!DeferLeafEstimation)
+                    StagePermutationLeaves(index, exported ? values : temporaryValues.data());
                 Permutations[index].Cursor = Cursor; Permutations[index].Published = Published;
                 Permutations[index].Loss = Loss;
                 if (!order) {
@@ -706,6 +734,7 @@ public:
             LoadPermutation(count - 1); info->loss = Loss; info->stats = Stats;
         } catch (...) {
             ForcedGreedyRounds = nullptr; DeferLeafEstimation = false;
+            LeafCaptureHealthy = false;
             Command restore(Stats);
             for (uint32_t index = 0; index < count; ++index) {
                 auto& state = Permutations[index];
@@ -714,6 +743,7 @@ public:
                 state.Loss = priorLoss[index];
             }
             restore.Wait(); Completed = priorCompleted; LoadPermutation(count - 1);
+            LeafCaptureHealthy = true;
             throw;
         }
     }
@@ -725,8 +755,10 @@ public:
             TreeActive = false;
         } catch (...) {
             if (TreeActive) {
+                LeafCaptureHealthy = false;
                 Command restore(Stats); restore.Copy(Base, Cursor, uint64_t(Options.rows) * D * 4); restore.Wait();
                 Loss = previousLoss; TreeActive = false;
+                LeafCaptureHealthy = true;
             }
             throw;
         }
@@ -901,7 +933,11 @@ public:
         const uint64_t activeBytes = uint64_t(Options.rows) * D * 4;
         const uint64_t fullBytes = uint64_t(Options.rows) * Options.classes * 4;
         const uint64_t extra = uint64_t(count - 1) * (cells + activeBytes + fullBytes) + uint64_t(count) * (activeBytes + fullBytes);
-        Require(WorkingBytes + BootstrapBytes + NoiseBytes + BacktrackingBytes + extra + LangevinBytes <= MemoryLimit,
+        const uint64_t leafCells = uint64_t(count) * MaxLeaves * Options.classes;
+        // Both new banks coexist with the previous banks until configuration
+        // succeeds. Include that allocation peak in the ordinary workspace cap.
+        const uint64_t retainedLeafBytes = leafCells * sizeof(float) * 2;
+        Require(WorkingBytes + BootstrapBytes + NoiseBytes + BacktrackingBytes + extra + LangevinBytes + retainedLeafBytes <= MemoryLimit,
                 "Multiclass permutation datasets and rollback cursors exceed 1 GiB working set");
         // Validate every permutation before mutating any existing resident state.
         for (uint32_t permutation = 0; permutation < count; ++permutation) {
@@ -920,6 +956,7 @@ public:
             }
         }
         const auto* original = static_cast<const float*>(Published.contents);
+        std::vector<float> lastLeaves(leafCells), pendingLeaves(leafCells);
         std::vector<float> commonInitial(original, original + fullBytes / 4);
         std::vector<PermutationData> states;
         states.reserve(count);
@@ -963,6 +1000,8 @@ public:
             const float anchor = Options.objective == 0 ? last[uint64_t(row) * Options.classes + D] : 0;
             for (uint32_t k = 0; k < D; ++k) active[uint64_t(k) * Options.rows + row] = last[uint64_t(row) * Options.classes + k] - anchor;
         }
+        WorkingBytes += retainedLeafBytes - LastPermutationLeaves.size() * sizeof(float) * 2;
+        LastPermutationLeaves.swap(lastLeaves); PendingPermutationLeaves.swap(pendingLeaves);
         Permutations = std::move(states); PermutationBytes = extra; SearchPermutation = count - 1;
         LoadPermutation(count - 1);
     }
@@ -988,6 +1027,13 @@ public:
             const id<MTLBuffer> source = Permutations.empty() ? Cursor : Permutations[permutation].Cursor;
             std::memcpy(output + permutation * cells, source.contents, cells * 4);
         }
+    }
+    void CopyLastPermutationLeaves(uint32_t count, uint32_t maxLeaves, float* output) const {
+        Require(LeafCaptureHealthy && !TreeActive && !CapturingLeaves && HasLastPermutationLeaves && Completed,
+                "Last permutation leaves require an idle session with a successful tree");
+        Require(count == std::max<size_t>(1, Permutations.size()) && maxLeaves == MaxLeaves && output,
+                "Last permutation leaf output must match the exact session geometry");
+        std::memcpy(output, LastPermutationLeaves.data(), LastPermutationLeaves.size() * sizeof(float));
     }
     void RestoreOptimizationState(uint32_t count, const float* input) {
         Require(Completed == 0 && count == std::max<size_t>(1, Permutations.size()) && input,
@@ -1039,6 +1085,23 @@ private:
     uint32_t D, MaxLeaves, HistCells;
     double TotalWeight;
     bool TreeActive = false;
+    bool CapturingLeaves = false, HasLastPermutationLeaves = false, LeafCaptureHealthy = true;
+    std::vector<float> LastPermutationLeaves, PendingPermutationLeaves;
+    void BeginLeafCapture() {
+        Require(LeafCaptureHealthy && !TreeActive && !CapturingLeaves,
+                "Multiclass session is not healthy and idle");
+        std::fill(PendingPermutationLeaves.begin(), PendingPermutationLeaves.end(), 0.f);
+        CapturingLeaves = true;
+    }
+    void StagePermutationLeaves(uint32_t index, const float* values) {
+        const uint64_t cells = uint64_t(MaxLeaves) * Options.classes;
+        std::memcpy(PendingPermutationLeaves.data() + index * cells, values, cells * sizeof(float));
+    }
+    void CommitLeafCapture() noexcept {
+        LastPermutationLeaves.swap(PendingPermutationLeaves);
+        HasLastPermutationLeaves = true;
+        CapturingLeaves = false;
+    }
     uint64_t WorkingBytes = 0, BootstrapBytes = 0, NoiseBytes = 0, BacktrackingBytes = 0, LangevinBytes = 0;
     bool Langevin = false, DeferLeafEstimation = false;
     CBMLangevinNoiseCallback LangevinNoise = nullptr;
@@ -1114,6 +1177,8 @@ private:
                 uint8_t* treeTypes = exported ? types : temporaryTypes.data();
                 StepOne(exported ? info : &temporaryInfo, treeDepth, treeFeatures, treeBins, treeTypes,
                         exported ? values : temporaryValues.data(), exported ? weights : temporaryWeights.data());
+                if (!DeferLeafEstimation)
+                    StagePermutationLeaves(index, exported ? values : temporaryValues.data());
                 Permutations[index].Cursor = Cursor; Permutations[index].Published = Published;
                 Permutations[index].Loss = Loss;
                 if (order == 0) {
@@ -1134,6 +1199,7 @@ private:
             LoadPermutation(count - 1); Info(*info);
         } catch (...) {
             ForcedTree = nullptr; DeferLeafEstimation = false;
+            LeafCaptureHealthy = false;
             Command restore(Stats);
             for (uint32_t index = 0; index < count; ++index) {
                 auto& state = Permutations[index];
@@ -1143,6 +1209,7 @@ private:
             }
             restore.Wait(); Completed = priorCompleted; LoadPermutation(count - 1);
             UsedFeatures = priorUsed;
+            LeafCaptureHealthy = true;
             throw;
         }
     }
@@ -1465,6 +1532,11 @@ extern "C" int cbm_multiclass_session_copy_optimization_state(void* session, uin
     char* error, size_t capacity) {
     return Guard(error, capacity, [&] { auto& s = Get(session); std::lock_guard<std::mutex> lock(s.Mutex);
         s.CopyOptimizationState(count, output); });
+}
+extern "C" int cbm_multiclass_session_copy_last_permutation_leaves(void* session, uint32_t count,
+    uint32_t maxLeaves, float* output, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto& s = Get(session); std::lock_guard<std::mutex> lock(s.Mutex);
+        s.CopyLastPermutationLeaves(count, maxLeaves, output); });
 }
 extern "C" int cbm_multiclass_session_restore_optimization_state(void* session, uint32_t count, const float* input,
     char* error, size_t capacity) {

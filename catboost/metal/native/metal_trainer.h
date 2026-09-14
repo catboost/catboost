@@ -368,6 +368,15 @@ int cbm_session_select_permutation(void* session, uint32_t search_index,
 int cbm_session_copy_permutation_state(void* session, uint32_t capacity,
     float* predictions, float* mvs_lambdas, uint8_t* mvs_valid,
     char* error, size_t error_capacity);
+// Copy the most recently finished DocParallel tree for every permutation.
+// count must equal the configured permutation count (one when unconfigured),
+// and max_leaves must equal 1 << the configured tree depth. output contains
+// count * max_leaves floats in permutation-major order, with unused leaves zero.
+// Values include the learning rate and any objective-specific leaf centering,
+// exactly as applied to each training cursor. Requires a completed, healthy
+// session with no open tree; FeatureParallel sessions are not supported.
+int cbm_session_copy_last_permutation_leaves(void* session, uint32_t count,
+    uint32_t max_leaves, float* output, char* error, size_t error_capacity);
 
 typedef struct {
     float model_size_reg;

@@ -1,6 +1,6 @@
 ---
 title: Prove scale and performance
-status: backlog
+status: deferred
 priority: 6
 created: 2026-09-13
 tags: [catboost, metal, parity]
@@ -9,6 +9,13 @@ tags: [catboost, metal, parity]
 # Prove scale and performance
 
 [Board](README.md)
+
+Deferred on 2026-09-13 following the user's hardware constraint: the available
+M3 Pro has 18 GB of unified memory shared by the system, CPU and GPU. Bounded
+local benchmarks and memory accounting remain possible, but this machine
+cannot establish capacity beyond its memory budget. Larger-memory Apple
+hardware and actual NVIDIA hardware are needed for the broader capacity and
+comparison evidence on this card. No new scale runs were started.
 
 Only the M3 Pro has been exercised. Existing FlightData full-pool fits and
 synthetic scaling runs demonstrate supported execution, but do not establish

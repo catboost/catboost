@@ -123,7 +123,15 @@ def check_exact_resume(config, learn, evaluation, effective_histories, directory
     partial = fit(snapshot_options(config, directory, 2), learn, evaluation)
     assert partial.tree_count_ == 2
     path = directory / "langevin.snapshot"
-    _, saved = tail(path.read_bytes())
+    policy = config["grow_policy"]
+    capacity = (config["depth"] + 1 if policy == "Region" else
+                min(config["max_leaves"], 1 << min(config["depth"], 16)) if policy == "Lossguide" else
+                1 << config["depth"])
+    history_shape = dict(permutations=effective_histories, leaf_capacity=capacity,
+                         dimension=2 if config["loss_function"] == "RMSEWithUncertainty" else 3)
+    partial_bytes = path.read_bytes()
+    offset, saved = tail(partial_bytes, trees=2, **history_shape)
+    assert tail(partial_bytes[:offset + 17], trees=2, **history_shape) == (offset, saved)
     cache = int(config["bootstrap_type"] != "No")
     assert saved == (int(partial.get_metadata()["metal_langevin_host_draw_count"]), 2, cache)
     resumed = fit(snapshot_options(config, directory, config["iterations"]), learn, evaluation)
@@ -131,7 +139,7 @@ def check_exact_resume(config, learn, evaluation, effective_histories, directory
     check_same(direct, resumed, evaluation)
     np.testing.assert_array_equal(direct.get_test_evals(), resumed.get_test_evals())
     assert direct.get_evals_result() == resumed.get_evals_result()
-    _, restored_state = tail(path.read_bytes())
+    _, restored_state = tail(path.read_bytes(), trees=config["iterations"], **history_shape)
     assert restored_state == (int(direct.get_metadata()["metal_langevin_host_draw_count"]),
                               config["iterations"], cache)
 

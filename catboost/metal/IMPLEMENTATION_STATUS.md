@@ -7,22 +7,63 @@ distinguished below. The earlier
 
 ## Current source and release status
 
-**Card 4 is complete and its coherent release acceptance passed.**
-Installed checkpoint: `20260914T025201Z`. Final accepted counts:
-14,376 tests plus 16 subtests in the full matrix; 6,118 tests alternate; 2,431 tests installed; 348 CLI; 203 preinstall smoke; 203 installed smoke; 350 exact preceding snapshot recoveries. All required gates passed on the frozen source set.
+**Card 7 is complete and its coherent release acceptance passed.**
+Installed checkpoint: `20260914T052913Z`. Native `model-based-eval` supports
+Plain/DocParallel feature experiments from existing baseline snapshots,
+including per-permutation prefix reconstruction and local metric histories.
+The [release report](MODEL_BASED_EVAL_PORT.md) records supported registrations,
+candidate features, baseline policies, artifacts and rejection boundaries.
 
-The source now connects shared cross-validation, text/embedding estimators,
-registered scalar/query/vector/greedy Simple leaves, fixed splits, full-matrix
-RSM, automatic CTR priors, feature weights, Full counters, the 256-value one-hot
-boundary, normalization/ridge/Meta-L2 and Langevin. Newly exposed standalone
-FeatureParallel/compound and training-option paths use the native Metal
-adapter. See [API_OPTIONS_PORT.md](API_OPTIONS_PORT.md) for source consumers,
-no-op modes, intentional differences and acceptance status.
+Cards 5 and 6 remain deferred. Model-based experiments restart Metal's random
+helpers, unlike CUDA's shared experiment generator. Vector prefix replay uses
+rounded saved leaves and can differ from live fused updates. Functional analysis
+support does not establish CUDA numerical, RNG or performance parity.
 
-## Accepted card 4 evidence
+## Accepted card 7 evidence
 
-Checkpoint `20260914T025201Z` passed all required gates and is installed
-in `catboost/metal/.venv`. Failures, errors and skips are zero.
+Checkpoint `20260914T052913Z` passed every required gate and is installed in
+`catboost/metal/.venv`. Failures, errors and skips are zero.
+
+| Acceptance gate | Passed |
+|---|---:|
+| Full native/standalone matrix | 14,551 tests plus 16 subtests |
+| Alternate extension | 6,187 tests |
+| Installed package | 2,606 tests |
+| CLI configurations | 348 |
+| Preinstall GPU smoke configurations | 203 |
+| Installed GPU smoke configurations | 203 |
+| Exact preceding snapshot recoveries | 350 |
+| Metal C++ helper checks | 135 |
+| Estimated/CTR metadata C++ checks | 3 |
+| Quantized categorical apply C++ checks | 3 |
+| Combination metric C++ checks | 2 |
+
+These selections overlap and must not be summed. Full, alternate and installed
+matrices each include 69 model-based CLI/contract cases. Full and installed
+also include 106 per-permutation leaf-accessor cases (24 scalar, 38 greedy,
+44 vector); the 17 snapshot-history host cases are within the 135 Metal C++
+checks. The two smoke gates use the same inventory in separate environments.
+All gates retain matching source, extension and CLI identities. No CPU CatBoost
+fit or NVIDIA execution was used.
+
+The preceding card 4 wheel and 350 original snapshot fixtures remain preserved.
+Recovery compares against their original expected arrays, histories and callback
+sequences; current-build expectations do not replace them.
+
+The release uses 764 frozen source identities and 11 added-file overlays against
+card 4 source base `c79c4b96499834457fc06e6819d149611dbd8d6a`. Package identity:
+
+- Checkpoint directory: `catboost/metal/.build/releases/20260914T052913Z/`
+- Wheel: `catboost-1.2.10-cp312-cp312-macosx_11_0_arm64.whl`
+- Wheel SHA256: `1cbce1e7b7ded2e7b8f7d4db0c4d850ba47904ef52df632e5ce8ec557335c88e`
+- Standard/installed extension SHA256: `9b8814a605e501809840ff0ba9b7e4a9db6cd54acec6f321a9619294345e9073`
+- Alternate extension SHA256: `16bc99df3716aec5e8f79e1633d2bc55f32c4c53fc9a6dd0713cae2e3c670d5a`
+- CLI SHA256: `915e86c148ad9b13df5a3a8961775f4d04b1c10279aa89562b1eec6833b5696b`
+
+## Historical accepted card 4 evidence
+
+Checkpoint `20260914T025201Z` passed all required gates and was installed in
+`catboost/metal/.venv` at that release. Its failures, errors and skips were zero.
 
 | Acceptance gate | Passed |
 |---|---:|
@@ -77,12 +118,13 @@ interface matrix or remaining-work list.
 
 ## Integrated interfaces on M3 Pro
 
-The card 4 paths passed targeted and coherent release acceptance. Historical
-accepted package counts appear separately below.
+The integrated paths passed targeted and coherent card 7 release acceptance.
+Earlier checkpoint counts remain historical evidence.
 
 | Area | Standalone Metal estimators | Native Metal source |
 |---|---|---|
 | Entry points | Regressor, Classifier, Ranker; new options route through the native fork | Ordinary CatBoost estimators, Pool, CLI, shared CV, `task_type="GPU"` |
+| Model-based feature analysis | Native CLI is the supported interface; no new Python estimator method | Plain/DocParallel baseline-prefix experiments with numeric candidates, supported categorical background features and per-permutation histories; metric logs rather than trial-model export |
 | Scalar losses | RMSE, Logloss, CrossEntropy, Poisson, Huber, Expectile, Lq, Tweedie, LogLinQuantile, Quantile, MAE, MAPE | All twelve |
 | Vector losses | MultiClass, MultiClassOneVsAll, MultiRMSE, RMSEWithUncertainty, MultiLogloss, MultiCrossEntropy | All six, including weighted metrics, baselines and snapshots |
 | Grouped losses | All seven existing query/ranking objectives with one-hot inputs; QueryRMSE/QuerySoftMax/PairLogit/classic YetiRank additionally support Ordered and Plain greedy routes | All seven support simple CTR P4; the four diagonal query/ranking objectives additionally support symmetric Plain/Ordered FeatureParallel and compound CTRs |
@@ -293,9 +335,6 @@ configuration-matched CUDA quality evidence.
 
 ## Remaining work
 
-- Implement the separate [model-based feature analysis workflow](../../Kanban/07-model-based-feature-analysis.md)
-  in card 7. Native ordinary training, prediction and CV do not establish this
-  feature-ablation API.
 - Keep source-supported boundaries explicit: full-matrix/vector/greedy partition
   restrictions, native-only Combination/custom and calcer configuration,
   estimated-feature reader/model-sum limits, and CPU-only penalty/shrinkage
@@ -303,10 +342,17 @@ configuration-matched CUDA quality evidence.
 - Complete CUDA device random-buffer agreement and investigate numerical/tied
   split differences. Audited host seed order and exact same-build snapshots do
   not prove equivalence of device bootstrap, score noise or pack visitation.
+- Preserve the deferred [card 5](../../Kanban/05-numerical-agreement.md) work:
+  model-based experiments restart Metal's random-state helpers while CUDA keeps
+  a shared generator across trials. Vector prefix replay adds rounded saved
+  float32 leaves; live fused updates can differ by one ULP and change tied CTR
+  choices. Functional analysis support does not resolve these numerical limits.
 - Validate complete memory use, wider/deeper workloads, packed feature layouts,
   and performance across M-series generations. Current major working/output
   guards are 1 GiB/512 MiB; host copies and retained category tables need their
   own accounting. Typical scalar bounds remain 255 borders and 2^24 rows.
+- Keep [card 6](../../Kanban/06-scale-and-performance.md) deferred under the
+  available 18 GB M3 Pro and missing larger-memory Apple/NVIDIA hardware.
 - Compare numerical agreement and performance on actual NVIDIA and additional
   M-series hardware when available; repeat coherent release acceptance for
   subsequent capability changes.

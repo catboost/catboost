@@ -28,6 +28,14 @@ namespace NCB {
         // this payload; their training/model recovery remains unchanged.
         TVector<float> BestLearnPredictions;
         i32 BestLearnIteration = -1;
+        // Optional supported DocParallel history for model-based evaluation.
+        // Layout is [completed tree][permutation][leaf padded to capacity][dim].
+        // Zero fields mean an older snapshot has no recoverable leaf history;
+        // ordinary cursor/model resume must not invent the missing trees.
+        ui32 ModelBasedPermutationCount = 0;
+        ui32 ModelBasedLeafCapacity = 0;
+        ui32 ModelBasedApproxDimension = 0;
+        TVector<float> ModelBasedPermutationLeaves;
         TVector<float> PermutationPredictions;
         TVector<float> PermutationMvsLambdas;
         TVector<ui8> PermutationMvsValid;
@@ -77,6 +85,10 @@ namespace NCB {
                 BestLearnPredictions.clear();
                 BestLearnIteration = -1;
                 LangevinRandom = {};
+                ModelBasedPermutationCount = 0;
+                ModelBasedLeafCapacity = 0;
+                ModelBasedApproxDimension = 0;
+                ModelBasedPermutationLeaves.clear();
                 ::LoadMany(in, Params, Checksum, Bias, MvsLambda, MvsLambdaIsSet, Depths, SplitFeatures, SplitBins,
                     SplitTypes, Leaves, Weights, Predictions, History,
                     PermutationPredictions, PermutationMvsLambdas, PermutationMvsValid, UsedFeatures,
@@ -116,17 +128,19 @@ namespace NCB {
                     ValidateTreeCtrMetadata();
                 }
                 // Older v6 snapshots end here. Optional records have a fixed
-                // order: a best cursor, then the Langevin stream. Either may
-                // be absent, so Langevin-only checkpoints need no fake cursor.
-                bool bestLoaded = false, langevinLoaded = false;
+                // order: best cursor, Langevin stream, model-based leaf history.
+                // Optional earlier records need not be present, except that a
+                // Langevin configuration still requires its random state.
+                bool bestLoaded = false, langevinLoaded = false, modelBasedLoaded = false;
                 for (;;) {
                     ui32 tag = 0;
                     const size_t bytes = in->Read(&tag, sizeof(tag));
                     if (!bytes) break;
-                    CB_ENSURE(bytes == sizeof(tag), (bestLoaded ? "Saved Metal best-learn cursor has trailing data" :
+                    CB_ENSURE(bytes == sizeof(tag), (modelBasedLoaded ? "Saved Metal model-based history has trailing data" :
+                        bestLoaded ? "Saved Metal best-learn cursor has trailing data" :
                         "Unknown Metal best-learn snapshot payload"));
                     if (tag == 0x4D424C31 || tag == 0x4D424C32) {
-                        CB_ENSURE(!bestLoaded && !langevinLoaded,
+                        CB_ENSURE(!bestLoaded && !langevinLoaded && !modelBasedLoaded,
                             "Saved Metal best-learn cursor has trailing data");
                         bestLoaded = true;
                         if (tag == 0x4D424C32) ::Load(in, BestLearnIteration);
@@ -140,15 +154,31 @@ namespace NCB {
                             CB_ENSURE(std::isfinite(value), "Saved Metal best-learn cursor is nonfinite");
                         }
                     } else if (tag == 0x4D4C4731) { // Metal Langevin random v1
-                        CB_ENSURE(Langevin && !langevinLoaded,
+                        CB_ENSURE(Langevin && !langevinLoaded && !modelBasedLoaded,
                             "Unexpected or duplicate Metal Langevin snapshot payload");
                         langevinLoaded = true;
                         ::LoadMany(in, LangevinRandom.DrawCount, LangevinRandom.CompletedIterations,
                             LangevinRandom.WeakSeedCacheInitialized);
                         CB_ENSURE(LangevinRandom.CompletedIterations == Depths.size(),
                             "Saved Metal Langevin random iteration count differs from its trees");
+                    } else if (tag == 0x4D4D4231) { // Metal model-based leaf history v1
+                        CB_ENSURE(!modelBasedLoaded && (!Langevin || langevinLoaded),
+                            "Duplicate or out-of-order Metal model-based history payload");
+                        modelBasedLoaded = true;
+                        ui64 values = 0;
+                        ::LoadMany(in, ModelBasedPermutationCount, ModelBasedLeafCapacity, ModelBasedApproxDimension, values);
+                        const ui64 expectedValues = ModelBasedValueCount(ModelBasedPermutationCount,
+                            ModelBasedLeafCapacity, ModelBasedApproxDimension);
+                        CB_ENSURE(values == expectedValues,
+                            "Saved Metal model-based history has inconsistent array size");
+                        // Bound and reconcile the declared length before any
+                        // allocation; ordinary vector Load resizes first.
+                        ModelBasedPermutationLeaves.resize(expectedValues);
+                        if (expectedValues) ::LoadArray(in, ModelBasedPermutationLeaves.data(), expectedValues);
+                        ModelBasedValidate(ModelBasedPermutationCount, ModelBasedLeafCapacity, ModelBasedApproxDimension);
                     } else {
-                        CB_ENSURE(false, (bestLoaded ? "Saved Metal best-learn cursor has trailing data" :
+                        CB_ENSURE(false, (modelBasedLoaded ? "Saved Metal model-based history has trailing data" :
+                            bestLoaded ? "Saved Metal best-learn cursor has trailing data" :
                             "Unknown Metal best-learn snapshot payload"));
                     }
                 }
@@ -160,6 +190,7 @@ namespace NCB {
         }
 
         void Save(const TString& path, const TString& device, ITrainingCallbacks* callbacks) const {
+            ModelBasedValidate(ModelBasedPermutationCount, ModelBasedLeafCapacity, ModelBasedApproxDimension);
             TProgressHelper("CatBoost Metal snapshot v6").Write(path, [&](IOutputStream* out) {
                 NJson::TJsonValue processors(NJson::JSON_ARRAY);
                 processors.AppendValue(device);
@@ -194,7 +225,45 @@ namespace NCB {
                     ::SaveMany(out, ui32(0x4D4C4731), LangevinRandom.DrawCount,
                         LangevinRandom.CompletedIterations, LangevinRandom.WeakSeedCacheInitialized);
                 }
+                if (ModelBasedPermutationCount) {
+                    ::SaveMany(out, ui32(0x4D4D4231), ModelBasedPermutationCount,
+                        ModelBasedLeafCapacity, ModelBasedApproxDimension, ui64(ModelBasedPermutationLeaves.size()));
+                    if (!ModelBasedPermutationLeaves.empty())
+                        ::SaveArray(out, ModelBasedPermutationLeaves.data(), ModelBasedPermutationLeaves.size());
+                }
             });
+        }
+
+        // The caller supplies the current supported DocParallel permutation
+        // count, derived symmetric/greedy maximum leaf capacity and dimension.
+        // Absence remains valid for an ordinary resume of an older snapshot.
+        void ModelBasedValidate(ui32 expectedP, ui32 expectedCapacity, ui32 expectedDimension = 1) const {
+            if (!ModelBasedPermutationCount) {
+                CB_ENSURE(!ModelBasedLeafCapacity && !ModelBasedApproxDimension && ModelBasedPermutationLeaves.empty(),
+                    "Disabled Metal model-based history has unexpected payload");
+                return;
+            }
+            const ui64 values = ModelBasedValueCount(ModelBasedPermutationCount, ModelBasedLeafCapacity,
+                ModelBasedApproxDimension);
+            CB_ENSURE(ModelBasedPermutationCount == expectedP && ModelBasedLeafCapacity == expectedCapacity &&
+                ModelBasedApproxDimension == expectedDimension,
+                "Saved Metal model-based history differs from current permutation count, leaf capacity or approximation dimension");
+            CB_ENSURE(ModelBasedPermutationLeaves.size() == values,
+                "Saved Metal model-based history has inconsistent array size");
+            for (float value : ModelBasedPermutationLeaves) {
+                CB_ENSURE(std::isfinite(value), "Saved Metal model-based history contains nonfinite leaf values");
+            }
+        }
+
+        ui64 ModelBasedValueCount(ui32 permutations, ui32 capacity, ui32 dimension = 1) const {
+            CB_ENSURE(permutations >= 1 && permutations <= 64 && capacity >= 1 && capacity <= 65536 &&
+                dimension >= 1 && dimension <= 64,
+                "Saved Metal model-based history has invalid permutation count, leaf capacity or approximation dimension");
+            constexpr ui64 maximumValues = (ui64(512) << 20) / sizeof(float);
+            const ui64 perTree = ui64(permutations) * capacity * dimension;
+            CB_ENSURE(Depths.size() <= maximumValues / perTree,
+                "Saved Metal model-based history exceeds 512 MiB");
+            return ui64(Depths.size()) * perTree;
         }
 
         void ValidateTreeCtrMetadata() const {

@@ -459,15 +459,18 @@ tests for iterative configurations.
 
 The source audit and host runner checks do not establish NVIDIA execution
 equivalence, full CUDA feature parity, numerical parity, identical device RNG or
-performance parity. Numerical agreement, scale/performance and the separate
-model-based analysis workflow remain the subsequent cards.
+performance parity. Numerical agreement and scale/performance remain deferred
+in cards 5 and 6.
 
 ## Separate model-based feature evaluation workflow
 
-The separate `model-based-eval` CLI workflow remains an identified API omission:
-CUDA implements `TGPUModelTrainer::ModelBasedEval`, while Metal's override rejects
-it. It runs feature-ablation experiments rather than ordinary training or CV.
-The separate [card 7](../../Kanban/07-model-based-feature-analysis.md) covers supported scalar registrations,
-the required single evaluation pool, experiment feature sets and baseline
-snapshot behavior, plus output files and rejection cases. It is not implemented
-as part of the ordinary training-option changes above.
+At checkpoint `20260914T025201Z`, `model-based-eval` remained a Metal API omission.
+Its separate implementation is documented in
+[MODEL_BASED_EVAL_PORT.md](MODEL_BASED_EVAL_PORT.md) and
+[card 7](../../Kanban/07-model-based-feature-analysis.md). That report records
+supported Plain/DocParallel registrations, baseline-prefix recovery, artifacts,
+rejection rules and acceptance evidence.
+
+Per-trial RNG resets differ from CUDA's shared experiment generator, and rounded
+vector-prefix replay can differ from live fused updates. These numerical
+limitations remain in deferred card 5.
