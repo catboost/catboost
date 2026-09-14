@@ -20,6 +20,9 @@
 #include "metal_ordered_yeti_runtime.h"
 #include "metal_custom_objective.h"
 #include "metal_ordered_combination_runtime.h"
+#include "metal_langevin.h"
+#include "metal_langevin_kernels.h"
+#include "metal_ordered_langevin_kernels.h"
 #include <cstring>
 #include <array>
 #include <memory>
@@ -51,6 +54,7 @@ struct StepParams { uint32_t Tasks, Leaves, CursorCount, SelectedPermutation; };
 struct BacktrackingParams { float Step; uint32_t Type, AddRidge, Normalize; };
 struct NativeQueryParams { uint32_t Rows, Groups, Objective, ApplyValues; float Beta, Lambda; uint32_t Leaves, Reserved; };
 struct NativePairParams { uint32_t Rows, Pairs, Objective, ApplyValues, Leaves, Reserved0, Reserved1, Reserved2; };
+struct OrderedLangevinParams { uint32_t ActiveTasks, Query, Trial, Initial; };
 struct OrderedTargetOptions {
     const CBMQueryOptions* Query = nullptr;
     const CBMPairOptions* Pair = nullptr;
@@ -66,6 +70,7 @@ struct BootstrapParams {
     uint32_t Rows, Type, SeedLow, SeedHigh, Iteration, Stream, Reserved0, Reserved1;
     float Temperature, Subsample, MVSLambda, NoiseScale;
 };
+struct LangevinWeakParams { BootstrapParams Random; uint32_t Offset, Stride, FilterBootstrap, Reserved; };
 using SplitState = CBMMetalSplitState;
 static_assert(sizeof(CBMOrderedParams) == 80 && sizeof(KernelParams) == 96 &&
               sizeof(OrderedParams) == 48 && sizeof(SplitState) == 32);
@@ -107,6 +112,7 @@ struct Runtime {
             CBMMetalDeepPartitionSource, CBMMetalOrderedHistogramSource, OrderedActivitySource,
             CBMMetalQuerywiseSource, CBMMetalPairwiseSource, CBMMetalOrderedQuerySource,
             CBMMetalYetiRankSource, CBMMetalOrderedYetiSource];
+        source = [source stringByAppendingFormat:@"\n%s\n%s", CBMMetalLangevinSource, CBMMetalOrderedLangevinSource];
         if (customSource) source = [[NSString stringWithUTF8String:CBMCustomObjectivePrefix(customSource).c_str()] stringByAppendingString:source];
         NSError* error = nil;
         id<MTLLibrary> library = [Device newLibraryWithSource:source options:options error:&error];
@@ -128,7 +134,8 @@ struct Runtime {
             "QueryRmseDerivatives", "QuerySoftMaxDerivatives", "PairLogitEdgeDerivatives", "ReducePairwiseRows",
             "OrderedQueryPreparePoint", "OrderedQueryPublishDerivatives", "OrderedQueryEstimateLeaves",
             "OrderedQueryBacktrackingDirections", "OrderedQueryBacktrackingObjective", "OrderedQueryCenterLeaves",
-            "OrderedPairQueryStatistics", "PrepareYetiRankApprox", "YetiRankPointwise", "OrderedYetiPublishDerivatives"};
+            "OrderedPairQueryStatistics", "PrepareYetiRankApprox", "YetiRankPointwise", "OrderedYetiPublishDerivatives",
+            "AddLangevinWeakNoise", "OrderedLangevinStatistics", "OrderedLangevinDirections"};
         for (const char* name : names) {
             id<MTLFunction> function = [library newFunctionWithName:[NSString stringWithUTF8String:name]];
             Require(function != nil, std::string("Missing Ordered kernel: ") + name);
@@ -220,7 +227,7 @@ public:
         const uint8_t* candidateTypes = nullptr, uint32_t groupCount = 0, const uint32_t* groupOffsets = nullptr, double groupGrowth = 0, uint32_t binBanks = 1, const OrderedTargetOptions* targetOptions = nullptr) {
         Require(params != nullptr, "Ordered parameters are required");
         P = *params;
-        if ((P.objective == 12 || P.objective == 13 || P.objective == 14 || P.objective == 19 || P.objective == 20) && P.leaf_method == 3) {
+        if ((P.objective <= 14 || P.objective == 19 || P.objective == 20) && P.leaf_method == 3) {
             Require(P.leaf_iterations == 1, "Ordered Simple estimation requires one leaf iteration");
             P.leaf_method = 1;
         }
@@ -233,6 +240,9 @@ public:
         Require(P.leaf_iterations && P.leaf_iterations <= 1000 && P.permutations && P.permutations <= 64 && P.normalize <= 1,
                 "Invalid Ordered leaf iteration, permutation or normalization option");
         Require(!P.reserved0 && !P.reserved1 && !P.reserved2, "Ordered reserved parameters must be zero");
+        // Retain the caller's Simple identity after its Gradient1 mapping.
+        // CUDA accepts signed QuerySoftMax weak weights for this estimator.
+        P.reserved2 = params->leaf_method == 3;
         Require(binBanks == 1 || binBanks == P.permutations, "Ordered feature banks must be shared or match every permutation");
         BinBanks = binBanks;
         // Internal-only leaf stride; caller-reserved fields remain required zero.
@@ -588,6 +598,7 @@ public:
     }
     void EncodeQueryDerivatives(Command& command, id<MTLBuffer> values, uint32_t mode, uint32_t selected,
         bool structure, bool objectiveOnly = false, id<MTLBuffer> predictions = nil, bool trial = false) {
+        LangevinStructureCall = structure;
         const auto step = StepConfiguration(Pending.Active ? 1u << Pending.Selected.size() : 1, selected);
         command.Dispatch("OrderedQueryPreparePoint", {Cursor, predictions ? predictions : Published, values, Permutations,
             LeafIds, TaskBuffer, QueryPoint, Status}, P, P.rows, false, Tasks, 1, &step, &mode, sizeof(mode));
@@ -598,6 +609,7 @@ public:
             const uint32_t count = objectiveOnly || Combination->HasYetiSeedCallback() ? 0 : CombinationYetiCount;
             Require(position + uint64_t(blocks.size()) * count <= seeds.size(), "Ordered Combination Yeti seed packet is missing or exhausted");
             if (structure) { command.Zero(QueryGradient); command.Zero(QueryHessian); command.Zero(QueryGradientWeights); }
+            uint32_t blockIndex = 0;
             for (uint32_t block : blocks) {
                 if (block != UINT32_MAX) Combination->EncodeBlock(command, block, QueryPoint, QueryGradient, QueryHessian,
                     QueryGradientWeights, count ? seeds.data() + position : nullptr, count, trial, objectiveOnly);
@@ -607,6 +619,7 @@ public:
                     }
                 }
                 position += count;
+                if (LangevinEnabled && structure && (++blockIndex % 2 == 0)) LangevinSeed(CBM_LANGEVIN_WEAK_SEED_CACHE);
             }
         } else if (P.objective == 17) {
             if (structure) { command.Zero(QueryGradient); command.Zero(QueryHessian); }
@@ -614,11 +627,13 @@ public:
             auto& seeds = structure ? YetiSeeds : YetiLeafSeeds;
             auto& position = structure ? YetiSeedPosition : YetiLeafSeedPosition;
             const auto& blocks = structure ? YetiWeakBlocks[selected] : YetiLeafBlocks;
-            Require(position + blocks.size() <= seeds.size(), "Ordered YetiRank oracle seed packet is missing or exhausted");
+            Require(LangevinEnabled || position + blocks.size() <= seeds.size(), "Ordered YetiRank oracle seed packet is missing or exhausted");
+            uint32_t blockIndex = 0;
             for (const uint32_t block : blocks) {
-                const uint64_t seed = seeds[position++];
+                const uint64_t seed = LangevinEnabled ? LangevinSeed(structure ? CBM_LANGEVIN_YETI_WEAK : CBM_LANGEVIN_YETI_LEAF) : seeds[position++];
                 if (block != UINT32_MAX) Yeti->EncodeBlock(command, block, QueryPoint, QueryTargets, QueryWeights,
                     QueryGradient, QueryHessian, Status, seed);
+                if (LangevinEnabled && structure && (++blockIndex % 2 == 0)) LangevinSeed(CBM_LANGEVIN_WEAK_SEED_CACHE);
             }
         } else if (P.objective == 14) {
             const NativePairParams pairs = {CursorCount, FlatPairCount, 14, 0, 1, 0, 0, 0};
@@ -691,8 +706,8 @@ public:
         Command initial(Stats, CustomContext.get());
         EncodeQueryDerivatives(initial, RawValues, 1, step.SelectedPermutation, false); project(initial);
         initial.Wait(); CheckStatus();
-        double current = ReadCombinationObjective(), dot = ReadDirectionDot(step.Leaves);
-        BacktrackingParams backtracking = {1, BacktrackingType, 0, P.normalize};
+        double current = AddObjectiveRidge(ReadCombinationObjective(), RawValues, step.Leaves), dot = ReadDirectionDot(step.Leaves);
+        BacktrackingParams backtracking = {1, BacktrackingType, P.reserved1, P.normalize};
         bool updated = false, newDirection = false;
         for (uint32_t attempt = 0; attempt < P.leaf_iterations || (!updated && attempt < 100); ++attempt) {
             Command trial(Stats, CustomContext.get());
@@ -702,7 +717,7 @@ public:
             EncodeQueryDerivatives(trial, TrialValues, 1, step.SelectedPermutation, false, false, nil, true);
             trial.Wait(); CheckStatus();
             if (newDirection) dot = ReadDirectionDot(step.Leaves);
-            const double candidate = ReadCombinationObjective(true);
+            const double candidate = AddObjectiveRidge(ReadCombinationObjective(true), TrialValues, step.Leaves);
             const double threshold = current + (BacktrackingType == 2 ? 1e-5 * backtracking.Step * dot : 0);
             if (std::isfinite(candidate) && candidate >= threshold) {
                 std::swap(RawValues, TrialValues); current = candidate; updated = true; newDirection = true; backtracking.Step = 1;
@@ -728,6 +743,21 @@ public:
     void CheckStatus() const {
         Require(!*static_cast<const uint32_t*>(Status.contents), "Ordered GPU arithmetic became nonfinite");
         if (Combination) Combination->CheckStatus();
+    }
+    void ConfigureRidge(uint32_t enabled) {
+        Require(!Completed && !Pending.Active && !Failed && enabled <= 1,
+                "Configure Ordered ridge with a boolean flag before the first tree");
+        P.reserved1 = enabled;
+    }
+    double AddObjectiveRidge(double value, id<MTLBuffer> values, uint32_t leaves) const {
+        if (P.reserved1) {
+            const float* points = static_cast<const float*>(values.contents);
+            for (uint32_t task = 0; task < Tasks; ++task) for (uint32_t leaf = 0; leaf < leaves; ++leaf) {
+                const double point = points[uint64_t(task) * MaxLeaves + leaf];
+                value -= 0.5 * double(P.l2) * point * point;
+            }
+        }
+        return value;
     }
     void ConfigureBootstrap(const CBMBootstrapOptions* options, uint32_t testOnly) {
         Require(!Completed && !Pending.Active && !Failed && options, "Configure Ordered bootstrap before the first step");
@@ -785,6 +815,155 @@ public:
             BacktrackingLoss = Context().Buffer(Tasks * 8ull);
         } else { TrialValues = nil; Directions = nil; DirectionDot = nil; TaskMass = nil; BacktrackingLoss = nil; }
     }
+    uint64_t LangevinSeed(uint32_t event) {
+        uint64_t seed = 0;
+        Require(LangevinSeedCallback && !LangevinSeedCallback(LangevinContext, event, &seed),
+                "Ordered Langevin seed callback failed");
+        return seed;
+    }
+    static int LangevinCombinationSeed(void* context, uint64_t* seed) {
+        try {
+            auto* session = static_cast<Session*>(context);
+            *seed = session->LangevinSeed(session->LangevinStructureCall ? CBM_LANGEVIN_YETI_WEAK : CBM_LANGEVIN_YETI_LEAF);
+            return 0;
+        } catch (...) { return -1; }
+    }
+    void ConfigureLangevin(float temperature, CBMLangevinNoiseCallback noise,
+        CBMLangevinSeedCallback seed, void* context) {
+        Require(!Completed && !Pending.Active && !Failed && !LangevinEnabled && noise && seed &&
+                std::isfinite(temperature) && temperature >= 0,
+                "Configure finite nonnegative Ordered Langevin temperature and callbacks before training");
+        std::vector<uint32_t> active;
+        const auto* tasks = IsQuery ? static_cast<const CBMOrderedFold*>(EstimationTasks.contents) : Descriptors.data();
+        for (uint32_t task = 0; task < Tasks; ++task) if (tasks[task].EstimateEnd) active.push_back(task);
+        Require(!active.empty(), "Ordered Langevin requires an active estimation task");
+        const uint64_t packed = uint64_t(active.size()) * MaxLeaves;
+        const uint64_t extra = packed * 32 + uint64_t(Tasks) * (MaxLeaves * 16ull + 12) + active.size() * 4ull;
+        Require(WorkingBytes + BootstrapBytes + NoiseBytes + BacktrackingBytes + extra <= MemoryLimit,
+                "Ordered Langevin workspace exceeds 1 GiB");
+        auto& contextRuntime = Context();
+        LangevinTaskIds = contextRuntime.Buffer(active.size() * 4ull, active.data());
+        LangevinStatistics = contextRuntime.Buffer(packed * 16);
+        LangevinGradientNoise = contextRuntime.Buffer(packed * 8); LangevinHessianNoise = contextRuntime.Buffer(packed * 8);
+        LangevinTrialValues = contextRuntime.Buffer(uint64_t(Tasks) * MaxLeaves * 4);
+        LangevinDirections = contextRuntime.Buffer(uint64_t(Tasks) * MaxLeaves * 4);
+        LangevinDirectionDot = contextRuntime.Buffer(uint64_t(Tasks) * MaxLeaves * 8);
+        LangevinTaskMass = contextRuntime.Buffer(Tasks * 4ull); LangevinLoss = contextRuntime.Buffer(Tasks * 8ull);
+        LangevinActiveTasks = active.size(); WorkingBytes += extra;
+        LangevinTemperature = temperature; LangevinNoiseCallback = noise; LangevinSeedCallback = seed;
+        LangevinContext = context; LangevinEnabled = true;
+        if (CombinationYetiCount) {
+            CombinationSeedCallback = LangevinCombinationSeed; CombinationSeedContext = this;
+            Combination->SetYetiSeedCallback(CombinationSeedCallback, CombinationSeedContext);
+        }
+    }
+    void EncodeLangevinWeak(Command& command, uint32_t selected) {
+        LangevinSeed(CBM_LANGEVIN_WEAK_SEED_CACHE);
+        const float coefficient = LangevinTemperature == 0 ? 0 : std::sqrt(2.0 / P.learning_rate / LangevinTemperature);
+        Require(std::isfinite(coefficient), "Ordered Langevin weak coefficient exceeds float32");
+        const uint32_t taskOffset = PermutationTaskOffsets[selected];
+        for (uint32_t fold = 0; fold < PermutationFoldCounts[selected]; ++fold) {
+            const auto& task = Descriptors[taskOffset + fold];
+            for (uint32_t side = 0; side < 2; ++side) {
+                const uint32_t begin = side ? task.EstimateEnd : 0, count = side ? task.QualityEnd - task.EstimateEnd : task.EstimateEnd;
+                if (!count || coefficient == 0) continue;
+                LangevinWeakParams params = {{count, 0, Bootstrap.random_seed_low, Bootstrap.random_seed_high,
+                    Bootstrap.iteration_offset + Completed, 0x4c470000u ^ (2 * fold + side), 0, 0, 0, 1, 0, coefficient},
+                    2 * (task.CursorOffset + begin), 2, 0, 0};
+                command.Dispatch("AddLangevinWeakNoise", {Derivatives, Weights}, params, count);
+            }
+        }
+    }
+    void WriteLangevinNoise(uint32_t event, uint32_t count, bool hessian = false, bool accumulate = false) {
+        std::vector<double> noise(count);
+        Require(!LangevinNoiseCallback(LangevinContext, event, count, noise.data()), "Ordered Langevin noise callback failed");
+        auto& cached = hessian ? LangevinHostHessianNoise : LangevinHostGradientNoise;
+        if (!accumulate) cached.assign(count, 0);
+        Require(cached.size() == count, "Ordered Langevin cached noise dimension differs");
+        float* output = static_cast<float*>((hessian ? LangevinHessianNoise : LangevinGradientNoise).contents);
+        for (uint32_t index = 0; index < count; ++index) {
+            Require(std::isfinite(noise[index]), "Ordered Langevin noise is nonfinite");
+            cached[index] += noise[index]; const float high = cached[index], low = cached[index] - high;
+            Require(std::isfinite(high) && std::isfinite(low), "Ordered Langevin noise exceeds float32");
+            output[2 * index] = high; output[2 * index + 1] = low;
+        }
+    }
+    void EncodeLangevinPoint(Command& command, const StepParams& step, id<MTLBuffer> point, bool trial) {
+        if (IsQuery) EncodeQueryDerivatives(command, point, 1, step.SelectedPermutation, false, false, nil, trial);
+        OrderedLangevinParams params = {LangevinActiveTasks, uint32_t(IsQuery), uint32_t(trial), 0};
+        command.Dispatch("OrderedLangevinStatistics", {Targets, Weights, Cursor, Permutations, LeafIds,
+            IsQuery ? EstimationTasks : TaskBuffer, point, IsQuery ? QueryGradient : Targets,
+            IsQuery ? QueryHessian : Targets, IsQuery ? QueryWeights : Weights, LangevinTaskIds,
+            LangevinStatistics, LeafWeights, LangevinTaskMass, Status}, P, step.Leaves, true, LangevinActiveTasks, 1,
+            &step, &params, sizeof(params));
+        if (P.objective == 17 || Combination) return;
+        if (IsQuery) command.Dispatch("OrderedQueryBacktrackingObjective", {QueryStatistics, QueryTaskRanges,
+            LangevinTaskMass, LangevinLoss}, P, Tasks, true, 1, 1, &step);
+        else command.Dispatch("OrderedBacktrackingObjective", {Targets, Weights, Cursor, Permutations, LeafIds, TaskBuffer,
+            point, LangevinTaskMass, LangevinLoss}, P, Tasks, true, 1, 1, &step);
+    }
+    double ReadLangevinObjective(id<MTLBuffer> point, uint32_t leaves, bool trial) const {
+        double value = 0;
+        if (Combination) {
+            const float* mass = static_cast<const float*>(LangevinTaskMass.contents);
+            const uint32_t* ids = static_cast<const uint32_t*>(LangevinTaskIds.contents);
+            for (uint32_t task = 0; task < YetiLeafBlocks.size(); ++task) {
+                const double part = Combination->ReadObjective(YetiLeafBlocks[task], trial);
+                value += P.normalize ? (mass[ids[task]] > 0 ? part / mass[ids[task]] : 0) : part;
+            }
+        } else if (P.objective != 17) {
+            const float* data = static_cast<const float*>(LangevinLoss.contents);
+            for (uint32_t task = 0; task < Tasks; ++task) value += double(data[2 * task]) + data[2 * task + 1];
+        }
+        return AddObjectiveRidge(value, point, leaves);
+    }
+    double PrepareLangevinDirection(const StepParams& step, bool initial) {
+        const OrderedLangevinParams params = {LangevinActiveTasks, uint32_t(IsQuery), 0, uint32_t(initial)};
+        Command command(Stats, CustomContext.get());
+        command.Dispatch("OrderedLangevinDirections", {LangevinStatistics, LangevinGradientNoise, LangevinHessianNoise,
+            LangevinTaskIds, LangevinDirections, LangevinDirectionDot, Status}, P,
+            uint64_t(LangevinActiveTasks) * step.Leaves, false, 1, 1, &step, &params, sizeof(params));
+        command.Wait(); CheckStatus();
+        const float* dots = static_cast<const float*>(LangevinDirectionDot.contents);
+        double result = 0;
+        for (uint32_t task = 0; task < Tasks; ++task) for (uint32_t leaf = 0; leaf < step.Leaves; ++leaf) {
+            const uint64_t at = 2 * (uint64_t(task) * MaxLeaves + leaf); result += double(dots[at]) + dots[at + 1];
+        }
+        Require(std::isfinite(result), "Ordered Langevin direction dot became nonfinite"); return result;
+    }
+    void EstimateLangevin(const StepParams& step) {
+        const uint32_t count = LangevinActiveTasks * step.Leaves;
+        Command initialize(Stats, CustomContext.get());
+        initialize.Zero(LangevinTaskMass); initialize.Zero(LangevinDirectionDot); initialize.Zero(LangevinDirections);
+        EncodeLangevinPoint(initialize, step, RawValues, false); initialize.Wait(); CheckStatus();
+        double current = ReadLangevinObjective(RawValues, step.Leaves, false);
+        Require(std::isfinite(current), "Ordered Langevin initial objective became nonfinite");
+        WriteLangevinNoise(CBM_LANGEVIN_INITIAL_GRADIENT, count);
+        WriteLangevinNoise(CBM_LANGEVIN_INITIAL_HESSIAN, count, true);
+        double dot = PrepareLangevinDirection(step, true);
+        BacktrackingParams backtracking = {1, BacktrackingType, P.reserved1, P.normalize};
+        if (P.leaf_iterations == 1) {
+            Command move(Stats, CustomContext.get());
+            move.Dispatch("OrderedBacktrackingCandidate", {RawValues, LangevinDirections, LeafWeights, LangevinTrialValues},
+                P, uint64_t(Tasks) * step.Leaves, false, 1, 1, &step, &backtracking, sizeof(backtracking));
+            move.Wait(); std::swap(RawValues, LangevinTrialValues); return;
+        }
+        bool updated = false;
+        for (uint32_t attempt = 0; attempt < P.leaf_iterations || (!updated && attempt < 100); ++attempt) {
+            Command trial(Stats, CustomContext.get());
+            trial.Dispatch("OrderedBacktrackingCandidate", {RawValues, LangevinDirections, LeafWeights, LangevinTrialValues},
+                P, uint64_t(Tasks) * step.Leaves, false, 1, 1, &step, &backtracking, sizeof(backtracking));
+            EncodeLangevinPoint(trial, step, LangevinTrialValues, true); trial.Wait(); CheckStatus();
+            WriteLangevinNoise(CBM_LANGEVIN_TRIAL_GRADIENT, count);
+            const double candidate = ReadLangevinObjective(LangevinTrialValues, step.Leaves, true);
+            const double threshold = current + (BacktrackingType == 2 ? 1e-5 * backtracking.Step * dot : 0);
+            if (!BacktrackingType || (std::isfinite(candidate) && candidate >= threshold)) {
+                WriteLangevinNoise(CBM_LANGEVIN_ACCEPTED_GRADIENT, count, false, true);
+                std::swap(RawValues, LangevinTrialValues); current = candidate; updated = true; backtracking.Step = 1;
+                dot = PrepareLangevinDirection(step, false);
+            } else backtracking.Step *= .5f;
+        }
+    }
     double ReadBacktrackingValue() const {
         const float* data = static_cast<const float*>(BacktrackingLoss.contents);
         double sum = 0; for (uint32_t task = 0; task < Tasks; ++task) sum += double(data[task * 2]) + data[task * 2 + 1];
@@ -822,9 +1001,9 @@ public:
                 values, TaskMass, BacktrackingLoss}, P, Tasks, true, 1, 1, &step);
         };
         Command initialize(Stats, CustomContext.get()); direction(initialize); objective(initialize, RawValues); initialize.Wait(); CheckStatus();
-        double current = ReadBacktrackingValue(), dot = ReadDirectionDot(step.Leaves);
+        double current = AddObjectiveRidge(ReadBacktrackingValue(), RawValues, step.Leaves), dot = ReadDirectionDot(step.Leaves);
         Require(std::isfinite(current), "Ordered initial backtracking objective became nonfinite");
-        BacktrackingParams backtracking = {1, BacktrackingType, 0, P.normalize};
+        BacktrackingParams backtracking = {1, BacktrackingType, P.reserved1, P.normalize};
         bool updated = false, newDirection = false;
         // CUDA counts rejected trials against the budget, but extends up to
         // 100 attempts until the first successful update.
@@ -835,7 +1014,7 @@ public:
                 P, uint64_t(Tasks) * step.Leaves, false, 1, 1, &step, &backtracking, sizeof(backtracking));
             objective(trial, TrialValues); trial.Wait(); CheckStatus();
             if (newDirection) dot = ReadDirectionDot(step.Leaves);
-            const double candidate = ReadBacktrackingValue();
+            const double candidate = AddObjectiveRidge(ReadBacktrackingValue(), TrialValues, step.Leaves);
             const double threshold = current + (BacktrackingType == 2 ? 1e-5 * backtracking.Step * dot : 0);
             if (std::isfinite(candidate) && candidate >= threshold) {
                 std::swap(RawValues, TrialValues); current = candidate; updated = true; newDirection = true; backtracking.Step = 1;
@@ -875,7 +1054,7 @@ public:
         Require(!Failed && !Pending.Active && Completed < P.iterations,
                 "Ordered session is failed, already has an active tree, or has no remaining iterations");
         Require(selected < LearnPermutations, "Invalid Ordered search permutation");
-        if (Yeti || CombinationYetiCount) {
+        if (!LangevinEnabled && (Yeti || CombinationYetiCount)) {
             const uint32_t components = Combination ? CombinationYetiCount : 1;
             Require(YetiSeedPosition == 0 && YetiSeeds.size() == YetiWeakBlocks[selected].size() * components,
                     "Ordered YetiRank weak seed packet does not match the selected permutation");
@@ -889,6 +1068,7 @@ public:
             if (IsQuery) EncodeQueryDerivatives(initialize, RawValues, 0, selected, true);
             else initialize.Dispatch("OrderedSessionDerivatives", {Targets, Weights, Cursor, Permutations, TaskBuffer, Derivatives, Status},
                 P, P.rows, false, Tasks, 1, &step);
+            if (LangevinEnabled) EncodeLangevinWeak(initialize, selected);
             if (Histogram) Histogram->Initialize(initialize, Binding(Permutations, uint64_t(selected) * P.rows * 4),
                 Binding(TaskBuffer, uint64_t(taskOffset) * 16), Descriptors[taskOffset].CursorOffset, foldCount, packedRows);
             initialize.Wait(); CheckStatus();
@@ -957,7 +1137,8 @@ public:
             const uint32_t selected = Pending.SelectedPermutation, level = Pending.Selected.size();
             StepParams step = StepConfiguration(1u << level, selected);
             OrderedParams hist = {P.rows, P.features, PermutationFoldCounts[selected], step.Leaves, 0, CursorCount, 1,
-                P.objective == 19 ? CBMOrderedScoreCombinationRightMassClamp : 0u,
+                P.objective == 19 || (P.objective == 13 && P.reserved2)
+                    ? CBMOrderedScoreSignedRightMassClamp : 0u,
                 P.l2, P.normalize, Pending.ScoreBefore, P.learning_rate};
             UpdateFeaturePenalties();
             Command search(Stats, CustomContext.get());
@@ -1017,7 +1198,7 @@ public:
                 "Ordered step output buffers are required");
         Require(!(CombinationYetiCount && BacktrackingBytes) || Combination->HasYetiSeedCallback(),
                 "Ordered Combination YetiRank backtracking requires a seed callback");
-        if (Yeti || (CombinationYetiCount && !Combination->HasYetiSeedCallback())) {
+        if (!LangevinEnabled && (Yeti || (CombinationYetiCount && !Combination->HasYetiSeedCallback()))) {
             const uint32_t components = Combination ? CombinationYetiCount : 1;
             const uint32_t expected = YetiLeafBlocks.size() * (P.leaf_iterations == 1 ? 1 : P.leaf_iterations + 1) * components;
             Require(YetiLeafSeedPosition == 0 && YetiLeafSeeds.size() == expected,
@@ -1035,6 +1216,7 @@ public:
             std::fill(values, values + MaxLeaves, 0); std::fill(weights, weights + MaxLeaves, 0);
             const auto step = StepConfiguration(1u << Pending.Selected.size(), Pending.SelectedPermutation);
             if (P.leaf_method == 2) EstimateExact(step.Leaves);
+            else if (LangevinEnabled) EstimateLangevin(step);
             else if (BacktrackingBytes && Combination) EstimateCombinationBacktracking(step);
             else if (BacktrackingBytes) EstimateBacktracking(step);
             else for (uint32_t iteration = 0; iteration < P.leaf_iterations; ++iteration) {
@@ -1047,7 +1229,7 @@ public:
                     RawValues, LeafWeights, Status}, P, step.Leaves, true, Tasks, 1, &step);
                 estimate.Wait(); CheckStatus();
             }
-            if ((P.objective == 17 || (CombinationYetiCount && !BacktrackingBytes)) && P.leaf_iterations > 1) {
+            if (!LangevinEnabled && (P.objective == 17 || (CombinationYetiCount && !BacktrackingBytes)) && P.leaf_iterations > 1) {
                 Command finalEvaluation(Stats, CustomContext.get());
                 EncodeQueryDerivatives(finalEvaluation, RawValues, 1, step.SelectedPermutation, false);
                 finalEvaluation.Wait(); CheckStatus();
@@ -1070,7 +1252,7 @@ public:
             std::swap(Cursor, NextCursor); std::swap(Published, NextPublished);
             ++Completed; Loss = nextLoss; *depth = Pending.Selected.size(); Pending = {};
             YetiSeeds.clear(); YetiLeafSeeds.clear(); YetiSeedPosition = YetiLeafSeedPosition = 0;
-            if (Combination) { Combination->SetYetiSeedCallback(nullptr, nullptr); CombinationSeedCallback = nullptr; CombinationSeedContext = nullptr; }
+            if (Combination && !LangevinEnabled) { Combination->SetYetiSeedCallback(nullptr, nullptr); CombinationSeedCallback = nullptr; CombinationSeedContext = nullptr; }
             Info(*info);
         } catch (...) { Failed = true; throw; }
     }
@@ -1292,6 +1474,15 @@ public:
         Cursor = restored; std::swap(Published, NextPublished); Loss = nextLoss;
     }
 private:
+    bool LangevinEnabled = false, LangevinStructureCall = false;
+    float LangevinTemperature = 0;
+    uint32_t LangevinActiveTasks = 0;
+    CBMLangevinNoiseCallback LangevinNoiseCallback = nullptr;
+    CBMLangevinSeedCallback LangevinSeedCallback = nullptr;
+    void* LangevinContext = nullptr;
+    id<MTLBuffer> LangevinTaskIds, LangevinStatistics, LangevinGradientNoise, LangevinHessianNoise;
+    id<MTLBuffer> LangevinTrialValues, LangevinDirections, LangevinDirectionDot, LangevinTaskMass, LangevinLoss;
+    std::vector<double> LangevinHostGradientNoise, LangevinHostHessianNoise;
     std::unique_ptr<Runtime> CustomContext;
     bool IsQuery = false;
     CBMQueryOptions QueryOptions = {};
@@ -1629,6 +1820,16 @@ extern "C" int cbm_ordered_session_set_bootstrap(void* handle, const CBMBootstra
 }
 extern "C" int cbm_ordered_session_set_score_noise(void* handle, const CBMScoreNoiseOptions* options, char* error, size_t capacity) {
     return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex); session->ConfigureNoise(options); });
+}
+extern "C" int cbm_ordered_set_add_ridge_to_target_function(void* handle, uint32_t enabled,
+    char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->ConfigureRidge(enabled); });
+}
+extern "C" int cbm_ordered_session_set_langevin(void* handle, float temperature,
+    CBMLangevinNoiseCallback noise, CBMLangevinSeedCallback seed, void* context, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex);
+        session->ConfigureLangevin(temperature, noise, seed, context); });
 }
 extern "C" int cbm_ordered_session_set_backtracking(void* handle, uint32_t type, char* error, size_t capacity) {
     return Guard(error, capacity, [&] { auto session = Get(handle); std::lock_guard<std::mutex> lock(session->Mutex); session->ConfigureBacktracking(type); });

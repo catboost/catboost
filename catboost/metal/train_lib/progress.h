@@ -41,7 +41,15 @@ namespace NCB {
             const TFullModel& singleTreeModel,
             const TMetricsAndTimeLeftHistory& restoredHistory);
         const TMetricsAndTimeLeftHistory& GetHistory() const;
+        double GetInitialObjectiveLoss() const;
         void RestoreTimeHistory(const TVector<TTimeInfo>& timeHistory);
+        // Snapshot storage uses row-major float32, matching the native cursor.
+        TVector<float> CopyBestLearnCursor() const;
+        i32 GetBestLearnIteration() const;
+        void RestoreBestLearnCursor(TConstArrayRef<float> cursor, i32 iteration = -1);
+        void RestoreLearnCursor(TConstArrayRef<float> cursor);
+        // A null model finalizes only evaluation results and profiling, as
+        // required by native cross-validation and parameter search.
         void Finish(TFullModel* model, const TVector<TEvalResult*>& evalResult);
 
     private:

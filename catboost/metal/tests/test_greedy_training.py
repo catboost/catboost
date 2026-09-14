@@ -328,7 +328,7 @@ def test_model_reader_respects_topology_and_leaf_ids(tmp_path, root_only):
     (lambda tree: tree.nodes.__setitem__((0, 1), 1), "missing numeric"),
     (lambda tree: tree.nodes.__setitem__((4, 5), 0), "exactly once"),
     (lambda tree: tree.leaf_values.__setitem__(0, np.nan), "finite"),
-    (lambda tree: tree.leaf_weights.__setitem__(0, -1), "nonnegative"),
+    (lambda tree: tree.leaf_weights.__setitem__(0, -1), "signed weights require Simple"),
 ])
 def test_model_rejects_invalid_graph_and_layout(change, message):
     result = synthetic_result()

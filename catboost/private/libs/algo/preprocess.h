@@ -46,12 +46,14 @@ void UpdateUndefinedClassLabels(
 NCB::TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     NCB::TDataProviderPtr learnData,
-    NPar::ILocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor,
+    NCB::TArraySubsetIndexing<ui32>* learnObjectOrder = nullptr
 );
 
 NCB::TDataProviderPtr ShuffleLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     NCB::TDataProviderPtr learnData,
     NPar::ILocalExecutor* localExecutor,
-    TRestorableFastRng64* rand
+    TRestorableFastRng64* rand,
+    NCB::TArraySubsetIndexing<ui32>* learnObjectOrder = nullptr
 );

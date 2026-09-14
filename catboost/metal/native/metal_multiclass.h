@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "metal_trainer.h"
 #include "metal_greedy_trainer.h"
+#include "metal_langevin.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,8 @@ typedef struct {
 // Variable-tree constructor for CUDA-registered vector greedy objectives:
 // MultiClass(0), MultiClassOneVsAll(1), RMSEWithUncertainty(3).
 // Policies and depth/capacity rules match CBMGreedyTrainParams. Set reserved=0.
+// Also accepts leaf_method=3 (Simple), with leaf_iterations=1: sampled weak
+// values and weights are copied from the search permutation into every history.
 // The existing vector setters, cursor recovery functions and close accept this
 // handle. Only step_greedy may advance it; leaf values are [leaf,classes].
 typedef struct {
@@ -38,11 +41,18 @@ int cbm_multiclass_session_create_greedy(
 int cbm_multiclass_session_step_greedy(void* session, CBMGreedyStepInfo* info,
     CBMGreedyNode* nodes, float* leaf_values, float* leaf_weights,
     char* error, size_t error_capacity);
+// Fixed per-feature score multipliers; count must match params.features.
+// Before the first tree only. Every weight must be finite and nonnegative.
+int cbm_multiclass_session_set_greedy_feature_weights(void* session, uint32_t count,
+    const float* weights, char* error, size_t error_capacity);
 
 // Objective: 0=MultiClass, 1=MultiClassOneVsAll.
 // Score: 0=L2,1=Cosine,4=SolarL2,5=LOOL2,6=SatL2. Newton structure scores
 // remain unsupported, matching CUDA's vector weak-objective restrictions.
-// Leaf method: 0=Newton, 1=Gradient. Reserved fields must be zero.
+// Leaf method: 0=Newton, 1=Gradient, 3=Simple (exactly one leaf iteration).
+// Simple retains sampled weak values/masses and copies the searched model into
+// every history, for all six registered symmetric vector objectives.
+// Reserved fields must be zero.
 // bins is uint8[features,rows]; labels uint32[rows] in [0,classes).
 // Optional initial_predictions is float32[rows,classes], row-major.
 // Optional weights defaults to one. Inputs are copied before returning.
@@ -82,9 +92,18 @@ int cbm_multiclass_session_set_bootstrap(void* session, const CBMBootstrapOption
                                         char* error, size_t error_capacity);
 int cbm_multiclass_session_get_bootstrap_state(void* session, uint32_t* absolute_iterations,
     float* mvs_lambda, uint32_t* mvs_lambda_is_set, char* error, size_t error_capacity);
+// Greedy only; counted/copied dense numeric feature IDs with one bin-zero
+// candidate. Configure before training; symmetric vector sessions reject it.
+int cbm_multiclass_session_set_fixed_splits(void* session, uint32_t count,
+    const uint32_t* features, char* error, size_t error_capacity);
 int cbm_multiclass_session_set_score_noise(void* session, const CBMScoreNoiseOptions* options,
                                           char* error, size_t error_capacity);
 int cbm_multiclass_session_set_backtracking(void* session, uint32_t type, char* error, size_t error_capacity);
+// Source-ordered host noise callbacks. Configure once before the first tree.
+// Vector search has no weak-gradient noise; Simple skips all leaf noise calls.
+int cbm_multiclass_session_set_langevin(void* session, float temperature,
+    CBMLangevinNoiseCallback noise, CBMLangevinSeedCallback seed, void* context,
+    char* error, size_t error_capacity);
 // Independent permutation datasets/cursors with one shared selected structure.
 // Prediction matrices are row-major[rows,classes]; the final permutation is
 // exported. MVS placeholders must be zero because CUDA rejects multiclass MVS.

@@ -1,6 +1,9 @@
 // Native adapter for the CUDA algorithms translated to Metal. Pool preparation,
 // quantization and final model construction remain in CatBoost's shared code.
 #include "progress.h"
+#include "fixed_splits.h"
+#include "feature_metadata.h"
+#include "feature_weights.h"
 #include "snapshot.h"
 #include "categorical.h"
 #include "initialization.h"
@@ -15,6 +18,11 @@
 #include "combination.h"
 #include "ordered_shape.h"
 #include "feature_parallel_yeti_random.h"
+#include "meta_l2_context.h"
+#include "meta_l2_random.h"
+#include "langevin_random.h"
+#include "estimated_features.h"
+#include "estimated_features_checksum.h"
 
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/metal/native/metal_trainer.h>
@@ -41,6 +49,11 @@
 
 namespace NCB {
 namespace {
+
+    template <uint32_t Event>
+    int MetalLangevinTargetSeed(void* context, uint64_t* seed) noexcept {
+        return TMetalLangevinRandom::SeedCallback(context, Event, seed);
+    }
 
     template <class TRandom>
     int MetalCombinationLeafSeed(void* context, uint64_t* seed) noexcept {
@@ -155,8 +168,6 @@ namespace {
                   "Metal FeatureParallel supports symmetric scalar and registered query objectives");
         if (greedy) {
             CB_ENSURE(!ordered, "Metal non-symmetric training requires Plain boosting");
-            CB_ENSURE(tree.LeavesEstimationMethod != ELeavesEstimation::Simple,
-                "Metal greedy training does not support Simple leaf estimation");
             CB_ENSURE((!querywise || objective == ELossFunction::QueryRMSE || objective == ELossFunction::QuerySoftMax || yeti) &&
                 (!pairwise || objective == ELossFunction::PairLogit) && objective != ELossFunction::Lq &&
                 (!multioutput || objective == ELossFunction::RMSEWithUncertainty),
@@ -176,9 +187,8 @@ namespace {
         CB_ENSURE(tree.LeavesEstimationMethod == ELeavesEstimation::Newton ||
                   tree.LeavesEstimationMethod == ELeavesEstimation::Gradient ||
                   tree.LeavesEstimationMethod == ELeavesEstimation::Exact ||
-                  (!greedy && (coupled || qce || yetiPair || (featureParallelQuery && !yeti) || combination || custom) &&
-                   tree.LeavesEstimationMethod == ELeavesEstimation::Simple),
-                  "Metal supports Newton/Gradient/Exact and scalar Simple leaf estimation");
+                  (tree.LeavesEstimationMethod == ELeavesEstimation::Simple && !yeti),
+                  "Metal supports Newton/Gradient/Exact and registered Simple leaf estimation");
         if (tree.LeavesEstimationMethod == ELeavesEstimation::Simple)
             CB_ENSURE((!(coupled || qce || yetiPair) || tree.MaxDepth > 0) && tree.LeavesEstimationIterations == 1,
                 "Metal Simple leaves require one estimation iteration and full-matrix objectives require positive depth");
@@ -192,16 +202,20 @@ namespace {
                   (!vectorBackend && (tree.ScoreFunction == EScoreFunction::NewtonL2 ||
                    tree.ScoreFunction == EScoreFunction::NewtonCosine)),
                   "Metal supports L2, Cosine, SolarL2, LOOL2, SatL2; NewtonL2/NewtonCosine for scalar models");
-        CB_ENSURE((ordered || !tree.FoldSizeLossNormalization) && !tree.AddRidgeToTargetFunctionFlag &&
-                  tree.MetaL2Exponent == 1 && tree.MetaL2Frequency == 0,
-                  "Metal does not yet support normalized, ridge-objective, or meta-L2 scores");
-        CB_ENSURE(tree.FeaturePenalties->FeatureWeights.Get().empty(),
-                  "Metal does not yet support feature penalties");
-        CB_ENSURE(tree.FixedBinarySplits.Get().empty(), "Metal does not yet support fixed_binary_splits");
-        CB_ENSURE(tree.Rsm == 1.0f, "Metal does not yet support feature subsampling");
-        CB_ENSURE(!boosting.Langevin && !boosting.PosteriorSampling.GetUnchecked() &&
-                  boosting.ModelShrinkRate.GetUnchecked() == 0,
-                  "Metal does not yet support Langevin, posterior sampling, or model shrinkage");
+        CB_ENSURE(std::isfinite(tree.MetaL2Exponent.Get()) && std::isfinite(tree.MetaL2Frequency.Get()),
+                  "Metal meta-L2 parameters must be finite");
+        // CUDA scalar/query symmetric trainers ignore this option; the
+        // multiclass-family symmetric trainer uses the greedy template.
+        if (!greedy && vectorBackend) CB_ENSURE(tree.FixedBinarySplits.Get().empty(),
+            "Fixed splits are not supported for symmetric trees");
+        CB_ENSURE(tree.Rsm == 1.0f || coupled || qce || yetiPair,
+                  "Metal feature subsampling requires PairLogitPairwise, QueryCrossEntropy or YetiRankPairwise");
+        CB_ENSURE(!boosting.PosteriorSampling.GetUnchecked() && boosting.ModelShrinkRate.GetUnchecked() == 0,
+                  "Metal does not yet support posterior sampling or model shrinkage");
+        CB_ENSURE(!boosting.Langevin || (!coupled && !qce && !yetiPair),
+                  "Langevin is not supported for PairLogitPairwise, QueryCrossEntropy or YetiRankPairwise");
+        CB_ENSURE(!boosting.Langevin || (std::isfinite(boosting.DiffusionTemperature.Get()) && boosting.DiffusionTemperature >= 0),
+                  "Metal diffusion temperature must be finite, nonnegative and representable as float32");
     }
 
     ui32 MetalObjective(ELossFunction objective) {
@@ -281,10 +295,21 @@ namespace {
         TVector<ui32> CandidateBins;
         TVector<ui8> CandidateTypes;
         TMetalCategoricalData Categorical;
+        TMetalEstimatedFeatures Estimated;
+        NPar::ILocalExecutor* Executor = nullptr;
         const TMetalTreeCtrFeatures* TreeCtrs = nullptr;
 
-        ui32 StaticFeatureCount() const {
+        ui32 CategoricalFeatureEnd() const {
             return FeatureIndices.size() + Categorical.SplitCandidates.size();
+        }
+
+        ui32 StaticFeatureCount() const {
+            return CategoricalFeatureEnd() + Estimated.GetFeatureCount();
+        }
+
+        ui32 GetPermutationCount() const { return AdditionalPermutationBins.size() + 1; }
+        bool HasPermutationDependentFeatures() const {
+            return Categorical.HasPermutationDependentCtrs || Estimated.HasOnlineFeatures;
         }
 
         ui32 FeatureCount() const {
@@ -298,22 +323,26 @@ namespace {
                 CB_ENSURE(type == 0 && bin < numeric.Borders.size(), "Metal returned an invalid numeric split");
                 return TModelSplit(TFloatSplit{numeric.Position.Index, numeric.Borders[bin]});
             }
-            if (feature < StaticFeatureCount())
+            if (feature < CategoricalFeatureEnd())
                 return Categorical.GetSplit(feature - FeatureIndices.size(), bin, type);
+            if (feature < StaticFeatureCount()) {
+                CB_ENSURE(type == 0, "Metal estimated features require greater-than comparison");
+                return Estimated.GetSplit(feature - CategoricalFeatureEnd(), bin);
+            }
             CB_ENSURE(type == 0, "Metal tree CTR splits require greater-than comparison");
             return TreeCtrs->GetSplit(feature, bin);
         }
     };
 
-    TMetalData PrepareData(const TTrainingDataProvider& data,
+    TMetalData PrepareData(const TTrainingDataProviders& trainingData,
                           const NCatboostOptions::TCatBoostOptions& options,
                           NPar::ILocalExecutor* executor) {
+        const auto& data = *trainingData.Learn;
         const auto& objects = *data.ObjectsData;
         const auto& layout = *objects.GetFeaturesLayout();
-        CB_ENSURE(layout.GetTextFeatureCount() == 0 &&
-                  layout.GetEmbeddingFeatureCount() == 0,
-                  "Metal text and embedding feature training is not yet implemented");
         TMetalData result;
+        result.Executor = executor;
+        result.Estimated = PrepareMetalEstimatedFeatures(trainingData, options, executor);
         result.Rows = data.GetObjectCount();
         CB_ENSURE(result.Rows > 0 && result.Rows <= (1u << 24),
                   "Metal supports between 1 and 16777216 training rows");
@@ -344,20 +373,38 @@ namespace {
                 result.CandidateTypes.push_back(0);
             }
         }
-        result.Categorical = PrepareMetalCategoricalPermutations(data, options, executor);
+        result.Categorical = PrepareMetalCategoricalPermutations(data, options, executor,
+            trainingData.Test.empty() ? nullptr : trainingData.Test.front().Get());
         const auto& categorical = result.Categorical;
-        for (const auto& permutation : categorical.AdditionalPermutationBins) {
-            auto& bins = result.AdditionalPermutationBins.emplace_back(result.Bins);
-            bins.insert(bins.end(), permutation.begin(), permutation.end());
+        const auto& estimated = result.Estimated;
+        const ui32 permutationCount = Max(categorical.GetPermutationCount(), estimated.GetPermutationCount());
+        const ui64 matrixSize = ui64(result.Rows) * result.StaticFeatureCount();
+        CB_ENSURE(matrixSize * permutationCount <= (1ull << 30),
+                  "Metal quantized permutation inputs exceed the experimental 1 GiB limit");
+        const auto numericBins = result.Bins;
+        for (ui32 permutation = 0; permutation < permutationCount; ++permutation) {
+            auto& bins = permutation ? result.AdditionalPermutationBins.emplace_back(numericBins) : result.Bins;
+            const auto catBins = categorical.GetPermutationBins(categorical.GetPermutationCount() > 1 ? permutation : 0);
+            bins.insert(bins.end(), catBins.begin(), catBins.end());
+            if (estimated.GetFeatureCount()) {
+                const auto& estimatedBins = estimated.BinsByPermutation[estimated.GetPermutationCount() > 1 ? permutation : 0];
+                bins.insert(bins.end(), estimatedBins.begin(), estimatedBins.end());
+            }
+            CB_ENSURE(bins.size() == matrixSize, "Metal permutation feature matrices differ in shape");
         }
-        CB_ENSURE(ui64(result.Bins.size()) + categorical.Bins.size() <= (1ull << 30),
-                  "Metal quantized input exceeds the experimental 1 GiB limit");
-        result.Bins.insert(result.Bins.end(), categorical.Bins.begin(), categorical.Bins.end());
         result.BinsPerFeature = Max(result.BinsPerFeature, categorical.BinsPerFeature);
         for (ui32 i = 0; i < categorical.CandidateFeatures.size(); ++i) {
             result.CandidateFeatures.push_back(result.FeatureIndices.size() + categorical.CandidateFeatures[i]);
             result.CandidateBins.push_back(categorical.CandidateBins[i]);
             result.CandidateTypes.push_back(categorical.CandidateTypes[i]);
+        }
+        result.BinsPerFeature = Max(result.BinsPerFeature, estimated.BinsPerFeature);
+        for (ui32 feature = 0; feature < estimated.GetFeatureCount(); ++feature) {
+            for (ui32 bin = 0; bin < estimated.Borders[feature].size(); ++bin) {
+                result.CandidateFeatures.push_back(result.CategoricalFeatureEnd() + feature);
+                result.CandidateBins.push_back(bin);
+                result.CandidateTypes.push_back(0);
+            }
         }
         CB_ENSURE(result.FeatureCount() > 0, "Metal requires at least one available feature");
         return result;
@@ -367,7 +414,8 @@ namespace {
         const TMetalData& data, ui32 treeDepth, ui32 maxDepth,
         TConstArrayRef<ui32> splitFeatures, TConstArrayRef<ui32> splitBins,
         TConstArrayRef<ui8> splitTypes, TConstArrayRef<float> leaves,
-        TConstArrayRef<float> weights, TObliviousTreeBuilder* builder, ui32 approxDimension = 1) {
+        TConstArrayRef<float> weights, TObliviousTreeBuilder* builder, ui32 approxDimension = 1,
+        bool allowSignedLeafWeights = false) {
         CB_ENSURE(treeDepth <= maxDepth, "Metal returned an invalid tree depth");
         TVector<TModelSplit> splits;
         for (ui32 level = 0; level < treeDepth; ++level) {
@@ -376,7 +424,7 @@ namespace {
         const ui32 count = 1u << treeDepth;
         TVector<double> leafValues(ui64(count) * approxDimension), leafWeights(count);
         for (ui32 leaf = 0; leaf < count; ++leaf) {
-            CB_ENSURE(std::isfinite(weights[leaf]) && weights[leaf] >= 0,
+            CB_ENSURE(std::isfinite(weights[leaf]) && (allowSignedLeafWeights || weights[leaf] >= 0),
                       "Metal returned invalid leaf weights");
             leafWeights[leaf] = weights[leaf];
         }
@@ -384,34 +432,33 @@ namespace {
             CB_ENSURE(std::isfinite(leaves[value]), "Metal returned invalid leaf values");
             leafValues[value] = leaves[value];
         }
-        builder->AddTree(splits, leafValues, leafWeights);
-        TObliviousTreeBuilder singleTreeBuilder(data.AllFloatFeatures, data.Categorical.AllCatFeatures, {}, {}, approxDimension);
+        if (builder) builder->AddTree(splits, leafValues, leafWeights);
+        TObliviousTreeBuilder singleTreeBuilder(data.AllFloatFeatures, data.Categorical.AllCatFeatures,
+            data.Estimated.AllTextFeatures, data.Estimated.AllEmbeddingFeatures, approxDimension);
         singleTreeBuilder.AddTree(splits, leafValues, leafWeights);
         TFullModel model;
         singleTreeBuilder.Build(model.ModelTrees.GetMutable());
         if (data.Categorical.CtrProvider) model.CtrProvider = data.Categorical.CtrProvider->Clone();
         model.UpdateDynamicData();
+        data.Estimated.FinalizeModel(&model, data.Executor);
         return model;
     }
 
     TFullModel AppendMetalGreedyTree(const TMetalData& data, const TMetalGreedyTree& tree,
-        ui32 depthBound, TNonSymmetricTreeModelBuilder* builder, ui32 approxDimension = 1) {
+        ui32 depthBound, TNonSymmetricTreeModelBuilder* builder, ui32 approxDimension = 1,
+        bool allowSignedLeafWeights = false) {
         auto splitLookup = [&](ui32 denseFeature, ui32 bin, ui32 type) {
-            CB_ENSURE(denseFeature < data.FeatureCount(), "Metal greedy returned an invalid feature");
-            if (denseFeature < data.FeatureIndices.size()) {
-                const auto& feature = data.AllFloatFeatures[data.FeatureIndices[denseFeature]];
-                CB_ENSURE(type == 0 && bin < feature.Borders.size(), "Metal greedy returned an invalid numeric split");
-                return TModelSplit(TFloatSplit{feature.Position.Index, feature.Borders[bin]});
-            }
-            return data.Categorical.GetSplit(denseFeature - data.FeatureIndices.size(), bin, type);
+            return data.GetSplit(denseFeature, bin, type);
         };
-        builder->AddTree(MakeMetalGreedyTreeRoot(tree, data.FeatureCount(), splitLookup, depthBound, approxDimension));
-        TNonSymmetricTreeModelBuilder single(data.AllFloatFeatures, data.Categorical.AllCatFeatures, {}, {}, approxDimension);
-        single.AddTree(MakeMetalGreedyTreeRoot(tree, data.FeatureCount(), splitLookup, depthBound, approxDimension));
+        if (builder) builder->AddTree(MakeMetalGreedyTreeRoot(tree, data.FeatureCount(), splitLookup, depthBound, approxDimension, allowSignedLeafWeights));
+        TNonSymmetricTreeModelBuilder single(data.AllFloatFeatures, data.Categorical.AllCatFeatures,
+            data.Estimated.AllTextFeatures, data.Estimated.AllEmbeddingFeatures, approxDimension);
+        single.AddTree(MakeMetalGreedyTreeRoot(tree, data.FeatureCount(), splitLookup, depthBound, approxDimension, allowSignedLeafWeights));
         TFullModel model;
         single.Build(model.ModelTrees.GetMutable());
         if (data.Categorical.CtrProvider) model.CtrProvider = data.Categorical.CtrProvider->Clone();
         model.UpdateDynamicData();
+        data.Estimated.FinalizeModel(&model, data.Executor);
         return model;
     }
 
@@ -474,7 +521,7 @@ namespace {
         addTarget(*data.Learn);
         for (const auto& test : data.Test) addTarget(*test);
         if (initModel) checksum = UpdateCheckSum(checksum, TStringBuf(SerializeModel(**initModel)));
-        return checksum;
+        return UpdateMetalEstimatedSourceChecksum(checksum, data, executor);
     }
 
     class TMetalModelTrainer final : public IModelTrainer {
@@ -501,7 +548,6 @@ namespace {
             THolder<TLearnProgress>* dstLearnProgress) const override {
             Y_UNUSED(initLearnProgress);
             Y_UNUSED(rand);
-            CB_ENSURE(!internalOptions.CalcMetricsOnly, "Metal cross-validation is not yet supported");
             CB_ENSURE(!precomputedCtrs, "Metal does not yet support precomputed CTRs");
             const bool custom = catboostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject;
             const TString customSource = objectiveDescriptor ? objectiveDescriptor->MetalSource : TString();
@@ -520,10 +566,14 @@ namespace {
             }
             SetMetalDefaultsAndValidate(&options);
             const bool ordered = options.BoostingOptions->BoostingType == EBoostingType::Ordered;
+            const bool langevin = options.BoostingOptions->Langevin;
+            // GPU defaults are false and zero. Positive temperature alone does
+            // not opt into Langevin or inherit the separate CPU-only defaults.
             const bool compoundCtrs = options.CatFeatureParams->MaxTensorComplexity > 1;
             const bool featureParallel = options.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel;
             const auto growPolicy = options.ObliviousTreeOptions->GrowPolicy.Get();
             const bool greedy = growPolicy != EGrowPolicy::SymmetricTree;
+            const bool greedySimple = greedy && options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple;
             const ui32 greedyPolicy = growPolicy == EGrowPolicy::Depthwise ? 0u : growPolicy == EGrowPolicy::Lossguide ? 1u : 2u;
             if (ordered) {
                 CB_ENSURE(trainingData.Learn->ObjectsData->GetObjectsGrouping()->GetGroupCount() >= 4,
@@ -537,18 +587,42 @@ namespace {
             }
             const bool coupled = options.LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogitPairwise;
             const bool qce = options.LossFunctionDescription->GetLossFunction() == ELossFunction::QueryCrossEntropy;
-            TMetalData data = PrepareData(*trainingData.Learn, options, executor);
+            EstimateMetalCtrPriors(*trainingData.Learn, &options);
+            TMetalData data = PrepareData(trainingData, options, executor);
+            TVector<float> featureWeights(data.StaticFeatureCount(), 1.0f);
+            if (!options.ObliviousTreeOptions->FeaturePenalties->FeatureWeights.Get().empty()) {
+                featureWeights = MakeMetalFeatureWeights(options.ObliviousTreeOptions->FeaturePenalties.Get(),
+                    MakeMetalStaticFeatureMetadata(data, *trainingData.Learn, options));
+            }
+            TVector<ui32> fixedBinarySplits;
+            if (greedy && !options.ObliviousTreeOptions->FixedBinarySplits.Get().empty()) {
+                TVector<ui32> denseFloatFlatIndices;
+                for (ui32 feature : data.FeatureIndices)
+                    denseFloatFlatIndices.push_back(data.AllFloatFeatures[feature].Position.FlatIndex);
+                fixedBinarySplits = ResolveMetalFixedBinarySplits(
+                    options.ObliviousTreeOptions->FixedBinarySplits.Get(),
+                    *trainingData.Learn->ObjectsData->GetFeaturesLayout(),
+                    *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo(), denseFloatFlatIndices);
+            }
+            CB_ENSURE(!initModel || (data.Estimated.AllTextFeatures.empty() && data.Estimated.AllEmbeddingFeatures.empty()),
+                "Metal initial-model continuation cannot sum models containing text or embedding features");
             const auto orderedHistories = featureParallel ? MakeMetalFeatureParallelHistoryOrders(*trainingData.Learn, options) :
                 TVector<TVector<ui32>>();
-            const ui32 permutationCount = featureParallel ? orderedHistories.size() : data.Categorical.GetPermutationCount();
+            const ui32 permutationCount = featureParallel ? orderedHistories.size() : data.GetPermutationCount();
             const auto objective = options.LossFunctionDescription->GetLossFunction();
             const bool combination = objective == ELossFunction::Combination;
+            const bool signedSimpleWeights = !greedy && !featureParallel &&
+                options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple &&
+                (objective == ELossFunction::QuerySoftMax || combination);
             const bool orderedQuery = ordered && (objective == ELossFunction::QueryRMSE ||
                 objective == ELossFunction::QuerySoftMax || objective == ELossFunction::PairLogit || yeti);
-            // A custom derivative body shares the existing scalar Ordered
-            // chooser for simple CTRs. Enabling the compound search stream
-            // here would add dependent-CTR draws and change later histories.
-            const bool incrementalFeatureParallel = compoundCtrs || orderedQuery || (featureParallel && (!ordered || combination));
+            const bool scalarSimple = options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple &&
+                !IsMultiClassOnlyMetric(objective) && !IsMetalMultiOutput(objective) && MetalObjective(objective) <= 11;
+            // Newly supported Simple and estimated-feature paths count the
+            // actual independent/dependent score draws. Preserve the existing
+            // chooser for prior Ordered scalar/custom configurations.
+            const bool incrementalFeatureParallel = compoundCtrs || orderedQuery || (featureParallel &&
+                (!ordered || combination || scalarSimple || data.Estimated.GetFeatureCount() || langevin));
             const bool pairwise = objective == ELossFunction::PairLogit || coupled;
             const bool multioutput = IsMetalMultiOutput(objective);
             const auto target = trainingData.Learn->TargetData->GetTarget();
@@ -648,8 +722,9 @@ namespace {
             }
             TMetalSnapshot snapshot;
             snapshot.Greedy = greedy;
-            snapshot.YetiRank = yeti && !featureParallel;
-            snapshot.CombinationYeti = combinationYetiCount && !featureParallel;
+            snapshot.YetiRank = yeti && !featureParallel && !langevin;
+            snapshot.CombinationYeti = combinationYetiCount && !featureParallel && !langevin;
+            snapshot.Langevin = langevin;
             snapshot.TreeCtrs = compoundCtrs;
             TString snapshotPath;
             ui32 restoredIterations = 0;
@@ -658,6 +733,7 @@ namespace {
                 options.Save(&jsonOptions);
                 snapshot.Params = ToString(jsonOptions);
                 snapshot.Checksum = SnapshotDataChecksum(trainingData, initModel, executor);
+                if (data.Estimated.GetFeatureCount()) snapshot.Checksum = UpdateCheckSum(snapshot.Checksum, data.Estimated.Checksum);
                 if (custom) snapshot.Checksum = UpdateCheckSum(snapshot.Checksum, TStringBuf(customSource));
                 if (featureParallel) {
                     snapshot.Checksum = UpdateCheckSum(snapshot.Checksum, permutationCount);
@@ -666,9 +742,9 @@ namespace {
                 snapshot.Bias = bias;
                 snapshotPath = outputOptions.CreateSnapshotFullPath();
                 if (snapshot.Load(snapshotPath, trainingCallbacks)) {
-                    if (greedy) snapshot.ValidateGreedy(data.Rows, data.FeatureCount(), greedyPolicy, depth, maxLeaves, iterations, permutationCount, approxDimension, optimizerDimension);
+                    if (greedy) snapshot.ValidateGreedy(data.Rows, data.FeatureCount(), greedyPolicy, depth, maxLeaves, iterations, permutationCount, approxDimension, optimizerDimension, greedySimple);
                     else snapshot.Validate(data.Rows, depth, iterations, approxDimension,
-                                           permutationCount, optimizerDimension, ordered, featureParallel);
+                                           permutationCount, optimizerDimension, ordered, featureParallel, signedSimpleWeights);
                     if (compoundCtrs) {
                         TStringInput input(snapshot.TreeCtrState);
                         restoredTreeCtrBatch = treeCtrFeatures->Restore(&input);
@@ -679,6 +755,36 @@ namespace {
                     initialPredictions = snapshot.Predictions;
                     bias = snapshot.Bias;
                     if (!multioutput) std::fill(modelBias.begin(), modelBias.end(), bias);
+                }
+            }
+            THolder<TMetalFullMatrixRsm> featureSampler;
+            if (options.ObliviousTreeOptions->Rsm.Get() < 1.0) {
+                auto metadata = MakeMetalStaticFeatureMetadata(data, *trainingData.Learn, options);
+                const auto& bootstrap = options.ObliviousTreeOptions->BootstrapConfig.Get();
+                featureSampler = MakeHolder<TMetalFullMatrixRsm>(options.RandomSeed,
+                    options.ObliviousTreeOptions->Rsm, objective, bootstrap.GetBootstrapType(),
+                    bootstrap.GetTakenFraction(), permutationCount,
+                    options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple,
+                    data.StaticFeatureCount(), std::move(metadata.RsmFeatures));
+                featureSampler->Restore(restoredIterations);
+            }
+            const auto& regularization = options.ObliviousTreeOptions.Get();
+            const bool metaActive = !ordered && !greedy && !vectorBackend && !coupled && !qce && !yetiPair &&
+                (regularization.ScoreFunction == EScoreFunction::L2 || regularization.ScoreFunction == EScoreFunction::NewtonL2) &&
+                static_cast<float>(regularization.MetaL2Exponent.Get()) != 1.0f && regularization.MetaL2Frequency > 0;
+            const bool metaSeeded = metaActive && regularization.MetaL2Frequency <= 1;
+            const ui32 metaDataSets = 1 + ui32(permutationCount > 1 && data.HasPermutationDependentFeatures());
+            THolder<TMetalMetaL2Context> metaL2;
+            THolder<TMetalMetaL2DocRandom> metaDocRandom;
+            if (metaSeeded) {
+                const auto metadata = MakeMetalStaticFeatureMetadata(data, *trainingData.Learn, options);
+                metaL2 = MakeHolder<TMetalMetaL2Context>(regularization.MetaL2Exponent, regularization.MetaL2Frequency,
+                    MakeMetalMetaL2StaticDataSets(metadata, permutationCount, data.HasPermutationDependentFeatures()));
+                if (!featureParallel && !stochasticTarget && !langevin) {
+                    metaDocRandom = MakeHolder<TMetalMetaL2DocRandom>(options.RandomSeed,
+                        regularization.BootstrapConfig->GetBootstrapType() != EBootstrapType::No,
+                        depth, data.CandidateFeatures.size(), metaDataSets);
+                    metaDocRandom->Restore(snapshot.Depths);
                 }
             }
             CBMSessionParams params = {};
@@ -728,7 +834,7 @@ namespace {
             THolder<TMetalOrderedRandom> featureParallelRandom;
             THolder<TMetalFeatureParallelYetiRandom> featureParallelYetiRandom;
             TMaybe<TMetalOrderedStochasticShape> orderedStochasticShape;
-            if (featureParallel && !ordered && !stochasticTarget) {
+            if (featureParallel && !ordered && !stochasticTarget && !langevin) {
                 featureParallelRandom = MakeHolder<TMetalOrderedRandom>(options.RandomSeed, permutationCount,
                     depth, data.CandidateFeatures.size(), true);
                 if (restoredIterations) featureParallelRandom->RestoreState({snapshot.OrderedRandomDrawCount,
@@ -760,19 +866,20 @@ namespace {
                 }
             }
             if (restoredTreeCtrBatch) {
-                ValidateMetalTreeCtrSnapshot(*restoredTreeCtrBatch, ctrUniqueValues, snapshot, ordered);
+                ValidateMetalTreeCtrSnapshot(*restoredTreeCtrBatch, ctrUniqueValues, snapshot, ordered, featureWeights);
             }
             THolder<TMetalYetiRandom> yetiRandom;
-            if (stochasticTarget && !featureParallel) {
+            if (stochasticTarget && !featureParallel && !langevin) {
                 yetiRandom = MakeHolder<TMetalYetiRandom>(options.RandomSeed,
                     options.ObliviousTreeOptions->BootstrapConfig->GetBootstrapType() != EBootstrapType::No,
                     params.leaf_estimation_iterations, depth, data.CandidateFeatures.size(), permutationCount,
                     greedy, greedy ? 2 * maxLeaves : 0, combinationYetiCount ? combinationYetiCount : 1,
                     combinationYetiCount != 0,
-                    combinationYetiCount && options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple);
+                    combinationYetiCount && options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple,
+                    metaActive ? metaDataSets : 1);
                 if (restoredIterations) yetiRandom->Restore(snapshot.YetiRandom, snapshot.Depths, snapshot.YetiSearchAttempts);
             }
-            if (featureParallel && stochasticTarget && !ordered) {
+            if (featureParallel && stochasticTarget && !ordered && !langevin) {
                 const ui32 components = combinationYetiCount ? combinationYetiCount : 1;
                 featureParallelYetiRandom = MakeHolder<TMetalFeatureParallelYetiRandom>(options.RandomSeed,
                     permutationCount, depth, data.CandidateFeatures.size(), params.leaf_estimation_iterations,
@@ -789,11 +896,46 @@ namespace {
                 if (restoredIterations) CB_ENSURE(snapshot.OrderedDescriptors == shape.Descriptors &&
                     snapshot.OrderedCursors.size() == shape.CursorCount,
                     "Saved Metal Ordered stochastic prefix state differs from the prepared histories");
-                featureParallelYetiRandom = MakeHolder<TMetalFeatureParallelYetiRandom>(options.RandomSeed,
-                    permutationCount, depth, data.CandidateFeatures.size(), params.leaf_estimation_iterations,
-                    shape.WeakSeedCounts, shape.LeafTaskCount, combinationYetiCount != 0);
-                if (restoredIterations) featureParallelYetiRandom->Restore({snapshot.OrderedRandomDrawCount,
-                    snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
+                if (!langevin) {
+                    featureParallelYetiRandom = MakeHolder<TMetalFeatureParallelYetiRandom>(options.RandomSeed,
+                        permutationCount, depth, data.CandidateFeatures.size(), params.leaf_estimation_iterations,
+                        shape.WeakSeedCounts, shape.LeafTaskCount, combinationYetiCount != 0);
+                    if (restoredIterations) featureParallelYetiRandom->Restore({snapshot.OrderedRandomDrawCount,
+                        snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
+                }
+            }
+            THolder<TMetalLangevinRandom> langevinRandom;
+            if (langevin) {
+                langevinRandom = MakeHolder<TMetalLangevinRandom>(options.RandomSeed, featureParallel,
+                    permutationCount, static_cast<float>(options.BoostingOptions->DiffusionTemperature.Get()),
+                    params.train.learning_rate, executor);
+                if (restoredIterations) {
+                    const bool expectedCache = (!greedy && !vectorBackend) ||
+                        regularization.BootstrapConfig->GetBootstrapType() != EBootstrapType::No;
+                    CB_ENSURE(snapshot.LangevinRandom.WeakSeedCacheInitialized == expectedCache,
+                        "Saved Metal Langevin seed-cache state differs from the configured training path");
+                    // Bound replay by the validated saved feature registry and
+                    // configured source walker geometry. Actual draws, including
+                    // rejected trials, come from the snapshot's tagged state.
+                    const ui64 attempts = Max<ui32>(params.leaf_estimation_iterations, 100);
+                    const ui64 components = combinationYetiCount ? combinationYetiCount : ui32(yeti);
+                    const ui64 weakCalls = orderedStochasticShape
+                        ? *MaxElement(orderedStochasticShape->WeakSeedCounts.begin(), orderedStochasticShape->WeakSeedCounts.end())
+                        : components;
+                    const ui64 leafCalls = orderedStochasticShape ? orderedStochasticShape->LeafTaskCount
+                        : ui64(permutationCount) * components;
+                    const ui64 noiseWalkers = greedy || vectorBackend ? permutationCount : 1;
+                    const ui64 scoreBatches = greedy || vectorBackend ? 2ull * maxLeaves : depth;
+                    const ui64 scorePacks = compoundCtrs ? snapshot.TreeCtrCounts.size() + 2 : metaDataSets;
+                    const long double perTree = 1.0L + weakCalls + (attempts + 1.0L) * leafCalls +
+                        (2.0L + 2.0L * attempts) * noiseWalkers + static_cast<long double>(scoreBatches) * scorePacks;
+                    const long double maximumDraws = 1.0L + TMetalLangevinRandom::WeakSeedCacheDrawCount +
+                        restoredIterations * perTree;
+                    CB_ENSURE(maximumDraws < static_cast<long double>(Max<ui64>()),
+                        "Metal Langevin snapshot random bound overflows");
+                    langevinRandom->RestoreState(snapshot.LangevinRandom, restoredIterations,
+                        static_cast<ui64>(maximumDraws));
+                }
             }
             char error[2048] = {};
             if (restoredIterations < iterations) {
@@ -844,7 +986,8 @@ namespace {
                         approxDimension, multioutput ? MetalMultiOutputObjective(objective) :
                             objective == ELossFunction::MultiClass ? 0u : 1u,
                         iterations - restoredIterations, depth, params.train.score_function,
-                        options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton ? 0u : 1u,
+                        options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple ? 3u :
+                            options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton ? 0u : 1u,
                         params.leaf_estimation_iterations, 0, params.train.learning_rate, params.train.l2_leaf_reg, 0, 0};
                     if (greedy) {
                         const CBMVectorGreedyOptions greedyOptions = {greedyPolicy, maxLeaves,
@@ -980,6 +1123,19 @@ namespace {
                             &session.Handle, error, sizeof(error)) == 0, "Metal training initialization failed: " << error);
                     }
                 }
+                if (!fixedBinarySplits.empty()) {
+                    if (greedySession) greedySession->SetFixedSplits(fixedBinarySplits);
+                    else CB_ENSURE(vectorBackend && greedy && cbm_multiclass_session_set_fixed_splits(
+                        session.Handle, fixedBinarySplits.size(), fixedBinarySplits.data(), error, sizeof(error)) == 0,
+                        "Metal vector fixed split configuration failed: " << error);
+                }
+                if (greedySession) {
+                    greedySession->SetFeatureWeights(featureWeights);
+                } else if (greedy && vectorBackend) {
+                    CB_ENSURE(cbm_multiclass_session_set_greedy_feature_weights(session.Handle,
+                        featureWeights.size(), featureWeights.data(), error, sizeof(error)) == 0,
+                        "Metal vector feature weight configuration failed: " << error);
+                }
                 const auto& bootstrap = options.ObliviousTreeOptions->BootstrapConfig.Get();
                 CBMBootstrapOptions bootstrapOptions = {};
                 bootstrapOptions.bootstrap_type = MetalBootstrap(bootstrap.GetBootstrapType());
@@ -999,6 +1155,9 @@ namespace {
                 CBMScoreNoiseOptions noiseOptions = {};
                 noiseOptions.random_strength = options.ObliviousTreeOptions->RandomStrength;
                 if (greedySession) {
+                    // Scalar greedy ridge is configured separately from its
+                    // source-ignored normalization and meta-L2 options.
+                    greedySession->SetAddRidgeToTargetFunction(regularization.AddRidgeToTargetFunctionFlag);
                     greedySession->SetBootstrap(bootstrapOptions);
                     greedySession->SetScoreNoise(noiseOptions);
                     greedySession->SetBacktracking(params.leaf_estimation_backtracking);
@@ -1011,15 +1170,18 @@ namespace {
                             snapshot.PermutationMvsValid, 1, true);
                     }
                 } else if (ordered) {
+                    CB_ENSURE(cbm_ordered_set_add_ridge_to_target_function(orderedSession->GetHandle(),
+                        regularization.AddRidgeToTargetFunctionFlag ? 1u : 0u, error, sizeof(error)) == 0,
+                        "Metal Ordered ridge configuration failed: " << error);
                     orderedSession->SetBacktracking(params.leaf_estimation_backtracking);
                     orderedSession->SetBootstrap(bootstrapOptions,
                         options.ObliviousTreeOptions->ObservationsToBootstrap == EObservationsToBootstrap::TestOnly);
                     orderedSession->SetScoreNoise(noiseOptions);
-                    if (data.Categorical.CtrProvider)
-                        orderedSession->SetFeaturePenalties(ctrUniqueValues, options.ObliviousTreeOptions->ModelSizeReg);
+                    if (data.Categorical.CtrProvider || !options.ObliviousTreeOptions->FeaturePenalties->FeatureWeights.Get().empty())
+                        orderedSession->SetFeaturePenalties(ctrUniqueValues, options.ObliviousTreeOptions->ModelSizeReg, featureWeights);
                     if (restoredIterations && !compoundCtrs) {
                         orderedSession->RestoreState({snapshot.OrderedDescriptors, snapshot.OrderedCursors});
-                        if (!stochasticTarget) orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,
+                        if (!stochasticTarget && !langevin) orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,
                             snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
                     }
                 } else {
@@ -1035,7 +1197,7 @@ namespace {
                         const auto setFeaturePenalties = vectorBackend ? cbm_multiclass_session_set_feature_penalties :
                             cbm_session_set_feature_penalties;
                         CB_ENSURE(setFeaturePenalties(session.Handle, &penaltyOptions,
-                            ctrUniqueValues.data(), nullptr, usedFeatures.data(), error, sizeof(error)) == 0,
+                            ctrUniqueValues.data(), featureWeights.data(), usedFeatures.data(), error, sizeof(error)) == 0,
                             "Metal CTR model-size penalty configuration failed: " << error);
                     }
                     TVector<TConstArrayRef<ui8>> permutationBins{MakeConstArrayRef(data.Bins)};
@@ -1046,18 +1208,18 @@ namespace {
                         snapshot.PermutationMvsLambdas, snapshot.PermutationMvsValid, approxDimension);
                     if (vectorBackend && restoredIterations) {
                         CB_ENSURE(cbm_multiclass_session_restore_optimization_state(session.Handle,
-                            data.Categorical.GetPermutationCount(), snapshot.OptimizationPredictions.data(),
+                            data.GetPermutationCount(), snapshot.OptimizationPredictions.data(),
                             error, sizeof(error)) == 0, "Metal multiclass optimizer cursor restoration failed: " << error);
                     }
                 }
                 if (compoundCtrs) {
                     treeCtrSession = MakeHolder<TMetalTreeCtrSession>(orderedSession ? orderedSession->GetHandle() : session.Handle,
                         ordered, *treeCtrFeatures, data.StaticFeatureCount(), data.BinsPerFeature,
-                        data.Categorical.HasPermutationDependentCtrs);
+                        data.HasPermutationDependentFeatures());
                     if (restoredTreeCtrBatch) treeCtrSession->Restore(*restoredTreeCtrBatch, snapshot);
                     if (ordered && restoredIterations) {
                         orderedSession->RestoreState({snapshot.OrderedDescriptors, snapshot.OrderedCursors});
-                        if (!stochasticTarget) orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,
+                        if (!stochasticTarget && !langevin) orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,
                             snapshot.OrderedRandomCompletedIterations, snapshot.OrderedBootstrapInitialized}, restoredIterations);
                     }
                 }
@@ -1065,6 +1227,67 @@ namespace {
                     TVector<ui8> activity(data.StaticFeatureCount(), 1);
                     CB_ENSURE(cbm_session_set_feature_activity(session.Handle, activity.size(), activity.data(), error, sizeof(error)) == 0,
                         "Metal FeatureParallel static feature setup failed: " << error);
+                }
+                if (!ordered && !greedy && !vectorBackend &&
+                    (regularization.FoldSizeLossNormalization || regularization.AddRidgeToTargetFunctionFlag || metaActive)) {
+                    const bool matrix = coupled || qce || yetiPair;
+                    CBMRegularizationOptions config = {};
+                    config.normalize_score = !matrix && regularization.FoldSizeLossNormalization;
+                    config.normalize_leaf = !matrix && regularization.FoldSizeLossNormalization;
+                    config.add_ridge = regularization.AddRidgeToTargetFunctionFlag;
+                    config.meta_l2_exponent = metaActive ? static_cast<float>(regularization.MetaL2Exponent.Get()) : 1.0f;
+                    config.meta_l2_frequency = metaActive ? regularization.MetaL2Frequency.Get() : 0.0;
+                    CB_ENSURE(cbm_session_set_regularization(session.Handle, &config, error, sizeof(error)) == 0,
+                        "Metal regularization configuration failed: " << error);
+                    if (metaL2) {
+                        if (langevinRandom) metaL2->SetSeedProvider([&](ui32, ui32 count) {
+                            TVector<ui64> seeds(count);
+                            for (auto& seed : seeds) seed = langevinRandom->NextSeed(CBM_LANGEVIN_SEARCH);
+                            return seeds;
+                        });
+                        else if (featureParallelYetiRandom) metaL2->SetSeedProvider([&](ui32 offset, ui32 count) {
+                            return featureParallelYetiRandom->PeekScoreSeeds(offset, count);
+                        });
+                        else if (featureParallelRandom) metaL2->SetSeedProvider([&](ui32 offset, ui32 count) {
+                            return featureParallelRandom->PeekScoreSeeds(offset, count);
+                        });
+                        else if (yetiRandom) metaL2->SetSeedProvider([&](ui32 offset, ui32 count) {
+                            return yetiRandom->PeekScoreSeeds(offset, count);
+                        });
+                        else metaL2->SetSeedProvider([&](ui32 offset, ui32 count) {
+                            return metaDocRandom->ScoreSeeds(offset, count);
+                        });
+                        if (treeCtrFeatures) metaL2->SetDynamicProvider([&]() {
+                            TVector<TMetalMetaL2DataSet> datasets;
+                            for (const auto& pack : treeCtrFeatures->GetActiveScoringPacks()) {
+                                TMetalMetaL2DataSet dataset;
+                                dataset.ScoreSeed = pack.BaseTensorHash;
+                                dataset.PolicyMask = pack.PolicyMask;
+                                for (const auto& feature : pack.Features)
+                                    dataset.Features.push_back({feature.AbsoluteFeature, EMetalMetaL2Policy(feature.Policy)});
+                                datasets.push_back(std::move(dataset));
+                            }
+                            return datasets;
+                        });
+                        CB_ENSURE(cbm_session_set_meta_l2_exponent_callback(session.Handle,
+                            TMetalMetaL2Context::Callback, metaL2.Get(), error, sizeof(error)) == 0,
+                            "Metal meta-L2 callback configuration failed: " << error);
+                    }
+                }
+                if (langevinRandom) {
+                    const float temperature = options.BoostingOptions->DiffusionTemperature;
+                    const auto noise = TMetalLangevinRandom::NoiseCallback;
+                    const auto seed = TMetalLangevinRandom::SeedCallback;
+                    int status = 0;
+                    if (orderedSession) status = cbm_ordered_session_set_langevin(orderedSession->GetHandle(),
+                        temperature, noise, seed, langevinRandom.Get(), error, sizeof(error));
+                    else if (greedySession) status = cbm_greedy_session_set_langevin(greedySession->GetHandle(),
+                        temperature, noise, seed, langevinRandom.Get(), error, sizeof(error));
+                    else if (vectorBackend) status = cbm_multiclass_session_set_langevin(session.Handle,
+                        temperature, noise, seed, langevinRandom.Get(), error, sizeof(error));
+                    else status = cbm_session_set_langevin(session.Handle, temperature, featureParallel ? 0u : 1u,
+                        noise, seed, langevinRandom.Get(), error, sizeof(error));
+                    CB_ENSURE(status == 0, "Metal Langevin configuration failed: " << error);
                 }
                 if (ordered && stochasticTarget) {
                     const auto shape = orderedSession->GetYetiSeedShape();
@@ -1087,23 +1310,31 @@ namespace {
                 progressInitialModel,
                 initModel ? &initModelApplyCompatiblePools : nullptr,
                 internalOptions.ForceCalcEvalMetricOnEveryIteration, evalMetricDescriptor, approxDimension, baselineColumns);
-            TObliviousTreeBuilder builder(data.AllFloatFeatures, data.Categorical.AllCatFeatures, {}, {}, approxDimension);
-            TNonSymmetricTreeModelBuilder greedyBuilder(data.AllFloatFeatures, data.Categorical.AllCatFeatures, {}, {}, approxDimension);
+            TObliviousTreeBuilder builder(data.AllFloatFeatures, data.Categorical.AllCatFeatures,
+            data.Estimated.AllTextFeatures, data.Estimated.AllEmbeddingFeatures, approxDimension);
+            TNonSymmetricTreeModelBuilder greedyBuilder(data.AllFloatFeatures, data.Categorical.AllCatFeatures,
+            data.Estimated.AllTextFeatures, data.Estimated.AllEmbeddingFeatures, approxDimension);
+            auto* modelBuilder = internalOptions.CalcMetricsOnly ? nullptr : &builder;
+            auto* greedyModelBuilder = internalOptions.CalcMetricsOnly ? nullptr : &greedyBuilder;
             CBMStepInfo info = {};
             CB_ENSURE(cbm_device_info(info.stats.device_name, sizeof(info.stats.device_name), error, sizeof(error)) == 0,
                       "Metal device is unavailable: " << error);
             bool continueTraining = true;
             for (ui32 tree = 0; tree < restoredIterations; ++tree) {
                 auto singleTree = greedy ? AppendMetalGreedyTree(data, snapshot.GreedyTrees.GetTree(tree, approxDimension),
-                    greedyDepthBound, &greedyBuilder, approxDimension) : AppendMetalTree(data, snapshot.Depths[tree], depth,
+                    greedyDepthBound, greedyModelBuilder, approxDimension, greedySimple) : AppendMetalTree(data, snapshot.Depths[tree], depth,
                     MakeConstArrayRef(snapshot.SplitFeatures).Slice(ui64(tree) * depth, depth),
                     MakeConstArrayRef(snapshot.SplitBins).Slice(ui64(tree) * depth, depth),
                     MakeConstArrayRef(snapshot.SplitTypes).Slice(ui64(tree) * depth, depth),
                     MakeConstArrayRef(snapshot.Leaves).Slice(ui64(tree) * maxLeaves * approxDimension, ui64(maxLeaves) * approxDimension),
-                    MakeConstArrayRef(snapshot.Weights).Slice(ui64(tree) * maxLeaves, maxLeaves), &builder, approxDimension);
+                    MakeConstArrayRef(snapshot.Weights).Slice(ui64(tree) * maxLeaves, maxLeaves), modelBuilder, approxDimension, signedSimpleWeights);
                 continueTraining = progress.ReplayIteration(tree, singleTree, snapshot.History);
             }
-            if (restoredIterations) progress.RestoreTimeHistory(snapshot.History.TimeHistory);
+            if (restoredIterations) {
+                progress.RestoreTimeHistory(snapshot.History.TimeHistory);
+                progress.RestoreLearnCursor(snapshot.Predictions);
+                progress.RestoreBestLearnCursor(snapshot.BestLearnPredictions, snapshot.BestLearnIteration);
+            }
             THPTimer snapshotTimer;
             for (ui32 tree = restoredIterations; tree < iterations && continueTraining; ++tree) {
                 CheckInterrupted();
@@ -1112,6 +1343,19 @@ namespace {
                 TMetalGreedyTree greedyTree;
                 const ui64 absoluteIteration = (initModel ? (*initModel)->GetTreeCount() : 0) + tree;
                 ui32 yetiSearchAttempts = 0;
+                if (langevinRandom && !featureParallel) langevinRandom->BeginIteration();
+                if (langevinRandom && combinationYetiCount && !orderedSession) {
+                    CB_ENSURE(cbm_session_set_combination_yeti_seed_callback(session.Handle,
+                        MetalLangevinTargetSeed<CBM_LANGEVIN_YETI_WEAK>, langevinRandom.Get(), error, sizeof(error)) == 0,
+                        "Metal Langevin Combination weak callback setup failed: " << error);
+                }
+                if (metaL2) metaL2->BeginTree();
+                if (metaDocRandom) metaDocRandom->Begin();
+                if (featureSampler) {
+                    const auto mask = featureSampler->NextMask();
+                    CB_ENSURE(cbm_session_set_feature_sampling_mask(session.Handle, mask.size(), mask.data(),
+                        error, sizeof(error)) == 0, "Metal feature sampling failed: " << error);
+                }
                 if (incrementalFeatureParallel) {
                     auto begin = [&](ui32) {
                         if (treeCtrSession) treeCtrSession->BeginTree();
@@ -1130,8 +1374,19 @@ namespace {
                             structure, permutation);
                     };
                     auto scoreDraws = [&]() { return treeCtrSession ? treeCtrSession->ScoreDraws() :
-                        1u + (permutationCount > 1 && data.Categorical.HasPermutationDependentCtrs); };
+                        1u + (permutationCount > 1 && data.HasPermutationDependentFeatures()); };
                     auto beforeFinish = [&](ui32 searchDrawCount) {
+                        if (metaL2) CB_ENSURE(metaL2->GetDrawCount() == searchDrawCount,
+                            "Metal meta-L2 feature packs disagree with FeatureParallel scorer draws: " << metaL2->GetError());
+                        if (langevinRandom) {
+                            const ui32 consumed = metaL2 ? metaL2->GetDrawCount() : 0;
+                            CB_ENSURE(consumed <= searchDrawCount, "Metal Langevin meta-L2 scorer count overflows");
+                            langevinRandom->AdvanceSearch(searchDrawCount - consumed);
+                            if (combinationYetiCount && !orderedSession) CB_ENSURE(
+                                cbm_session_set_combination_yeti_seed_callback(session.Handle,
+                                    MetalLangevinTargetSeed<CBM_LANGEVIN_YETI_LEAF>, langevinRandom.Get(), error, sizeof(error)) == 0,
+                                "Metal Langevin Combination leaf callback setup failed: " << error);
+                        }
                         if (featureParallelYetiRandom) {
                             if (combinationYetiCount) {
                                 featureParallelYetiRandom->BeginLeafCalls(searchDrawCount);
@@ -1149,13 +1404,17 @@ namespace {
                         }
                     };
                     if (orderedSession) {
-                        if (featureParallelYetiRandom) orderedSession->StepDynamicSelected(absoluteIteration,
+                        if (langevinRandom) orderedSession->StepDynamicSelected(absoluteIteration,
+                            langevinRandom->SelectPermutation(absoluteIteration), &info, &treeDepth,
+                            splitFeatures, splitBins, splitTypes, leaves, weights, begin, selectedSplit, scoreDraws, beforeFinish);
+                        else if (featureParallelYetiRandom) orderedSession->StepDynamicSelected(absoluteIteration,
                             featureParallelYetiRandom->SelectPermutation(), &info, &treeDepth,
                             splitFeatures, splitBins, splitTypes, leaves, weights, begin, selectedSplit, scoreDraws, beforeFinish);
                         else orderedSession->StepDynamic(absoluteIteration, &info, &treeDepth,
                             splitFeatures, splitBins, splitTypes, leaves, weights, begin, selectedSplit, scoreDraws);
                     } else {
-                        const ui32 selected = featureParallelYetiRandom ? featureParallelYetiRandom->SelectPermutation() :
+                        const ui32 selected = langevinRandom ? langevinRandom->SelectPermutation(absoluteIteration) :
+                            featureParallelYetiRandom ? featureParallelYetiRandom->SelectPermutation() :
                             featureParallelRandom->SelectPermutation();
                         begin(selected);
                         CB_ENSURE(cbm_session_select_permutation(session.Handle, selected, error, sizeof(error)) == 0 &&
@@ -1200,7 +1459,7 @@ namespace {
                     info.completed_iterations = greedyTree.Info.completed_iterations;
                     info.finished = greedyTree.Info.finished; info.stats = greedyTree.Info.stats;
                     treeDepth = ValidateMetalGreedyTree(greedyTree.Nodes, greedyTree.Values, greedyTree.Weights,
-                        data.FeatureCount(), greedyDepthBound, approxDimension).Depth;
+                        data.FeatureCount(), greedyDepthBound, approxDimension, greedySimple).Depth;
                 } else if (greedySession) {
                     if (permutations) permutations->SelectForIteration(absoluteIteration);
                     if (yetiRandom) {
@@ -1213,10 +1472,30 @@ namespace {
                     info.finished = greedyTree.Info.finished;
                     info.stats = greedyTree.Info.stats;
                     treeDepth = ValidateMetalGreedyTree(greedyTree.Nodes, greedyTree.Values, greedyTree.Weights,
-                        data.FeatureCount(), greedyDepthBound).Depth;
+                        data.FeatureCount(), greedyDepthBound, 1, greedySimple).Depth;
                 } else if (orderedSession) {
                     orderedSession->Step(absoluteIteration, &info, &treeDepth,
                         splitFeatures, splitBins, splitTypes, leaves, weights);
+                } else if (langevinRandom && !vectorBackend) {
+                    if (permutations) permutations->SelectForIteration(absoluteIteration);
+                    CB_ENSURE(cbm_session_begin_tree(session.Handle, error, sizeof(error)) == 0,
+                        "Metal Langevin tree initialization failed: " << error);
+                    CBMStructureInfo structure = {};
+                    ui32 searchDrawCount = 0;
+                    do {
+                        CB_ENSURE(cbm_session_grow_tree(session.Handle, &structure, error, sizeof(error)) == 0,
+                            "Metal Langevin split search failed: " << error);
+                        if (depth && !data.CandidateFeatures.empty()) searchDrawCount += metaDataSets;
+                    } while (!structure.finished);
+                    const ui32 consumed = metaL2 ? metaL2->GetDrawCount() : 0;
+                    CB_ENSURE(consumed <= searchDrawCount, "Metal Langevin meta-L2 scorer count overflows");
+                    langevinRandom->AdvanceSearch(searchDrawCount - consumed);
+                    if (combinationYetiCount) CB_ENSURE(cbm_session_set_combination_yeti_seed_callback(session.Handle,
+                        MetalLangevinTargetSeed<CBM_LANGEVIN_YETI_LEAF>, langevinRandom.Get(), error, sizeof(error)) == 0,
+                        "Metal Langevin Combination leaf callback setup failed: " << error);
+                    CB_ENSURE(cbm_session_finish_tree(session.Handle, &info, &treeDepth,
+                        splitFeatures.data(), splitBins.data(), splitTypes.data(), leaves.data(), weights.data(),
+                        error, sizeof(error)) == 0, "Metal Langevin leaf estimation failed: " << error);
                 } else if (yetiRandom) {
                     if (permutations) permutations->SelectForIteration(absoluteIteration);
                     const auto weakSeeds = yetiRandom->BeginSeeds();
@@ -1254,9 +1533,14 @@ namespace {
                         splitBins.data(), splitTypes.data(), leaves.data(), weights.data(), error, sizeof(error)) == 0,
                         "Metal training iteration " << tree << " failed: " << error);
                 }
-                auto singleTreeModel = greedy ? AppendMetalGreedyTree(data, greedyTree, greedyDepthBound, &greedyBuilder, approxDimension)
+                if (langevinRandom) langevinRandom->FinishIteration();
+                if (metaDocRandom) metaDocRandom->Finish(treeDepth);
+                if (metaL2 && !featureParallel) CB_ENSURE(metaL2->GetDrawCount() ==
+                    (depth && !data.CandidateFeatures.empty() ? Min(treeDepth + 1, depth) * metaDataSets : 0),
+                    "Metal meta-L2 DocParallel scorer count differs from the completed tree: " << metaL2->GetError());
+                auto singleTreeModel = greedy ? AppendMetalGreedyTree(data, greedyTree, greedyDepthBound, greedyModelBuilder, approxDimension, greedySimple)
                     : AppendMetalTree(data, treeDepth, depth, splitFeatures,
-                    splitBins, splitTypes, leaves, weights, &builder, approxDimension);
+                    splitBins, splitTypes, leaves, weights, modelBuilder, approxDimension, signedSimpleWeights);
                 if (greedySession) {
                     greedySession->CopyPredictions(learnCursor);
                 } else if (orderedSession) {
@@ -1273,9 +1557,9 @@ namespace {
                     (!customCallbacks || customCallbacks->AfterIteration(history));
                 if (outputOptions.SaveSnapshot()) {
                     snapshot.Depths.push_back(treeDepth);
-                    if (greedy && yeti) snapshot.YetiSearchAttempts.push_back(yetiSearchAttempts);
+                    if (greedy && yeti && !langevin) snapshot.YetiSearchAttempts.push_back(yetiSearchAttempts);
                     if (greedy) {
-                        snapshot.GreedyTrees.Append(greedyTree, data.FeatureCount(), greedyDepthBound, approxDimension);
+                        snapshot.GreedyTrees.Append(greedyTree, data.FeatureCount(), greedyDepthBound, approxDimension, greedySimple);
                     } else {
                         snapshot.SplitFeatures.insert(snapshot.SplitFeatures.end(), splitFeatures.begin(), splitFeatures.end());
                         snapshot.SplitBins.insert(snapshot.SplitBins.end(), splitBins.begin(), splitBins.end());
@@ -1288,6 +1572,8 @@ namespace {
                         CB_ENSURE(info.completed_iterations == tree + 1 - restoredIterations,
                                   "Metal snapshot iteration count mismatch");
                         snapshot.Predictions = learnCursor;
+                        snapshot.BestLearnPredictions = progress.CopyBestLearnCursor();
+                        snapshot.BestLearnIteration = progress.GetBestLearnIteration();
                         ui32 absoluteIterations = 0;
                         if (greedySession) {
                             const auto bootstrapState = greedySession->GetBootstrapState();
@@ -1302,10 +1588,12 @@ namespace {
                             const auto state = orderedSession->CopyState();
                             snapshot.OrderedDescriptors = state.Descriptors;
                             snapshot.OrderedCursors = state.Cursors;
-                            const auto randomState = orderedSession->GetRandomState();
-                            snapshot.OrderedRandomDrawCount = randomState.DrawCount;
-                            snapshot.OrderedRandomCompletedIterations = randomState.CompletedIterations;
-                            snapshot.OrderedBootstrapInitialized = randomState.BootstrapInitialized;
+                            if (!langevin) {
+                                const auto randomState = orderedSession->GetRandomState();
+                                snapshot.OrderedRandomDrawCount = randomState.DrawCount;
+                                snapshot.OrderedRandomCompletedIterations = randomState.CompletedIterations;
+                                snapshot.OrderedBootstrapInitialized = randomState.BootstrapInitialized;
+                            }
                         } else {
                             const auto getBootstrapState = vectorBackend ? cbm_multiclass_session_get_bootstrap_state : cbm_session_get_bootstrap_state;
                             CB_ENSURE(getBootstrapState(session.Handle, &absoluteIterations,
@@ -1319,9 +1607,9 @@ namespace {
                             snapshot.PermutationMvsValid = state.MvsValid;
                             if (vectorBackend) {
                                 snapshot.OptimizationPredictions.resize(ui64(data.Rows) * optimizerDimension *
-                                    data.Categorical.GetPermutationCount());
+                                    data.GetPermutationCount());
                                 CB_ENSURE(cbm_multiclass_session_copy_optimization_state(session.Handle,
-                                    data.Categorical.GetPermutationCount(), snapshot.OptimizationPredictions.data(),
+                                    data.GetPermutationCount(), snapshot.OptimizationPredictions.data(),
                                     error, sizeof(error)) == 0, "Metal multiclass optimizer snapshot state extraction failed: " << error);
                             }
                             if (!greedy) {
@@ -1346,6 +1634,7 @@ namespace {
                             snapshot.OrderedBootstrapInitialized = randomState.BootstrapInitialized;
                         }
                         if (yetiRandom) snapshot.YetiRandom = yetiRandom->GetState();
+                        if (langevinRandom) snapshot.LangevinRandom = langevinRandom->GetState();
                         snapshot.History = history;
                         snapshot.Save(snapshotPath, info.stats.device_name, trainingCallbacks);
                         snapshotTimer.Reset();
@@ -1353,15 +1642,29 @@ namespace {
                 }
             }
             const auto& history = progress.GetHistory();
-            if (metricsAndTimeHistory) *metricsAndTimeHistory = history;
+            if (internalOptions.CalcMetricsOnly) {
+                progress.Finish(nullptr, evalResultPtrs);
+                if (metricsAndTimeHistory) {
+                    *metricsAndTimeHistory = history;
+                    metricsAndTimeHistory->MetalResumedIterations = restoredIterations;
+                    metricsAndTimeHistory->MetalKernelDispatches = info.stats.kernel_dispatches;
+                    metricsAndTimeHistory->MetalGpuSeconds = info.stats.gpu_seconds;
+                }
+                return;
+            }
             TFullModel model;
             if (greedy) greedyBuilder.Build(model.ModelTrees.GetMutable());
             else builder.Build(model.ModelTrees.GetMutable());
             model.SetScaleAndBias({1.0, modelBias});
+            if (featureSampler) {
+                model.ModelInfo["metal_rsm_rng"] = "cuda_single_device_host_shadow_v1";
+                model.ModelInfo["metal_rsm_host_draw_count"] = ToString(featureSampler->GetDrawCount());
+            }
             if (yeti) model.ModelInfo["metal_yeti_centering"] = "all_rows";
             if (yetiPair) model.ModelInfo["metal_yeti_pair_rng"] = permutationCount > 1
                 ? "item_iteration_dataset_domains_v2" : "item_iteration_domains_v1";
             if (data.Categorical.CtrProvider) model.CtrProvider = data.Categorical.CtrProvider->Clone();
+            FinalizeMetalCounterTables(data.Categorical, &model);
             model.UpdateDynamicData();
             if (classificationTargetHelper.IsInitialized()) {
                 model.ModelInfo["class_params"] = classificationTargetHelper.Serialize();
@@ -1370,8 +1673,20 @@ namespace {
                 model = SumModels({*initModel, &model}, {1.0, 1.0}, {"initModel:", ""});
             }
             progress.Finish(&model, evalResultPtrs);
+            if (metricsAndTimeHistory) {
+                *metricsAndTimeHistory = history;
+                metricsAndTimeHistory->MetalResumedIterations = restoredIterations;
+                metricsAndTimeHistory->MetalKernelDispatches = info.stats.kernel_dispatches;
+                metricsAndTimeHistory->MetalGpuSeconds = info.stats.gpu_seconds;
+            }
             if (model.CtrProvider) {
                 model.CtrProvider->DropUnusedTables(model.ModelTrees->GetApplyData()->GetUsedModelCtrBases());
+            }
+            if (langevinRandom) {
+                model.ModelInfo["metal_langevin_host_rng"] = "cuda_shared_mt19937_and_128_element_leaf_blocks_v1";
+                model.ModelInfo["metal_langevin_weak_rng"] = ordered || (!featureParallel && !greedy && !vectorBackend)
+                    ? "metal_item_iteration_domains_v1" : "no_weak_noise";
+                model.ModelInfo["metal_langevin_host_draw_count"] = ToString(langevinRandom->GetState().DrawCount);
             }
             model.ModelInfo["metal_backend"] = "METAL";
             model.ModelInfo["metal_device"] = info.stats.device_name;
@@ -1380,8 +1695,9 @@ namespace {
                 featureParallel ? "Native CUDA Plain/FeatureParallel translation" : "Native CUDA Plain/DocParallel translation";
             if (treeCtrFeatures) model.ModelInfo["metal_tree_ctr_features"] = ToString(treeCtrFeatures->GetFeatureCount());
             TCoreModelToFullModelConverter converter(options, outputOptions, classificationTargetHelper,
-                0, false, EFinalCtrComputationMode::Skip, EFinalFeatureCalcersComputationMode::Skip);
-            converter.WithCoreModelFrom(&model).WithObjectsDataFrom(trainingData.Learn->ObjectsData).WithMetrics(history);
+                0, false, EFinalCtrComputationMode::Skip, outputOptions.GetFinalFeatureCalcerComputationMode());
+            converter.WithCoreModelFrom(&model).WithObjectsDataFrom(trainingData.Learn->ObjectsData)
+                .WithFeatureEstimators(trainingData.FeatureEstimators).WithMetrics(history);
             if (dstModel) {
                 converter.Do(true, dstModel, executor, nullptr);
             } else {

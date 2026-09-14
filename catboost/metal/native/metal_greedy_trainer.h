@@ -1,6 +1,7 @@
 #pragma once
 
 #include "metal_trainer.h"
+#include "metal_langevin.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,7 +11,9 @@ extern "C" {
 // 0=Depthwise, 1=Lossguide, 2=Region; objective: shared scalar IDs 0..11,
 // QueryRMSE=12, QuerySoftMax=13, PairLogit=14, classic YetiRank=17;
 // score: 0=L2, 1=Cosine, 2=NewtonL2, 3=NewtonCosine, 4=SolarL2, 5=LOOL2, 6=SatL2;
-// leaf_method: 0=Newton, 1=Gradient, 2=Exact (Quantile/MAE/MAPE).
+// leaf_method: 0=Newton, 1=Gradient, 2=Exact (Quantile/MAE/MAPE), 3=Simple.
+// Simple requires one iteration, exports the searched sampled weak model to
+// every permutation, and is unavailable for YetiRank (Newton only).
 // Backtracking is configured separately; no random score noise by default.
 // max_leaves is in [1,65536]. Lossguide accepts any uint32 depth, with
 // effective path depth bounded by max_leaves-1. Region caps depth at65535 and
@@ -90,6 +93,12 @@ int cbm_greedy_session_create_yeti(const CBMGreedyTrainParams* params,
     const float* initial_predictions, const uint32_t* candidate_features,
     const uint32_t* candidate_bins, const uint8_t* candidate_types,
     void** session, char* error, size_t error_capacity);
+// Configure counted, copied dense numeric feature IDs before the first tree.
+// Each feature must have exactly one bin-zero numeric candidate. Repeats are
+// permitted. Host adapters resolve CUDA feature-manager IDs into this grid.
+int cbm_greedy_session_set_fixed_splits(void* session, uint32_t count,
+    const uint32_t* features, char* error, size_t error_capacity);
+
 // Supply one weak seed or the complete weak+leaf packet before search. Leaf
 // seeds are in dataset order: P*(I+(I>1)), including unused final evaluations.
 int cbm_greedy_session_set_yeti_oracle_seeds(void* session, uint32_t count,
@@ -118,11 +127,25 @@ int cbm_greedy_session_info(void* session, CBMGreedyStepInfo* info,
 // CUDA applies backtracking only when leaf_iterations > 1; Exact ignores it.
 int cbm_greedy_session_set_backtracking(void* session, uint32_t type,
     char* error, size_t error_capacity);
+// Add lambda/2 * sum(raw_leaf_value^2) to the optimized scalar objective.
+// Configure before the first tree; Simple and Exact skip this estimator.
+int cbm_greedy_session_set_add_ridge(void* session, uint32_t enabled,
+    char* error, size_t error_capacity);
+// Greedy Langevin noises leaf derivatives only. The runtime requests source
+// target/search seeds and leaf noise synchronously; Simple and Exact have no
+// leaf callback events. Configure before the first tree and before Yeti packets.
+int cbm_greedy_session_set_langevin(void* session, float temperature,
+    CBMLangevinNoiseCallback noise, CBMLangevinSeedCallback seed, void* context,
+    char* error, size_t error_capacity);
 // Shared option layouts, configured before the first tree. Greedy CUDA does
 // not support MVS; supported bootstrap IDs are No/Bayesian/Bernoulli/Poisson.
 int cbm_greedy_session_set_bootstrap(void* session, const CBMBootstrapOptions* options,
     char* error, size_t error_capacity);
 int cbm_greedy_session_set_score_noise(void* session, const CBMScoreNoiseOptions* options,
+    char* error, size_t error_capacity);
+// Dense feature multipliers, configured before the first tree. Validation is
+// atomic: rejected count/nonfinite/negative input leaves previous weights intact.
+int cbm_greedy_session_set_feature_weights(void* session, uint32_t count, const float* weights,
     char* error, size_t error_capacity);
 // Plain DocParallel datasets share feature grids and original object order.
 // Configure once before training; each dataset owns its raw cursor. Search

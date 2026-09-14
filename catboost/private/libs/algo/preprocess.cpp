@@ -128,7 +128,8 @@ static void CheckTimestampsInEachGroup(
 TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     TDataProviderPtr learnData,
-    NPar::ILocalExecutor* localExecutor) {
+    NPar::ILocalExecutor* localExecutor,
+    TArraySubsetIndexing<ui32>* learnObjectOrder) {
 
     if (catBoostOptions.DataProcessingOptions->HasTimeFlag &&
         learnData->MetaInfo.HasTimestamp &&
@@ -144,13 +145,16 @@ TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
         }
 
         auto objectsPermutation = CreateOrderByKey<ui32>(*learnData->ObjectsData->GetTimestamp());
+        auto objectsGroupingSubset = GetSubset(
+            objectsGrouping,
+            TArraySubsetIndexing<ui32>(std::move(objectsPermutation)),
+            EObjectsOrder::Ordered);
+        if (learnObjectOrder) {
+            *learnObjectOrder = Compose(*learnObjectOrder, objectsGroupingSubset.GetObjectsIndexing());
+        }
 
         return learnData->GetSubset(
-            GetSubset(
-                objectsGrouping,
-                TArraySubsetIndexing<ui32>(std::move(objectsPermutation)),
-                EObjectsOrder::Ordered
-            ),
+            objectsGroupingSubset,
             ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
             localExecutor
         );
@@ -185,7 +189,8 @@ TDataProviderPtr ShuffleLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     TDataProviderPtr learnData,
     NPar::ILocalExecutor* localExecutor,
-    TRestorableFastRng64* rand) {
+    TRestorableFastRng64* rand,
+    TArraySubsetIndexing<ui32>* learnObjectOrder) {
 
     if (NeedShuffle(
         learnData->MetaInfo.FeaturesLayout->GetCatFeatureCount(),
@@ -193,6 +198,9 @@ TDataProviderPtr ShuffleLearnDataIfNeeded(
         catBoostOptions
     )) {
         auto objectsGroupingSubset = NCB::Shuffle(learnData->ObjectsGrouping, 1, rand);
+        if (learnObjectOrder) {
+            *learnObjectOrder = Compose(*learnObjectOrder, objectsGroupingSubset.GetObjectsIndexing());
+        }
         return learnData->GetSubset(
             objectsGroupingSubset,
             ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),

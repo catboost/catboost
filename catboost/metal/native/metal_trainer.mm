@@ -11,6 +11,9 @@
 #include "metal_histogram_reuse_kernels.h"
 #include "metal_score_noise_kernels.h"
 #include "metal_backtracking_kernels.h"
+#include "metal_regularization_kernels.h"
+#include "metal_langevin_kernels.h"
+#include "metal_langevin_leaf_kernels.h"
 #include "metal_additional_objective_kernels.h"
 #include "metal_deep_partition_kernels.h"
 #include "metal_compact_histogram_kernels.h"
@@ -53,6 +56,7 @@ struct NativeBootstrapParams {
 };
 struct NativeScoreTileParams { uint32_t Begin, End, Bins, Reserved[5]; };
 struct NativeCompactParams { uint32_t Rows, Features, Leaves, TotalBins, FeatureBegin, TileRows, JobCapacity, Reuse; };
+struct NativeScoreRegularizationParams { uint32_t Normalize; float MetaExponent; uint32_t PerFeature, Reserved; };
 struct NativeBacktrackingParams { float Step; uint32_t Type, AddRidge, Normalize; };
 struct NativeQueryParams {
     uint32_t Rows, Groups, Objective, ApplyLeafValues;
@@ -103,7 +107,7 @@ uint64_t FullMatrixCoreBytes(const CBMSessionParams& options) {
     const uint64_t partitionTiles = (uint64_t(p.rows) + 4095) / 4096;
     const uint64_t scoreGroups = std::max<uint64_t>(1, std::min<uint64_t>((uint64_t(p.candidates) + 255) / 256, 64));
     const uint64_t lossGroups = std::min<uint64_t>((uint64_t(p.rows) + 255) / 256, 4096);
-    uint64_t bytes = uint64_t(p.features) * p.rows + 28ull * p.rows + 9ull * p.candidates
+    uint64_t bytes = uint64_t(p.features) * p.rows + 28ull * p.rows + 10ull * p.candidates
         + 13ull * p.features + 16 * leaves + 60 + 4 * leaves * partitionTiles
         + 32 * (scoreGroups + 1) + 4 * lossGroups + 4ull * (uint64_t(p.features) + 1);
     if (options.leaf_estimation_backtracking && options.leaf_estimation_iterations > 1)
@@ -196,7 +200,8 @@ struct Runtime {
             CBMMetalDeepPartitionSource, CBMMetalCompactHistogramSource, CBMMetalExactLeafSource,
             CBMMetalStreamingScoreSource, CBMMetalQuerywiseSource, CBMMetalDynamicScoreSource];
         if (!customPrefix.empty()) source = [NSString stringWithFormat:@"%s\n%@", customPrefix.c_str(), source];
-        source = [NSString stringWithFormat:@"%@\n%s", source, SimpleLeafSource];
+        source = [NSString stringWithFormat:@"%@\n%s\n%s\n%s\n%s", source, SimpleLeafSource,
+            CBMMetalRegularizationSource, CBMMetalLangevinSource, CBMMetalLangevinLeafSource];
         NSError* error = nil;
         id<MTLLibrary> library = [Device newLibraryWithSource:source options:options error:&error];
         Require(library != nil, "Metal shader compilation failed: " + ErrorText(error));
@@ -222,7 +227,10 @@ struct Runtime {
             "PrefixExactLeafTiles", "SelectExactLeafQuantile", "FinalizeExactLeafValues", "UpdateFixedPermutationSplit", "FindTileSplitWinners", "MergeTileSplitWinner",
             "PrepareQuerywisePoint", "QueryRmseDerivatives", "QuerySoftMaxDerivatives",
             "ReduceQuerywiseLeafPartials", "ReduceQuerywiseObjective", "ResetQuerywiseLeafIds",
-            "ValidateQuerywiseStructureCurvature", "FindDynamicTileSplitWinners"
+            "ValidateQuerywiseStructureCurvature", "FindDynamicTileSplitWinners",
+            "FindSplitWinnersRegularized", "FindTileSplitWinnersRegularized",
+            "FindDynamicTileSplitWinnersRegularized", "EstimateRegularizedNewtonLeafValues",
+            "PrepareLangevinBacktrackingDirection", "AddLangevinWeakNoise"
         };
         for (const char* name : names) {
             id<MTLFunction> function = [library newFunctionWithName:[NSString stringWithUTF8String:name]];
@@ -430,7 +438,7 @@ public:
         if (Coupled) {
             WorkingBytes -= 8ull * (p.rows - 1) + 8ull * (MaxLeaves - 1)
                 + 32ull * (uint64_t(MaxLeaves) * histogramTiles - 1);
-            WorkingBytes += Coupled->AllocatedBytes();
+            WorkingBytes += Coupled->AllocatedBytes() + p.candidates;
         }
         if (Deep) WorkingBytes += 16ull * HistogramJobCapacity + 4ull * MaxLeaves + 52;
         if (UsesBacktracking()) WorkingBytes += 16ull * MaxLeaves + 8ull * LossGroups;
@@ -502,8 +510,8 @@ public:
             const uint8_t type = candidateTypes ? candidateTypes[i] : 0;
             Require(feature < p.features, "A split candidate references an invalid feature");
             Require(type <= 1, "Candidate split types must be numeric (0) or one-hot (1)");
-            Require(bin < p.bins_per_feature && (type == 1 || bin + 1 < p.bins_per_feature)
-                    && (type == 0 || bin < 255), "A split candidate references an invalid border bin");
+            Require(bin < p.bins_per_feature && (type == 1 || bin + 1 < p.bins_per_feature),
+                    "A split candidate references an invalid border bin");
             Require(!seen[feature] || featureTypes[feature] == type,
                     "A feature cannot mix numeric and one-hot candidate types");
             featureTypes[feature] = type; seen[feature] = 1; types[i] = type;
@@ -540,6 +548,11 @@ public:
         CandidateFeature = Context->Buffer(4ull * p.candidates, candidateFeatures);
         CandidateBin = Context->Buffer(4ull * p.candidates, candidateBins);
         CandidateType = Context->Buffer(p.candidates, types.data());
+        if (Coupled && p.candidates) {
+            CandidateActive = Context->Buffer(p.candidates);
+            std::fill_n(static_cast<uint8_t*>(CandidateActive.contents), p.candidates, uint8_t(1));
+            Coupled->SetCandidateMask(CandidateActive);
+        }
         FeatureType = Context->Buffer(p.features, featureTypes.data());
         FeatureOffsets = Context->Buffer(4ull * (p.features + 1), featureOffsets.data());
         if (Deep) {
@@ -589,6 +602,7 @@ public:
                  (Options.objective == 5 || Options.objective >= 8 ? 0.5f :
                   Options.objective == 6 ? 2.0f : Options.objective == 7 ? 1.5f : 1.0f),
              objectiveOptions ? objectiveOptions->leaf_estimation_method : 0, uint32_t(Deep), 0};
+        SimpleLeavesRequested = K.LeafMethod == 3;
         TreeDepths.resize(p.iterations, 0);
         SplitFeatures.resize(splitCount, 0); SplitBins.resize(splitCount, 0); SplitTypes.resize(splitCount, 0);
         if (Deep) { DeepTreeValues.resize(p.iterations); DeepTreeWeights.resize(p.iterations); }
@@ -665,7 +679,7 @@ public:
             const uint64_t exactBytes = 50ull * K.Rows + 8ull * MaxLeaves * K.HistogramTiles + 12ull * MaxLeaves;
             const uint64_t bootstrapBytes = BootstrapOptions.bootstrap_type
                 ? 8ull * K.Rows + 8ull * LossGroups + 4ull * ((K.Rows + 8191) / 8192) : 0;
-            Require(WorkingBytes + PermutationBytes + exactBytes + bootstrapBytes + (NoiseStatistics ? 4ull * LossGroups : 0) <= MaxWorkingBytes,
+            Require(WorkingBytes + LangevinBytes + PermutationBytes + exactBytes + bootstrapBytes + (NoiseStatistics ? 4ull * LossGroups : 0) <= MaxWorkingBytes,
                     "Exact leaf workspace exceeds the 1 GiB GPU memory limit");
             // Publish the workspace only after every allocation succeeds. A
             // rejected configuration must leave this session usable.
@@ -684,6 +698,7 @@ public:
         Options.objective = K.Objective = options->objective;
         K.ObjectiveParam = options->objective_param;
         K.LeafMethod = Dynamic && options->leaf_estimation_method == 3 ? 1 : options->leaf_estimation_method;
+        SimpleLeavesRequested = options->leaf_estimation_method == 3;
         Command command(*Context, Stats);
         EncodeLoss(command); command.Wait(); Losses[0] = ReadLoss();
     }
@@ -747,7 +762,7 @@ public:
                 "QueryCrossEntropy supports No or Bernoulli query bootstrap only");
         if (options->bootstrap_type != 0 && !Coupled) {
             const uint64_t extra = 8ull * K.Rows + 8ull * LossGroups + 4ull * ((K.Rows + 8191) / 8192);
-            Require(WorkingBytes + PermutationBytes + ExactBytes + extra + (NoiseStatistics ? 4ull * LossGroups : 0) <= MaxWorkingBytes,
+            Require(WorkingBytes + LangevinBytes + PermutationBytes + ExactBytes + extra + (NoiseStatistics ? 4ull * LossGroups : 0) <= MaxWorkingBytes,
                     "Bootstrap workspace exceeds the 1 GiB experimental GPU memory limit");
             auto structureWeight = Context->Buffer(4ull * K.Rows);
             auto multipliers = Context->Buffer(4ull * K.Rows);
@@ -763,6 +778,38 @@ public:
         HasMVSLambda = options->initial_mvs_lambda_is_set != 0;
         MVSLambda = options->initial_mvs_lambda;
     }
+    void ConfigureLangevin(float temperature, uint32_t weakNoise, CBMLangevinNoiseCallback noise,
+                           CBMLangevinSeedCallback seed, void* context) {
+        RequireCompletedState();
+        Require(!Completed && !Failed && !Coupled && weakNoise <= 1 && noise && seed,
+                "Configure scalar Langevin with valid callbacks before the first tree");
+        Require(std::isfinite(temperature) && temperature >= 0,
+                "Langevin diffusion temperature must be finite and nonnegative");
+        if (!BacktrackingLoss) {
+            Require(WorkspaceBytes() + 8ull * LossGroups <= MaxWorkingBytes,
+                    "Langevin objective workspace exceeds the GPU memory limit");
+            BacktrackingLoss = Context->Buffer(8ull * LossGroups);
+            LangevinBytes = 8ull * LossGroups;
+        }
+        if (!weakNoise && K.LeafMethod == 3) K.LeafMethod = 1;
+        Langevin = true; WeakLangevin = weakNoise; LangevinTemperature = temperature;
+        LangevinNoise = noise; LangevinSeed = seed; LangevinContext = context;
+    }
+    void ConfigureRegularization(const CBMRegularizationOptions* options) {
+        RequireCompletedState();
+        Require(options && !options->reserved && options->normalize_score <= 1 &&
+                options->normalize_leaf <= 1 && options->add_ridge <= 1,
+                "Regularization options require boolean flags and zero reserved fields");
+        Require(Completed == 0 && !Failed, "Regularization must be configured before the first tree");
+        Require(std::isfinite(options->meta_l2_exponent) && std::isfinite(options->meta_l2_frequency),
+                "MetaL2 exponent and frequency must be finite");
+        Regularization = *options;
+    }
+    void SetMetaL2Callback(CBMMetaL2ExponentCallback callback, void* context) {
+        RequireCompletedState();
+        Require(Completed == 0 && !Failed, "MetaL2 callback must precede the first tree");
+        MetaL2Callback = callback; MetaL2Context = context;
+    }
     void ConfigureScoreNoise(const CBMScoreNoiseOptions* options) {
         RequireCompletedState();
         Require(options && !options->reserved0 && !options->reserved1 && !options->reserved2,
@@ -773,7 +820,7 @@ public:
         if (!Coupled && options->random_strength > 0 && (K.ScoreFunction == 1 || K.ScoreFunction == 3)) {
             const uint64_t extra = BootstrapOptions.bootstrap_type
                 ? 8ull * K.Rows + 8ull * LossGroups + 4ull * ((K.Rows + 8191) / 8192) : 0;
-            Require(WorkingBytes + PermutationBytes + ExactBytes + extra + 4ull * LossGroups <= MaxWorkingBytes,
+            Require(WorkingBytes + LangevinBytes + PermutationBytes + ExactBytes + extra + 4ull * LossGroups <= MaxWorkingBytes,
                     "Score noise workspace exceeds the 1 GiB GPU memory limit");
             NoiseStatistics = Context->Buffer(4ull * LossGroups);
         } else {
@@ -801,7 +848,7 @@ public:
         const uint64_t extra = uint64_t(count - 1) * (DataCells + 4ull * K.Rows) + 32ull * Options.train.depth;
         const uint64_t bootstrapBytes = !Coupled && BootstrapOptions.bootstrap_type
             ? 8ull * K.Rows + 8ull * LossGroups + 4ull * ((K.Rows + 8191) / 8192) : 0;
-        Require(WorkingBytes + ExactBytes + extra + bootstrapBytes + (NoiseStatistics ? 4ull * LossGroups : 0) <= MaxWorkingBytes,
+        Require(WorkingBytes + LangevinBytes + ExactBytes + extra + bootstrapBytes + (NoiseStatistics ? 4ull * LossGroups : 0) <= MaxWorkingBytes,
                 "Permutation matrices and cursors exceed the 1 GiB GPU memory limit");
         std::vector<PermutationData> states(count);
         for (uint32_t permutation = 0; permutation < count; ++permutation) {
@@ -876,6 +923,20 @@ public:
         Require(!Failed && used, "Feature penalty state output is required");
         std::copy(UsedFeatures.begin(), UsedFeatures.end(), used);
     }
+    void SetFeatureSamplingMask(uint32_t featureCount, const uint8_t* active) {
+        Require(!Failed && Coupled, "Feature sampling masks require a valid full-matrix training session");
+        Require(!Pending.Active || (Pending.Depth == 0 && !Pending.SplitPending),
+                "Feature sampling masks must be set before the first split of a tree");
+        Require(featureCount == K.Features && active, "Feature sampling mask size must match the training features");
+        for (uint32_t feature = 0; feature < featureCount; ++feature)
+            Require(active[feature] <= 1, "Feature sampling mask entries must be boolean");
+        const auto* features = static_cast<const uint32_t*>(CandidateFeature.contents);
+        bool any = false;
+        for (uint32_t candidate = 0; candidate < K.Candidates; ++candidate) any |= active[features[candidate]] != 0;
+        Require(!K.Candidates || any, "Feature sampling must retain at least one split candidate");
+        auto* mask = static_cast<uint8_t*>(CandidateActive.contents);
+        for (uint32_t candidate = 0; candidate < K.Candidates; ++candidate) mask[candidate] = active[features[candidate]];
+    }
     void AppendFeatures(const CBMAppendFeatureOptions* options, const uint8_t* const* matrices,
                         const uint32_t* features, const uint32_t* bins, const uint8_t* types,
                         const uint32_t* counts, const float* weights, const uint8_t* flags,
@@ -914,7 +975,7 @@ public:
             const uint32_t feature = features[candidate], bin = bins[candidate];
             const uint8_t type = types ? types[candidate] : 0;
             Require(feature < options->features && type <= 1, "Invalid appended candidate feature or type");
-            Require(bin < options->bins_per_feature && (type ? bin < 255 : bin + 1 < options->bins_per_feature),
+            Require(bin < options->bins_per_feature && (type == 1 || bin + 1 < options->bins_per_feature),
                     "Invalid appended candidate border");
             Require(!seen[feature] || newFeatureTypes[K.Features + feature] == type,
                     "A feature cannot mix numeric and one-hot candidate types");
@@ -1197,11 +1258,12 @@ private:
     uint32_t MaxLeaves = 0, LossGroups = 0;
     double TotalWeight = 0;
     bool Failed = false, Deep = false, Compact = false, Dynamic = false;
+    bool SimpleLeavesRequested = false;
     uint64_t DynamicPeakBytes = 0;
     uint64_t WorkspaceBytes() const {
         const uint64_t bootstrapBytes = !Coupled && BootstrapOptions.bootstrap_type
             ? 8ull * K.Rows + 8ull * LossGroups + 4ull * ((K.Rows + 8191) / 8192) : 0;
-        return WorkingBytes + ExactBytes + PermutationBytes + bootstrapBytes + (NoiseStatistics ? 4ull * LossGroups : 0);
+        return WorkingBytes + ExactBytes + PermutationBytes + LangevinBytes + bootstrapBytes + (NoiseStatistics ? 4ull * LossGroups : 0);
     }
     uint32_t CompactBins = 0, DeepTiles = 0, DeepBlocks = 0, HistogramJobCapacity = 0;
     struct HistogramTile { uint32_t Begin, End, Bins; id<MTLBuffer> Offsets; };
@@ -1215,6 +1277,78 @@ private:
     id<MTLBuffer> RowIndices, NextRowIndices, RowRanks, PartitionTiles, PartitionOffsets;
     id<MTLBuffer> CandidateFeature, CandidateBin, CandidateType, FeatureType, FeatureNoise, NoiseStatistics;
     float RandomStrength = 0;
+    bool Langevin = false, WeakLangevin = false;
+    float LangevinTemperature = 0;
+    uint64_t LangevinBytes = 0;
+    CBMLangevinNoiseCallback LangevinNoise = nullptr;
+    CBMLangevinSeedCallback LangevinSeed = nullptr;
+    void* LangevinContext = nullptr;
+    uint64_t ReadLangevinSeed(uint32_t event) {
+        uint64_t seed = 0;
+        Require(LangevinSeed && LangevinSeed(LangevinContext, event, &seed) == 0,
+                "Langevin seed callback failed");
+        return seed;
+    }
+    bool LangevinLeaves() const { return Langevin && K.LeafMethod != 2 && K.LeafMethod != 3; }
+    void EncodeLangevinWeak(Command& command) {
+        if (!Langevin || !WeakLangevin) return;
+        struct WeakParams { NativeBootstrapParams Random; uint32_t Offset, Stride, Filter, Reserved; } p = {};
+        p.Random = BootstrapParams(); p.Random.Stream = 0x4c470001u;
+        p.Random.NoiseScale = LangevinTemperature > 0
+            ? static_cast<float>(std::sqrt(2.0 / double(K.LearningRate) / double(LangevinTemperature))) : 0;
+        p.Stride = 1; p.Filter = BootstrapOptions.bootstrap_type == 2 || BootstrapOptions.bootstrap_type == 3;
+        command.Dispatch("AddLangevinWeakNoise", {Gradient, p.Filter ? BootstrapMultipliers : SampleWeight}, p, K.Rows);
+    }
+    CBMRegularizationOptions Regularization = {0, 0, 0, 0, 1, 0};
+    CBMMetaL2ExponentCallback MetaL2Callback = nullptr;
+    void* MetaL2Context = nullptr;
+    bool RegularizedLeaves() const { return Regularization.normalize_leaf || Regularization.add_ridge; }
+    NativeBacktrackingParams BacktrackingOptions() const {
+        return {1, Options.leaf_estimation_backtracking, Regularization.add_ridge, Regularization.normalize_leaf};
+    }
+    void EncodeNewtonLeaves(Command& command) {
+        if (!RegularizedLeaves()) {
+            command.Dispatch("EstimateNewtonLeafValues", {ObjectivePartials, RawValues, Weights}, K, K.Leaves, true);
+        } else {
+            const auto b = BacktrackingOptions();
+            command.Dispatch("EstimateRegularizedNewtonLeafValues", {ObjectivePartials, RawValues, Weights},
+                K, K.Leaves, true, 1, 1, &b, sizeof(b));
+        }
+    }
+    double RegularizedObjective(double value, id<MTLBuffer> values) const {
+        if (Regularization.normalize_leaf) value /= TotalWeight;
+        if (Regularization.add_ridge) {
+            const float* point = static_cast<const float*>(values.contents);
+            for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf)
+                value -= 0.5 * double(K.L2) * double(point[leaf]) * point[leaf];
+        }
+        return value;
+    }
+    NativeScoreRegularizationParams ScoreRegularization() const {
+        float exponent = 1; uint32_t perFeature = 0;
+        if ((K.ScoreFunction == 0 || K.ScoreFunction == 2) &&
+            Regularization.meta_l2_exponent != 1 && Regularization.meta_l2_frequency > 0) {
+            if (Regularization.meta_l2_frequency > 1) exponent = Regularization.meta_l2_exponent;
+            else {
+                Require(MetaL2Callback, "Fractional MetaL2 requires a per-feature exponent callback");
+                std::vector<uint8_t> choices(K.Features, 1);
+                Require(MetaL2Callback(MetaL2Context, K.Features, choices.data()) == 0,
+                        "MetaL2 exponent callback failed");
+                auto* output = static_cast<float*>(FeatureNoise.contents);
+                for (uint32_t feature = 0; feature < K.Features; ++feature) {
+                    Require(choices[feature] >= 1 && choices[feature] <= 3,
+                            "MetaL2 callback returned invalid exponent choices");
+                    output[feature] = choices[feature];
+                }
+                // Scalar L2 scores never use feature noise. Reuse that buffer
+                // for the union of choices from CUDA dataset/policy seeds.
+                exponent = Regularization.meta_l2_exponent;
+                perFeature = 1;
+            }
+        }
+        return {Regularization.normalize_score, exponent, perFeature, 0};
+    }
+
     id<MTLBuffer> FeaturePenaltyWeights, CandidateActive;
     std::vector<uint32_t> CtrUniqueValues;
     std::vector<uint8_t> UsedFeatures, FeatureFlags, ActiveFeatures;
@@ -1321,7 +1455,8 @@ private:
     NativeQueryParams QueryParams(bool applyLeafValues, bool structure = false) const {
         return {K.Rows, QueryOptions.group_count, K.Objective, uint32_t(applyLeafValues),
                 QueryOptions.beta, QueryOptions.lambda, K.Leaves,
-                uint32_t(structure && (K.ScoreFunction == 2 || K.ScoreFunction == 3))};
+                uint32_t(structure && !SimpleLeavesRequested &&
+                    (K.ScoreFunction == 2 || K.ScoreFunction == 3))};
     }
     void EncodeQueryPoint(Command& command, id<MTLBuffer> leafValues, bool applyLeafValues,
                           bool structure = false) {
@@ -1378,14 +1513,16 @@ private:
         if (Coupled) Coupled->CheckStatus();
         if (Pairwise) Pairwise->CheckStatus();
         if (Yeti) Yeti->CheckStatus();
-        if (QueryOffsets && (K.ScoreFunction == 2 || K.ScoreFunction == 3))
+        if (QueryOffsets && !SimpleLeavesRequested && (K.ScoreFunction == 2 || K.ScoreFunction == 3))
             Require(*static_cast<const uint32_t*>(QueryValidation.contents) == 0,
                     "Invalid GPU query Newton split score: row curvatures must be finite and nonnegative");
     }
     void EncodeYetiPoint(Command& command, bool applyShift) {
-        Require(YetiSeedPosition < YetiSeeds.size(), "YetiRank oracle seed schedule is missing or exhausted");
+        if (!Langevin) Require(YetiSeedPosition < YetiSeeds.size(), "YetiRank oracle seed schedule is missing or exhausted");
+        const uint64_t seed = Langevin ? ReadLangevinSeed(applyShift ? CBM_LANGEVIN_YETI_LEAF : CBM_LANGEVIN_YETI_WEAK)
+            : YetiSeeds[YetiSeedPosition++];
         Yeti->EncodePointDerivatives(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves,
-            applyShift, Target, SampleWeight, Gradient, Hessian, YetiSeeds[YetiSeedPosition++], &Stats.kernel_dispatches);
+            applyShift, Target, SampleWeight, Gradient, Hessian, seed, &Stats.kernel_dispatches);
     }
     void EncodeQueryLossReduction(Command& command) {
         command.Dispatch("ReduceQuerywiseObjective", {QueryStatistics, QueryLossPartials}, QueryParams(false), LossGroups, true);
@@ -1408,14 +1545,20 @@ private:
         } else if (QueryOffsets) {
             EncodeQueryPoint(command, leafValues, true);
             EncodeQueryLossReduction(command);
-        } else command.Dispatch("ReduceBacktrackingObjective",
-            {Target, SampleWeight, Prediction, LeafIds, leafValues, BacktrackingLoss},
-            K, LossGroups, true, 1, 1, &b, sizeof(b));
+        } else {
+            // CUDA reduces each unnormalized task value, then applies task
+            // normalization and its ridge penalty in the host oracle.
+            const NativeBacktrackingParams valueOptions = {b.Step, b.Type, 0, 0};
+            command.Dispatch("ReduceBacktrackingObjective",
+                {Target, SampleWeight, Prediction, LeafIds, leafValues, BacktrackingLoss},
+                K, LossGroups, true, 1, 1, &valueOptions, sizeof(valueOptions));
+        }
     }
-    double ReadCurrentBacktrackingObjective() const {
-        if (Combination) return Combination->ReadObjective(true);
-        if (Pairwise) return -Pairwise->ReadLossPartials(true)[0];
-        return QueryOffsets ? -QueryLossNumerator() : ReadBacktrackingScalar(BacktrackingLoss, LossGroups);
+    double ReadCurrentBacktrackingObjective(id<MTLBuffer> values) const {
+        if (Combination) return RegularizedObjective(Combination->ReadObjective(true), values);
+        if (Pairwise) return RegularizedObjective(-Pairwise->ReadLossPartials(true)[0], values);
+        return QueryOffsets ? RegularizedObjective(-QueryLossNumerator(), values)
+            : RegularizedObjective(ReadBacktrackingScalar(BacktrackingLoss, LossGroups), values);
     }
     void EstimateCoupledBacktrackingLeaves() {
         Command initial(*Context, Stats);
@@ -1423,7 +1566,7 @@ private:
             nullptr, 0, &Stats.kernel_dispatches);
         Coupled->EncodeLoss(initial.Buffer, LeafIds, K.Leaves, true, &Stats.kernel_dispatches);
         initial.Wait();
-        double currentValue = -Coupled->ReadLoss().first;
+        double currentValue = RegularizedObjective(-Coupled->ReadLoss().first, RawValues);
         bool updated = false, newDirection = true;
         float step = 1; double directionDot = 0;
         for (uint32_t attempt = 0; attempt < Options.leaf_estimation_iterations || (!updated && attempt < 100); ++attempt) {
@@ -1432,6 +1575,7 @@ private:
                 Coupled->EncodeEdges(trial.Buffer, Prediction, RawValues, LeafIds, K.Leaves, true,
                     nullptr, 0, &Stats.kernel_dispatches);
                 Coupled->EncodeLeafProjection(trial.Buffer, K.Leaves, K.LeafMethod == 1, &Stats.kernel_dispatches);
+                if (Regularization.add_ridge) Coupled->EncodeLeafRidge(trial.Buffer, RawValues, K.Leaves, K.L2, &Stats.kernel_dispatches);
                 Coupled->EncodeLeafDirection(trial.Buffer, K.Leaves, K.L2, CoupledNonDiag, &Stats.kernel_dispatches);
                 Coupled->EncodeDirectionDot(trial.Buffer, DirectionDot, K.Leaves, &Stats.kernel_dispatches);
             }
@@ -1445,7 +1589,7 @@ private:
                 directionDot = ReadBacktrackingScalar(DirectionDot, 1);
                 Require(std::isfinite(directionDot), "Non-finite coupled pairwise direction");
             }
-            const double trialValue = -Coupled->ReadTrialLoss();
+            const double trialValue = RegularizedObjective(-Coupled->ReadTrialLoss(), TrialValues);
             const double threshold = currentValue +
                 (Options.leaf_estimation_backtracking == 2 ? 1e-5 * double(step) * directionDot : 0);
             if (std::isfinite(trialValue) && trialValue >= threshold) {
@@ -1455,7 +1599,7 @@ private:
         }
     }
     void EstimateBacktrackingLeaves() {
-        NativeBacktrackingParams b = {1.0f, Options.leaf_estimation_backtracking, 0, 0};
+        NativeBacktrackingParams b = BacktrackingOptions();
         auto Dispatch = [&](Command& command, const char* name, std::initializer_list<id<MTLBuffer>> buffers,
                             uint64_t count, bool groups) {
             command.Dispatch(name, buffers, K, count, groups, 1, 1, &b, sizeof(b));
@@ -1463,7 +1607,7 @@ private:
         Command initial(*Context, Stats);
         EncodeBacktrackingObjective(initial, RawValues, b);
         initial.Wait();
-        double currentValue = ReadCurrentBacktrackingObjective();
+        double currentValue = ReadCurrentBacktrackingObjective(RawValues);
         Require(std::isfinite(currentValue), "Non-finite current GPU leaf objective");
         bool updated = false, newDirection = true;
         double directionDot = 0;
@@ -1486,7 +1630,7 @@ private:
                     ? "Invalid GPU query leaf direction: Newton requires a finite positive regularized Hessian"
                     : "Non-finite GPU leaf direction");
             }
-            const double trialValue = ReadCurrentBacktrackingObjective();
+            const double trialValue = ReadCurrentBacktrackingObjective(TrialValues);
             const double threshold = currentValue + (b.Type == 2 ? 1e-5 * double(b.Step) * directionDot : 0);
             if (std::isfinite(trialValue) && trialValue >= threshold) {
                 std::swap(RawValues, TrialValues);
@@ -1501,7 +1645,7 @@ private:
         }
     }
     void EstimateCombinationYetiLeaves() {
-        NativeBacktrackingParams b = {1.0f, Options.leaf_estimation_backtracking, 0, 0};
+        NativeBacktrackingParams b = BacktrackingOptions();
         auto oracle = [&](Command& command, id<MTLBuffer> values, bool trial = false) {
             Combination->EncodeOracle(command.Buffer, Prediction, values, LeafIds, K.Leaves, true,
                 Target, SampleWeight, Gradient, Hessian, CombinationGradientWeights, &Stats.kernel_dispatches, trial);
@@ -1514,14 +1658,14 @@ private:
         };
         Command initial(*Context, Stats);
         oracle(initial, RawValues); initial.Wait();
-        double currentValue = Combination->ReadObjective();
+        double currentValue = RegularizedObjective(Combination->ReadObjective(), RawValues);
         // CUDA performs one initial evaluation for I=1. Longer walks jointly
         // evaluate value/gradient/Hessian at EVERY trial, including the last.
         if (!UsesBacktracking()) {
             for (uint32_t iteration = 0; iteration < Options.leaf_estimation_iterations; ++iteration) {
                 Command update(*Context, Stats);
                 project(update);
-                update.Dispatch("EstimateNewtonLeafValues", {ObjectivePartials, RawValues, Weights}, K, K.Leaves, true);
+                EncodeNewtonLeaves(update);
                 if (Options.leaf_estimation_iterations > 1) oracle(update, RawValues);
                 update.Wait(); Combination->CheckStatus();
             }
@@ -1546,7 +1690,7 @@ private:
                 directionDot = ReadBacktrackingScalar(DirectionDot, K.Leaves);
                 Require(std::isfinite(directionDot), "Non-finite Combination leaf direction");
             }
-            const double value = Combination->ReadObjective(true);
+            const double value = RegularizedObjective(Combination->ReadObjective(true), TrialValues);
             const double threshold = currentValue + (b.Type == 2 ? 1e-5 * b.Step * directionDot : 0);
             if (std::isfinite(value) && value >= threshold) {
                 std::swap(RawValues, TrialValues);
@@ -1733,7 +1877,7 @@ private:
         if (Coupled) Coupled->ClearStatus();
         if (Combination) Combination->ClearStatus();
         if (Yeti) {
-            Require(YetiSeedPosition == 0 && (YetiSeeds.size() == 1 || YetiSeeds.size() == YetiLeafSeedCount() + 1),
+            Require(Langevin || (YetiSeedPosition == 0 && (YetiSeeds.size() == 1 || YetiSeeds.size() == YetiLeafSeedCount() + 1)),
                 "Supply a fresh YetiRank oracle seed schedule before every tree");
             Yeti->ClearStatus();
         }
@@ -1777,7 +1921,8 @@ private:
                 const float* partials = static_cast<const float*>(NoiseStatistics.contents);
                 double variance = 0;
                 for (uint32_t i = 0; i < LossGroups; ++i) {
-                    Require(std::isfinite(partials[i]) && (Combination || partials[i] >= 0),
+                    Require(std::isfinite(partials[i]) &&
+                            (Combination || (SimpleLeavesRequested && K.Objective == 13) || partials[i] >= 0),
                         "Non-finite GPU score noise statistic");
                     variance += partials[i];
                 }
@@ -1811,7 +1956,9 @@ private:
             KernelParams clear = K;
             clear.Leaves = MaxLeaves;
             command.Dispatch("InitializeLeafValues", {RawValues, Weights}, clear, MaxLeaves);
+            if (Langevin) ReadLangevinSeed(CBM_LANGEVIN_WEAK_SEED_CACHE);
             EncodeBootstrap(command);
+            EncodeLangevinWeak(command);
             Pending.Initialize = false;
             Pending.PartitionsValid = false;
         }
@@ -1879,15 +2026,19 @@ private:
             noiseParams.NoiseScale = Pending.NoiseScale;
             command.Dispatch("GenerateScoreFeatureNoise", {FeatureNoise}, noiseParams, K.Features);
         }
+        const auto scoreRegularization = ScoreRegularization();
+        const bool regularizedScore = scoreRegularization.Normalize || scoreRegularization.MetaExponent != 1 || scoreRegularization.PerFeature;
+        uint32_t metaBits; std::memcpy(&metaBits, &scoreRegularization.MetaExponent, sizeof(metaBits));
         if (Compact) {
             for (size_t index = 0; index < HistogramTiles.size(); ++index) {
                 const auto& tile = HistogramTiles[index];
                 EncodeCompactHistograms(command, level != 0 && HistogramTiles.size() == 1 && (!Dynamic || Pending.HistogramValid), tile);
-                const NativeScoreTileParams scoreTile = {tile.Begin, tile.End, tile.Bins, {0, 0, 0, 0, 0}};
-                if (Dynamic) command.Dispatch("FindDynamicTileSplitWinners", {HistogramSums, HistogramWeights, LeafSums, LeafWeights,
+                const NativeScoreTileParams scoreTile = {tile.Begin, tile.End, tile.Bins,
+                    {scoreRegularization.Normalize, metaBits, scoreRegularization.PerFeature, 0, 0}};
+                if (Dynamic) command.Dispatch(regularizedScore ? "FindDynamicTileSplitWinnersRegularized" : "FindDynamicTileSplitWinners", {HistogramSums, HistogramWeights, LeafSums, LeafWeights,
                     CandidateFeature, CandidateBin, CandidateType, WinnerPartials, FeatureNoise, tile.Offsets,
                     FeaturePenaltyWeights, CandidateActive}, K, K.ScoreGroups, true, 1, 1, &scoreTile, sizeof(scoreTile));
-                else command.Dispatch("FindTileSplitWinners", {HistogramSums, HistogramWeights, LeafSums, LeafWeights,
+                else command.Dispatch(regularizedScore ? "FindTileSplitWinnersRegularized" : "FindTileSplitWinners", {HistogramSums, HistogramWeights, LeafSums, LeafWeights,
                     CandidateFeature, CandidateBin, CandidateType, WinnerPartials, FeatureNoise, tile.Offsets, FeaturePenaltyWeights},
                     K, K.ScoreGroups, true, 1, 1, &scoreTile, sizeof(scoreTile));
                 command.Dispatch("ReduceSplitWinners", {WinnerPartials, index == 0 ? Winner : TileWinner}, K, 1, true);
@@ -1914,9 +2065,10 @@ private:
                              K, uint64_t(parents) * K.Features * K.Bins);
         }
         if (!Compact) {
-            command.Dispatch("FindSplitWinners",
+            command.Dispatch(regularizedScore ? "FindSplitWinnersRegularized" : "FindSplitWinners",
                 {HistogramSums, HistogramWeights, LeafSums, LeafWeights,
-                 CandidateFeature, CandidateBin, CandidateType, WinnerPartials, FeatureNoise, FeatureOffsets, FeaturePenaltyWeights}, K, K.ScoreGroups, true);
+                 CandidateFeature, CandidateBin, CandidateType, WinnerPartials, FeatureNoise, FeatureOffsets, FeaturePenaltyWeights}, K, K.ScoreGroups, true, 1, 1,
+                 regularizedScore ? &scoreRegularization : nullptr, regularizedScore ? sizeof(scoreRegularization) : 0);
             command.Dispatch("ReduceSplitWinners", {WinnerPartials, Winner}, K, 1, true);
         }
         command.Wait();
@@ -1954,14 +2106,14 @@ private:
         Pending.Finished = Pending.Depth == p.depth;
     }
     PermutationTree EstimateFeatureParallelCombinationLeaves() {
-        // CUDA FeatureParallel has one walker over all full-data tasks. Keep
+        // CUDA symmetric scalar estimation has one walker over all tasks. Keep
         // each task's accepted point and derivatives on the GPU, and reduce
         // only scalar objective/direction values to make one shared decision.
         struct Task {
-            id<MTLBuffer> Ids, Rows, Offsets, Raw, Weights, Gradient, Hessian, Trial, Direction, Dot;
+            id<MTLBuffer> Ids, Rows, Offsets, Raw, Weights, Gradient, Hessian, Trial, Direction, Dot, NoiseG, NoiseH;
         };
         const uint32_t count = PermutationCount(), leaves = K.Leaves;
-        const uint64_t extra = uint64_t(count) * (16ull * K.Rows + 28ull * leaves + 4)
+        const uint64_t extra = uint64_t(count) * (16ull * K.Rows + (LangevinLeaves() ? 44ull : 28ull) * leaves + 4)
             + 32ull * Pending.Depth;
         Require(WorkspaceBytes() + extra <= MaxWorkingBytes,
             "FeatureParallel Combination leaf tasks exceed the 1 GiB GPU memory limit");
@@ -1978,6 +2130,7 @@ private:
             t.Raw = Context->Buffer(4ull * leaves); t.Weights = Context->Buffer(4ull * leaves);
             t.Trial = Context->Buffer(4ull * leaves); t.Direction = Context->Buffer(4ull * leaves);
             t.Dot = Context->Buffer(8ull * leaves);
+            if (LangevinLeaves()) { t.NoiseG = Context->Buffer(8ull * leaves); t.NoiseH = Context->Buffer(8ull * leaves); }
             layout.Dispatch("ResetQuerywiseLeafIds", {LeafIds}, QueryParams(false), K.Rows);
             K.Leaves = 1; EncodePartitions(layout);
             for (uint32_t level = 0; level < Pending.Depth; ++level) {
@@ -2006,6 +2159,7 @@ private:
             if (!Permutations.empty()) { Data = Permutations[i].Bins; Prediction = Permutations[i].Cursor; }
         };
         auto project = [&](Command& command) {
+            if (!Combination && !(LangevinLeaves() && (Yeti || Pairwise || QueryOffsets))) { EncodeObjectivePartials(command); return; }
             const NativeQueryProjectionParams q = {K.Rows, leaves, K.HistogramTiles, K.LeafMethod};
             command.Dispatch("ReduceQuerywiseLeafPartials",
                 {Gradient, Hessian, SampleWeight, RowIndices, PartitionOffsets, ObjectivePartials},
@@ -2015,25 +2169,56 @@ private:
             double value = 0;
             for (uint32_t i = 0; i < count; ++i) {
                 select(i); Command oracle(*Context, Stats);
-                Combination->EncodeOracle(oracle.Buffer, Prediction, trial ? TrialValues : RawValues,
-                    LeafIds, leaves, true, Target, SampleWeight, Gradient, Hessian,
-                    CombinationGradientWeights, &Stats.kernel_dispatches, trial);
-                oracle.Wait(); value += Combination->ReadObjective(trial);
+                if (Combination) {
+                    Combination->EncodeOracle(oracle.Buffer, Prediction, trial ? TrialValues : RawValues,
+                        LeafIds, leaves, true, Target, SampleWeight, Gradient, Hessian,
+                        CombinationGradientWeights, &Stats.kernel_dispatches, trial);
+                    oracle.Wait(); value += RegularizedObjective(Combination->ReadObjective(trial), trial ? TrialValues : RawValues);
+                } else if (Yeti) {
+                    Yeti->EncodePointDerivatives(oracle.Buffer, Prediction, trial ? TrialValues : RawValues,
+                        LeafIds, leaves, true, Target, SampleWeight, Gradient, Hessian,
+                        ReadLangevinSeed(CBM_LANGEVIN_YETI_LEAF), &Stats.kernel_dispatches);
+                    oracle.Wait(); Yeti->CheckStatus();
+                    value += RegularizedObjective(0, trial ? TrialValues : RawValues);
+                } else {
+                    const auto b = BacktrackingOptions();
+                    EncodeBacktrackingObjective(oracle, trial ? TrialValues : RawValues, b, trial);
+                    oracle.Wait(); value += ReadCurrentBacktrackingObjective(trial ? TrialValues : RawValues);
+                }
             }
             return value;
         };
+        auto noise = [&](uint32_t event, bool diagonal, bool add) {
+            std::vector<double> samples(uint64_t(count) * leaves);
+            Require(LangevinNoise(LangevinContext, event, static_cast<uint32_t>(samples.size()), samples.data()) == 0,
+                    "Langevin leaf noise callback failed");
+            for (uint32_t task = 0; task < count; ++task) {
+                float* output = static_cast<float*>((diagonal ? tasks[task].NoiseH : tasks[task].NoiseG).contents);
+                for (uint32_t leaf = 0; leaf < leaves; ++leaf) {
+                    double value = samples[uint64_t(task) * leaves + leaf];
+                    if (add) value += double(output[2 * leaf]) + output[2 * leaf + 1];
+                    Require(std::isfinite(value), "Langevin callback returned nonfinite leaf noise");
+                    output[2 * leaf] = static_cast<float>(value);
+                    output[2 * leaf + 1] = static_cast<float>(value - output[2 * leaf]);
+                }
+            }
+        };
         double currentValue = evaluate(false);
-        if (!UsesBacktracking()) {
+        if (LangevinLeaves()) {
+            noise(CBM_LANGEVIN_INITIAL_GRADIENT, false, false);
+            noise(CBM_LANGEVIN_INITIAL_HESSIAN, true, false);
+        }
+        if (!UsesBacktracking() && !LangevinLeaves()) {
             for (uint32_t iteration = 0; iteration < Options.leaf_estimation_iterations; ++iteration) {
                 for (uint32_t i = 0; i < count; ++i) {
                     select(i); Command update(*Context, Stats); project(update);
-                    update.Dispatch("EstimateNewtonLeafValues", {ObjectivePartials, RawValues, Weights}, K, leaves, true);
+                    EncodeNewtonLeaves(update);
                     update.Wait();
                 }
                 if (Options.leaf_estimation_iterations > 1) evaluate(false);
             }
         } else {
-            NativeBacktrackingParams b = {1, Options.leaf_estimation_backtracking, 0, 0};
+            NativeBacktrackingParams b = BacktrackingOptions();
             bool updated = false, newDirection = true;
             double directionDot = 0;
             for (uint32_t attempt = 0; attempt < Options.leaf_estimation_iterations || (!updated && attempt < 100); ++attempt) {
@@ -2042,7 +2227,10 @@ private:
                     select(i); Command trial(*Context, Stats);
                     if (newDirection) {
                         project(trial);
-                        trial.Dispatch("PrepareBacktrackingDirection", {ObjectivePartials, RawValues, Directions, Weights, DirectionDot},
+                        if (LangevinLeaves()) trial.Dispatch("PrepareLangevinBacktrackingDirection",
+                            {ObjectivePartials, RawValues, Directions, Weights, DirectionDot, tasks[i].NoiseG, tasks[i].NoiseH},
+                            K, leaves, true, 1, 1, &b, sizeof(b));
+                        else trial.Dispatch("PrepareBacktrackingDirection", {ObjectivePartials, RawValues, Directions, Weights, DirectionDot},
                             K, leaves, true, 1, 1, &b, sizeof(b));
                     }
                     trial.Dispatch("BuildBacktrackingCandidate", {RawValues, Directions, Weights, TrialValues},
@@ -2051,10 +2239,19 @@ private:
                     if (newDirection) directionDot += ReadBacktrackingScalar(DirectionDot, leaves);
                 }
                 Require(std::isfinite(directionDot), "Non-finite FeatureParallel Combination direction");
-                const double value = evaluate(true);
-                const double threshold = currentValue + (b.Type == 2 ? 1e-5 * b.Step * directionDot : 0);
-                if (std::isfinite(value) && value >= threshold) {
+                if (LangevinLeaves() && Options.leaf_estimation_iterations == 1) {
                     for (auto& t : tasks) std::swap(t.Raw, t.Trial);
+                    break;
+                }
+                const double value = evaluate(true);
+                if (LangevinLeaves()) noise(CBM_LANGEVIN_TRIAL_GRADIENT, false, false);
+                const double threshold = currentValue + (b.Type == 2 ? 1e-5 * b.Step * directionDot : 0);
+                if ((LangevinLeaves() && b.Type == 0) || (std::isfinite(value) && value >= threshold)) {
+                    for (auto& t : tasks) std::swap(t.Raw, t.Trial);
+                    if (LangevinLeaves()) {
+                        noise(CBM_LANGEVIN_ACCEPTED_GRADIENT, false, true);
+                        for (auto& t : tasks) std::memset(t.NoiseH.contents, 0, 8ull * leaves);
+                    }
                     currentValue = value; updated = true; newDirection = true; b.Step = 1;
                 } else { b.Step *= 0.5f; newDirection = false; }
             }
@@ -2062,6 +2259,8 @@ private:
         PermutationTree exported;
         for (uint32_t i = 0; i < count; ++i) {
             select(i); Command finish(*Context, Stats);
+            if (Pairwise) Pairwise->EncodeCenterLeafValues(finish.Buffer, RawValues, leaves, &Stats.kernel_dispatches);
+            if (Yeti) Yeti->EncodeCenterLeafValues(finish.Buffer, RawValues, leaves, &Stats.kernel_dispatches);
             finish.Dispatch("FinalizeLeafValues", {RawValues, Values}, K, leaves);
             finish.Dispatch("AddObjectiveBinModelValue", {LeafIds, Values, Prediction}, K, K.Rows);
             EncodeLoss(finish); finish.Wait();
@@ -2096,7 +2295,7 @@ private:
         K.Leaves = uint32_t(1) << actualDepth;
         Command command(*Context, Stats);
         PrepareTree(command);
-        if (Yeti) Require(YetiSeedPosition == 1 && YetiSeeds.size() == YetiLeafSeedCount() + 1,
+        if (Yeti && !Langevin) Require(YetiSeedPosition == 1 && YetiSeeds.size() == YetiLeafSeedCount() + 1,
             "YetiRank requires one weak draw and every permutation's leaf seed schedule");
         auto EstimatePermutation = [&](Command& command, uint32_t permutation) -> PermutationTree {
         // CUDA estimates complete leaf walks in dataset order. Structure
@@ -2132,6 +2331,7 @@ private:
                 Coupled->EncodeEdges(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves, true,
                     nullptr, 0, &Stats.kernel_dispatches);
                 Coupled->EncodeLeafProjection(command.Buffer, K.Leaves, K.LeafMethod == 1, &Stats.kernel_dispatches);
+                if (Regularization.add_ridge) Coupled->EncodeLeafRidge(command.Buffer, RawValues, K.Leaves, K.L2, &Stats.kernel_dispatches);
                 Coupled->EncodeLeafDirection(command.Buffer, K.Leaves, K.L2, CoupledNonDiag, &Stats.kernel_dispatches);
                 Coupled->EncodeLeafUpdate(command.Buffer, RawValues, Weights, RawValues, K.Leaves, 1, &Stats.kernel_dispatches);
             }
@@ -2148,7 +2348,7 @@ private:
             for (uint32_t iteration = 0; iteration < Options.leaf_estimation_iterations; ++iteration) {
                 K.LeafIteration = iteration;
                 EncodeObjectivePartials(command);
-                command.Dispatch("EstimateNewtonLeafValues", {ObjectivePartials, RawValues, Weights}, K, K.Leaves, true);
+                EncodeNewtonLeaves(command);
             }
             if (Yeti && Options.leaf_estimation_iterations > 1) {
                 // TNewtonLikeWalker evaluates the final point after its last
@@ -2172,7 +2372,7 @@ private:
         double totalWeight = 0;
         for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf) {
             Require(std::isfinite(values[leaf]) && std::isfinite(weights[leaf])
-                    && (weights[leaf] >= 0 || (Combination && K.LeafMethod == 3)),
+                    && (weights[leaf] >= 0 || ((Combination || K.Objective == 13) && K.LeafMethod == 3)),
                     QueryOffsets ? "Invalid GPU query leaf statistics: Newton requires a finite positive regularized Hessian"
                                  : "Invalid GPU leaf statistics");
             totalWeight += weights[leaf];
@@ -2232,7 +2432,8 @@ private:
                 Permutations[permutation].HasLambda = HasMVSLambda;
                 return estimate;
         };
-        if (Combination && Dynamic) {
+        if (LangevinLeaves() || (Combination && Dynamic) || (RegularizedLeaves() && !Coupled && !Yeti &&
+            PermutationCount() > 1 && UsesBacktracking())) {
             command.Wait();
             exported = EstimateFeatureParallelCombinationLeaves();
         } else {
@@ -2833,6 +3034,35 @@ extern "C" int cbm_session_copy_feature_penalty_state(void* handle, uint8_t* use
     return ApiCall(error, capacity, [&] {
         auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
         session->CopyFeaturePenaltyState(used);
+    });
+}
+extern "C" int cbm_session_set_feature_sampling_mask(void* handle, uint32_t featureCount,
+    const uint8_t* active, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle);
+        std::lock_guard<std::mutex> guard(session->Mutex);
+        session->SetFeatureSamplingMask(featureCount, active);
+    });
+}
+extern "C" int cbm_session_set_langevin(void* handle, float temperature, uint32_t weakNoise,
+    CBMLangevinNoiseCallback noise, CBMLangevinSeedCallback seed, void* context, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->ConfigureLangevin(temperature, weakNoise, noise, seed, context);
+    });
+}
+extern "C" int cbm_session_set_regularization(void* handle, const CBMRegularizationOptions* options,
+    char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->ConfigureRegularization(options);
+    });
+}
+extern "C" int cbm_session_set_meta_l2_exponent_callback(void* handle, CBMMetaL2ExponentCallback callback,
+    void* context, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->SetMetaL2Callback(callback, context);
     });
 }
 extern "C" int cbm_session_get_workspace_info(void* handle, uint32_t* tiles, uint64_t* histogramBytes,

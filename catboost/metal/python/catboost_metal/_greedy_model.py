@@ -23,7 +23,7 @@ def _vector(value, name):
     return value
 
 
-def tree_json(tree, borders, *, split_descriptors=None):
+def tree_json(tree, borders, *, split_descriptors=None, leaf_estimation_method=None):
     """Convert one flat tree using numeric feature borders in training order.
 
     Internal nodes are [feature, border_bin, type, left, right, UINT32_MAX].
@@ -36,8 +36,9 @@ def tree_json(tree, borders, *, split_descriptors=None):
             or values.ndim == 2 and not 2 <= values.shape[1] <= 64):
         raise ValueError("leaf_values must be finite scalar values or a [leaves, 2..64 outputs] matrix.")
     weights = _vector(tree.leaf_weights, "leaf_weights")
-    if weights.shape != (len(values),) or not len(values) or (weights < 0).any():
-        raise ValueError("Leaf values and nonnegative weights must have matching nonempty shapes.")
+    if (weights.shape != (len(values),) or not len(values)
+            or leaf_estimation_method != "Simple" and (weights < 0).any()):
+        raise ValueError("Leaf values and valid weights must have matching nonempty shapes; signed weights require Simple leaves.")
     if len(values) > _MAX_LEAVES:
         raise ValueError("Greedy model trees support at most 65536 leaves.")
     if (nodes.ndim != 2 or nodes.shape[1] != 6 or nodes.dtype.kind not in "iu"
@@ -224,7 +225,8 @@ def _layout_model(grid, layout, feature_names, bias, stats):
 
 
 def model_json(result, borders, *, bias=0., objective="RMSE", feature_names=None,
-               grow_policy="Lossguide", layout=None, objective_param=None, loss_parameters=None):
+               grow_policy="Lossguide", layout=None, objective_param=None, loss_parameters=None,
+               leaf_estimation_method=None):
     """Return a standard CatBoost JSON dict for greedy training output.
 
     Leaf values already contain the learning rate. ``bias`` is the common
@@ -232,10 +234,16 @@ def model_json(result, borders, *, bias=0., objective="RMSE", feature_names=None
     A FeatureLayout preserves original feature IDs, NaN routing, one-hot hashes
     and final inference CTR tables. Without a layout, only numeric features are
     supported. Training permutation CTR values are never exported as full tables.
+    Simple leaf weights preserve the sampled statistics used during search,
+    including signed query curvature.
     """
-    from ._greedy import OBJECTIVES, OBJECTIVE_PARAMETERS, objective_parameter
+    from ._greedy import LEAF_METHODS, OBJECTIVES, OBJECTIVE_PARAMETERS, objective_parameter
     from ._options import parse_loss
     vector = objective in ("MultiClass", "MultiClassOneVsAll", "RMSEWithUncertainty")
+    if leaf_estimation_method is None:
+        leaf_estimation_method = result.stats.get("leaf_estimation_method")
+    if leaf_estimation_method is not None and leaf_estimation_method not in LEAF_METHODS:
+        raise ValueError("Invalid greedy leaf_estimation_method for model export.")
     if objective not in OBJECTIVES and not vector:
         raise ValueError("objective must be a supported scalar or vector greedy objective.")
     parameters = {} if loss_parameters is None else dict(loss_parameters)
@@ -297,7 +305,8 @@ def model_json(result, borders, *, bias=0., objective="RMSE", feature_names=None
                  "scale_and_bias": [1.0, np.asarray(bias).reshape(-1).tolist()], "model_info": {}}
     else:
         model, descriptors = _layout_model(grid, layout, feature_names, bias, result.stats)
-    trees = [tree_json(tree, grid, split_descriptors=descriptors) for tree in result.trees]
+    trees = [tree_json(tree, grid, split_descriptors=descriptors,
+                       leaf_estimation_method=leaf_estimation_method) for tree in result.trees]
     if not trees:
         raise ValueError("At least one completed tree is required for model export.")
     model["trees"] = trees
@@ -306,6 +315,10 @@ def model_json(result, borders, *, bias=0., objective="RMSE", feature_names=None
                                "params": {"loss_function": {"type": objective, "params": {
                                               key: str(value) for key, value in parameters.items()}},
                                           "tree_learner_options": {"grow_policy": grow_policy}}})
+    if leaf_estimation_method == "Simple":
+        model["model_info"]["params"]["tree_learner_options"].update(
+            leaf_estimation_method="Simple", leaf_estimation_iterations=1)
+        model["model_info"]["metal_leaf_weight_semantics"] = "bootstrapped weak score weights"
     if objective == "Lq":
         model["model_info"]["metal_objective_scope"] = (
             "Lq uses CUDA pointwise derivative equations; upstream CUDA does not register Lq for greedy grow policies.")

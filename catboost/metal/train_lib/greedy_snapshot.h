@@ -37,13 +37,14 @@ namespace NCB {
         TConstArrayRef<float> weights,
         ui32 featureCount,
         ui32 maxDepth = 65535,
-        ui32 approxDimension = 1)
+        ui32 approxDimension = 1,
+        bool allowSignedLeafWeights = false)
     {
         CB_ENSURE(approxDimension >= 1 && approxDimension <= 64 && !weights.empty() && weights.size() <= 65536 &&
             values.size() == weights.size() * approxDimension && nodes.size() == weights.size() * 2 - 1,
             "Metal greedy tree has inconsistent node or leaf counts");
         for (float value : values) CB_ENSURE(std::isfinite(value), "Metal greedy tree contains invalid leaf values");
-        for (float weight : weights) CB_ENSURE(std::isfinite(weight) && weight >= 0,
+        for (float weight : weights) CB_ENSURE(std::isfinite(weight) && (allowSignedLeafWeights || weight >= 0),
             "Metal greedy tree contains invalid leaf weights");
         TMetalGreedyTopology result;
         result.Preorder.reserve(nodes.size());
@@ -126,8 +127,10 @@ namespace NCB {
             return result;
         }
 
-        ui32 Append(const TMetalGreedyTree& tree, ui32 featureCount, ui32 maxDepth = 65535, ui32 approxDimension = 1) {
-            const auto topology = ValidateMetalGreedyTree(tree.Nodes, tree.Values, tree.Weights, featureCount, maxDepth, approxDimension);
+        ui32 Append(const TMetalGreedyTree& tree, ui32 featureCount, ui32 maxDepth = 65535, ui32 approxDimension = 1,
+                    bool allowSignedLeafWeights = false) {
+            const auto topology = ValidateMetalGreedyTree(tree.Nodes, tree.Values, tree.Weights, featureCount, maxDepth,
+                approxDimension, allowSignedLeafWeights);
             CB_ENSURE(NodeOffsets.size() == Depths.size() + 1 && LeafOffsets.size() == Depths.size() + 1 &&
                 NodeOffsets.front() == 0 && LeafOffsets.front() == 0 && Nodes.size() % 6 == 0 &&
                 NodeOffsets.back() == Nodes.size() / 6 && LeafOffsets.back() == Weights.size() &&
@@ -143,7 +146,8 @@ namespace NCB {
             return topology.Depth;
         }
 
-        void Validate(ui32 featureCount, ui32 policy, ui32 maxDepth, ui32 maxLeaves, ui32 maxIterations, ui32 approxDimension = 1) const {
+        void Validate(ui32 featureCount, ui32 policy, ui32 maxDepth, ui32 maxLeaves, ui32 maxIterations,
+                      ui32 approxDimension = 1, bool allowSignedLeafWeights = false) const {
             const ui32 capacity = MetalGreedyLeafCapacity(policy, maxDepth, maxLeaves);
             const ui32 depthBound = Min(maxDepth, capacity - 1);
             CB_ENSURE(Depths.size() <= maxIterations && NodeOffsets.size() == Depths.size() + 1 &&
@@ -154,7 +158,8 @@ namespace NCB {
             for (size_t t = 0; t < Depths.size(); ++t) {
                 const auto tree = GetTree(t, approxDimension);
                 CB_ENSURE(tree.Weights.size() <= capacity, "Metal greedy snapshot exceeds its leaf capacity");
-                const auto topology = ValidateMetalGreedyTree(tree.Nodes, tree.Values, tree.Weights, featureCount, depthBound, approxDimension);
+                const auto topology = ValidateMetalGreedyTree(tree.Nodes, tree.Values, tree.Weights, featureCount, depthBound,
+                    approxDimension, allowSignedLeafWeights);
                 CB_ENSURE(topology.Depth == Depths[t], "Metal greedy snapshot depth does not match its tree");
                 if (policy == 2) {
                     for (const auto& node : tree.Nodes) {

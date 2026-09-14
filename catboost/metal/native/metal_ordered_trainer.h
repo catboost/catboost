@@ -1,6 +1,7 @@
 #pragma once
 #include "metal_trainer.h"
 #include "metal_combination.h"
+#include "metal_langevin.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,6 +22,16 @@ typedef struct {
 // bins uint8[features,rows]; permutation_maps uint32[permutations,rows].
 // Maps are explicit position->original-row permutations. Optional initial
 // predictions/weights use original row order; buffers are copied on creation.
+// Additive option; initial CBMOrderedParams reserved fields remain zero.
+int cbm_ordered_set_add_ridge_to_target_function(void* session, uint32_t enabled,
+    char* error, size_t error_capacity);
+// Activate before the first tree, after configuring ordinary estimation options.
+// GPU defaults are Langevin disabled / temperature zero; explicit activation
+// at zero temperature still consumes the source host RNG callback events.
+int cbm_ordered_session_set_langevin(void* session, float diffusion_temperature,
+    CBMLangevinNoiseCallback noise_callback, CBMLangevinSeedCallback seed_callback,
+    void* context, char* error, size_t error_capacity);
+
 int cbm_ordered_session_create(const CBMOrderedParams* params, const uint8_t* bins,
     const float* targets, const float* weights, const float* initial_predictions,
     const uint32_t* candidate_features, const uint32_t* candidate_bins,

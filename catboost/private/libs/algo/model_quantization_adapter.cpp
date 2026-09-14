@@ -94,6 +94,12 @@ namespace {
         }
 
         void Visit(const TQuantizedFeaturesBlockIterator& quantizedFeaturesBlockIterator) override {
+            // Prequantized model preparation only has float/category accessors;
+            // omitting the estimated buckets would silently change tree inputs.
+            // Native Metal training progress supplies its own finalized calcer
+            // preparation for internal training providers.
+            CB_ENSURE(Model.ModelTrees->GetEstimatedFeatures().empty(),
+                "Prediction for text or embedding models requires an unquantized Pool");
             TQuantizedFeatureAccessor quantizedFeatureAccessor = quantizedFeaturesBlockIterator.GetAccessor();
 
             if (UseHostQuantization()) {

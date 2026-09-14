@@ -110,7 +110,7 @@ extern "C" int cbm_pairwise_selection_probe(uint32_t candidates, uint32_t featur
             auto weights = runtime.Buffer(featureWeights, 4ull * features), index = runtime.Buffer(nullptr, 4);
             auto result = runtime.Buffer(nullptr, 8);
             SelectionParams p = {candidates, features, 0, 0, previous, 0, 0, 0};
-            runtime.Dispatch("SelectPairwiseSplitWinner", {values, ids, weights, index, result}, p);
+            runtime.Dispatch("SelectPairwiseSplitWinner", {values, ids, weights, index, result, values}, p);
             runtime.Wait();
             std::memcpy(winner, index.contents, 4); std::memcpy(scoreGain, result.contents, 8);
             return 0;

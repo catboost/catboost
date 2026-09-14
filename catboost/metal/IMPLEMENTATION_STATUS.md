@@ -1,13 +1,67 @@
 # Metal implementation status
 
 Updated 2026-09-13 (local time). CUDA source revision: `e68a1c021f`.
-This is an active port. Standalone features, rebuilt native packages, and
-components awaiting integration are distinguished below. The earlier
+This is an active port. Integrated source and published package evidence are
+distinguished below. The earlier
 [PORT_REVIEW.md](PORT_REVIEW.md) remains a historical source inventory.
 
-## Current local checkpoint
+## Current source and release status
 
-Training-mode card 3 is installed in checkpoint `20260914T000929Z`. It adds
+**Card 4 is complete and its coherent release acceptance passed.**
+Installed checkpoint: `20260914T025201Z`. Final accepted counts:
+14,376 tests plus 16 subtests in the full matrix; 6,118 tests alternate; 2,431 tests installed; 348 CLI; 203 preinstall smoke; 203 installed smoke; 350 exact preceding snapshot recoveries. All required gates passed on the frozen source set.
+
+The source now connects shared cross-validation, text/embedding estimators,
+registered scalar/query/vector/greedy Simple leaves, fixed splits, full-matrix
+RSM, automatic CTR priors, feature weights, Full counters, the 256-value one-hot
+boundary, normalization/ridge/Meta-L2 and Langevin. Newly exposed standalone
+FeatureParallel/compound and training-option paths use the native Metal
+adapter. See [API_OPTIONS_PORT.md](API_OPTIONS_PORT.md) for source consumers,
+no-op modes, intentional differences and acceptance status.
+
+## Accepted card 4 evidence
+
+Checkpoint `20260914T025201Z` passed all required gates and is installed
+in `catboost/metal/.venv`. Failures, errors and skips are zero.
+
+| Acceptance gate | Passed |
+|---|---:|
+| Full native/standalone matrix | 14,376 tests plus 16 subtests |
+| Alternate extension | 6,118 tests |
+| Installed package | 2,431 tests |
+| CLI configurations | 348 |
+| Preinstall GPU smoke configurations | 203 |
+| Installed GPU smoke configurations | 203 |
+| Exact preceding snapshot recoveries | 350 |
+| Metal C++ helper checks | 118 |
+| Estimated/CTR metadata C++ checks | 3 |
+| Combination metric C++ checks | 2 |
+| Quantized categorical apply C++ checks | 3 |
+
+These selections overlap and must not be summed. The preinstall and
+installed smoke runs are separate gates over the same inventory; host
+subsets can overlap the C++ total. Earlier diagnostic counts are not added
+to this final acceptance. No CPU CatBoost fit or NVIDIA execution was used.
+
+The snapshot gate replays 244 preserved earlier fixtures plus
+106 original snapshots written by checkpoint `20260914T000929Z`.
+Expected arrays, histories and callback sequences come from those original
+builds; current-build expectations do not replace them. The preceding wheel
+and immutable fixture hashes were checked again before finalization.
+
+The gate records identify 743 unchanged source files and source base
+`27c9fad9cfb9f415ba63483ab72368a7cbefbc30`. Package identity:
+
+- Checkpoint directory: `catboost/metal/.build/releases/20260914T025201Z/`
+- Wheel: `catboost-1.2.10-cp312-cp312-macosx_11_0_arm64.whl`
+- Wheel SHA256: `afc6061556df133351dfc14232faea1a257be328838f2e0522fff1d91af66117`
+- Standard extension SHA256: `037c62099bb935b003601fd7c686421786ad15f5820e8f819a315aa1d7e5066e`
+- Alternate extension SHA256: `1dae6900a58034df2e0562b3b24a0f2af1251f02b186645a52d1f4f36f6651b5`
+- CLI SHA256: `0b54dfcdd6c0f0ed1440ba2f3ef9e658f623bdc26725267519ec4ca9eea68b66`
+
+### Preceding published checkpoint
+
+Training-mode card 3 was published in checkpoint `20260914T000929Z`. It added
 classic YetiRank Depthwise/Lossguide/Region, Ordered query/ranking, native
 Plain/Ordered FeatureParallel for the registered scalar/query objectives,
 Combination losses and custom per-object Metal shaders. Those native symmetric
@@ -21,45 +75,90 @@ the reconstruction patch and added files. The preceding compound checkpoint
 are historical; their then-open restrictions do not supersede the current
 interface matrix or remaining-work list.
 
-## Verified interfaces on M3 Pro
+## Integrated interfaces on M3 Pro
 
-| Area | Standalone Metal estimators | Latest tested native package |
+The card 4 paths passed targeted and coherent release acceptance. Historical
+accepted package counts appear separately below.
+
+| Area | Standalone Metal estimators | Native Metal source |
 |---|---|---|
-| Entry points | Regressor, Classifier, Ranker | Ordinary CatBoost estimators, Pool, CLI, `task_type="GPU"` |
+| Entry points | Regressor, Classifier, Ranker; new options route through the native fork | Ordinary CatBoost estimators, Pool, CLI, shared CV, `task_type="GPU"` |
 | Scalar losses | RMSE, Logloss, CrossEntropy, Poisson, Huber, Expectile, Lq, Tweedie, LogLinQuantile, Quantile, MAE, MAPE | All twelve |
 | Vector losses | MultiClass, MultiClassOneVsAll, MultiRMSE, RMSEWithUncertainty, MultiLogloss, MultiCrossEntropy | All six, including weighted metrics, baselines and snapshots |
 | Grouped losses | All seven existing query/ranking objectives with one-hot inputs; QueryRMSE/QuerySoftMax/PairLogit/classic YetiRank additionally support Ordered and Plain greedy routes | All seven support simple CTR P4; the four diagonal query/ranking objectives additionally support symmetric Plain/Ordered FeatureParallel and compound CTRs |
-| Symmetric trees | Numeric and simple categorical training, depth 0–16 | Raw/prequantized Pools; registered scalar/query Plain/Ordered FeatureParallel including Combination/custom and compound CTRs |
-| Non-symmetric trees | Numeric/one-hot/CTR Depthwise, Lossguide, Region; eleven scalar, three vector and QueryRMSE/QuerySoftMax/PairLogit/classic YetiRank; seven scalar/five vector scores and applicable Newton/Gradient/Exact/backtracking | Same registered objectives with P4 cursors, snapshots, callbacks, best-model trimming and GPU evaluation; YetiRank keeps Newton/No backtracking |
+| Symmetric trees | Numeric/simple CTR paths and native-routed registered FeatureParallel/compound paths, depth 0–16 | Raw/prequantized Pools; registered scalar/query Plain/Ordered FeatureParallel including Combination/custom and compound CTRs |
+| Non-symmetric trees | Numeric/one-hot/CTR Depthwise, Lossguide, Region; eleven scalar, three vector and QueryRMSE/QuerySoftMax/PairLogit/classic YetiRank; applicable Simple/Newton/Gradient/Exact/backtracking | Same registered objectives with fixed-prefix controls, P4 cursors, snapshots, callbacks, best-model trimming and GPU evaluation; YetiRank keeps Newton/No backtracking |
 | Ordered boosting | Scalar and QueryRMSE/QuerySoftMax/PairLogit/classic YetiRank; existing numeric/one-hot/simple CTR banks and complete prefix recovery | Same objective families plus Combination/custom; all four simple/compound CTR types, Sample/Group histories, raw/quantized Pools and exact lifecycle |
-| Categoricals | One-hot and simple Borders/FeatureFreq CTRs; standalone Plain FeatureParallel and dynamic compounds remain open | Four simple CTR types; native symmetric Plain/Ordered FeatureParallel compounds for registered scalar/query objectives, Combination/custom, retained grids and final tables |
+| Categoricals | Existing one-hot/simple CTR paths plus native-routed Plain/Ordered FeatureParallel and dynamic compounds | Four simple CTR types; registered scalar/query/Combination/custom compounds, retained grids and final tables; Full counters and automatic simple Borders priors |
 | Combination/custom | No estimator frontend for these objectives | Symmetric Plain DocParallel or Plain/Ordered FeatureParallel; supported scalar/query Combination components and per-object Metal shader source |
+| Text/embedding | Native Pool/calcer configuration is the supported interface | Shared offline/online estimators, permutation banks, estimated splits, processing collections and training progress |
+| Simple leaves | Registered greedy and FeatureParallel paths; newly enabled explicit symmetric scalar/vector/diagonal-query Simple routes through native training | Registered scalar/query, six symmetric vector and greedy families; source-specific weak-statistic or one-step estimator semantics |
 | Scores | Seven symmetric/greedy scalar scores; vector L2/Cosine/SolarL2/LOOL2/SatL2 | All seven scalar and five vector scores |
-| Bootstrap | Symmetric scalar/query: No/Bayesian/Bernoulli/Poisson/MVS; vector and greedy exclude MVS | Scalar/multiclass sampling and exact continuation verified |
+| Bootstrap | Ordinary scalar/diagonal-query: No/Bayesian/Bernoulli/Poisson/MVS; vector/greedy exclude MVS; full-matrix restrictions are objective-specific | Same registered sampler boundaries and saved-state handling |
+| Training options | Native routing for fixed splits, RSM, ridge/Meta-L2/Langevin, Full counters and one-hot 256 | Source-specific score/leaf regularization, feature-weight mapping, packed RSM masks and shared host event accounting |
 | Lifecycle | Weighted validation, stopping, best models, callbacks, safe numeric snapshots, exact optimizer/permutation state | Multiple evaluation sets, shared metrics, callbacks, baselines, initial models, snapshots |
-| Inference/export | GPU symmetric and variable-tree evaluation; standard CBM/JSON | Normal GPU prediction for symmetric and variable trees, numeric/category/CTR/prequantized Pools and vector outputs |
+| Inference/export | GPU symmetric and variable-tree evaluation; standard CBM/JSON | GPU numeric/category/CTR/prequantized/vector prediction; shared CPU reader for exported text/embedding processing collections |
 
 Restrictions are checked explicitly. Full-matrix objectives remain symmetric
-Plain DocParallel; Combination/custom have no greedy route. Newly enabled Simple
-query/Combination/custom leaves are symmetric only, with distinct DocParallel
-weak-statistic and FeatureParallel Gradient-step semantics. Greedy Simple remains
-rejected. Ordered+Exact remains rejected like CUDA;
+Plain DocParallel; Combination/custom have no greedy route. Simple is connected
+for the registered native trainers with one estimation iteration; classic
+YetiRank requires Newton, and full-matrix Simple requires positive depth.
+DocParallel weak-statistic export differs from FeatureParallel's one Gradient
+leaf step. Explicit Simple activates native routing for standalone symmetric
+scalar/vector and registered diagonal-query training while preserving existing
+implicit defaults. Existing full-matrix Simple, implicit or explicit, retains
+its direct runtime unless another new option selects native routing, preserving
+its established configurations and snapshots. Ordered+Exact remains rejected like CUDA;
 private experimental coverage is not a public CUDA capability. Public greedy
 Lq is also excluded because CUDA does not register it for those policies.
 Lossguide accepts larger requested depth, bounded by max_leaves; actual GPU
 training/export at depth 100 passes. Native reader tests additionally cover
 much deeper constructed models, without claiming every maximum-size model is
-validated. Standalone multiclass and greedy RMSEWithUncertainty accept numeric, one-hot and simple CTR inputs; other standalone multioutput paths currently use numeric data. Standalone rankers accept one-hot categories.
+validated. Standalone multiclass and greedy RMSEWithUncertainty accept numeric,
+one-hot and simple CTR inputs; other direct-runtime standalone multioutput paths
+use numeric data. Native-routed configurations retain native categorical Pool
+support for those objectives. Standalone rankers accept one-hot categories.
 
 An upstream CatBoost wheel alone does not contain Metal. The development
 adapter compiles its runtime beside the installed model/data library. The
-native fork includes Metal and uses the existing GPU task type.
+native fork includes Metal and uses the existing GPU task type. Newly native-routed
+standalone configurations require that fork; an upstream wheel cannot supply
+their training backend. Text/embedding GPU prediction, prequantized estimated
+feature prediction and initial-model merging of processing collections remain
+explicit boundaries; shared CPU application performs no CPU training.
 
-## Current verification and packaged checkpoints
+## Compatibility decisions
 
-The installed checkpoint **20260914T000929Z** passes **12,745 cases plus 16
-subtests**. The alternate extension passes **4,901 tests**. Host C++ acceptance
-passes **54 Metal helper checks**, **2 Combination metric checks** and **3
+The shared native copy path preserves stored evaluation predictions through
+`CatBoost.copy()`, the standalone `to_catboost()` result and pickle round trips.
+Returned evaluation values are independent copies. This fixes lost evaluation
+state discovered by Full-counter and YetiRank frontend checks; stored online
+values are retained instead of being recomputed from final model tables.
+
+- The published defaults remain Plain boosting, CTR complexity one and implicit
+  Simple for YetiRankPairwise. CUDA has different applicable defaults, including
+  promotion of implicit Simple when multiple categorical/estimated histories
+  survive. Explicit registered options remain available.
+- Automatic Borders prior estimation establishes target borders before calling
+  the shared host Beta estimator, correcting CUDA's source initialization order.
+  Dynamic CTR user feature weights remain one, correcting the CUDA visitor's
+  local-feature/global-weight alias; model-size penalties still apply.
+- Langevin is explicit and shares target/cache/search/leaf host events, including
+  rejected trials. Full-matrix objectives reject it; positive temperature alone
+  does not activate it. Meta-L2 uses that same stream when both options are set.
+  Device weak-noise and other existing GPU random streams retain documented
+  Metal conventions. Exact same-build snapshots do not establish NVIDIA RNG
+  equivalence.
+
+See [API_OPTIONS_PORT.md](API_OPTIONS_PORT.md),
+[automatic_ctr_priors.md](docs/automatic_ctr_priors.md) and
+[feature_weights.md](docs/feature_weights.md) for detailed contracts.
+
+## Historical card 3 verification and package
+
+The preceding checkpoint **20260914T000929Z** passed **12,745 cases plus 16
+subtests**. Its alternate extension passed **4,901 tests**. Host C++ acceptance
+passed **54 Metal helper checks**, **2 Combination metric checks** and **3
 quantized categorical apply checks**. Counts overlap and are not summed; the
 final source identities remained unchanged throughout coherent acceptance.
 
@@ -72,7 +171,7 @@ metrics, best-model trimming and saved state. The
 corrected CUDA defects; host seed accounting does not establish CUDA device RNG
 or tie-order equivalence.
 
-Wheel installed in `catboost/metal/.venv`:
+Wheel installed for that acceptance in `catboost/metal/.venv`:
 
 ```text
 catboost/metal/.build/releases/20260914T000929Z/
@@ -81,10 +180,10 @@ SHA256 0514c3b4414b5b9dd197fd40d9b84fae95e362f0e9bd0e201c3d7bcc3cf436a5
 Standard extension SHA256 431e44e746ee8418a5b81560658728af40d187bebcd767c63cb2b1f04bf8170c
 ```
 
-The installed extension matches the frozen tested binary.
+That installed extension matched the frozen tested binary.
 **1,267 installed acceptance cases**, **134 GPU smoke
 configurations**, **287 CLI configurations** and **244 exact preceding snapshot
-recoveries** pass. Original old-build fixtures remain preserved; recovery does
+recoveries** passed. Original old-build fixtures remain preserved; recovery does
 not substitute regenerated current-build expectations. Release artifacts retain
 both extensions, CLI, source reconstruction material, commands, hashes and raw
 reports. The prior `20260913T220233Z` release remains intact.
@@ -92,8 +191,8 @@ reports. The prior `20260913T220233Z` release remains intact.
 ### Historical objective checkpoints
 
 The following component counts and checkpoint descriptions record earlier
-integration milestones. Current aggregate acceptance and installed identity are
-listed above; old restrictions describe their own checkpoint only.
+integration milestones. The accepted card 4 release is distinct from those
+packages; old restrictions describe their own checkpoint only.
 
 The preceding compound checkpoint `20260913T220233Z` passed 11,323 tests plus
 16 subtests, 3,892 alternate tests, 41 C++ checks, 385 installed acceptance cases,
@@ -194,14 +293,13 @@ configuration-matched CUDA quality evidence.
 
 ## Remaining work
 
-- Connect standalone Plain FeatureParallel and dynamic compound CTR frontends.
-  Native scalar/query Plain and Ordered FeatureParallel, Combination and custom
-  shaders are connected; standalone fixed categorical banks remain distinct.
-- Extend remaining CUDA-registered API/option combinations, including greedy
-  Simple leaves. Full-matrix, vector and non-symmetric trainers retain their
-  registered partition boundaries; they do not use the compound scheduler.
-- Integrate shared text/embedding estimated features, remaining training
-  options and feature penalties without CPU-training fallback.
+- Implement the separate [model-based feature analysis workflow](../../Kanban/07-model-based-feature-analysis.md)
+  in card 7. Native ordinary training, prediction and CV do not establish this
+  feature-ablation API.
+- Keep source-supported boundaries explicit: full-matrix/vector/greedy partition
+  restrictions, native-only Combination/custom and calcer configuration,
+  estimated-feature reader/model-sum limits, and CPU-only penalty/shrinkage
+  options are distinct from missing registered training paths.
 - Complete CUDA device random-buffer agreement and investigate numerical/tied
   split differences. Audited host seed order and exact same-build snapshots do
   not prove equivalence of device bootstrap, score noise or pack visitation.

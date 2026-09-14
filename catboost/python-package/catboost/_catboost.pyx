@@ -781,6 +781,12 @@ cdef extern from "catboost/libs/loggers/catboost_logger_helpers.h":
         TMaybe[size_t] BestIteration
         THashMap[TString, double] LearnBestError
         TVector[THashMap[TString, double]] TestBestError
+        TVector[TVector[double]] MetalLearnCursor
+        double MetalInitialLoss
+        ui32 MetalResumedIterations
+        TString MetalObjectiveMetric
+        ui64 MetalKernelDispatches
+        double MetalGpuSeconds
 
 cdef extern from "catboost/libs/train_lib/train_model.h":
     cdef void TrainModel(
@@ -945,7 +951,7 @@ cdef extern from "catboost/libs/eval_result/eval_helpers.h" namespace "NCB":
 
 cdef extern from "catboost/libs/eval_result/eval_result.h" namespace "NCB":
     cdef cppclass TEvalResult:
-        TVector[TVector[TVector[double]]] GetRawValuesRef() except +ProcessException with gil
+        TVector[TVector[TVector[double]]]& GetRawValuesRef() except +ProcessException with gil
         void ClearRawValues() except +ProcessException with gil
 
 cdef extern from "catboost/private/libs/init/init_reg.h" namespace "NCB":
@@ -5619,27 +5625,55 @@ cdef class _CatBoost:
         # only after that model has been destroyed
         self._replace_model(new_model, None)
 
+    cpdef _get_metal_training_cursor(self):
+        """Return the retained model's online learn cursor without serializing it."""
+        cdef size_t dimensions = self.__metrics_history.MetalLearnCursor.size()
+        cdef size_t rows, dimension, row
+        if (not self.__model.ModelInfo.contains(to_arcadia_string(b"metal_backend"))
+                or self.__model.ModelInfo[to_arcadia_string(b"metal_backend")] != to_arcadia_string(b"METAL")
+                or dimensions == 0):
+            raise CatBoostError("The native Metal online training cursor is unavailable for this fit or snapshot")
+        rows = self.__metrics_history.MetalLearnCursor[0].size()
+        result = np.empty((rows, dimensions), dtype=np.float64)
+        for dimension in xrange(dimensions):
+            if self.__metrics_history.MetalLearnCursor[dimension].size() != rows:
+                raise CatBoostError("The native Metal training cursor has inconsistent dimensions")
+            for row in xrange(rows):
+                result[row, dimension] = self.__metrics_history.MetalLearnCursor[dimension][row]
+        return result[:, 0].copy() if dimensions == 1 else result
+
+    cpdef _get_metal_training_info(self):
+        return {"initial_loss": self.__metrics_history.MetalInitialLoss,
+                "resumed_iterations": self.__metrics_history.MetalResumedIterations,
+                "objective_metric": to_str(self.__metrics_history.MetalObjectiveMetric),
+                "kernel_dispatches": self.__metrics_history.MetalKernelDispatches,
+                "gpu_seconds": self.__metrics_history.MetalGpuSeconds}
+
     cpdef _set_test_evals(self, test_evals):
         cdef TVector[double] vector
+        cdef TVector[TVector[TVector[double]]]* raw_values
         cdef size_t num_tests = len(test_evals)
         self._reserve_test_evals(num_tests)
         self._clear_test_evals()
         cdef size_t test_no
         for test_no in xrange(num_tests):
+            raw_values = &dereference(self.__test_evals[test_no]).GetRawValuesRef()
             for row in test_evals[test_no]:
                 for value in row:
                     vector.push_back(float(value))
-                dereference(self.__test_evals[test_no]).GetRawValuesRef()[0].push_back(vector)
+                dereference(raw_values)[0].push_back(vector)
                 vector.clear()
 
     cpdef _get_test_evals(self):
         test_evals = []
+        cdef TVector[TVector[TVector[double]]]* raw_values
         cdef size_t num_tests = self.__test_evals.size()
         cdef size_t test_no, i
         for test_no in xrange(num_tests):
             test_eval = []
-            for i in xrange(self.__test_evals[test_no].GetRawValuesRef()[0].size()):
-                test_eval.append([value for value in dereference(self.__test_evals[test_no]).GetRawValuesRef()[0][i]])
+            raw_values = &dereference(self.__test_evals[test_no]).GetRawValuesRef()
+            for i in xrange(dereference(raw_values)[0].size()):
+                test_eval.append([value for value in dereference(raw_values)[0][i]])
             test_evals.append(test_eval)
         return test_evals
 

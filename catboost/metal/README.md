@@ -1,8 +1,9 @@
 # CatBoost on Apple Metal
 
 This work-in-progress backend translates CatBoost's CUDA algorithms to Apple
-Metal. Training and tree evaluation run on the Apple GPU. Shared CatBoost code
-handles data preparation, metrics, and standard model files.
+Metal. Tree training and numeric/categorical tree evaluation run on the Apple
+GPU. Shared CatBoost code handles data preparation, feature estimators, metrics,
+and standard model files.
 
 There are two entry points:
 
@@ -10,19 +11,26 @@ There are two entry points:
   `CatBoostClassifier`, `Pool`, and `task_type="GPU"`. Darwin ARM64 registers
   the GPU trainer as Metal. The CLI and Python extensions share the backend.
 - **Standalone adapter:** `CatBoostMetalRegressor`,
-  `CatBoostMetalClassifier`, and `CatBoostMetalRanker` call the runtime directly alongside an installed
-  CatBoost wheel. This is convenient for kernel development and has a narrower
-  data/API surface than the native trainer.
+  `CatBoostMetalClassifier`, and `CatBoostMetalRanker` retain their direct runtime
+  paths and route newly exposed FeatureParallel/compound and training-option
+  configurations through the native Metal adapter. Those new routes require
+  this fork's rebuilt package. The frontend has a narrower data/API surface
+  than native CatBoost.
 
 Installing an upstream CatBoost wheel alone does not install this Metal port.
 [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) tracks tested capabilities,
-remaining CUDA gaps, and native versus standalone evidence. Installed checkpoint
-`20260914T000929Z` includes greedy YetiRank, Ordered query/ranking, native
-Plain/Ordered FeatureParallel compound training for the registered scalar/query
-objectives, Combination losses and custom per-object Metal shaders. Its full
-matrix passes 12,745 tests plus 16 subtests; the alternate extension passes
-4,901 tests. See [TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md) for the supported
-matrix, source corrections, exact lifecycle and final release evidence.
+remaining CUDA gaps, and native versus standalone evidence. **Card 4 is complete and its coherent release acceptance passed.** Installed checkpoint:
+`20260914T025201Z`; final accepted counts: 14,376 tests plus 16 subtests in the full matrix; 6,118 tests alternate; 2,431 tests installed; 348 CLI; 203 preinstall smoke; 203 installed smoke; 350 exact preceding snapshot recoveries.
+It connects shared cross-validation, text/embedding training, registered Simple
+leaves, fixed splits, RSM, automatic CTR priors, feature weights, Full counters,
+normalization/ridge/Meta-L2 and Langevin. See
+[API_OPTIONS_PORT.md](API_OPTIONS_PORT.md) for exact consumers and limitations.
+
+The preceding published checkpoint `20260914T000929Z` passed 12,745 tests plus
+16 subtests and 4,901 alternate-extension tests. Those historical counts cover
+card 3, including greedy YetiRank, Ordered query/ranking, native FeatureParallel
+compounds, Combination and custom shaders; they do not certify card 4. Its
+release evidence is preserved in [TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md).
 
 ## Run the standalone adapter
 
@@ -60,6 +68,11 @@ through the Metal API. It does not require the offline `metal` compiler.
 Quantization and model loading use the installed CatBoost package; training
 never falls back to its CPU trainer. Prediction defaults to the standard CPU
 evaluator; choose `task_type="METAL"` or `"GPU"` for Metal tree evaluation.
+Plain FeatureParallel and compound CTRs use the native fork instead of the
+direct session path, as do newly enabled explicit symmetric scalar/vector/diagonal-query
+Simple, fixed splits, full-matrix RSM, ridge/Meta-L2/Langevin,
+Full counters and the 256-value one-hot boundary. They retain native Pool
+preparation, original feature identities and snapshot handling.
 
 Classification supports Logloss, soft-target CrossEntropy, MultiClass,
 MultiClassOneVsAll, MultiLogloss, and MultiCrossEntropy. Vector regression
@@ -108,6 +121,12 @@ multiclass supports No/Bayesian/Bernoulli/Poisson. Use
 `fit(..., save_snapshot=True, snapshot_file="training.snapshot")`;
 a later estimator with the same data/options and a larger total `iterations`
 resumes that checkpoint.
+
+The shared native copy path preserves stored evaluation predictions through
+`CatBoost.copy()`, the standalone `to_catboost()` result and pickle round trips.
+Returned evaluation values are independent copies. This fixes lost evaluation
+state discovered by Full-counter and YetiRank frontend checks; stored online
+values are retained instead of being recomputed from final model tables.
 
 ## Build native CatBoost with Metal
 
@@ -166,9 +185,18 @@ Native integration and standalone options are tested separately. Native symmetri
 training also accepts supported `Combination` losses and custom per-object GPU
 objectives through `calc_ders_range_metal()`. The
 [custom shader interface](docs/custom_objectives.md) defines the weighted
-value/gradient/curvature contract and supplies an example. These two interfaces,
-Plain FeatureParallel and dynamic compound CTR generation are native capabilities;
-the standalone estimator frontend does not expose them.
+value/gradient/curvature contract and supplies an example. Combination and custom
+objectives remain native interfaces; the standalone loss parsers do not expose
+them. The standalone frontend does expose registered Plain FeatureParallel and
+dynamic compound CTR modes through the native adapter.
+
+Native `cv(..., params={"task_type": "GPU", ...})` supports ordinary metrics-only
+cross-validation and returned fold models through the shared CV controls.
+Native Pools also support shared text/embedding estimators; see
+[estimated_features.md](docs/estimated_features.md). Raw text/embedding GPU
+prediction remains rejected like CUDA, while ordinary CPU model application
+uses the exported calcers without CPU training. Prequantized prediction and
+initial-model continuation for those processing collections remain restricted.
 
 ## Validation and examples
 
@@ -205,7 +233,7 @@ sibling subtraction reuse parent statistics. GPU reductions select split
 winners. Compensated partition/leaf and prediction sums improve accuracy,
 while mixed-precision CUDA parity remains unproven for close scores.
 
-The installed native wheel supports Plain DocParallel symmetric trees through
+The integrated native source supports Plain DocParallel symmetric trees through
 depth 16, twelve scalar losses, six vector families and all seven connected
 grouped objectives. Symmetric Plain and Ordered FeatureParallel support scalar
 losses, QueryRMSE, QuerySoftMax, PairLogit, classic YetiRank, Combination and
@@ -216,12 +244,17 @@ rows at 2²⁴; numeric features support up to 255 borders. These are software c
 
 Native and standalone Ordered retain complete prefix cursors and whole-group
 histories for the supported scalar/query/ranking objectives. Public
-Ordered+Exact remains rejected like CUDA. The new Simple query/Combination/custom
-leaf methods are native symmetric capabilities: DocParallel exports sampled weak
-statistics, while FeatureParallel performs one Gradient-style leaf step.
-Greedy Simple remains unsupported. See
-[TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md) for leaf, score, sampler and
-seed-order restrictions.
+Ordered+Exact remains rejected like CUDA. Registered native Simple paths include
+scalar/query, all six symmetric vector families and greedy trainers; classic
+YetiRank retains its required Newton method. DocParallel exports sampled weak
+statistics, while FeatureParallel performs one Gradient leaf step. The scalar
+and greedy templates have distinct empty/signed-weight rules. Explicit Simple
+also activates native routing for the standalone symmetric scalar/vector and
+registered diagonal-query paths. Existing full-matrix Simple, implicit or
+explicit, keeps its direct runtime unless another new option selects native
+routing; existing defaults and snapshots are preserved. See
+[API_OPTIONS_PORT.md](API_OPTIONS_PORT.md) for these distinctions and
+[TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md) for preceding training-mode scope.
 
 Native symmetric Plain/Ordered FeatureParallel connects compound CTRs to the
 registered scalar/query/ranking objectives and Combination/custom targets, with
@@ -229,15 +262,35 @@ Sample/Group histories, retained P1/P4 grids, exact snapshots and standard model
 tables. Set `max_ctr_complexity=2` or `3`; see
 [COMPOUND_CTR_PORT.md](COMPOUND_CTR_PORT.md) for the categorical machinery and its
 preceding checkpoint, and [TRAINING_MODES_PORT.md](TRAINING_MODES_PORT.md) for
-current objective coverage. Full-matrix, vector and greedy training do not use
-that compound scheduler. Standalone Plain FeatureParallel and compound CTR
-frontends, remaining APIs/options, text/embeddings, CUDA device RNG agreement,
-numerical ties, memory scaling and wider hardware/performance validation remain
-open. No full CUDA feature, numerical or performance parity is claimed.
+the preceding objective coverage. The standalone frontend now exposes the
+registered Plain/Ordered FeatureParallel categorical routes through native
+training. Full-matrix, vector and greedy training retain their partition
+boundaries and do not use that compound scheduler.
+
+Normalization, ridge and Meta-L2 follow their separate source consumers;
+accepting an option in a source no-op mode does not add another algorithm.
+Explicit Langevin is connected for registered scalar/query/vector training,
+with shared host event seeds and bounded snapshot replay. Full-matrix objectives
+reject Langevin even at zero temperature. Positive temperature alone does not
+activate it. Metal preserves its published Plain/complexity-one defaults and
+implicit Simple default for YetiRankPairwise; automatic-prior initialization and
+dynamic CTR feature-weight aliasing have documented corrections.
+
+CUDA device RNG agreement, numerical/tied split
+differences, memory scaling and wider hardware/performance validation remain
+open. The separate [model-based feature analysis workflow](../../Kanban/07-model-based-feature-analysis.md)
+is card 7; ordinary training and cross-validation do not implement it. No full
+CUDA feature, numerical or performance parity is claimed.
 The [source map](CUDA_PORT.md) explains correspondence and precision differences;
 [BOOTSTRAP_PORT.md](BOOTSTRAP_PORT.md) records sampling semantics.
 [PORT_REVIEW.md](PORT_REVIEW.md) preserves the earlier dated review; use
 [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for current status.
+
+## Historical feature and optimization reports
+
+The following reports preserve earlier accepted milestones. Their release
+counts and installation statements apply to the named checkpoint; current
+source scope and accepted release evidence are described above.
 
 Native and standalone greedy training accept one-hot categories for all
 eleven registered scalar losses; see [GREEDY_ONE_HOT_PORT.md](GREEDY_ONE_HOT_PORT.md).

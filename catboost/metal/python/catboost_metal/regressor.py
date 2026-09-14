@@ -119,7 +119,7 @@ def _training_metadata(*, iterations, depth, learning_rate, l2_leaf_reg, border_
                        leaf_estimation_backtracking="No", permutation_count=1, model_size_reg=None,
                        boosting_type="Plain", fold_len_multiplier=2.0, min_fold_size=100,
                        fold_size_loss_normalization=False, grow_policy="SymmetricTree",
-                       max_leaves=None, min_data_in_leaf=1, fold_permutation_block=64):
+                       max_leaves=None, min_data_in_leaf=1, fold_permutation_block=64, feature_weights=None):
     boosting = {"iterations": iterations, "learning_rate": learning_rate, "boosting_type": boosting_type,
                 "data_partition": "FeatureParallel" if boosting_type == "Ordered" else "DocParallel",
                 "boost_from_average": boost_from_average,
@@ -139,6 +139,8 @@ def _training_metadata(*, iterations, depth, learning_rate, l2_leaf_reg, border_
             tree["max_leaves"] = max_leaves
     if model_size_reg is not None:
         tree["model_size_reg"] = model_size_reg
+    if feature_weights is not None:
+        tree["feature_weights"] = {str(index): float(weight) for index, weight in enumerate(feature_weights)}
     quantization = {"border_count": border_count, "border_type": "GreedyLogSum", "nan_mode": nan_mode}
     output = {"use_best_model": bool(use_best_model)}
     bootstrap = bootstrap or {"type": "No"}
@@ -189,12 +191,16 @@ class CatBoostMetalRegressor:
                  boost_from_average=None, nan_mode="Forbidden", cat_features=None,
                  one_hot_max_size=255, class_weights=None, ctr_type="Borders", ctr_prior=0.5,
                  ctr_target_border=None, ctr_border_count=15, ctr_history_unit="Sample", random_seed=0, eval_metric=None,
-                 permutation_count=None, model_size_reg=0.5,
+                 permutation_count=None, model_size_reg=0.5, feature_weights=None,
                  boosting_type="Plain", data_partition=None, fold_len_multiplier=2.0,
+                 max_ctr_complexity=1, simple_ctr=None, combinations_ctr=None,
+                 ctr_target_border_count=1, counter_calc_method="SkipTest",
                  min_fold_size=100, fold_size_loss_normalization=False, fold_permutation_block=64,
                  grow_policy="SymmetricTree", max_leaves=None, min_data_in_leaf=1,
                  bootstrap_type="No", bagging_temperature=None, subsample=None, mvs_reg=None,
-                 random_strength=0, **options):
+                 random_strength=0, fixed_binary_splits=None, rsm=1.,
+                 add_ridge_penalty_to_loss_function=False, meta_l2_exponent=1., meta_l2_frequency=0.,
+                 langevin=False, diffusion_temperature=0., **options):
         supported = {"task_type": "METAL"}
         for name, value in options.items():
             if name not in supported:
@@ -209,25 +215,72 @@ class CatBoostMetalRegressor:
         if grow_policy != "SymmetricTree" and boosting_type != "Plain":
             raise ValueError("Non-symmetric trees require Plain boosting.")
         self.grow_policy = grow_policy
-        self.data_partition = "FeatureParallel" if boosting_type == "Ordered" else "DocParallel"
-        if data_partition is not None and data_partition != self.data_partition:
-            raise ValueError(f"{boosting_type} requires data_partition={self.data_partition!r}.")
+        self.max_ctr_complexity = _integer(max_ctr_complexity, "max_ctr_complexity", 1, 16)
+        self.data_partition = data_partition or ("FeatureParallel" if boosting_type == "Ordered" or self.max_ctr_complexity > 1 else "DocParallel")
+        if self.data_partition not in ("DocParallel", "FeatureParallel"):
+            raise ValueError("data_partition must be DocParallel or FeatureParallel.")
+        if boosting_type == "Ordered" and self.data_partition != "FeatureParallel":
+            raise ValueError("Ordered requires data_partition='FeatureParallel'.")
+        if self.max_ctr_complexity > 1 and self.data_partition != "FeatureParallel":
+            raise ValueError("Compound CTRs require data_partition='FeatureParallel'.")
+        if grow_policy != "SymmetricTree" and self.data_partition != "DocParallel":
+            raise ValueError("Non-symmetric trees require data_partition='DocParallel'.")
+        self.simple_ctr, self.combinations_ctr = simple_ctr, combinations_ctr
+        self.ctr_target_border_count = _integer(ctr_target_border_count, "ctr_target_border_count", 1, 255)
+        if counter_calc_method not in ("SkipTest", "Full"):
+            raise ValueError("counter_calc_method must be SkipTest or Full.")
+        self.counter_calc_method = counter_calc_method
+        if fixed_binary_splits is not None:
+            if not isinstance(fixed_binary_splits, (list, tuple, np.ndarray)):
+                raise ValueError("fixed_binary_splits must be a sequence of nonnegative binary split indices.")
+            fixed_binary_splits = [_integer(value, "fixed_binary_splits index", 0, 2**32 - 1)
+                                   for value in fixed_binary_splits]
+        self.fixed_binary_splits = fixed_binary_splits
+        self.rsm = _number(rsm, "rsm", positive=True)
+        if self.rsm > 1:
+            raise ValueError("rsm must be in (0, 1].")
+        for name, value in (("add_ridge_penalty_to_loss_function", add_ridge_penalty_to_loss_function),
+                            ("langevin", langevin)):
+            if not isinstance(value, bool):
+                raise ValueError(f"{name} must be boolean.")
+            setattr(self, name, value)
+        for name, value in (("meta_l2_exponent", meta_l2_exponent), ("meta_l2_frequency", meta_l2_frequency)):
+            if isinstance(value, bool) or not isinstance(value, numbers.Real) or not np.isfinite(value):
+                raise ValueError(f"{name} must be a finite number.")
+            setattr(self, name, float(value))
+        with np.errstate(over="ignore"):
+            if not np.isfinite(np.float32(self.meta_l2_exponent)):
+                raise ValueError("meta_l2_exponent must be finite in float32.")
+        self.diffusion_temperature = _number(diffusion_temperature, "diffusion_temperature")
+        self._native_feature_parallel = self.data_partition == "FeatureParallel" and (
+            boosting_type == "Plain" or self.max_ctr_complexity > 1 or simple_ctr is not None or combinations_ctr is not None
+            or leaf_estimation_method == "Simple" or ctr_target_border_count != 1 or counter_calc_method != "SkipTest")
+        self._native_adapter = self._native_feature_parallel or bool(fixed_binary_splits) or self.rsm != 1 or (
+            add_ridge_penalty_to_loss_function or self.meta_l2_exponent != 1 or self.meta_l2_frequency != 0
+            or langevin or self.diffusion_temperature != 0
+            or one_hot_max_size == 256 or counter_calc_method == "Full"
+            or (grow_policy == "SymmetricTree" and leaf_estimation_method == "Simple")
+            or (boosting_type == "Plain" and fold_size_loss_normalization))
+        if not self._native_adapter and (simple_ctr is not None or combinations_ctr is not None or ctr_target_border_count != 1 or counter_calc_method != "SkipTest"):
+            raise ValueError("Native CTR descriptions and binarization options require FeatureParallel training.")
         self.fold_len_multiplier = _number(fold_len_multiplier, "fold_len_multiplier", positive=True)
         if self.fold_len_multiplier <= 1:
             raise ValueError("fold_len_multiplier must exceed 1.")
         self.min_fold_size = _integer(min_fold_size, "min_fold_size", 1, 2**32 - 1)
         self.fold_permutation_block = _integer(fold_permutation_block, "fold_permutation_block", 0, 2**32 - 1)
-        if boosting_type != "Ordered" and self.fold_permutation_block != 64:
+        if boosting_type != "Ordered" and not self._native_adapter and self.fold_permutation_block != 64:
             raise ValueError("Custom fold_permutation_block is currently connected only for Ordered boosting.")
         if not isinstance(fold_size_loss_normalization, bool):
             raise ValueError("fold_size_loss_normalization must be boolean.")
-        if boosting_type == "Plain" and fold_size_loss_normalization:
+        if boosting_type == "Plain" and not self._native_adapter and fold_size_loss_normalization:
             raise ValueError("Plain fold_size_loss_normalization is not yet connected.")
         self.fold_size_loss_normalization = fold_size_loss_normalization
         self._default_classification_loss = self._classifier and loss_function is None
         self._default_leaf_iterations = leaf_estimation_iterations is None
         self.loss_function, self._objective, self._loss_parameters, self._objective_param = parse_loss(
             loss_function, classifier=self._classifier)
+        if self._native_feature_parallel and self._objective in (*_MULTIOUTPUT, "MultiClass", "MultiClassOneVsAll"):
+            raise ValueError("Native FeatureParallel supports scalar and registered query objectives.")
         _number(self._objective_param, "loss parameter")
         self.iterations = _integer(iterations, "iterations", 1, 10000)
         depth_limit = 2**32 - 1 if grow_policy == "Lossguide" else 65535 if grow_policy == "Region" else 16
@@ -266,8 +319,8 @@ class CatBoostMetalRegressor:
         if leaf_estimation_method is None:
             leaf_estimation_method = "Exact" if self._objective in exact_losses and boosting_type == "Plain" else (
                 "Gradient" if gradient_only else "Newton")
-        if leaf_estimation_method not in ("Newton", "Gradient", "Exact"):
-            raise ValueError("leaf_estimation_method must be Newton, Gradient, or Exact.")
+        if leaf_estimation_method not in ("Newton", "Gradient", "Exact", "Simple"):
+            raise ValueError("leaf_estimation_method must be Newton, Gradient, Exact, or Simple.")
         if leaf_estimation_method == "Exact" and self._objective not in exact_losses:
             raise ValueError("Exact leaf estimation requires MAE, Quantile, or MAPE.")
         if leaf_estimation_method == "Exact" and boosting_type == "Ordered":
@@ -279,13 +332,17 @@ class CatBoostMetalRegressor:
             defaults = {"Poisson": (10, 1), "Huber": (1, 1), "Expectile": (5, 10), "Tweedie": (20, 20),
                         "MultiClass": (1, 10), "MultiClassOneVsAll": (1, 10),
                         "MultiLogloss": (10, 40), "MultiCrossEntropy": (10, 40)}
-            leaf_estimation_iterations = defaults.get(self._objective, (1, 1))[leaf_estimation_method == "Gradient"]
+            leaf_estimation_iterations = (1 if leaf_estimation_method == "Simple" else
+                defaults.get(self._objective, (1, 1))[leaf_estimation_method == "Gradient"])
         self.leaf_estimation_iterations = _integer(leaf_estimation_iterations, "leaf_estimation_iterations", 1, 100)
+        if leaf_estimation_method == "Simple" and self.leaf_estimation_iterations != 1:
+            raise ValueError("Simple leaves require one estimation iteration.")
         if leaf_estimation_backtracking not in ("No", "AnyImprovement", "Armijo"):
             raise ValueError("leaf_estimation_backtracking must be No, AnyImprovement, or Armijo.")
         self.leaf_estimation_backtracking = leaf_estimation_backtracking
         if boost_from_average is not None and not isinstance(boost_from_average, bool):
             raise ValueError("boost_from_average must be boolean.")
+        self._default_boost_from_average = boost_from_average is None
         self.boost_from_average = self._objective in ("RMSE", "MultiRMSE", *exact_losses) if boost_from_average is None else boost_from_average
         if self.boost_from_average and self._objective not in ("RMSE", "MultiRMSE", "Logloss", "CrossEntropy", *exact_losses):
             raise ValueError(f"CatBoost does not support boost_from_average for {self._objective}.")
@@ -293,12 +350,12 @@ class CatBoostMetalRegressor:
             raise ValueError("nan_mode must be Forbidden, Min, or Max.")
         self.nan_mode = nan_mode
         self.cat_features = cat_features
-        self.one_hot_max_size = _integer(one_hot_max_size, "one_hot_max_size", 1, 255)
-        if ctr_type not in ("Borders", "FeatureFreq"):
+        self.one_hot_max_size = _integer(one_hot_max_size, "one_hot_max_size", 1, 256)
+        if ctr_type not in (("Borders", "Buckets", "FloatTargetMeanValue", "FeatureFreq") if self._native_adapter else ("Borders", "FeatureFreq")):
             raise ValueError("The training adapter currently supports Borders and FeatureFreq CTRs.")
         if ctr_history_unit not in ("Sample", "Group"):
             raise ValueError("ctr_history_unit must be Sample or Group.")
-        if ctr_history_unit == "Group" and boosting_type != "Ordered":
+        if ctr_history_unit == "Group" and boosting_type != "Ordered" and not self._native_adapter:
             raise ValueError("Standalone Group CTR histories currently require Ordered boosting.")
         self.ctr_history_unit = ctr_history_unit
         self.ctr_type = ctr_type
@@ -312,6 +369,7 @@ class CatBoostMetalRegressor:
         self.permutation_count = (None if permutation_count is None else
                                   _integer(permutation_count, "permutation_count", 1, 64))
         self.model_size_reg = _number(model_size_reg, "model_size_reg")
+        self.feature_weights = feature_weights
         if bootstrap_type not in ("No", "Bayesian", "Bernoulli", "Poisson", "MVS"):
             raise ValueError("Unknown bootstrap_type.")
         if bootstrap_type == "No" and (bagging_temperature is not None or subsample is not None or mvs_reg is not None):
@@ -346,6 +404,7 @@ class CatBoostMetalRegressor:
             raise ValueError("class_weights requires Logloss or multiclass classification.")
         self.class_weights = class_weights
         self._model = None
+        self._native_bridge_fitted = False
 
     def _targets(self, y, *, fitting):
         if not self._classifier:
@@ -407,14 +466,44 @@ class CatBoostMetalRegressor:
             self._effective_class_weights = multipliers.tolist()
         return weights
 
+    def _feature_weights(self, names, layout=None):
+        if self.feature_weights is None:
+            return None
+        if isinstance(self.feature_weights, dict):
+            weights = np.ones(len(names), np.float32)
+            seen = set()
+            for feature, value in self.feature_weights.items():
+                if isinstance(feature, str):
+                    if feature not in names:
+                        raise ValueError(f"Unknown feature weight name: {feature!r}.")
+                    feature = names.index(feature)
+                feature = _integer(feature, "feature weight index", 0, len(names) - 1)
+                if feature in seen:
+                    raise ValueError("Feature weights contain duplicate indices/names.")
+                seen.add(feature)
+                weights[feature] = _number(value, "feature weight")
+        else:
+            weights = _numeric_array(self.feature_weights, "feature_weights", 1)
+            if weights.shape != (len(names),) or not np.isfinite(weights).all() or (weights < 0).any():
+                raise ValueError("feature_weights must contain one finite nonnegative value per original feature.")
+        if not np.isfinite(weights).all() or (weights < 0).any():
+            raise ValueError("feature_weights must be finite and nonnegative.")
+        if layout is None:
+            return weights
+        encoded = np.ones(len(layout.borders), np.float32)
+        encoded[:len(names)] = weights
+        for feature, ctr in layout.ctrs.items():
+            encoded[feature] = weights[ctr.source_feature]
+        return encoded
+
     def fit(self, X, y=None, sample_weight=None, *, eval_set=None, cat_features=None,
             early_stopping_rounds=None, use_best_model=None, save_snapshot=False,
             snapshot_file=None, snapshot_interval=600.0, resume=True, callback=None,
-            group_id=None, group_weight=None, eval_group_id=None, eval_group_weight=None):
+            group_id=None, group_weight=None, eval_group_id=None, eval_group_weight=None, init_model=None):
+        if init_model is self:
+            init_model = self.to_catboost()
         self._model = None
-        if self.boosting_type != "Ordered" and any(value is not None for value in (
-                group_id, group_weight, eval_group_id, eval_group_weight)):
-            raise ValueError("Grouped scalar fitting currently requires Ordered boosting.")
+        self._native_bridge_fitted = False
         if self._default_classification_loss:
             from catboost import Pool
             labels = X.get_label() if y is None and isinstance(X, Pool) else y
@@ -432,6 +521,18 @@ class CatBoostMetalRegressor:
                     self.leaf_estimation_iterations = 40 if self.leaf_estimation_method == "Gradient" else 10
             elif self._objective in _MULTIOUTPUT:
                 self.loss_function = self._objective = "Logloss"
+        if self._native_adapter:
+            from ._feature_parallel_frontend import fit_feature_parallel
+            return fit_feature_parallel(self, X, y, sample_weight, eval_set=eval_set, cat_features=cat_features,
+                group_id=group_id, group_weight=group_weight, eval_group_id=eval_group_id, eval_group_weight=eval_group_weight,
+                early_stopping_rounds=early_stopping_rounds, use_best_model=use_best_model,
+                save_snapshot=save_snapshot, snapshot_file=snapshot_file, snapshot_interval=snapshot_interval,
+                resume=resume, callback=callback, init_model=init_model)
+        if init_model is not None:
+            raise ValueError("init_model requires native FeatureParallel training.")
+        if self.boosting_type != "Ordered" and any(value is not None for value in (
+                group_id, group_weight, eval_group_id, eval_group_weight)):
+            raise ValueError("Grouped scalar fitting currently requires Ordered boosting.")
         if self._objective in _MULTIOUTPUT and not (
                 self._objective == "RMSEWithUncertainty" and self.grow_policy != "SymmetricTree"):
             from ._multioutput_frontend import fit_multioutput
@@ -553,6 +654,8 @@ class CatBoostMetalRegressor:
                               leaf_estimation_iterations=self.leaf_estimation_iterations,
                               leaf_estimation_backtracking=self.leaf_estimation_backtracking,
                               candidate_types=candidate_types, random_seed=self.random_seed)
+        if self.feature_weights is not None:
+            native_options["feature_weights"] = self._feature_weights(names, layout)
         if dimensions:
             native_options.update(classes=dimensions, leaf_estimation_method=self.leaf_estimation_method)
         elif self._objective not in ("RMSE", "Logloss", "CrossEntropy") or self.leaf_estimation_method != "Newton":
@@ -581,7 +684,7 @@ class CatBoostMetalRegressor:
             native_options.update(ctr_unique_values=layout.ctr_unique_values(
                 eval_raw if eval_set is not None else None), model_size_reg=self.model_size_reg)
         permutation_count = (self.permutation_count or 4) if ordered else len(layout.permutation_bins)
-        if (greedy or ordered or layout.ctrs or permutation_count > 1 or eval_set is not None or save_snapshot or snapshot_file is not None
+        if (greedy or ordered or layout.ctrs or self.feature_weights is not None or permutation_count > 1 or eval_set is not None or save_snapshot or snapshot_file is not None
                 or callback is not None or self.eval_metric is not None):
             if greedy:
                 from ._greedy_training import run_training
@@ -615,7 +718,8 @@ class CatBoostMetalRegressor:
             from ._greedy_model import model_json, dumps_model_json
             model_data = model_json(result, layout.borders, bias=bias, objective=self._objective,
                                     feature_names=names, grow_policy=self.grow_policy, layout=layout,
-                                    objective_param=self._objective_param, loss_parameters=self._loss_parameters)
+                                    objective_param=self._objective_param, loss_parameters=self._loss_parameters,
+                                    leaf_estimation_method=self.leaf_estimation_method)
         else:
             model_data = _model_json(layout.borders, result, bias, self.score_function, layout)
         bootstrap_metadata = {"type": self.bootstrap_type}
@@ -641,7 +745,7 @@ class CatBoostMetalRegressor:
             fold_len_multiplier=self.fold_len_multiplier, min_fold_size=self.min_fold_size,
             fold_size_loss_normalization=self.fold_size_loss_normalization,
             grow_policy=self.grow_policy, max_leaves=self.max_leaves, min_data_in_leaf=self.min_data_in_leaf,
-            fold_permutation_block=self.fold_permutation_block))
+            fold_permutation_block=self.fold_permutation_block, feature_weights=self._feature_weights(names)))
         with tempfile.TemporaryDirectory(prefix="catbooster-metal-model-") as temporary:
             path = Path(temporary) / "model.json"
             path.write_text(dumps_model_json(model_data) if greedy else json.dumps(model_data, allow_nan=False))
@@ -679,6 +783,10 @@ class CatBoostMetalRegressor:
 
     def predict(self, X, prediction_type=None, *, task_type="CPU", ntree_start=0, ntree_end=0):
         self._require_fitted()
+        if self._native_bridge_fitted:
+            from ._feature_parallel_frontend import predict_feature_parallel
+            return predict_feature_parallel(self, X, prediction_type=prediction_type, task_type=task_type,
+                                           ntree_start=ntree_start, ntree_end=ntree_end)
         if self._objective in _MULTIOUTPUT:
             from ._multioutput_frontend import predict_multioutput
             return predict_multioutput(self, X, prediction_type=prediction_type, task_type=task_type,

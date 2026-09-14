@@ -113,8 +113,8 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
         if objective == "YetiRank" and (method != "Newton" or options.get("leaf_estimation_backtracking", "No") != "No"):
             raise ValueError("YetiRank requires Newton leaves and no leaf backtracking like CUDA.")
         if qce and method not in ("Newton", "Simple"): raise ValueError("QueryCrossEntropy requires Newton or Simple leaves like CUDA.")
-        if method not in ("Newton", "Gradient") and not ((coupled or qce or yeti_pair) and method == "Simple"):
-            raise ValueError("Query objectives support Newton/Gradient; full-matrix targets also support Simple leaves.")
+        if method not in ("Newton", "Gradient", "Simple"):
+            raise ValueError("Query objectives support Newton, Gradient and Simple leaves.")
         if method == "Simple" and leaf_estimation_iterations not in (None, 1):
             raise ValueError("Simple leaves require one estimation iteration.")
         if leaf_estimation_iterations is None:
@@ -134,11 +134,15 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
                 leaf_estimation_iterations = 1
         # Reuse option validation and prediction/export methods. No training is
         # performed by this constructor; native fit receives the query objective.
-        super().__init__(loss_function="RMSE", leaf_estimation_method="Newton" if method == "Simple" else method,
+        # Full-matrix Simple already has a standalone runtime. Select the native
+        # adapter only when an independent option needs that route.
+        super().__init__(loss_function="RMSE", leaf_estimation_method="Newton" if method == "Simple" and (coupled or qce or yeti_pair) else method,
                          leaf_estimation_iterations=leaf_estimation_iterations,
                          boost_from_average=False, **options)
         if (coupled or qce or yeti_pair) and self.depth > 8: raise ValueError("Full-matrix query objectives support depth <= 8 like CUDA.")
-        if method == "Simple" and self.depth == 0: raise ValueError("Simple leaves require depth 1..8.")
+        if method == "Simple" and (coupled or qce or yeti_pair) and self.depth == 0: raise ValueError("Full-matrix Simple leaves require depth 1..8.")
+        if self._native_feature_parallel and objective not in ("QueryRMSE", "QuerySoftMax", "PairLogit", "YetiRank"):
+            raise ValueError("FeatureParallel ranking supports QueryRMSE, QuerySoftMax, PairLogit and classic YetiRank.")
         self.leaf_estimation_method = method
         self.loss_function, self._objective, self._loss_parameters = loss_function, objective, parameters
         self.query_beta = float(np.float32(parameters.get("beta", 1)))
@@ -148,7 +152,23 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
             eval_set=None, eval_group_id=None, eval_group_weight=None, eval_sample_weight=None, eval_subgroup_id=None,
             pairs=None, pairs_weight=None, eval_pairs=None, eval_pairs_weight=None,
             cat_features=None, early_stopping_rounds=None, use_best_model=None,
-            save_snapshot=False, snapshot_file=None, snapshot_interval=600.0, resume=True, callback=None):
+            save_snapshot=False, snapshot_file=None, snapshot_interval=600.0, resume=True, callback=None, init_model=None):
+        if init_model is self:
+            init_model = self.to_catboost()
+        self._model = None
+        self._native_bridge_fitted = False
+        if self._native_adapter:
+            from ._feature_parallel_frontend import fit_feature_parallel
+            return fit_feature_parallel(self, X, y, sample_weight, group_id=group_id, group_weight=group_weight,
+                subgroup_id=subgroup_id, pairs=pairs, pairs_weight=pairs_weight,
+                eval_set=eval_set, eval_group_id=eval_group_id, eval_group_weight=eval_group_weight,
+                eval_sample_weight=eval_sample_weight, eval_subgroup_id=eval_subgroup_id,
+                eval_pairs=eval_pairs, eval_pairs_weight=eval_pairs_weight, cat_features=cat_features,
+                early_stopping_rounds=early_stopping_rounds, use_best_model=use_best_model,
+                save_snapshot=save_snapshot, snapshot_file=snapshot_file, snapshot_interval=snapshot_interval,
+                resume=resume, callback=callback, init_model=init_model, ranker=True)
+        if init_model is not None:
+            raise ValueError("init_model requires native FeatureParallel training.")
         from catboost import CatBoostRanker, Pool
 
         started = time.perf_counter()
@@ -254,6 +274,8 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
                       random_seed=self.random_seed, random_strength=self.random_strength,
                       bootstrap_type=self.bootstrap_type, bagging_temperature=self.bagging_temperature,
                       subsample=self.subsample, mvs_reg=self.mvs_reg)
+        if self.feature_weights is not None:
+            native["feature_weights"] = self._feature_weights(names, layout)
         if coupled or qce or yeti_pair:
             native["non_diagonal_regularization"] = self.bayesian_matrix_reg
         if qce:
@@ -304,7 +326,8 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
         if greedy:
             from ._greedy_model import model_json, dumps_model_json
             model_data = model_json(result, layout.borders, objective=self._objective, feature_names=names,
-                grow_policy=self.grow_policy, layout=layout, loss_parameters=self._loss_parameters)
+                grow_policy=self.grow_policy, layout=layout, loss_parameters=self._loss_parameters,
+                leaf_estimation_method=self.leaf_estimation_method)
         else:
             model_data = _model_json(layout.borders, result, 0., self.score_function, layout)
         bootstrap = {"type": self.bootstrap_type}
@@ -330,7 +353,7 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
             permutation_count=(self.permutation_count or 4) if self.boosting_type == "Ordered" else 1,
             fold_len_multiplier=self.fold_len_multiplier, min_fold_size=self.min_fold_size,
             fold_permutation_block=self.fold_permutation_block,
-            fold_size_loss_normalization=self.fold_size_loss_normalization))
+            fold_size_loss_normalization=self.fold_size_loss_normalization, feature_weights=self._feature_weights(names)))
         if coupled or qce or yeti_pair:
             parameters = json.loads(model_data["model_info"]["params"])
             parameters["tree_learner_options"]["bayesian_matrix_reg"] = self.bayesian_matrix_reg
@@ -364,6 +387,9 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
     def predict(self, X, prediction_type="RawFormulaVal", *, task_type="CPU", ntree_start=0, ntree_end=0):
         if prediction_type not in (None, "RawFormulaVal"):
             raise ValueError("A ranker predicts raw relevance scores.")
+        if self._native_bridge_fitted:
+            return super().predict(X, prediction_type="RawFormulaVal", task_type=task_type,
+                                   ntree_start=ntree_start, ntree_end=ntree_end)
         if task_type == "CPU":
             self._require_fitted()
             bins = self._layout.transform(X)

@@ -207,7 +207,7 @@ public:
             "ReducePairwiseCandidateCells","AssemblePairwiseCandidateMatrices","RegularizePairwiseSplitMatrix",
             "SolveLeafMatrix","CenterPairwiseSplitSolution","ScorePairwiseSplitSolution","ExportSimplePairwiseLeaves","StorePairMatrixScores",
             "BuildPairwiseLeafKeys","BuildPairwiseCellOffsets","ReducePairwiseLeafCells","AssemblePairwiseLeafMatrix",
-            "RegularizeLeafMatrix","UpdateLeafMatrixPoint","ReduceLeafMatrixDirectionalDot",
+            "RegularizeLeafMatrix","ApplyLeafMatrixRidge","UpdateLeafMatrixPoint","ReduceLeafMatrixDirectionalDot",
             "ReducePairMatrixLeafWeights","ReducePairMatrixLoss","SelectPairwiseSplitWinner"}) {
             auto function=[Library newFunctionWithName:[NSString stringWithUTF8String:name]];
             Require(function!=nil,std::string("Missing pairwise matrix function ")+name);
@@ -309,8 +309,9 @@ public:
         const uint32_t candidateEnd=firstCandidate+candidateCount;
         LayoutLeaves=0;
         const LeafParams leaf={2*parents,0,0,0,l2,nonDiag,1e-20f,1};
-        for (uint32_t first=firstCandidate;first<candidateEnd;first+=Tile) {
-            const uint32_t count=std::min(Tile,candidateEnd-first),entries=count*Pairs,cells=count*4*parents*parents;
+        for (uint32_t first=NextActiveCandidate(firstCandidate,candidateEnd);first<candidateEnd;) {
+            const uint32_t count=ActiveCandidateCount(first,std::min(Tile,candidateEnd-first));
+            const uint32_t entries=count*Pairs,cells=count*4*parents*parents;
             const CandidateParams p={Rows,Pairs,parents,count,featureCount,first,uint32_t(gradientScore),0};
             auto clear=[command blitCommandEncoder];[clear fillBuffer:TileStatus range:NSMakeRange(0,4ull*Tile) value:0];[clear endEncoding];
             Dispatch(command,"BuildPairwiseCandidateKeys",{bins,ids,Winners,Losers,features,borders,types,KeyA,IndexA,TileStatus},p,entries,false,dispatches);
@@ -323,6 +324,7 @@ public:
             Dispatch(command,"CenterPairwiseSplitSolution",{Direction},leaf,count,true,dispatches);
             Dispatch(command,"ScorePairwiseSplitSolution",{Hessian,Gradient,Direction,TileScores},leaf,count,true,dispatches);
             Dispatch(command,"StorePairMatrixScores",{TileScores,TileStatus,Scores,Status},TileParams{first,count,leaf.Leaves,0},count,false,dispatches);
+            first=NextActiveCandidate(first+count,candidateEnd);
         }
     }
 
@@ -338,8 +340,8 @@ public:
         uint32_t featureCount,float previousScore,bool packedWeights=false,uint64_t* dispatches=nullptr) {
         CheckCommand(command);Require(featureCount && std::isfinite(previousScore),"Invalid pairwise selection metadata");
         CheckBuffer(features,4ull*Candidates);CheckBuffer(featureWeights,(packedWeights?8ull:4ull)*featureCount);
-        Dispatch(command,"SelectPairwiseSplitWinner",{Scores,features,featureWeights,SelectedIndex,SelectedScore},
-            SelectionParams{Candidates,featureCount,uint32_t(packedWeights),0,previousScore,0,0,0},1,true,dispatches);
+        Dispatch(command,"SelectPairwiseSplitWinner",{Scores,features,featureWeights,SelectedIndex,SelectedScore,CandidateMask?CandidateMask:Scores},
+            SelectionParams{Candidates,featureCount,uint32_t(packedWeights),uint32_t(CandidateMask!=nil),previousScore,0,0,0},1,true,dispatches);
     }
     Selected ReadWinner() const {
         CheckStatus();const uint32_t index=*static_cast<const uint32_t*>(SelectedIndex.contents);
@@ -368,6 +370,12 @@ public:
         CheckBuffer(offsets,4ull*(leaves+1));CheckBuffer(result,4ull*leaves);
         Require(result!=originalWeights && result!=rows && result!=offsets,"Pairwise leaf weight output cannot alias its inputs");
         Dispatch(command,"ReducePairMatrixLeafWeights",{originalWeights,rows,offsets,result,Status},PointParams{Rows,Pairs,leaves,0},leaves,true,dispatches);
+    }
+    void EncodeLeafRidge(id<MTLCommandBuffer> command,id<MTLBuffer> point,uint32_t leaves,float l2,uint64_t* dispatches=nullptr) {
+        CheckCommand(command);CheckLeaves(leaves);CheckRegularization(l2,0);CheckBuffer(point,4ull*leaves);
+        Require(point!=Gradient,"Pairwise ridge point cannot alias the projected gradient");
+        Dispatch(command,"ApplyLeafMatrixRidge",{Gradient,point,Status},
+            LeafParams{leaves,0,0,0,l2,0,1e-20f,1},leaves,false,dispatches);
     }
     void EncodeLeafDirection(id<MTLCommandBuffer> command,uint32_t leaves,float l2,float nonDiag,uint64_t* dispatches=nullptr) {
         CheckCommand(command);CheckLeaves(leaves);CheckRegularization(l2,nonDiag);

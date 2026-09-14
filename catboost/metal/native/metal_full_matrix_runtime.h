@@ -12,6 +12,9 @@ public:
     struct Selected { uint32_t Index; float Score,Gain; };
     virtual ~CBMFullMatrixRuntime() = default;
     virtual uint64_t AllocatedBytes() const = 0;
+    // The controller owns this shared buffer and changes it only before the
+    // first split of a tree. CUDA keeps one sampled feature grid for all depths.
+    void SetCandidateMask(id<MTLBuffer> mask) { CandidateMask = mask; }
     virtual bool HasObjectiveValue() const { return true; }
     virtual double TakeAuxiliaryGPUSeconds() { return 0.0; }
     // Generated objectives sample a separate fixed target at each dataset's
@@ -35,6 +38,10 @@ public:
     virtual void EncodeLeafProjection(id<MTLCommandBuffer> command,uint32_t leaves,bool gradientMethod,uint64_t* dispatches=nullptr) = 0;
     virtual void EncodeLeafWeights(id<MTLCommandBuffer> command,id<MTLBuffer> originalWeights,id<MTLBuffer> rows,
         id<MTLBuffer> offsets,id<MTLBuffer> result,uint32_t leaves,uint64_t* dispatches=nullptr) = 0;
+    // Apply once after each fresh leaf projection, before solving and taking
+    // the directional dot. The ordinary Hessian L2 term remains independent.
+    virtual void EncodeLeafRidge(id<MTLCommandBuffer> command,id<MTLBuffer> point,
+        uint32_t leaves,float l2,uint64_t* dispatches=nullptr) = 0;
     virtual void EncodeLeafDirection(id<MTLCommandBuffer> command,uint32_t leaves,float l2,float nonDiag,uint64_t* dispatches=nullptr) = 0;
     virtual void EncodeLeafUpdate(id<MTLCommandBuffer> command,id<MTLBuffer> point,id<MTLBuffer> weights,
         id<MTLBuffer> updated,uint32_t leaves,float step,uint64_t* dispatches=nullptr,bool trial=false) = 0;
@@ -44,4 +51,20 @@ public:
     virtual void EncodeCenterSolvedPoint(id<MTLCommandBuffer> command,id<MTLBuffer> point,uint32_t leaves,uint64_t* dispatches=nullptr) = 0;
     virtual void EncodeLoss(id<MTLCommandBuffer> command,id<MTLBuffer> ids,uint32_t leaves,bool supportOnly,uint64_t* dispatches=nullptr) = 0;
     virtual std::pair<double,double> ReadLoss() const = 0;
+protected:
+    id<MTLBuffer> CandidateMask = nil;
+    uint32_t NextActiveCandidate(uint32_t first, uint32_t end) const {
+        if (CandidateMask) {
+            const auto* active = static_cast<const uint8_t*>(CandidateMask.contents);
+            while (first < end && !active[first]) ++first;
+        }
+        return first;
+    }
+    uint32_t ActiveCandidateCount(uint32_t first, uint32_t count) const {
+        if (!CandidateMask) return count;
+        const auto* active = static_cast<const uint8_t*>(CandidateMask.contents);
+        uint32_t activeCount = 0;
+        while (activeCount < count && active[first + activeCount]) ++activeCount;
+        return activeCount;
+    }
 };

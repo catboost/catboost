@@ -2,6 +2,7 @@
 
 #include "greedy_snapshot.h"
 #include "yeti_random.h"
+#include "langevin_random.h"
 
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/train_lib/train_model.h>
@@ -22,6 +23,11 @@ namespace NCB {
         TVector<float> Leaves;
         TVector<float> Weights;
         TVector<float> Predictions;
+        // Optional trailing payload preserves the retained-best online cursor
+        // for the standalone native frontend. Older v6 snapshots end before
+        // this payload; their training/model recovery remains unchanged.
+        TVector<float> BestLearnPredictions;
+        i32 BestLearnIteration = -1;
         TVector<float> PermutationPredictions;
         TVector<float> PermutationMvsLambdas;
         TVector<ui8> PermutationMvsValid;
@@ -41,6 +47,12 @@ namespace NCB {
         bool CombinationYeti = false;
         TMetalYetiRandomState YetiRandom;
         TVector<ui32> YetiSearchAttempts;
+        // Present only for langevin=true. The host stream includes stochastic
+        // targets, actual scorer calls, and every accepted/rejected leaf trial.
+        // Metal's weak device noise uses stateless item/iteration domains;
+        // only the shared host seed-cache initialization needs persistence.
+        bool Langevin = false;
+        TMetalLangevinRandomState LangevinRandom;
         // Enabled by the current configuration. Keep legacy v6 payloads
         // byte-for-byte unchanged when compound CTRs are disabled.
         bool TreeCtrs = false;
@@ -62,11 +74,20 @@ namespace NCB {
                 if (callbacks && !callbacks->OnLoadSnapshot(in)) {
                     return;
                 }
+                BestLearnPredictions.clear();
+                BestLearnIteration = -1;
+                LangevinRandom = {};
                 ::LoadMany(in, Params, Checksum, Bias, MvsLambda, MvsLambdaIsSet, Depths, SplitFeatures, SplitBins,
                     SplitTypes, Leaves, Weights, Predictions, History,
                     PermutationPredictions, PermutationMvsLambdas, PermutationMvsValid, UsedFeatures,
                     OptimizationPredictions, OrderedDescriptors, OrderedCursors,
                     OrderedRandomDrawCount, OrderedRandomCompletedIterations, OrderedBootstrapInitialized);
+                // Optional payload types depend on the current trainer. Check
+                // compatibility before reading them when options have changed.
+                CB_ENSURE(NCatboostOptions::IsParamsCompatible(expectedParams, Params),
+                          "Saved Metal snapshot parameters differ from the current parameters");
+                CB_ENSURE(expectedChecksum == Checksum,
+                          "Saved Metal snapshot training/evaluation data or initial model differ");
                 if (Greedy) {
                     TString tag;
                     ::LoadMany(in, tag, GreedyTrees);
@@ -94,10 +115,44 @@ namespace NCB {
                     CB_ENSURE(tag == "Metal tree CTR features v1", "Unknown Metal tree CTR snapshot payload");
                     ValidateTreeCtrMetadata();
                 }
-                CB_ENSURE(NCatboostOptions::IsParamsCompatible(expectedParams, Params),
-                          "Saved Metal snapshot parameters differ from the current parameters");
-                CB_ENSURE(expectedChecksum == Checksum,
-                          "Saved Metal snapshot training/evaluation data or initial model differ");
+                // Older v6 snapshots end here. Optional records have a fixed
+                // order: a best cursor, then the Langevin stream. Either may
+                // be absent, so Langevin-only checkpoints need no fake cursor.
+                bool bestLoaded = false, langevinLoaded = false;
+                for (;;) {
+                    ui32 tag = 0;
+                    const size_t bytes = in->Read(&tag, sizeof(tag));
+                    if (!bytes) break;
+                    CB_ENSURE(bytes == sizeof(tag), (bestLoaded ? "Saved Metal best-learn cursor has trailing data" :
+                        "Unknown Metal best-learn snapshot payload"));
+                    if (tag == 0x4D424C31 || tag == 0x4D424C32) {
+                        CB_ENSURE(!bestLoaded && !langevinLoaded,
+                            "Saved Metal best-learn cursor has trailing data");
+                        bestLoaded = true;
+                        if (tag == 0x4D424C32) ::Load(in, BestLearnIteration);
+                        ::Load(in, BestLearnPredictions);
+                        CB_ENSURE(BestLearnPredictions.size() == Predictions.size(),
+                            "Saved Metal best-learn cursor has inconsistent dimensions");
+                        CB_ENSURE(tag == 0x4D424C31 ||
+                            (BestLearnIteration >= 0 && ui64(BestLearnIteration) < Depths.size()),
+                            "Saved Metal best-learn cursor has an invalid iteration");
+                        for (float value : BestLearnPredictions) {
+                            CB_ENSURE(std::isfinite(value), "Saved Metal best-learn cursor is nonfinite");
+                        }
+                    } else if (tag == 0x4D4C4731) { // Metal Langevin random v1
+                        CB_ENSURE(Langevin && !langevinLoaded,
+                            "Unexpected or duplicate Metal Langevin snapshot payload");
+                        langevinLoaded = true;
+                        ::LoadMany(in, LangevinRandom.DrawCount, LangevinRandom.CompletedIterations,
+                            LangevinRandom.WeakSeedCacheInitialized);
+                        CB_ENSURE(LangevinRandom.CompletedIterations == Depths.size(),
+                            "Saved Metal Langevin random iteration count differs from its trees");
+                    } else {
+                        CB_ENSURE(false, (bestLoaded ? "Saved Metal best-learn cursor has trailing data" :
+                            "Unknown Metal best-learn snapshot payload"));
+                    }
+                }
+                CB_ENSURE(langevinLoaded == Langevin, "Saved Metal Langevin random payload is missing");
                 loaded = true;
             });
             Params = expectedParams;
@@ -127,6 +182,18 @@ namespace NCB {
                     ::SaveMany(out, TString("Metal tree CTR features v1"), TreeCtrState,
                         TreeCtrCounts, TreeCtrWeights, TreeCtrFlags, TreeCtrUsed, TreeCtrActive);
                 }
+                if (!BestLearnPredictions.empty()) {
+                    CB_ENSURE(BestLearnPredictions.size() == Predictions.size() &&
+                        BestLearnIteration >= 0 && ui64(BestLearnIteration) < Depths.size(),
+                        "Metal best-learn snapshot cursor has inconsistent dimensions");
+                    ::SaveMany(out, ui32(0x4D424C32), BestLearnIteration, BestLearnPredictions);
+                }
+                if (Langevin) {
+                    CB_ENSURE(LangevinRandom.CompletedIterations == Depths.size(),
+                        "Metal Langevin snapshot random iteration count differs from its trees");
+                    ::SaveMany(out, ui32(0x4D4C4731), LangevinRandom.DrawCount,
+                        LangevinRandom.CompletedIterations, LangevinRandom.WeakSeedCacheInitialized);
+                }
             });
         }
 
@@ -147,7 +214,8 @@ namespace NCB {
         }
 
         void ValidateGreedy(ui32 rows, ui32 features, ui32 policy, ui32 depth, ui32 maxLeaves, ui32 iterations,
-                           ui32 permutationCount = 1, ui32 approxDimension = 1, ui32 optimizerDimension = 0) const {
+                           ui32 permutationCount = 1, ui32 approxDimension = 1, ui32 optimizerDimension = 0,
+                           bool allowSignedLeafWeights = false) const {
             CB_ENSURE(approxDimension >= 1 && approxDimension <= 64 &&
                 (approxDimension == 1 ? optimizerDimension == 0 :
                     (optimizerDimension == approxDimension || optimizerDimension + 1 == approxDimension)),
@@ -169,13 +237,13 @@ namespace NCB {
                 "Saved Metal greedy snapshot contains unsupported MVS state");
             if (count) CB_ENSURE(std::equal(Predictions.begin(), Predictions.end(),
                 PermutationPredictions.begin() + (count - 1) * rows * approxDimension), "Greedy snapshot export cursor differs from its last dataset");
-            GreedyTrees.Validate(features, policy, depth, maxLeaves, iterations, approxDimension);
+            GreedyTrees.Validate(features, policy, depth, maxLeaves, iterations, approxDimension, allowSignedLeafWeights);
             CB_ENSURE(Depths == GreedyTrees.Depths, "Saved Metal greedy snapshot has inconsistent tree depths");
         }
 
         void Validate(ui32 rows, ui32 maxDepth, ui32 maxIterations, ui32 approxDimension = 1,
                       ui32 permutationCount = 1, ui32 optimizerDimension = 0, bool ordered = false,
-                      bool featureParallel = false) const {
+                      bool featureParallel = false, bool allowSignedLeafWeights = false) const {
             const ui64 trees = Depths.size();
             CB_ENSURE(trees <= maxIterations && SplitFeatures.size() == trees * maxDepth &&
                       SplitBins.size() == trees * maxDepth && SplitTypes.size() == trees * maxDepth &&
@@ -188,11 +256,12 @@ namespace NCB {
                           OrderedDescriptors.size() % 4 == 0 && OrderedCursors.size() >= rows &&
                           PermutationPredictions.empty() && PermutationMvsLambdas.empty() &&
                           PermutationMvsValid.empty() && OptimizationPredictions.empty() && UsedFeatures.empty() &&
-                          OrderedRandomCompletedIterations == trees && OrderedBootstrapInitialized == (trees != 0),
+                          (Langevin ? !OrderedRandomDrawCount && !OrderedRandomCompletedIterations && !OrderedBootstrapInitialized :
+                              OrderedRandomCompletedIterations == trees && OrderedBootstrapInitialized == (trees != 0)),
                           "Saved Metal snapshot has inconsistent Ordered prefix state");
             } else {
                 CB_ENSURE(OrderedDescriptors.empty() && OrderedCursors.empty() &&
-                          (featureParallel ? OrderedRandomCompletedIterations == trees &&
+                          (featureParallel && !Langevin ? OrderedRandomCompletedIterations == trees &&
                               OrderedBootstrapInitialized == (trees != 0) :
                               !OrderedRandomDrawCount && !OrderedRandomCompletedIterations && !OrderedBootstrapInitialized) &&
                           PermutationPredictions.size() == ui64(rows) * permutationCount * approxDimension &&
@@ -200,8 +269,17 @@ namespace NCB {
                           OptimizationPredictions.size() == ui64(rows) * permutationCount * optimizerDimension,
                           "Saved Metal snapshot has inconsistent permutation state");
             }
-            for (ui32 depth : Depths) {
+            for (ui64 tree = 0; tree < trees; ++tree) {
+                const ui32 depth = Depths[tree];
                 CB_ENSURE(depth <= maxDepth, "Saved Metal snapshot has an invalid tree depth");
+                // Permission comes from the current objective/estimator, not
+                // the snapshot. Ignore unused padding beyond the actual tree.
+                const ui64 offset = tree * (1u << maxDepth);
+                for (ui32 leaf = 0; leaf < (1u << depth); ++leaf) {
+                    CB_ENSURE(std::isfinite(Weights[offset + leaf]) &&
+                              (allowSignedLeafWeights || Weights[offset + leaf] >= 0),
+                              "Saved Metal snapshot has invalid leaf weights");
+                }
             }
         }
     };

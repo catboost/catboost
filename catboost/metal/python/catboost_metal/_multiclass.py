@@ -29,6 +29,11 @@ class GreedyOptions(ct.Structure):
     _fields_ = [(name, ct.c_uint32) for name in ("policy", "max_leaves", "min_data_in_leaf", "reserved")]
 
 
+LangevinNoiseCallback = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.c_uint32, ct.c_uint32,
+                                   ct.POINTER(ct.c_double))
+LangevinSeedCallback = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.c_uint32, ct.POINTER(ct.c_uint64))
+
+
 def build_library():
     if platform.system() != "Darwin" or platform.machine() != "arm64":
         raise RuntimeError("Multiclass Metal training requires macOS on Apple Silicon.")
@@ -36,13 +41,15 @@ def build_library():
     root = Path(__file__).resolve().parents[2]
     native = root / "native"
     names = ("metal_multiclass.mm", "metal_multiclass.h", "metal_multiclass_math.h",
+             "metal_exception.cpp", "metal_exception.h", "metal_fixed_splits.h",
              "metal_multiclass_kernels.h", "metal_kernels.h", "metal_trainer.h",
              "metal_additional_objective_kernels.h", "metal_objective_kernels.h",
              "metal_histogram_kernels.h", "metal_incremental_partition_kernels.h",
              "metal_deep_partition_kernels.h", "metal_bootstrap_kernels.h", "metal_score_noise_kernels.h",
              "metal_multiclass_bootstrap.h", "metal_multiclass_backtracking.h", "metal_kernel_abi.h",
              "metal_multioutput_math_kernels.h", "metal_multiclass_scores.h", "metal_greedy_trainer.h",
-             "metal_greedy_kernels.h", "metal_greedy_bootstrap_kernels.h", "metal_greedy_vector_scores.h")
+             "metal_greedy_kernels.h", "metal_greedy_bootstrap_kernels.h", "metal_greedy_vector_scores.h",
+             "metal_langevin.h", "metal_vector_langevin.h")
     digest = hashlib.sha256(platform.platform().encode())
     for name in names:
         digest.update(name.encode()); digest.update((native / name).read_bytes())
@@ -56,7 +63,8 @@ def build_library():
             try:
                 completed = subprocess.run(["xcrun", "clang++", "-std=c++17", "-O2", "-fobjc-arc",
                     "-dynamiclib", "-framework", "Foundation", "-framework", "Metal",
-                    str(native / "metal_multiclass.mm"), "-o", str(temporary)], capture_output=True, text=True)
+                    str(native / "metal_multiclass.mm"), str(native / "metal_exception.cpp"),
+                    "-o", str(temporary)], capture_output=True, text=True)
                 if completed.returncode:
                     raise RuntimeError("Could not build multiclass Metal runtime:\n" + completed.stderr)
                 temporary.replace(destination)
@@ -89,6 +97,9 @@ def _load(path):
     lib.cbm_multiclass_session_get_bootstrap_state.argtypes = [ct.c_void_p, u32, f32, u32] + text
     lib.cbm_multiclass_session_set_score_noise.argtypes = [ct.c_void_p, ct.POINTER(ScoreNoiseOptions)] + text
     lib.cbm_multiclass_session_set_backtracking.argtypes = [ct.c_void_p, ct.c_uint32] + text
+    lib.cbm_multiclass_session_set_langevin.argtypes = [ct.c_void_p, ct.c_float, LangevinNoiseCallback,
+        LangevinSeedCallback, ct.c_void_p] + text
+    lib.cbm_multiclass_session_set_langevin.restype = ct.c_int
     lib.cbm_multiclass_session_set_permutations.argtypes = [ct.c_void_p, ct.c_uint32, ct.POINTER(u8),
                                                           ct.POINTER(f32), f32, u8] + text
     lib.cbm_multiclass_session_select_permutation.argtypes = [ct.c_void_p, ct.c_uint32] + text
@@ -96,6 +107,8 @@ def _load(path):
     lib.cbm_multiclass_session_copy_optimization_state.argtypes = [ct.c_void_p, ct.c_uint32, f32] + text
     lib.cbm_multiclass_session_restore_optimization_state.argtypes = [ct.c_void_p, ct.c_uint32, f32] + text
     lib.cbm_multiclass_session_set_feature_penalties.argtypes = [ct.c_void_p, ct.POINTER(FeaturePenaltyOptions), u32, f32, u8] + text
+    lib.cbm_multiclass_session_set_greedy_feature_weights.argtypes = [ct.c_void_p, ct.c_uint32, f32] + text
+    lib.cbm_multiclass_session_set_greedy_feature_weights.restype = ct.c_int
     lib.cbm_multiclass_session_copy_feature_penalty_state.argtypes = [ct.c_void_p, u8] + text
     lib.cbm_multiclass_session_close.argtypes = [ct.c_void_p]
     lib.cbm_multiclass_session_close.restype = None
@@ -160,9 +173,11 @@ def _float_targets(targets, rows, dimensions, objective_id):
     return np.ascontiguousarray(targets.T, np.float32)
 
 
-def _method(value):
+def _method(value, *, training=False):
+    if value == "Simple" and training:
+        return 3
     if value not in ("Newton", "Gradient"):
-        raise ValueError("leaf_estimation_method must be Newton or Gradient.")
+        raise ValueError("leaf_estimation_method must be Newton, Gradient, or Simple for training.")
     return int(value == "Gradient")
 
 
@@ -226,6 +241,7 @@ class Session:
                  grow_policy="SymmetricTree", max_leaves=31, min_data_in_leaf=1):
         self._handle = ct.c_void_p(); self._lib = None; self._lock = threading.RLock()
         self._steps = []
+        self._langevin_callbacks = None
         self._permutation_count = 1
         self._permutations_configured = False
         classes = _integer("classes", classes, 2, 64)
@@ -246,7 +262,10 @@ class Session:
         leaf_iterations = _integer("leaf_estimation_iterations", leaf_estimation_iterations, 1, 1000)
         self._iteration_offset = _integer("iteration_offset", iteration_offset, 0, 2**32 - 1 - iterations)
         _integer("random_seed", random_seed, 0, 2**64 - 1)
-        objective_id, method = _objective(objective), _method(leaf_estimation_method)
+        objective_id = _objective(objective)
+        method = _method(leaf_estimation_method, training=True)
+        if method == 3 and leaf_iterations != 1:
+            raise ValueError("Simple leaf estimation requires exactly one iteration.")
         if self._greedy_options is not None and objective_id not in (0, 1, 3):
             raise ValueError("CUDA greedy vector objectives are MultiClass, MultiClassOneVsAll and RMSEWithUncertainty.")
         score_ids = {"L2": 0, "Cosine": 1, "SolarL2": 4, "LOOL2": 5, "SatL2": 6}
@@ -379,6 +398,62 @@ class Session:
             _check(self._lib.cbm_multiclass_session_copy_predictions(self._handle, _f32(result), error, len(error)), error)
             return result
 
+    def configure_langevin(self, temperature, noise_callback, seed_callback=None):
+        """Inject additive float64 leaf noise in CUDA order before the first tree.
+
+        noise_callback(event, count) returns count finite values. The optional
+        seed_callback(event) returns a uint64 seed for source cache/search
+        events. Callbacks remain live until this session is closed; exceptions
+        abort the native operation and are reported by step().
+        """
+        with self._lock:
+            self._require_open()
+            if self._steps or self._langevin_callbacks is not None:
+                raise ValueError("Langevin can be configured once before training.")
+            temperature = _finite_array("Langevin temperature", temperature, ())
+            if temperature < 0:
+                raise ValueError("Langevin temperature must be nonnegative.")
+            if not callable(noise_callback) or (seed_callback is not None and not callable(seed_callback)):
+                raise ValueError("Langevin callbacks must be callable.")
+            callback_error = [None]
+
+            @LangevinNoiseCallback
+            def noise(_context, event, count, output):
+                try:
+                    values = np.asarray(noise_callback(int(event), int(count)))
+                    if values.shape != (count,) or values.dtype.kind not in "biuf":
+                        raise ValueError("Langevin noise callback must return count numeric values.")
+                    values = np.asarray(values, dtype=np.float64)
+                    if not np.isfinite(values).all():
+                        raise ValueError("Langevin noise callback must return finite values.")
+                    np.ctypeslib.as_array(output, shape=(count,))[:] = values
+                    return 0
+                except BaseException as error:
+                    callback_error[0] = error
+                    return 1
+
+            @LangevinSeedCallback
+            def seed(_context, event, output):
+                try:
+                    value = 0 if seed_callback is None else seed_callback(int(event))
+                    output[0] = _integer("Langevin callback seed", value, 0, 2**64 - 1)
+                    return 0
+                except BaseException as error:
+                    callback_error[0] = error
+                    return 1
+
+            error = ct.create_string_buffer(2048)
+            _check(self._lib.cbm_multiclass_session_set_langevin(self._handle, float(temperature),
+                noise, seed, None, error, len(error)), error)
+            self._langevin_callbacks = (noise, seed, callback_error)
+
+    def _check_langevin_operation(self, code, error):
+        callback_error = None if self._langevin_callbacks is None else self._langevin_callbacks[2][0]
+        if callback_error is not None:
+            self._langevin_callbacks[2][0] = None
+            raise RuntimeError(f"Langevin callback failed: {callback_error}") from callback_error
+        _check(code, error)
+
     def configure_permutations(self, bins_list, initial_predictions=None, mvs_lambdas=None, mvs_valid=None,
                                optimization_predictions=None):
         """Keep separate class cursors while sharing each selected tree structure."""
@@ -464,6 +539,18 @@ class Session:
             _check(self._lib.cbm_multiclass_session_copy_optimization_state(self._handle, count, _f32(result), error, len(error)), error)
             return result if all_permutations else result[-1]
 
+    def configure_greedy_feature_weights(self, feature_weights):
+        with self._lock:
+            self._require_open()
+            if self._greedy_options is None or self._steps:
+                raise ValueError("Greedy feature weights must be configured before training.")
+            weights = _finite_array("feature_weights", feature_weights, (self._params.features,))
+            if (weights < 0).any():
+                raise ValueError("feature_weights must be nonnegative.")
+            error = ct.create_string_buffer(2048)
+            _check(self._lib.cbm_multiclass_session_set_greedy_feature_weights(
+                self._handle, len(weights), _f32(weights), error, len(error)), error)
+
     def configure_feature_penalties(self, ctr_unique_values, model_size_reg=.5, feature_weights=None, used_features=None):
         """CUDA greedy CTR size penalty and forest-wide used-feature state."""
         with self._lock:
@@ -511,7 +598,7 @@ class Session:
                 nodes = np.zeros((2 * capacity - 1, 6), np.uint32)
                 values, weights = np.zeros((capacity, p.classes), np.float32), np.zeros(capacity, np.float32)
                 info, error = _greedy.StepInfo(), ct.create_string_buffer(2048)
-                _check(self._lib.cbm_multiclass_session_step_greedy(self._handle, ct.byref(info),
+                self._check_langevin_operation(self._lib.cbm_multiclass_session_step_greedy(self._handle, ct.byref(info),
                     nodes.ctypes.data_as(ct.POINTER(_greedy.Node)), _f32(values), _f32(weights), error, len(error)), error)
                 if not (1 <= info.node_count <= len(nodes) and 1 <= info.leaf_count <= capacity):
                     raise RuntimeError("Metal returned invalid vector greedy output sizes.")
@@ -524,7 +611,7 @@ class Session:
             values = np.zeros((1 << p.depth, p.classes), np.float32)
             weights = np.zeros(1 << p.depth, np.float32)
             info, depth, error = StepInfo(), ct.c_uint32(), ct.create_string_buffer(2048)
-            _check(self._lib.cbm_multiclass_session_step(self._handle, ct.byref(info), ct.byref(depth),
+            self._check_langevin_operation(self._lib.cbm_multiclass_session_step(self._handle, ct.byref(info), ct.byref(depth),
                    _u32(features), _u32(borders), _u8(types), _f32(values), _f32(weights), error, len(error)), error)
             count = int(depth.value)
             # Match scalar StepResult: compact actual-depth arrays. result()
@@ -568,6 +655,7 @@ class Session:
                 if self._handle.value and self._lib is not None:
                     self._lib.cbm_multiclass_session_close(self._handle)
                     self._handle = ct.c_void_p()
+                self._langevin_callbacks = None
 
     def __enter__(self):
         self._require_open()
@@ -591,6 +679,8 @@ def train(bins, targets, candidate_features, candidate_bins, **kwargs):
     with Session(bins, targets, candidate_features, candidate_bins, **kwargs) as session:
         if counts is not None:
             session.configure_feature_penalties(counts, regularization, weights, used)
+        elif weights is not None and used is None and session._greedy_options is not None:
+            session.configure_greedy_feature_weights(weights)
         elif weights is not None or used is not None:
             session.configure_feature_penalties(np.zeros(session._params.features, np.uint32), regularization, weights, used)
         for _ in range(session._params.iterations):

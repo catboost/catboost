@@ -14,9 +14,11 @@ namespace NCB {
         ui32 featureCount,
         TSplitLookup&& splitLookup,
         ui32 maxDepth = 16,
-        ui32 approxDimension = 1)
+        ui32 approxDimension = 1,
+        bool allowSignedLeafWeights = false)
     {
-        const auto topology = ValidateMetalGreedyTree(tree.Nodes, tree.Values, tree.Weights, featureCount, maxDepth, approxDimension);
+        const auto topology = ValidateMetalGreedyTree(tree.Nodes, tree.Values, tree.Weights, featureCount, maxDepth,
+            approxDimension, allowSignedLeafWeights);
         TVector<ui32> compactSize(tree.Nodes.size(), 1);
         // TNonSymmetricTreeModelBuilder packs one terminal child into its
         // parent. Calculate its real preorder offsets before its ui16 casts.

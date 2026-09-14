@@ -86,7 +86,7 @@ inline std::vector<CBMOrderedFold> CBMCreateGroupedOrderedFolds(
     return result;
 }
 
-constexpr uint32_t CBMOrderedScoreCombinationRightMassClamp = 1u << 1;
+constexpr uint32_t CBMOrderedScoreSignedRightMassClamp = 1u << 1;
 
 static const char* CBMMetalOrderedSource = R"METAL(
 #include <metal_stdlib>
@@ -101,7 +101,7 @@ struct OrderedParams {
 };
 
 constant uint OrderedScoreSolarL2 = 1u;
-constant uint OrderedScoreCombinationRightMassClamp = 1u << 1;
+constant uint OrderedScoreSignedRightMassClamp = 1u << 1;
 
 // Fold uint4 = estimate_end, quality_end, cursor_offset, reserved.
 // Every fold owns [0, quality_end) cursor values in its permutation order.
@@ -190,7 +190,7 @@ kernel void OrderedCandidateStatistics(const device uchar* bins [[buffer(0)]],
 // existing winner reducer. Feature options float4 = categorical multiplier,
 // feature penalty multiplier, already-scaled feature noise, reserved.
 // score_function bit0: Cosine/NewtonCosine=0, legacy dynamic SolarL2=1.
-// Bit1 enables CUDA's right-child mass clamp for signed Combination targets.
+// Bit1 enables CUDA's right-child mass clamp for signed weak weights.
 // Current CUDA public options reject Ordered+SolarL2; do not expose this
 // diagnostic variant as public CUDA parity. CUDA dynamic dispatch has no L2.
 kernel void ScoreOrderedCandidates(const device float4* statistics [[buffer(0)]],
@@ -199,7 +199,7 @@ kernel void ScoreOrderedCandidates(const device float4* statistics [[buffer(0)]]
     uint candidate [[thread_position_in_grid]]) {
     if (candidate >= p.candidates) return;
     const bool solar = p.score_function & OrderedScoreSolarL2;
-    const bool signed_combination = p.score_function & OrderedScoreCombinationRightMassClamp;
+    const bool signed_weights = p.score_function & OrderedScoreSignedRightMassClamp;
     // CUDA stores the equality bucket as left before forming its complement;
     // Metal's model routes equality to the logical right child instead.
     const uint complement_side = (candidates[candidate].y >> 31) ? 0u : 1u;
@@ -209,7 +209,7 @@ kernel void ScoreOrderedCandidates(const device float4* statistics [[buffer(0)]]
         for (uint fold = 0; fold < p.folds; ++fold) {
             for (uint side = 0; side < 2; ++side) {
                 float4 s = statistics[((candidate * p.leaves + leaf) * p.folds + fold) * 2 + side];
-                if (signed_combination && side == complement_side) {
+                if (signed_weights && side == complement_side) {
                     s.x = max(s.x, 0.0f); s.z = max(s.z, 0.0f);
                 }
                 const float lambda = p.normalize ? p.l2 * s.x : p.l2;

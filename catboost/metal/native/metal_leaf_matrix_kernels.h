@@ -46,6 +46,22 @@ inline uint LeafMatrixDimension(constant LeafMatrixParams& p) {
     return p.leaves - uint(!p.has_diagonal_part);
 }
 
+// CUDA matrix_per_tree_oracle_base applies the ridge objective gradient after
+// projecting the target. Keep the same modified gradient for both the solve
+// and Armijo's directional dot; the final free-mean coordinate has direction
+// zero and is therefore harmless here.
+kernel void ApplyLeafMatrixRidge(device float* gradient [[buffer(0)]],
+    const device float* point [[buffer(1)]], device atomic_uint* status [[buffer(2)]],
+    constant LeafMatrixParams& p [[buffer(3)]], uint leaf [[thread_position_in_grid]]) {
+    if (leaf >= p.leaves) return;
+    const float2 adjusted = LeafMatrixAdd(float2(gradient[leaf], 0.0f),
+        -LeafMatrixMultiply(float2(p.l2, 0.0f), float2(point[leaf], 0.0f)));
+    const float value = adjusted.x + adjusted.y;
+    if (!isfinite(point[leaf]) || !all(isfinite(adjusted)) || !isfinite(value))
+        atomic_fetch_or_explicit(status, 1u, memory_order_relaxed);
+    gradient[leaf] = value;
+}
+
 // Input is a COMPLETE projected Hessian, including both Laplacian diagonal
 // and off-diagonal cells, plus any QCE point diagonal. The output's physical
 // row stride stays leaves even when the last coordinate is removed.

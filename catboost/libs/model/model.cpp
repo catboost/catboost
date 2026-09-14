@@ -1324,7 +1324,8 @@ void TFullModel::UpdateDynamicData() {
         CtrProvider->SetupBinFeatureIndexes(
             ModelTrees->GetFloatFeatures(),
             ModelTrees->GetOneHotFeatures(),
-            ModelTrees->GetCatFeatures());
+            ModelTrees->GetCatFeatures(),
+            ModelTrees->GetEstimatedFeatures());
     }
     with_lock(CurrentEvaluatorLock) {
         Evaluator.Reset();

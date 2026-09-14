@@ -11,6 +11,11 @@
 
 namespace NCB {
 
+struct TMetalTreeCtrTensorPack {
+    TFeatureCombination Base;
+    TSet<TFeatureCombination> Tensors;
+};
+
 // Model-index counterpart of CUDA TTreeCtrDataSetsHelper's tensor scheduler.
 // The caller supplies only category model indices eligible for tree CTRs (the
 // same OnAll/one_hot_max_size policy as the categorical dataset builder).
@@ -42,8 +47,10 @@ public:
         PureTreeTensor.Clear();
         PureTreeHasEstimatedFeature = false;
         PersistentTensors.clear();
+        PersistentBases.clear();
         PureTreeTensors.clear();
         ActiveTensors.clear();
+        HasPureTreeTensor = false;
     }
 
     void AddSplit(const TModelSplit& split) {
@@ -61,6 +68,7 @@ public:
                 return;
             }
             CurrentTensor = std::move(merged);
+            PersistentBases.insert(CurrentTensor);
             AddCrossedTensors(CurrentTensor, &PersistentTensors);
         } else {
             TFeatureCombination next = PureTreeTensor;
@@ -81,6 +89,7 @@ public:
             Normalize(&next);
             PureTreeTensor = std::move(next);
             PureTreeHasEstimatedFeature = hasEstimated;
+            HasPureTreeTensor = true;
             // Ordinary splits replace only the previous pure-tree packs.
             // Previously admitted merged-CTR packs remain available this tree.
             PureTreeTensors.clear();
@@ -94,6 +103,27 @@ public:
 
     const TSet<TFeatureCombination>& GetActiveTensors() const {
         return ActiveTensors;
+    }
+
+    // Preserve the base that seeded CUDA's dataset visitor. Reconstructing
+    // it by removing a category from a full projection is ambiguous. Several
+    // physical CUDA packs of a base differ only in crossed categories; each
+    // category carries the full common configuration set and policy mask.
+    TVector<TMetalTreeCtrTensorPack> GetActiveTensorPacks() const {
+        TVector<TMetalTreeCtrTensorPack> result;
+        for (const auto& base : PersistentBases) {
+            TMetalTreeCtrTensorPack pack;
+            pack.Base = base;
+            AddCrossedTensors(base, &pack.Tensors);
+            if (!pack.Tensors.empty()) result.push_back(std::move(pack));
+        }
+        if (HasPureTreeTensor && !PureTreeHasEstimatedFeature) {
+            TMetalTreeCtrTensorPack pack;
+            pack.Base = PureTreeTensor;
+            AddCrossedTensors(PureTreeTensor, &pack.Tensors);
+            if (!pack.Tensors.empty()) result.push_back(std::move(pack));
+        }
+        return result;
     }
 
     static size_t Complexity(const TFeatureCombination& tensor) {
@@ -167,6 +197,8 @@ private:
     TFeatureCombination CurrentTensor;
     TFeatureCombination PureTreeTensor;
     bool PureTreeHasEstimatedFeature = false;
+    bool HasPureTreeTensor = false;
+    TSet<TFeatureCombination> PersistentBases;
     TSet<TFeatureCombination> PersistentTensors;
     TSet<TFeatureCombination> PureTreeTensors;
     TSet<TFeatureCombination> ActiveTensors;

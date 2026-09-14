@@ -21,16 +21,18 @@ namespace NCB {
     public:
         TMetalYetiRandom(ui64 seed, bool bootstrap, ui32 leafIterations, ui32 depth, ui32 candidates,
                         ui32 datasetPermutations = 1, bool greedy = false, ui32 maxSearchAttempts = 0,
-                        ui32 oracleCount = 1, bool variableLeafCalls = false, bool simpleLeaves = false)
+                        ui32 oracleCount = 1, bool variableLeafCalls = false, bool simpleLeaves = false,
+                        ui32 scoreDataSets = 1)
             : Seed(seed), Bootstrap(bootstrap), LeafIterations(leafIterations), Depth(depth), Candidates(candidates),
               DatasetPermutations(datasetPermutations), Greedy(greedy),
               MaxSearchAttempts(greedy ? maxSearchAttempts : depth), OracleCount(oracleCount),
-              VariableLeafCalls(variableLeafCalls), SimpleLeaves(simpleLeaves), Random(seed)
+              VariableLeafCalls(variableLeafCalls), SimpleLeaves(simpleLeaves), ScoreDataSets(scoreDataSets), Random(seed)
         {
             CB_ENSURE(LeafIterations >= 1 && LeafIterations <= 1000 && Depth <= (Greedy ? 65535u : 16u) &&
                 (!Greedy || MaxSearchAttempts > 0) &&
                 DatasetPermutations >= 1 && DatasetPermutations <= 64 && OracleCount >= 1 && OracleCount <= 128 &&
-                (!SimpleLeaves || (VariableLeafCalls && LeafIterations == 1)),
+                (!SimpleLeaves || (VariableLeafCalls && LeafIterations == 1)) &&
+                ScoreDataSets >= 1 && ScoreDataSets <= 2 && (!Greedy || ScoreDataSets == 1),
                 "Invalid Metal YetiRank random stream dimensions");
             Advance(1); // TDocParallelBoosting::BaseIterationSeed.
         }
@@ -57,7 +59,7 @@ namespace NCB {
             CB_ENSURE(Phase == 1 && attempts <= MaxSearchAttempts && (Candidates || !attempts),
                 "Invalid YetiRank split attempt count or random phase");
             InitializeBootstrap();
-            Advance(attempts);
+            Advance(ui64(attempts) * ScoreDataSets);
             TVector<uint64_t> result(LeafSeedCount());
             for (auto& seed : result) { seed = Random.NextUniformL(); ++State.DrawCount; }
             Phase = 2;
@@ -68,7 +70,7 @@ namespace NCB {
             CB_ENSURE(VariableLeafCalls && Phase == 1 && attempts <= MaxSearchAttempts && (Candidates || !attempts),
                 "Invalid Combination split attempt count or random phase");
             InitializeBootstrap();
-            Advance(attempts);
+            Advance(ui64(attempts) * ScoreDataSets);
             CurrentLeafCalls = 0;
             Phase = 2;
         }
@@ -79,6 +81,17 @@ namespace NCB {
             ++CurrentLeafCalls;
             ++State.DrawCount;
             return Random.NextUniformL();
+        }
+
+        TVector<ui64> PeekScoreSeeds(ui32 offset, ui32 count) const {
+            CB_ENSURE(Phase == 1 && !Greedy && ui64(offset) + count <= ui64(Depth) * ScoreDataSets,
+                "Metal score seeds require a pending symmetric DocParallel target");
+            TRandom copy = Random;
+            if (Bootstrap && !State.BootstrapInitialized) copy.Advance(65537);
+            copy.Advance(offset);
+            TVector<ui64> result(count);
+            for (auto& seed : result) seed = copy.NextUniformL();
+            return result;
         }
 
         void Complete() {
@@ -116,7 +129,7 @@ namespace NCB {
                     CB_ENSURE(searchAttempts[tree] <= MaxSearchAttempts && (Candidates || !searchAttempts[tree]),
                         "Greedy YetiRank snapshot has invalid search draw counts");
                     expected += searchAttempts[tree];
-                } else expected += Candidates && Depth ? Min(actualDepth + 1, Depth) : 0;
+                } else expected += Candidates && Depth ? ui64(Min(actualDepth + 1, Depth)) * ScoreDataSets : 0;
             }
             const ui64 extra = VariableLeafCalls && !SimpleLeaves ? ui64(depths.size()) *
                 (MaximumLeafSeedCount() - LeafSeedCount()) : 0;
@@ -158,6 +171,7 @@ namespace NCB {
         const ui32 MaxSearchAttempts;
         const ui32 OracleCount;
         const bool VariableLeafCalls, SimpleLeaves;
+        const ui32 ScoreDataSets;
         TRandom Random;
         TMetalYetiRandomState State;
         ui32 Phase = 0;

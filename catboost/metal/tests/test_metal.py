@@ -208,7 +208,7 @@ def test_wrapper_all_constant_features(metal_device, tmp_path):
     {"l2_leaf_reg": -1}, {"score_function": "Unknown"},
     {"boosting_type": "Unknown"}, {"task_type": "GPU"},
     {"loss_function": "Logloss"}, {"bootstrap_type": "Uniform"},
-    {"random_strength": -1}, {"one_hot_max_size": 256},
+    {"random_strength": -1}, {"one_hot_max_size": 257},
     {"leaf_estimation_iterations": 0},
 ])
 def test_invalid_configuration_never_needs_device(monkeypatch, kwargs):

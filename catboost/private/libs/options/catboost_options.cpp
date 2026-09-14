@@ -804,9 +804,9 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         && TaskType == ETaskType::GPU && !boostingType.IsSet()
     ) {
 #if defined(CATBOOST_HAVE_METAL)
-        // The Darwin Metal trainer implements Plain boosting. Set this before
-        // leaf-method defaults and validation so Exact works through the public
-        // API without requiring users to repeat the backend's default.
+        // Preserve Metal's published Plain default, including its Exact leaf
+        // defaults and snapshot parameters. Ordered is available explicitly;
+        // changing the implicit algorithm would alter existing callers' models.
         boostingType.SetDefault(EBoostingType::Plain);
 #else
         boostingType.SetDefault(EBoostingType::Ordered);

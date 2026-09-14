@@ -161,5 +161,5 @@ def test_pure_categorical_and_constant_columns_keep_original_feature_indices(tmp
     cats=np.column_stack((np.repeat('constant',len(x)),x[:,1],x[:,3]))
     model=cls().set_params(**config).fit(Pool(cats,y,cat_features=[0,1,2],weight=w))
     assert_readers(model,cls,cats,tmp_path)
-    with pytest.raises(CatBoostError,match='one_hot_max_size up to 255'):
-        cls().set_params(**(config|dict(one_hot_max_size=256))).fit(Pool(cats,y,cat_features=[0,1,2],weight=w))
+    with pytest.raises(CatBoostError,match='maximum value of one-hot-encoding is 256'):
+        cls().set_params(**(config|dict(one_hot_max_size=257))).fit(Pool(cats,y,cat_features=[0,1,2],weight=w))

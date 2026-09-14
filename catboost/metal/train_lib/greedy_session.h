@@ -132,6 +132,12 @@ namespace NCB {
             return result;
         }
 
+        void SetFeatureWeights(TConstArrayRef<float> weights) {
+            char error[2048] = {};
+            CB_ENSURE(cbm_greedy_session_set_feature_weights(Session.Value, weights.size(), weights.data(),
+                error, sizeof(error)) == 0, "Metal greedy feature weight setup failed: " << error);
+        }
+
         void SetBootstrap(const CBMBootstrapOptions& options) {
             char error[2048] = {};
             CB_ENSURE(cbm_greedy_session_set_bootstrap(Session.Value, &options, error, sizeof(error)) == 0,
@@ -139,10 +145,22 @@ namespace NCB {
             IterationOffset = options.iteration_offset;
         }
 
+        void SetFixedSplits(TConstArrayRef<ui32> features) {
+            char error[2048] = {};
+            CB_ENSURE(cbm_greedy_session_set_fixed_splits(Session.Value, features.size(), features.data(), error, sizeof(error)) == 0,
+                "Metal greedy fixed split configuration failed: " << error);
+        }
+
         void SetScoreNoise(const CBMScoreNoiseOptions& options) {
             char error[2048] = {};
             CB_ENSURE(cbm_greedy_session_set_score_noise(Session.Value, &options, error, sizeof(error)) == 0,
                 "Metal greedy score noise configuration failed: " << error);
+        }
+
+        void SetAddRidgeToTargetFunction(bool enabled) {
+            char error[2048] = {};
+            CB_ENSURE(cbm_greedy_session_set_add_ridge(Session.Value, enabled ? 1u : 0u,
+                error, sizeof(error)) == 0, "Metal greedy ridge configuration failed: " << error);
         }
 
         void SetBacktracking(ui32 type) {

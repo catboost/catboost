@@ -1,5 +1,6 @@
 #include "tree_ctrs.h"
 #include "tree_ctr_tensors.h"
+#include "tree_ctr_meta.h"
 
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/exception.h>
@@ -131,8 +132,8 @@ public:
         CB_ENSURE(categorical.MaxTensorComplexity > 1, "Metal tree CTRs require max_ctr_complexity > 1");
         CB_ENSURE(HistoryUnit == ECtrHistoryUnit::Sample || HistoryUnit == ECtrHistoryUnit::Group,
                   "Metal tree CTR history unit is invalid");
-        CB_ENSURE(categorical.CounterCalcMethod == ECounterCalc::SkipTest,
-                  "Metal tree CTRs currently require counter_calc_method='SkipTest'");
+        // CUDA's dynamic tensor search and reprojection use learn-only CTR
+        // helpers. Unlike precomputed FeatureFreq, they do not consult Full.
         if (HistoryUnit == ECtrHistoryUnit::Group && !data.ObjectsGrouping->IsTrivial()) {
             // CUDA BuildCtrTarget uses query ordinals in source-row order.
             // External group hashes are not truncated, and every observation
@@ -497,6 +498,31 @@ public:
         TreeFeatures.clear();
     }
 
+    TVector<TMetalTreeCtrScoringPack> GetActiveScoringPacks() const {
+        const auto& layout = *Objects.GetFeaturesLayout();
+        const auto& quantizedInfo = *Objects.GetQuantizedFeaturesInfo();
+        const auto ids = MakeMetalOriginalFeatureManagerIds(layout, quantizedInfo);
+        TVector<TMetalTreeCtrScoringPack> result;
+        for (const auto& tensors : Scheduler->GetActiveTensorPacks()) {
+            TMetalTreeCtrScoringPack pack;
+            pack.BaseTensorHash = MakeMetalCudaTreeCtrTensor(tensors.Base, layout, quantizedInfo, ids).GetHash();
+            for (const auto& projection : tensors.Tensors) {
+                const auto found = TreeFeatures.find(projection);
+                CB_ENSURE(found != TreeFeatures.end() && found->second.size() == Configs.size(),
+                    "Tree CTR scoring metadata requires the complete active feature registry");
+                for (ui32 config = 0; config < Configs.size(); ++config) {
+                    const ui32 borders = Binarizations.at(Configs[config].CtrBinarizationConfigId).BorderCount.Get();
+                    if (!borders) continue;
+                    const ui32 policy = MetalTreeCtrConfiguredPolicy(borders);
+                    pack.PolicyMask |= 1u << policy;
+                    pack.Features.push_back({found->second[config], policy});
+                }
+            }
+            if (pack.PolicyMask) result.push_back(std::move(pack));
+        }
+        return result;
+    }
+
     TMetalTreeCtrBatch NewBatch() const {
         TMetalTreeCtrBatch result;
         result.FirstFeature = FirstFeature + Splits.size();
@@ -567,6 +593,7 @@ TMetalTreeCtrFeatures::~TMetalTreeCtrFeatures() = default;
 void TMetalTreeCtrFeatures::BeginTree() { Impl->BeginTree(); }
 void TMetalTreeCtrFeatures::MarkSelected(ui32 absoluteFeature) { Impl->MarkSelected(absoluteFeature); }
 TVector<ui32> TMetalTreeCtrFeatures::GetRegisteredFeatures() const { return Impl->GetRegisteredFeatures(); }
+TVector<TMetalTreeCtrScoringPack> TMetalTreeCtrFeatures::GetActiveScoringPacks() const { return Impl->GetActiveScoringPacks(); }
 TMetalTreeCtrBatch TMetalTreeCtrFeatures::AddSplit(const TModelSplit& split, ui32 borderPermutation) {
     return Impl->AddSplit(split, borderPermutation);
 }

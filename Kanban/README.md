@@ -12,9 +12,9 @@ work; existing implementation progress does not mean the card is complete.
 
 ## Backlog
 
-- [ ] [4. Close API and option gaps](04-api-and-options.md)
 - [ ] [5. Establish stronger numerical agreement](05-numerical-agreement.md)
 - [ ] [6. Prove scale and performance](06-scale-and-performance.md)
+- [ ] [7. Support model-based feature analysis](07-model-based-feature-analysis.md)
 
 ## In progress
 
@@ -25,6 +25,7 @@ None.
 - [x] [1. Finish greedy PairLogit](01-greedy-pairlogit.md)
 - [x] [2. Complete categorical combinations](02-categorical-combinations.md)
 - [x] [3. Finish remaining training modes](03-training-modes.md)
+- [x] [4. Close API and option gaps](04-api-and-options.md)
 
 Move a card's link between sections and update its `status` as work progresses.
 Tick its checklist items only when supported by validation evidence.
@@ -35,7 +36,8 @@ Tick its checklist items only when supported by validation evidence.
 - [Greedy PairLogit release report](../catboost/metal/GREEDY_PAIRLOGIT_PORT.md)
 - [Compound CTR release report](../catboost/metal/COMPOUND_CTR_PORT.md)
 - [Training modes release report](../catboost/metal/TRAINING_MODES_PORT.md)
+- [API and options release report](../catboost/metal/API_OPTIONS_PORT.md)
 - [Metal backend README](../catboost/metal/README.md)
 
-Current installed checkpoint: `20260914T000929Z`. Its full matrix passes
-12,745 tests plus 16 subtests. [Training modes release report](../catboost/metal/TRAINING_MODES_PORT.md).
+Current installed checkpoint: `20260914T025201Z`. 14,376 tests plus 16 subtests in the full matrix; 6,118 tests alternate; 2,431 tests installed; 348 CLI; 203 preinstall smoke; 203 installed smoke; 350 exact preceding snapshot recoveries.
+Counts overlap. [API and options release report](../catboost/metal/API_OPTIONS_PORT.md).

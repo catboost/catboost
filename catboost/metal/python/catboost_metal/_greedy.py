@@ -25,6 +25,7 @@ OBJECTIVES = ("RMSE", "Logloss", "CrossEntropy", "Poisson", "Huber", "Expectile"
 OBJECTIVE_IDS = {**{name: index for index, name in enumerate(OBJECTIVES[:-1])}, "YetiRank": 17}
 SCORES = ("L2", "Cosine", "NewtonL2", "NewtonCosine", "SolarL2", "LOOL2", "SatL2")
 BOOTSTRAPS = ("No", "Bayesian", "Bernoulli", "Poisson")
+LEAF_METHODS = ("Newton", "Gradient", "Exact", "Simple")
 OBJECTIVE_PARAMETERS = {"Huber": "delta", "Expectile": "alpha", "Lq": "q",
                         "Tweedie": "variance_power", "LogLinQuantile": "alpha", "Quantile": "alpha"}
 
@@ -83,7 +84,7 @@ def build_library():
     native = root / "native"
     # Hash just this translation unit and its transitive local headers. Changes
     # to unrelated sessions should not rebuild the greedy runtime.
-    pending, sources = [native / "metal_greedy_trainer.mm", native / "metal_sort.mm"], {}
+    pending, sources = [native / "metal_greedy_trainer.mm", native / "metal_sort.mm", native / "metal_exception.cpp"], {}
     while pending:
         source = pending.pop()
         if source in sources:
@@ -108,7 +109,8 @@ def build_library():
                 completed = subprocess.run([
                     "xcrun", "clang++", "-std=c++17", "-O2", "-fobjc-arc", "-dynamiclib",
                     "-framework", "Foundation", "-framework", "Metal",
-                    str(native / "metal_greedy_trainer.mm"), str(native / "metal_sort.mm"), "-o", str(temporary)],
+                    str(native / "metal_greedy_trainer.mm"), str(native / "metal_sort.mm"),
+                    str(native / "metal_exception.cpp"), "-o", str(temporary)],
                     capture_output=True, text=True)
                 if completed.returncode:
                     raise RuntimeError("Could not build greedy Metal runtime:\n" + completed.stderr)
@@ -145,6 +147,7 @@ def _load(path):
     lib.cbm_greedy_session_set_backtracking.argtypes = [ct.c_void_p, ct.c_uint32] + text
     lib.cbm_greedy_session_set_bootstrap.argtypes = [ct.c_void_p, ct.POINTER(BootstrapOptions)] + text
     lib.cbm_greedy_session_set_score_noise.argtypes = [ct.c_void_p, ct.POINTER(ScoreNoiseOptions)] + text
+    lib.cbm_greedy_session_set_feature_weights.argtypes = [ct.c_void_p, ct.c_uint32, f32] + text
     lib.cbm_greedy_session_set_permutations.argtypes = [ct.c_void_p, ct.c_uint32,
         ct.POINTER(u8), ct.POINTER(f32), f32, u8] + text
     lib.cbm_greedy_session_select_permutation.argtypes = [ct.c_void_p, ct.c_uint32] + text
@@ -153,7 +156,7 @@ def _load(path):
     lib.cbm_greedy_session_close.restype = None
     for name in ("create", "create_configured", "create_query", "create_pair", "create_yeti",
                  "set_yeti_oracle_seeds", "set_yeti_leaf_seeds", "prepare_yeti_tree", "step", "copy_predictions", "info", "set_backtracking",
-                 "set_bootstrap", "set_score_noise", "set_permutations", "select_permutation", "copy_permutation_state"):
+                 "set_bootstrap", "set_score_noise", "set_feature_weights", "set_permutations", "select_permutation", "copy_permutation_state"):
         getattr(lib, "cbm_greedy_session_" + name).restype = ct.c_int
     return lib
 
@@ -204,13 +207,15 @@ class TrainingSession:
     ``bins`` is feature-major uint8[features, rows]. Numeric candidates route
     bin > border to the right; one-hot candidates route equality to the right.
     Initial predictions are an external baseline, not stored in returned trees.
+    Simple leaves use one update from the bootstrapped search statistics and
+    export their score weights. Every history receives the searched leaf model.
     """
     def __init__(self, bins, targets, candidate_features, candidate_bins, *,
                  grow_policy="Lossguide", iterations=100, depth=6, max_leaves=None,
                  min_data_in_leaf=1, learning_rate=.03, l2_leaf_reg=3., bias=0.,
                  score_function="Cosine", objective="RMSE", sample_weight=None,
                  leaf_estimation_iterations=1, leaf_estimation_method="Newton",
-                 initial_predictions=None, candidate_types=None, boosting_type="Plain",
+                 initial_predictions=None, candidate_types=None, feature_weights=None, boosting_type="Plain",
                  bootstrap_type="No", leaf_estimation_backtracking="No", random_strength=0.,
                  objective_param=None, random_seed=0, iteration_offset=0,
                  bagging_temperature=1., subsample=1., group_offsets=None, query_beta=1., query_lambda=.01,
@@ -222,7 +227,7 @@ class TrainingSession:
         self._permutation_count = 1
         self._permutations_configured = False
         policies, objectives = ("Depthwise", "Lossguide", "Region"), OBJECTIVES
-        scores, methods = SCORES, ("Newton", "Gradient", "Exact")
+        scores, methods = SCORES, LEAF_METHODS
         for name, value, supported in (("grow_policy", grow_policy, policies),
                 ("objective", objective, objectives), ("score_function", score_function, scores),
                 ("leaf_estimation_method", leaf_estimation_method, methods)):
@@ -272,10 +277,15 @@ class TrainingSession:
         max_leaves = _integer("max_leaves", max_leaves, 1, 65536)
         min_data_in_leaf = _integer("min_data_in_leaf", min_data_in_leaf, 1, 16777216)
         leaf_iterations = _integer("leaf_estimation_iterations", leaf_estimation_iterations, 1, 1000)
+        if leaf_estimation_method == "Simple" and leaf_iterations != 1:
+            raise ValueError("Simple leaves require leaf_estimation_iterations=1.")
         bins = np.asarray(bins)
         if bins.ndim != 2 or bins.dtype.kind not in "iu" or not all(bins.shape):
             raise ValueError("bins must be a nonempty feature-major two-dimensional integer array.")
         features, rows = bins.shape
+        feature_weights = None if feature_weights is None else _finite_array("feature_weights", feature_weights, (features,))
+        if feature_weights is not None and (feature_weights < 0).any():
+            raise ValueError("feature_weights must be nonnegative.")
         _integer("rows", rows, 1, 16777216)
         if rows * features > 2**32 - 1 or (bins < 0).any() or (bins > 255).any():
             raise ValueError("bins must lie in [0,255], with at most uint32 cells.")
@@ -353,6 +363,7 @@ class TrainingSession:
             scores.index(score_function), methods.index(leaf_estimation_method), leaf_iterations,
             0, 0, 0, *map(float, scalars), 0)
         self.objective, self.grow_policy, self.objective_param = objective, grow_policy, parameter
+        self.leaf_estimation_method = leaf_estimation_method
         self._objective_options = ObjectiveOptions(OBJECTIVE_IDS[objective],
             methods.index(leaf_estimation_method), parameter, 0)
         self._bootstrap_options = BootstrapOptions(BOOTSTRAPS.index(bootstrap_type),
@@ -392,6 +403,8 @@ class TrainingSession:
                 ct.byref(self._bootstrap_options), error, len(error)), error)
             _check(self._lib.cbm_greedy_session_set_score_noise(self._handle,
                 ct.byref(self._noise_options), error, len(error)), error)
+            if feature_weights is not None:
+                self.configure_feature_weights(feature_weights)
             self._initial_loss = self._metric() if yeti else float(self._info().loss)
         except Exception:
             self.close()
@@ -460,6 +473,19 @@ class TrainingSession:
             self._permutations_configured = True
             self._initial_loss = self._metric() if self.objective == "YetiRank" else float(self._info().loss)
 
+    def configure_feature_weights(self, feature_weights):
+        """Set nonnegative split-score multipliers in encoded feature order."""
+        with self._lock:
+            self._require_open()
+            if self.completed_iterations:
+                raise ValueError("Feature weights must be configured before training.")
+            weights = _finite_array("feature_weights", feature_weights, (self._params.features,))
+            if (weights < 0).any():
+                raise ValueError("feature_weights must be nonnegative.")
+            error = ct.create_string_buffer(2048)
+            _check(self._lib.cbm_greedy_session_set_feature_weights(
+                self._handle, len(weights), _f32(weights), error, len(error)), error)
+
     def select_permutation(self, index):
         with self._lock:
             self._require_open()
@@ -526,6 +552,9 @@ class TrainingSession:
                 np.array([self._initial_loss, *[step.loss for step in self._steps]], np.float32),
                 _stats(self._info().stats))
             result.stats["bootstrap_state"] = self.bootstrap_state
+            if self.leaf_estimation_method == "Simple":
+                result.stats["leaf_estimation_method"] = "Simple"
+                result.stats["leaf_estimation_iterations"] = 1
             if self.objective == "YetiRank":
                 result.stats["yeti_rng"] = self.rng.state()
                 result.stats["yeti_centering"] = "legacy_prefix" if self._legacy_centering else "all_rows"

@@ -63,7 +63,7 @@ def _write_snapshot(path, fingerprint, result, history, best_iteration, best_val
 
 def _read_snapshot(path, fingerprint, *, rows, features, depth, max_leaves, iterations,
                    objective, eval_rows=None, selection_metric=None, maximize=False, permutation_count=1, classes=None,
-                   yeti_options=None):
+                   yeti_options=None, leaf_estimation_method=None):
     selection_metric = selection_metric or objective
     try:
         with zipfile.ZipFile(path) as archive:
@@ -120,7 +120,7 @@ def _read_snapshot(path, fingerprint, *, rows, features, depth, max_leaves, iter
             header["permutation_predictions"] = arrays["permutation_predictions"]
         if classes:
             header["optimization_predictions"] = arrays["optimization_predictions"]
-        if ((arrays["leaf_weights"] < 0).any() or
+        if ((leaf_estimation_method != "Simple" and (arrays["leaf_weights"] < 0).any()) or
                 (objective.partition(":")[0] not in ("Poisson", "RMSEWithUncertainty") and (arrays["loss"] < 0).any())):
             raise ValueError("Invalid greedy snapshot weights or loss.")
         stats = header["stats"]
@@ -209,12 +209,21 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
     CatBoost utilities. Supports scalar objectives and CUDA-registered vector
     objectives, Plain, No/Bayesian/Bernoulli/Poisson bootstrap, and shared-grid CTR datasets.
     Leaf updates support No, AnyImprovement, and Armijo backtracking.
+    Simple leaves require one estimation iteration and reuse the bootstrapped
+    search model, including its score weights, for all training histories.
     """
     if objective not in (*_greedy.OBJECTIVES, *_VECTOR_OBJECTIVES) or boosting_type != "Plain":
         raise ValueError("Greedy lifecycle requires a CUDA-registered scalar or vector objective with Plain boosting.")
     grouped = objective in ("QueryRMSE", "QuerySoftMax")
     yeti = objective == "YetiRank"
     paired = objective == "PairLogit"
+    if native_options.get("leaf_estimation_method") == "Simple":
+        leaf_iterations = _greedy._integer("leaf_estimation_iterations",
+            native_options.get("leaf_estimation_iterations", 1), 1, 1000)
+        if leaf_iterations != 1:
+            raise ValueError("Simple leaves require leaf_estimation_iterations=1.")
+        if yeti:
+            raise ValueError("YetiRank requires Newton leaves and no backtracking like CUDA.")
     if not (grouped or paired or yeti) and any(value is not None for value in (group_offsets, eval_group_offsets, subgroup_hashes, eval_subgroup_hashes)):
         raise ValueError("Greedy query grouping requires QueryRMSE, QuerySoftMax, PairLogit or YetiRank.")
     if not grouped and (query_beta != 1 or query_lambda != .01):
@@ -246,8 +255,8 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         query_lambda = float(_greedy._finite_array("query_lambda", query_lambda, ()))
         if objective == "QuerySoftMax" and (query_beta != 1 or np.float32(query_lambda) != np.float32(.01)):
             objective_metric = f"QuerySoftMax:beta={query_beta!r};lambda={query_lambda!r}"
-    if ctr_unique_values is not None or feature_weights is not None:
-        raise ValueError("Greedy lifecycle does not support feature penalty overrides.")
+    if ctr_unique_values is not None:
+        raise ValueError("Greedy lifecycle does not support CTR penalty overrides.")
     iterations = _greedy._integer("iterations", iterations, 1, 100000)
     if grow_policy not in ("Depthwise", "Lossguide", "Region"):
         raise ValueError("Invalid greedy grow_policy.")
@@ -282,6 +291,10 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         raise ValueError("bins must be a nonempty feature-major byte-valued integer matrix.")
     bins = np.ascontiguousarray(bins, np.uint8)
     features, rows = bins.shape
+    feature_weights = None if feature_weights is None else _greedy._finite_array(
+        "feature_weights", feature_weights, (features,))
+    if feature_weights is not None and (feature_weights < 0).any():
+        raise ValueError("feature_weights must be nonnegative.")
     permutation_count = 1
     if permutation_bins is not None:
         matrices = np.asarray(permutation_bins)
@@ -386,6 +399,8 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
                 eval_pair_weights=None if eval_pairs is None else eval_pairs[2])
         if permutation_count > 1:
             fingerprint_arrays["permutation_bins"] = permutation_bins
+        if feature_weights is not None:
+            fingerprint_arrays["feature_weights"] = feature_weights
         fingerprint = _fingerprint(fingerprint_arrays, settings)
     history = {"learn": {objective_metric: []}}
     if has_eval: history["validation"] = {objective_metric: []}
@@ -397,7 +412,8 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         prior, state, eval_raw = _read_snapshot(path, fingerprint, rows=rows, features=features, depth=depth,
             max_leaves=capacity, iterations=iterations, objective=objective_metric,
             eval_rows=len(eval_targets) if has_eval else None, selection_metric=selection, maximize=maximize,
-            permutation_count=permutation_count, classes=classes, yeti_options=params if yeti else None)
+            permutation_count=permutation_count, classes=classes, yeti_options=params if yeti else None,
+            leaf_estimation_method=native_options.get("leaf_estimation_method"))
         permutation_predictions = state.get("permutation_predictions")
         optimization_predictions = state.get("optimization_predictions")
         history, best = state["history"], state["best_iteration"]
@@ -419,6 +435,11 @@ def run_training(bins, targets, candidate_features, candidate_bins, *, iteration
         last_snapshot = time.monotonic()
         with ExitStack() as resources:
             session = resources.enter_context(session_type(bins, targets, candidate_features, candidate_bins, **params))
+            if feature_weights is not None:
+                if classes:
+                    session.configure_greedy_feature_weights(feature_weights)
+                else:
+                    session.configure_feature_weights(feature_weights)
             if permutation_count > 1:
                 session.configure_permutations(permutation_bins, permutation_predictions,
                     **({"optimization_predictions": optimization_predictions} if classes else {}))

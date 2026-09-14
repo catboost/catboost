@@ -54,6 +54,13 @@ kernel void OrderedBacktrackingDirections(const device float* targets [[buffer(0
             const float2 h = mass > 0 ? BacktrackingDivideExpansion(dh, dl, mass) : float2(0);
             gh = g.x; gl = g.y; dh = h.x; dl = h.y;
         }
+        // reserved1 is populated only by the additive runtime ridge setter.
+        // CUDA adds the penalty after optional task normalization.
+        if (p.reserved1) {
+            const float ridge = -p.l2 * values[output];
+            ObjectiveAddExpansion(gh, gl, ridge);
+            ObjectiveAddExpansion(gh, gl, fma(-p.l2, values[output], -ridge));
+        }
         ObjectiveAddExpansion(dh, dl, p.l2);
         const float diagonal = dh + dl;
         float direction = 0;

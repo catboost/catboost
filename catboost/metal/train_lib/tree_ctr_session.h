@@ -12,8 +12,11 @@ namespace NCB {
     // runtime. Validate against the regenerated registry before that branch,
     // so inconsistent metadata cannot be accepted only because training ends.
     inline void ValidateMetalTreeCtrSnapshot(const TMetalTreeCtrBatch& restored,
-            TConstArrayRef<ui32> staticCounts, const TMetalSnapshot& snapshot, bool ordered) {
+            TConstArrayRef<ui32> staticCounts, const TMetalSnapshot& snapshot, bool ordered,
+            TConstArrayRef<float> staticWeights = {}) {
         snapshot.ValidateTreeCtrMetadata();
+        CB_ENSURE(staticWeights.empty() || staticWeights.size() == staticCounts.size(),
+            "Metal static feature weights have inconsistent dimensions");
         const ui64 totalFeatures = ui64(staticCounts.size()) + restored.GetFeatureCount();
         CB_ENSURE(restored.FirstFeature == staticCounts.size() &&
                   restored.RegisteredCtrFlags.size() == restored.GetFeatureCount() &&
@@ -27,10 +30,11 @@ namespace NCB {
             if (dynamic) CB_ENSURE(restored.RegisteredCtrFlags[index] <= 1,
                                   "Restored Metal tree CTR registration flag is invalid");
             const ui8 flags = dynamic ? 1 | (restored.RegisteredCtrFlags[index] ? 2 : 0) : 2;
-            // Public training rejects user feature weights; both the static
-            // bank and appended CTRs therefore have the default weight one.
+            // Derived tree CTRs have an independent unit user weight. Their
+            // model-size penalty is configured separately by the runtime.
+            const float expectedWeight = dynamic || staticWeights.empty() ? 1.0f : staticWeights[feature];
             CB_ENSURE(snapshot.TreeCtrCounts[feature] == count &&
-                      snapshot.TreeCtrWeights[feature] == 1.0f &&
+                      snapshot.TreeCtrWeights[feature] == expectedWeight &&
                       snapshot.TreeCtrFlags[feature] == flags &&
                       (dynamic || snapshot.TreeCtrActive[feature]),
                       "Saved Metal tree CTR feature metadata differs from the restored registry");

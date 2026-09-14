@@ -37,6 +37,10 @@ target_sources(catboost-metal-train_lib.global PRIVATE
   trainer_env.cpp
   progress.cpp
   categorical.cpp
+  estimated_features.cpp
+  estimated_features_apply.cpp
   tree_ctrs.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/prior_estimator.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/gamma_function_apache_math_port/gamma_function.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/metal/evaluator.cpp
 )

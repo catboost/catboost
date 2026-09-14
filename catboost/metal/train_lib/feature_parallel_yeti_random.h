@@ -70,6 +70,16 @@ namespace NCB {
             return result;
         }
 
+        TVector<ui64> PeekScoreSeeds(ui32 offset, ui32 count) const {
+            CB_ENSURE(Phase == 2 && ui64(offset) + count <= 3ull * MaxDepth,
+                "Metal score seeds require completed FeatureParallel weak targets");
+            TRandom copy = Random;
+            copy.Advance(offset);
+            TVector<ui64> result(count);
+            for (auto& seed : result) seed = copy.NextUniformL();
+            return result;
+        }
+
         // searchDrawCount counts each attempted independent/simple/tree-CTR
         // scorer at its source call site. Leaf seeds are evaluation-major and
         // then task-major, then Yeti-component-major. Tasks are each learning

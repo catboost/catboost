@@ -190,11 +190,11 @@ def test_categorical_only_and_constant_columns_keep_correct_model_layout(tmp_pat
 
 @pytest.mark.parametrize('loss', ['YetiRank', 'YetiRankPairwise', 'PairLogitPairwise', 'QueryCrossEntropy'])
 def test_onehot_uint8_limit_counts_all_categories(tmp_path, loss):
-    n = 512; codes = np.arange(n) % 255
+    n = 512; codes = np.arange(n) % 256
     x = [[f'kind-{c}'] for c in codes]; y = (codes % 7).astype(np.float32) / 7
     group = np.repeat(np.arange(8), 64)
     pool = Pool(x, y, cat_features=[0], group_id=group)
-    options = problem(loss)[3] | dict(one_hot_max_size=255, iterations=2, depth=1, has_time=False, permutation_count=4)
+    options = problem(loss)[3] | dict(one_hot_max_size=256, iterations=2, depth=1, has_time=False, permutation_count=4)
     model = CatBoostRanker().set_params(**options).fit(pool)
     path = tmp_path / 'limit.json'; model.save_model(path, format='json')
     assert all(s['split_type'] == 'OneHotFeature' for t in json.loads(path.read_text())['oblivious_trees'] for s in t['splits'])
@@ -202,8 +202,8 @@ def test_onehot_uint8_limit_counts_all_categories(tmp_path, loss):
     evaluation = Pool([['new']] + x[1:], y, cat_features=[0], group_id=group)
     ctr = CatBoostRanker().set_params(**options).fit(pool, eval_set=evaluation)
     assert ctr.get_metadata()['metal_permutations'] == '4'
-    with pytest.raises(CatBoostError, match='one_hot_max_size up to 255'):
-        CatBoostRanker().set_params(**(options | dict(one_hot_max_size=256))).fit(pool, eval_set=evaluation)
+    with pytest.raises(CatBoostError, match='maximum value of one-hot-encoding is 256'):
+        CatBoostRanker().set_params(**(options | dict(one_hot_max_size=257))).fit(pool, eval_set=evaluation)
 
 
 @pytest.mark.parametrize('loss', ['YetiRank', 'YetiRankPairwise', 'PairLogitPairwise', 'QueryCrossEntropy'])

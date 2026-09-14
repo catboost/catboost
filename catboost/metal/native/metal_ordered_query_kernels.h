@@ -58,9 +58,10 @@ kernel void OrderedQueryPublishDerivatives(const device float* gradients [[buffe
     if (slot >= step.cursor_count) return;
     const float2 value = float2(gradients[slot], p.score_function ? hessian[slot] : weights[slot]);
     derivatives[slot] = value;
-    // Combination negates Yeti's component coefficient. Its finite row
-    // denominator may be negative even when the complete leaf sum is positive.
-    if (!all(isfinite(value)) || (p.objective != 19 && value.y < 0.0f))
+    // Combination and Simple QuerySoftMax can have finite signed weak
+    // weights. Simple still estimates Gradient1 leaves from original weights.
+    const bool signed_weights = p.objective == 19 || (p.objective == 13 && p.reserved2);
+    if (!all(isfinite(value)) || (!signed_weights && value.y < 0.0f))
         atomic_store_explicit(status, 1u, memory_order_relaxed);
 }
 
@@ -102,7 +103,11 @@ kernel void OrderedQueryEstimateLeaves(const device float* gradients [[buffer(0)
         const float diagonal = s.y + p.l2 * (p.normalize ? mass : 1.0f);
         float next = point;
         if (s.z < 1e-20f) next = 0.0f;
-        else if (diagonal > 0.0f) next += s.x / (diagonal + 1e-20f);
+        else if (diagonal > 0.0f) {
+            const float gradient = p.reserved1
+                ? s.x - p.l2 * (p.normalize ? mass : 1.0f) * point : s.x;
+            next += gradient / (diagonal + 1e-20f);
+        }
         values[output] = next; leaf_weights[output] = s.z;
         // QuerySoftMax permits negative raw curvature when regularization
         // still yields a positive Newton diagonal on each nonempty leaf.
@@ -157,6 +162,13 @@ kernel void OrderedQueryBacktrackingDirections(const device float* gradients [[b
             const float2 g = mass > 0.0f ? BacktrackingDivideExpansion(gh, gl, mass) : float2(0);
             const float2 h = mass > 0.0f ? BacktrackingDivideExpansion(dh, dl, mass) : float2(0);
             gh = g.x; gl = g.y; dh = h.x; dl = h.y;
+        }
+        // reserved1 is populated only by the additive runtime ridge setter.
+        // CUDA adds the penalty after optional task normalization.
+        if (p.reserved1) {
+            const float ridge = -p.l2 * values[output];
+            ObjectiveAddExpansion(gh, gl, ridge);
+            ObjectiveAddExpansion(gh, gl, fma(-p.l2, values[output], -ridge));
         }
         ObjectiveAddExpansion(dh, dl, p.l2);
         const float diagonal = dh + dl;

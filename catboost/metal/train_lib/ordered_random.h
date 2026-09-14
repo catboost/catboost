@@ -67,6 +67,17 @@ namespace NCB {
             FinishIterationImpl(actualDepth, searchDrawCount);
         }
 
+        TVector<ui64> PeekScoreSeeds(ui32 offset, ui32 count) const {
+            CB_ENSURE(Pending && ui64(offset) + count <= 3ull * MaxDepth,
+                "Metal score seeds require a pending bounded FeatureParallel search");
+            TRandom copy = Random;
+            if (!State.BootstrapInitialized) copy.Advance(BootstrapDrawCount);
+            copy.Advance(offset);
+            TVector<ui64> result(count);
+            for (auto& seed : result) seed = copy.NextUniformL();
+            return result;
+        }
+
     private:
         ui32 SearchAttempts(ui32 actualDepth) const {
             return CandidateCount && MaxDepth ? Min(actualDepth + 1, MaxDepth) : 0;

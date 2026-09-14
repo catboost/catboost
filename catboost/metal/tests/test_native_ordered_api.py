@@ -237,7 +237,6 @@ def test_native_ordered_fold_options_and_bootstrap_observations():
 @pytest.mark.parametrize("case,match", [
     ("permutations", "Permutation count should be positive"),
     ("groups", "at least four groups"),
-    ("categorical_full", "learn-only CTR"),
     ("multiclass", "(?i)Ordered.*scalar|multiclass.*Ordered"),
     ("exact", "(?i)Ordered.*Exact|Exact.*Ordered"),
 ])
@@ -249,12 +248,6 @@ def test_native_ordered_unsupported_combinations_fail_clearly(case, match):
         model.set_params(permutation_count=0)
     elif case == "groups":
         pool = Pool(x, target, weight=weights, group_id=np.repeat(np.arange(2), len(x) // 2))
-    elif case == "categorical_full":
-        model.set_params(one_hot_max_size=1, max_ctr_complexity=2, counter_calc_method="Full")
-        mixed = np.empty((len(x), 2), dtype=object)
-        mixed[:, 0] = x[:, 0]
-        mixed[:, 1] = np.where(x[:, 1] > 0, "right", "left")
-        pool = Pool(mixed, target, weight=weights, cat_features=[1])
     elif case == "multiclass":
         model = classifier(**options(iterations=2, loss_function="MultiClass"))
         pool = Pool(x, np.arange(len(x)) % 3, weight=weights)

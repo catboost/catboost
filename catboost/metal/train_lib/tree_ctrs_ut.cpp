@@ -1,4 +1,5 @@
 #include "tree_ctrs.h"
+#include "tree_ctr_meta.h"
 
 #include <catboost/libs/data/ut/lib/for_objects.h>
 #include <catboost/libs/model/hash.h>
@@ -397,6 +398,36 @@ namespace {
 }
 
 Y_UNIT_TEST_SUITE(TMetalTreeCtrFeatures) {
+    Y_UNIT_TEST(TestScoringPackMetadataUsesBaseHashAndConfiguredPolicyMask) {
+        TFixture fixture;
+        NPar::TLocalExecutor executor;
+        auto options = Options(ECtrType::FeatureFreq);
+        TVector<NCatboostOptions::TCtrDescription> descriptions;
+        for (ui32 borderCount : {1u, 7u, 31u}) descriptions.emplace_back(
+            ECtrType::FeatureFreq, TVector<TVector<float>>{{0.5f, 1.f}},
+            NCatboostOptions::TBinarizationOptions(EBorderSelectionType::Uniform, borderCount, ENanMode::Forbidden));
+        options.CatFeatureParams->CombinationCtrs = descriptions;
+        TMetalTreeCtrFeatures helper(fixture.Data, options, &executor, FirstFeature, 70);
+        UNIT_ASSERT(helper.GetActiveScoringPacks().empty());
+        const auto batch = helper.AddSplit(TModelSplit(TFloatSplit(0, 0.5f)));
+        const auto packs = helper.GetActiveScoringPacks();
+        UNIT_ASSERT_VALUES_EQUAL(packs.size(), 1);
+        NCatboostCuda::TFeatureTensor sourceBase;
+        sourceBase.AddBinarySplit({0, 0, NCatboostCuda::EBinSplitType::TakeGreater});
+        UNIT_ASSERT_VALUES_EQUAL(packs[0].BaseTensorHash, sourceBase.GetHash());
+        UNIT_ASSERT_VALUES_EQUAL(packs[0].PolicyMask, 7);
+        TSet<ui32> mapped;
+        for (const auto& feature : packs[0].Features) {
+            UNIT_ASSERT(feature.Policy < 3);
+            UNIT_ASSERT(mapped.insert(feature.AbsoluteFeature).second);
+        }
+        UNIT_ASSERT(mapped == TSet<ui32>(batch.ActiveFeatures.begin(), batch.ActiveFeatures.end()));
+        helper.AddSplit(SimpleCtrSplit());
+        UNIT_ASSERT_VALUES_EQUAL(helper.GetActiveScoringPacks().size(), 2);
+        helper.BeginTree();
+        UNIT_ASSERT(helper.GetActiveScoringPacks().empty());
+    }
+
     Y_UNIT_TEST(TestAllTypesNumericAndOneHotPastOnlyHistory) {
         TFixture fixture;
         NPar::TLocalExecutor executor;

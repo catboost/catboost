@@ -3,6 +3,8 @@
 
 #include "metal_greedy_trainer.h"
 #include "metal_greedy_kernels.h"
+#include "metal_fixed_splits.h"
+#include "metal_exception.h"
 #include "metal_greedy_bootstrap_kernels.h"
 #include "metal_bootstrap_kernels.h"
 #include "metal_score_noise_kernels.h"
@@ -10,6 +12,7 @@
 #include "metal_additional_objective_kernels.h"
 #include "metal_objective_kernels.h"
 #include "metal_backtracking_kernels.h"
+#include "metal_langevin_leaf_kernels.h"
 #include "metal_exact_leaf_kernels.h"
 #include "metal_sort.h"
 #include "metal_incremental_partition_kernels.h"
@@ -85,6 +88,36 @@ kernel void AddGreedyEvaluationTree(const device uchar* bins [[buffer(0)]],
         index = (node.type ? value == node.bin : value > node.bin) ? node.right : node.left;
     }
 }
+
+// greedy_search_helper.cpp exports the sampled weak partition statistics.
+// Its guard is weak mass >1e-20, independently of the retained sample count.
+kernel void EstimateGreedySimpleLeaves(const device float4* partials [[buffer(0)]],
+    device float* raw_values [[buffer(1)]], device float* output_weights [[buffer(2)]],
+    constant KernelParams& p [[buffer(3)]], uint tid [[thread_position_in_threadgroup]],
+    uint leaf [[threadgroup_position_in_grid]]) {
+    threadgroup float4 high[256], low[256];
+    const uint cell = 2 * (leaf * p.reserved0 + tid);
+    high[tid] = tid < p.reserved0 ? partials[cell] : float4(0);
+    low[tid] = tid < p.reserved0 ? partials[cell + 1] : float4(0);
+    ObjectiveReduceExpansions(high, low, tid);
+    if (tid == 0) {
+        const float2 mass = float2(high[0].z, low[0].z);
+        output_weights[leaf] = ScorePairRound(mass);
+        const float2 cutoff = float2(1e-20f, 3.173447746e-28f);
+        raw_values[leaf] = 0.0f;
+        if (ScorePairRound(ScorePairAdd(mass, -cutoff)) > 0.0f) {
+            // CUDA forms the denominator in double. Scale all terms by an
+            // exact power of two before addition to retain its exponent range.
+            int exponent;
+            frexp(max(abs(mass.x), p.l2), exponent);
+            const float2 denominator = ScorePairAdd(
+                float2(ldexp(mass.x, -exponent), ldexp(mass.y, -exponent)),
+                float2(ldexp(p.l2, -exponent), 0));
+            const float2 gradient = float2(ldexp(high[0].x, -exponent), ldexp(low[0].x, -exponent));
+            raw_values[leaf] = ScorePairRound(ScorePairDivide(gradient, denominator));
+        }
+    }
+}
 )METAL";
 
 void Require(bool condition, const std::string& text) {
@@ -120,11 +153,12 @@ struct Runtime {
         if (@available(macOS 13.0, *)) options.languageVersion = MTLLanguageVersion3_0;
         else throw std::runtime_error("Greedy Metal training requires macOS 13 or newer");
         options.fastMathEnabled = NO;
-        NSString* source = [NSString stringWithFormat:@"%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
+        NSString* source = [NSString stringWithFormat:@"%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
             CBMMetalSource, CBMMetalAdditionalObjectiveSource, CBMMetalObjectiveSource,
             CBMMetalIncrementalPartitionSource, CBMMetalCompactHistogramSource, CBMMetalGreedySource,
             GreedyEvaluationSource, CBMMetalBacktrackingSource, CBMMetalExactLeafSource,
-            CBMMetalBootstrapSource, CBMMetalScoreNoiseSource, CBMMetalGreedyBootstrapSource, CBMMetalQuerywiseSource];
+            CBMMetalBootstrapSource, CBMMetalScoreNoiseSource, CBMMetalGreedyBootstrapSource, CBMMetalQuerywiseSource,
+            CBMMetalLangevinLeafSource];
         NSError* error = nil;
         id<MTLLibrary> library = [Device newLibraryWithSource:source options:options error:&error];
         Require(library != nil, "Greedy Metal shader compilation failed: " + ErrorText(error));
@@ -132,6 +166,7 @@ struct Runtime {
             "InitializeObjectivePredictions", "ObjectiveDerivatives", "InitializeRootPartition",
             "ReduceStructurePartials", "CollectPartitionStatistics", "InitializeLeafValues",
             "ReduceLeafObjectivePartials", "EstimateNewtonLeafValues", "FinalizeLeafValues",
+            "EstimateGreedySimpleLeaves",
             "AddObjectiveBinModelValue", "ReduceObjectiveLoss", "ResetCompactHistogramWorkState",
             "BuildCompactHistogramJobs", "BuildCompactHistogramDispatchArguments", "ClearCompactHistograms",
             "ComputeCompactHistograms", "ScanCompactHistograms", "FindGreedySplitWinners",
@@ -139,6 +174,7 @@ struct Runtime {
             "UpdateGreedyLeafDepths", "CountGreedyPartitionBits", "ScanGreedyPartitionTiles",
             "BuildGreedyPartitionOffsets", "ScatterGreedyPartitionRows", "AddGreedyEvaluationTree", "RouteGreedyFixedTree",
             "PrepareBacktrackingDirection", "BuildBacktrackingCandidate", "ReduceBacktrackingObjective",
+            "PrepareLangevinBacktrackingDirection",
             "PrepareExactResiduals", "MakeExactLeafKeys", "BuildExactLeafOffsets", "ReduceExactLeafPartials",
             "PrefixExactLeafTiles", "SelectExactLeafQuantile", "FinalizeExactLeafValues",
             "GenerateBootstrapWeights", "ApplyBootstrapWeights", "GenerateScoreFeatureNoise",
@@ -244,7 +280,7 @@ public:
             "Invalid iteration count or depth");
         Require(p.max_leaves && p.max_leaves <= 65536 && p.policy <= 2, "Invalid grow policy or max_leaves");
         Require(p.min_data_in_leaf && p.min_data_in_leaf <= (1u << 24), "Invalid min_data_in_leaf");
-        Require((p.objective <= 14 || p.objective == 17) && p.score_function <= 6 && p.leaf_method <= 2,
+        Require((p.objective <= 14 || p.objective == 17) && p.score_function <= 6 && p.leaf_method <= 3,
             "Unsupported greedy objective, score or leaf method");
         Require((p.objective == 12 || p.objective == 13) == bool(queryOptions),
             "QueryRMSE/QuerySoftMax require the query-aware greedy constructor");
@@ -287,9 +323,12 @@ public:
         }
         if (p.leaf_method == 2) Require(p.objective >= 9 && p.objective <= 11, "Exact supports Quantile, MAE and MAPE only");
         Require(p.leaf_iterations && p.leaf_iterations <= 1000, "leaf_iterations must be in [1,1000]");
+        Require(p.leaf_method != 3 || p.leaf_iterations == 1,
+            "Simple leaf estimation requires exactly one iteration");
         Require(!p.reserved0 && !p.reserved1 && !p.reserved2 && !p.reserved3, "Reserved parameters must be zero");
         Require(std::isfinite(p.learning_rate) && p.learning_rate > 0 && p.learning_rate <= 1 &&
             std::isfinite(p.l2_leaf_reg) && p.l2_leaf_reg >= 0 && std::isfinite(p.bias), "Invalid finite learning parameters");
+        if (p.leaf_method == 3 && p.l2_leaf_reg == 0) Options.l2_leaf_reg = 1e-20f;
         // Lossguide depth is a path bound, while its workspace is bounded by
         // max_leaves. Avoid shifting by an unrestricted requested depth.
         MaxLeaves = std::min(p.max_leaves, p.policy == 2 ? p.depth + 1 : (1u << std::min(p.depth, 16u)));
@@ -430,7 +469,7 @@ public:
     void Step() {
         Require(!Failed, "Greedy session failed and must be closed");
         Require(Info.completed_iterations < Options.iterations, "Greedy session is already complete");
-        Require(!Yeti || YetiSeeds.size() == uint64_t(YetiLeafSeedCount()) + 1,
+        Require(!Yeti || Langevin || YetiSeeds.size() == uint64_t(YetiLeafSeedCount()) + 1,
             "Greedy YetiRank requires its complete weak/leaf seed packet before estimation");
         try { StepImpl(); }
         catch (...) { Failed = true; throw; }
@@ -440,7 +479,7 @@ public:
     }
     void SetYetiOracleSeeds(uint32_t count, const uint64_t* seeds) {
         RequireIdle();
-        Require(Yeti && !Failed && Info.completed_iterations < Options.iterations,
+        Require(Yeti && !Langevin && !Failed && Info.completed_iterations < Options.iterations,
             "An incomplete greedy YetiRank session is required for oracle seeds");
         Require(seeds && (count == 1 || count == YetiLeafSeedCount() + 1),
             "Greedy YetiRank needs its weak seed alone or complete weak/leaf seed packet");
@@ -527,7 +566,36 @@ public:
         Require(!Yeti || !type, "Greedy YetiRank supports No backtracking only");
         Require(!Failed && !Info.completed_iterations && type <= 2,
             "Backtracking must be No/AnyImprovement/Armijo and configured before the first tree");
-        if (type && Options.leaf_iterations > 1 && Options.leaf_method != 2 && !Directions) {
+        if (type && Options.leaf_iterations > 1 && Options.leaf_method != 2) EnsureLeafWorkspace();
+        BacktrackingType = type;
+    }
+    void SetAddRidge(uint32_t enabled) {
+        RequireIdle();
+        Require(!Failed && !Info.completed_iterations && enabled <= 1,
+            "Greedy ridge flag must be zero or one and configured before the first tree");
+        if (enabled && Options.leaf_method <= 1) EnsureLeafWorkspace();
+        AddRidge = enabled;
+    }
+    void SetLangevin(float temperature, CBMLangevinNoiseCallback noise,
+                     CBMLangevinSeedCallback seed, void* context) {
+        RequireIdle();
+        Require(!Failed && !Info.completed_iterations && !Langevin && YetiSeeds.empty() && noise && seed,
+            "Configure greedy Langevin once with valid callbacks before the first tree and Yeti packets");
+        Require(std::isfinite(temperature) && temperature >= 0,
+            "Greedy Langevin temperature must be finite and nonnegative");
+        if (Options.leaf_method <= 1) {
+            EnsureLeafWorkspace();
+            const uint64_t bytes = 16ull * MaxLeaves;
+            Require(WorkingBytes + ExactBytes + BacktrackingBytes + BootstrapBytes + NoiseBytes + PermutationBytes + bytes <= MemoryLimit,
+                "Greedy Langevin leaf workspace exceeds 1 GiB");
+            LangevinGradientNoise = Context->Buffer(8ull * MaxLeaves);
+            LangevinHessianNoise = Context->Buffer(8ull * MaxLeaves);
+            BacktrackingBytes += bytes;
+        }
+        LangevinNoise = noise; LangevinSeed = seed; LangevinContext = context; Langevin = true;
+    }
+    void EnsureLeafWorkspace() {
+        if (!Directions) {
             const uint64_t bytes = MaxLeaves * 16ull + LossGroups * 8ull;
             Require(WorkingBytes + ExactBytes + BootstrapBytes + NoiseBytes + PermutationBytes + bytes <= MemoryLimit,
                 "Greedy backtracking workspace exceeds 1 GiB");
@@ -535,7 +603,15 @@ public:
             DirectionDot = Context->Buffer(MaxLeaves * 8ull); BacktrackingLoss = Context->Buffer(LossGroups * 8ull);
             BacktrackingBytes = bytes;
         }
-        BacktrackingType = type;
+    }
+    void SetFeatureWeights(uint32_t count, const float* weights) {
+        RequireIdle();
+        Require(!Failed && !Info.completed_iterations && count == K.Features && weights,
+            "Greedy feature weights must cover every feature before the first tree");
+        for (uint32_t feature = 0; feature < count; ++feature)
+            Require(std::isfinite(weights[feature]) && weights[feature] >= 0,
+                "Greedy feature weights must be finite and nonnegative");
+        std::memcpy(FeatureWeights.contents, weights, 4ull * count);
     }
     void SetBootstrap(const CBMBootstrapOptions* options) {
         RequireIdle();
@@ -579,7 +655,17 @@ public:
         RandomStrength = options->random_strength;
     }
 
+    void SetFixedSplits(uint32_t count, const uint32_t* features) {
+        RequireIdle();
+        Require(Info.completed_iterations == 0, "Fixed splits must be configured before the first tree");
+        FixedSplits.Configure(count, features, K.Features, K.Candidates,
+            static_cast<const uint32_t*>(CandidateFeatures.contents),
+            static_cast<const uint32_t*>(CandidateBins.contents),
+            static_cast<const uint8_t*>(CandidateTypes.contents));
+    }
+
 private:
+    CBMFixedSplits FixedSplits;
     Runtime* Context;
     KernelParams K;
     CBMGreedyParams G;
@@ -593,6 +679,11 @@ private:
     id<MTLBuffer> PermutationNodes;
     std::unique_ptr<CBMSortU32Workspace> PermutationSort;
     uint32_t BacktrackingType = 0;
+    uint32_t AddRidge = 0;
+    bool Langevin = false;
+    CBMLangevinNoiseCallback LangevinNoise = nullptr;
+    CBMLangevinSeedCallback LangevinSeed = nullptr;
+    void* LangevinContext = nullptr;
     float RandomStrength = 0;
     CBMBootstrapOptions Sampling = {0, 0, 0, 0, 1.f, 1.f, 0.f, 0, 0.f, 0, 0, 0};
     id<MTLBuffer> Data, Target, Weight, Prediction, Gradient, Hessian, LeafIds;
@@ -608,6 +699,7 @@ private:
     CBMQueryOptions QueryOptions = {};
     id<MTLBuffer> QueryOffsets, QueryPoint, QueryStatistics, QueryLossPartials, QueryValidation;
     id<MTLBuffer> Directions, TrialValues, DirectionDot, BacktrackingLoss;
+    id<MTLBuffer> LangevinGradientNoise, LangevinHessianNoise;
     id<MTLBuffer> ExactResiduals, ExactEffectiveWeights, ExactKeysA, ExactRowsA, ExactKeysB, ExactRowsB;
     id<MTLBuffer> ExactTileOffsets, ExactTotals, ExactSelected;
     id<MTLBuffer> BootstrapMultipliers, StructureWeightStorage, StructureWeight, SampledOffsets, NoiseStatistics;
@@ -616,9 +708,17 @@ private:
         return DatasetBins.size() * (Options.leaf_iterations + uint32_t(Options.leaf_iterations > 1));
     }
     void EncodeYetiPoint(Command& command, bool apply) {
-        Require(YetiSeedPosition < YetiSeeds.size(), "Greedy YetiRank oracle seed packet is missing or exhausted");
+        Require(Langevin || YetiSeedPosition < YetiSeeds.size(), "Greedy YetiRank oracle seed packet is missing or exhausted");
+        const uint64_t seed = Langevin ? ReadLangevinSeed(apply ? CBM_LANGEVIN_YETI_LEAF : CBM_LANGEVIN_YETI_WEAK)
+                                      : YetiSeeds[YetiSeedPosition++];
         Yeti->EncodePointDerivatives(command.Buffer, Prediction, RawValues, LeafIds, K.Leaves, apply,
-            Target, Weight, Gradient, Hessian, YetiSeeds[YetiSeedPosition++], &Info.stats.kernel_dispatches);
+            Target, Weight, Gradient, Hessian, seed, &Info.stats.kernel_dispatches);
+    }
+    uint64_t ReadLangevinSeed(uint32_t event) {
+        uint64_t seed = 0;
+        Require(LangevinSeed && LangevinSeed(LangevinContext, event, &seed) == 0,
+            "Greedy Langevin seed callback failed");
+        return seed;
     }
 
     BootstrapParams SamplingParams() const {
@@ -627,7 +727,12 @@ private:
             Sampling.bagging_temperature, Sampling.subsample, 0.f, 0.f};
     }
     void EncodeBootstrap(Command& command) {
-        const id<MTLBuffer> denominator = (Yeti || K.ScoreFunction == 2 || K.ScoreFunction == 3) ? Hessian : Weight;
+        const bool newtonScore = K.ScoreFunction == 2 || K.ScoreFunction == 3;
+        // CUDA querywise StochasticDer reverses GradientAt/NewtonAt relative
+        // to its secondDerAsWeights argument. Preserve the existing estimator
+        // paths while enabling literal weak-target semantics for Simple.
+        const bool simpleQuery = Options.leaf_method == 3 && (QueryOffsets || Pairwise);
+        const id<MTLBuffer> denominator = (Yeti || (simpleQuery ? !newtonScore : newtonScore)) ? Hessian : Weight;
         StructureWeight = denominator;
         if (Sampling.bootstrap_type) {
             const auto p = SamplingParams();
@@ -682,7 +787,8 @@ private:
     }
     QueryParams MakeQueryParams(bool apply, bool structure = false) const {
         return {K.Rows, QueryOptions.group_count, K.Objective, uint32_t(apply), QueryOptions.beta,
-            QueryOptions.lambda, K.Leaves, uint32_t(structure && (K.ScoreFunction == 2 || K.ScoreFunction == 3))};
+            QueryOptions.lambda, K.Leaves, uint32_t(structure && Options.leaf_method != 3 &&
+                (K.ScoreFunction == 2 || K.ScoreFunction == 3))};
     }
     void EncodeQueryPoint(Command& command, id<MTLBuffer> values, bool apply, bool structure = false) {
         const auto q = MakeQueryParams(apply, structure);
@@ -716,8 +822,21 @@ private:
         } else if (QueryOffsets) {
             EncodeQueryPoint(command, values, true);
             EncodeQueryLoss(command);
-        } else command.Dispatch("ReduceBacktrackingObjective", {Target, Weight, Prediction, LeafIds, values, BacktrackingLoss},
-            K, LossGroups, true, 1, &b, sizeof(b));
+        } else {
+            // Sum the data objective first, then add one widened ridge term on
+            // the host, including for query and pair objectives.
+            auto dataOptions = b; dataOptions.AddRidge = 0;
+            command.Dispatch("ReduceBacktrackingObjective", {Target, Weight, Prediction, LeafIds, values, BacktrackingLoss},
+                K, LossGroups, true, 1, &dataOptions, sizeof(dataOptions));
+        }
+    }
+    double RidgePenalty(id<MTLBuffer> values) const {
+        if (!AddRidge) return 0;
+        const float* point = static_cast<const float*>(values.contents);
+        double penalty = 0;
+        for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf)
+            penalty += 0.5 * double(K.L2) * double(point[leaf]) * point[leaf];
+        return penalty;
     }
     double ReadBacktrackingObjective() const {
         if (Pairwise) return -Pairwise->ReadLossPartials(true)[0];
@@ -728,11 +847,11 @@ private:
         return value;
     }
     void EstimateBacktrackingLeaves() {
-        BacktrackingParams b = {1.f, BacktrackingType, 0, 0};
+        BacktrackingParams b = {1.f, BacktrackingType, AddRidge, 0};
         Command initial(*Context, Info.stats);
         EncodeBacktrackingObjective(initial, RawValues, b);
         initial.Wait();
-        double currentValue = ReadBacktrackingObjective(), directionDot = 0;
+        double currentValue = ReadBacktrackingObjective() - RidgePenalty(RawValues), directionDot = 0;
         Require(std::isfinite(currentValue), "Nonfinite GPU leaf objective before backtracking");
         bool updated = false, newDirection = true;
         // CUDA's walker counts rejected trials too and allows at most 100
@@ -757,10 +876,97 @@ private:
                 directionDot = ReadExpandedScalar(DirectionDot, K.Leaves);
                 Require(std::isfinite(directionDot), "Nonfinite GPU leaf direction during backtracking");
             }
-            const double trialValue = Pairwise ? Pairwise->ReadObjectiveDifference() : ReadBacktrackingObjective();
+            const double trialValue = Pairwise
+                ? Pairwise->ReadObjectiveDifference() + RidgePenalty(RawValues) - RidgePenalty(TrialValues)
+                : ReadBacktrackingObjective() - RidgePenalty(TrialValues);
             const double threshold = (Pairwise ? 0. : currentValue) + (b.Type == 2 ? 1e-5 * b.Step * directionDot : 0.);
             if (std::isfinite(trialValue) && trialValue >= threshold) {
                 std::swap(RawValues, TrialValues);
+                if (!Pairwise) currentValue = trialValue;
+                updated = true; newDirection = true; b.Step = 1.f;
+            } else { b.Step *= .5f; newDirection = false; }
+        }
+    }
+
+    void EstimateLangevinLeaves() {
+        const bool grouped = QueryOffsets || Pairwise || Yeti;
+        auto evaluate = [&](bool trial) {
+            const id<MTLBuffer> point = trial ? TrialValues : RawValues;
+            Command oracle(*Context, Info.stats);
+            if (grouped) {
+                if (Yeti) {
+                    Yeti->EncodePointDerivatives(oracle.Buffer, Prediction, point, LeafIds, K.Leaves, true,
+                        Target, Weight, Gradient, Hessian, ReadLangevinSeed(CBM_LANGEVIN_YETI_LEAF),
+                        &Info.stats.kernel_dispatches);
+                } else if (Pairwise) {
+                    Pairwise->EncodePointDerivatives(oracle.Buffer, Prediction, point, LeafIds, K.Leaves,
+                        true, Gradient, Hessian, Weight, &Info.stats.kernel_dispatches, trial);
+                    Pairwise->EncodeLossReduction(oracle.Buffer, &Info.stats.kernel_dispatches);
+                    if (trial) Pairwise->EncodeObjectiveDifference(oracle.Buffer, Prediction, RawValues,
+                        TrialValues, LeafIds, K.Leaves, &Info.stats.kernel_dispatches);
+                } else {
+                    EncodeQueryPoint(oracle, point, true);
+                    EncodeQueryLoss(oracle);
+                }
+                // Keep each evaluation's joint derivatives until its trial is
+                // accepted. Preparing the next direction must not ask Yeti for
+                // another oracle seed or recompute the accepted derivatives.
+                const QueryProjectionParams q = {K.Rows, K.Leaves, K.HistogramTiles, K.LeafMethod};
+                oracle.Dispatch("ReduceQuerywiseLeafPartials", {Gradient, Hessian, Weight, Rows, Offsets, ObjectivePartials},
+                    q, K.HistogramTiles, true, K.Leaves);
+            } else {
+                oracle.Dispatch("ReduceLeafObjectivePartials", {Target, Weight, Prediction, point, Rows,
+                    Offsets, ObjectivePartials}, K, K.HistogramTiles, true, K.Leaves);
+                const BacktrackingParams b = {1, BacktrackingType, AddRidge, 0};
+                EncodeBacktrackingObjective(oracle, point, b, trial);
+            }
+            oracle.Wait();
+            if (Yeti) { Yeti->CheckStatus(); return -RidgePenalty(point); }
+            if (trial && Pairwise) return Pairwise->ReadObjectiveDifference()
+                + RidgePenalty(RawValues) - RidgePenalty(point);
+            return ReadBacktrackingObjective() - RidgePenalty(point);
+        };
+        auto noise = [&](uint32_t event, bool diagonal, bool add) {
+            std::vector<double> samples(K.Leaves);
+            Require(LangevinNoise(LangevinContext, event, K.Leaves, samples.data()) == 0,
+                "Greedy Langevin leaf noise callback failed");
+            auto* output = static_cast<float*>((diagonal ? LangevinHessianNoise : LangevinGradientNoise).contents);
+            for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf) {
+                double value = samples[leaf];
+                if (add) value += double(output[2 * leaf]) + output[2 * leaf + 1];
+                Require(std::isfinite(value), "Greedy Langevin callback returned nonfinite noise");
+                output[2 * leaf] = static_cast<float>(value);
+                output[2 * leaf + 1] = static_cast<float>(value - output[2 * leaf]);
+            }
+        };
+        double currentValue = evaluate(false);
+        Require(std::isfinite(currentValue), "Nonfinite greedy Langevin initial objective");
+        noise(CBM_LANGEVIN_INITIAL_GRADIENT, false, false);
+        noise(CBM_LANGEVIN_INITIAL_HESSIAN, true, false);
+        BacktrackingParams b = {1.f, BacktrackingType, AddRidge, 0};
+        bool updated = false, newDirection = true;
+        double directionDot = 0;
+        for (uint32_t attempt = 0; attempt < Options.leaf_iterations || (!updated && attempt < 100); ++attempt) {
+            Command move(*Context, Info.stats);
+            if (newDirection) move.Dispatch("PrepareLangevinBacktrackingDirection",
+                {ObjectivePartials, RawValues, Directions, OutputWeights, DirectionDot,
+                    LangevinGradientNoise, LangevinHessianNoise}, K, K.Leaves, true, 1, &b, sizeof(b));
+            move.Dispatch("BuildBacktrackingCandidate", {RawValues, Directions, OutputWeights, TrialValues},
+                K, K.Leaves, false, 1, &b, sizeof(b));
+            move.Wait();
+            if (newDirection) directionDot = ReadExpandedScalar(DirectionDot, K.Leaves);
+            Require(std::isfinite(directionDot), "Nonfinite greedy Langevin leaf direction");
+            if (Options.leaf_iterations == 1) { std::swap(RawValues, TrialValues); break; }
+            const double trialValue = evaluate(true);
+            noise(CBM_LANGEVIN_TRIAL_GRADIENT, false, false);
+            const double threshold = (Pairwise ? 0. : currentValue)
+                + (b.Type == 2 ? 1e-5 * b.Step * directionDot : 0.);
+            if (b.Type == 0 || (std::isfinite(trialValue) && trialValue >= threshold)) {
+                std::swap(RawValues, TrialValues);
+                // CUDA noises an accepted trial's already noisy gradient a
+                // second time, with a clean Hessian, even after the final move.
+                noise(CBM_LANGEVIN_ACCEPTED_GRADIENT, false, true);
+                std::memset(LangevinHessianNoise.contents, 0, 8ull * K.Leaves);
                 if (!Pairwise) currentValue = trialValue;
                 updated = true; newDirection = true; b.Step = 1.f;
             } else { b.Step *= .5f; newDirection = false; }
@@ -833,10 +1039,14 @@ private:
         std::vector<uint32_t> leafNodes = {0};
         std::vector<uint8_t> unscored(1, 1);
         std::vector<CBMGreedySplit> cachedWinners(1);
+        CBMFixedSplitSearch fixedSearch(FixedSplits);
         YetiSearchAttempts = 0;
+        // CUDA greedy bootstrap initializes its device seed cache before the
+        // weak target. Greedy has no separate Langevin weak-gradient noise.
+        if (Langevin && Sampling.bootstrap_type) ReadLangevinSeed(CBM_LANGEVIN_WEAK_SEED_CACHE);
         Command initial(*Context, Info.stats);
         if (Yeti) {
-            Require(YetiSeedPosition == 0 && !YetiSeeds.empty(), "Supply a fresh greedy YetiRank weak seed before search");
+            Require(Langevin || (YetiSeedPosition == 0 && !YetiSeeds.empty()), "Supply a fresh greedy YetiRank weak seed before search");
             Yeti->ClearStatus();
             initial.Dispatch("ResetQuerywiseLeafIds", {LeafIds}, MakeQueryParams(false), K.Rows);
             EncodeYetiPoint(initial, false);
@@ -865,7 +1075,7 @@ private:
         initial.Wait();
         if (Yeti) Yeti->CheckStatus();
         if (Pairwise) Pairwise->CheckStatus();
-        if (QueryOffsets && (K.ScoreFunction == 2 || K.ScoreFunction == 3))
+        if (QueryOffsets && Options.leaf_method != 3 && (K.ScoreFunction == 2 || K.ScoreFunction == 3))
             Require(*static_cast<const uint32_t*>(QueryValidation.contents) == 0,
                 "Invalid GPU query Newton split score: row curvatures must be finite and nonnegative");
         const float noiseScale = noisy ? ReadScoreNoiseScale() : 0.f;
@@ -873,7 +1083,7 @@ private:
         while (K.Leaves < MaxLeaves && Options.depth && Options.candidates) {
             std::vector<uint8_t> scoreMask;
             bool scoreNewLeaves = true;
-            if (Yeti) {
+            if (Yeti || Langevin || FixedSplits.Enabled()) {
                 id<MTLBuffer> eligibilityOffsets = Offsets;
                 if (Sampling.bootstrap_type >= 2) {
                     Command eligibility(*Context, Info.stats);
@@ -885,6 +1095,9 @@ private:
                 }
                 const auto* offsets = static_cast<const uint32_t*>(eligibilityOffsets.contents);
                 const auto* depths = static_cast<const uint32_t*>(Depths.contents);
+                if (FixedSplits.Enabled()) {
+                    scoreNewLeaves = fixedSearch.Begin(K.Leaves, depths, offsets, G.MaxDepth, G.MinDataInLeaf);
+                } else {
                 scoreMask.resize(K.Leaves, 0); scoreNewLeaves = false;
                 for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf) {
                     const bool root = K.Leaves == 1 && depths[leaf] == 0;
@@ -893,8 +1106,10 @@ private:
                     scoreNewLeaves |= scoreMask[leaf] != 0;
                     unscored[leaf] = 0;
                 }
-                YetiSearchAttempts += scoreNewLeaves;
+                }
+                if (Yeti || Langevin) YetiSearchAttempts += scoreNewLeaves;
             }
+            if (Langevin && scoreNewLeaves) ReadLangevinSeed(CBM_LANGEVIN_SEARCH);
             id<MTLBuffer> scoreWeights = StructureWeight;
             Command search(*Context, Info.stats);
             if (noisy && scoreNewLeaves) {
@@ -905,11 +1120,17 @@ private:
                 K, K.HistogramTiles, true, K.Leaves);
             search.Dispatch("CollectPartitionStatistics", {ObjectivePartials, LeafSums, LeafWeights}, K, K.Leaves, true);
             EncodeHistograms(search, scoreWeights);
+            if (!fixedSearch.IsForced()) {
             search.Dispatch("FindGreedySplitWinners", {HistSums, HistWeights, LeafSums, LeafWeights,
                 CandidateFeatures, CandidateBins, CandidateTypes, FeatureOffsets, FeatureWeights,
                 FeatureNoise, WinnerPartials}, G, G.ScoreGroups, true, G.Leaves);
             search.Dispatch("ReduceGreedySplitWinners", {WinnerPartials, Winners}, G, G.Leaves, true);
-            if (Yeti) {
+            }
+            if (FixedSplits.Enabled()) {
+                search.Wait();
+                fixedSearch.Merge(static_cast<CBMGreedySplit*>(Winners.contents));
+                search.Reset();
+            } else if (Yeti || Langevin) {
                 // CUDA scores only new nonterminal leaves. Keep cached winners
                 // (and their noise draws) for unsplit leaves of Lossguide/Region.
                 search.Wait();
@@ -928,21 +1149,26 @@ private:
                 search.Dispatch("PrefixGreedyBootstrapOffsets", {SampledOffsets}, p, 1, true);
                 terminalOffsets = SampledOffsets;
             }
-            search.Dispatch("SelectGreedyLeaves", {Winners, terminalOffsets, Depths, Selected, RightIds, Frontier}, G, 1);
+            auto selection = G;
+            if (fixedSearch.ForceAll()) selection.Policy = 0;
+            search.Dispatch("SelectGreedyLeaves", {Winners, terminalOffsets, Depths, Selected, RightIds, Frontier}, selection, 1);
             search.Wait();
             Require(!TotalBins || static_cast<const uint32_t*>(WorkState.contents)[2] == 0,
                 "GPU greedy histogram work capacity exceeded");
             const auto frontier = *static_cast<const CBMGreedyFrontier*>(Frontier.contents);
             Require(!frontier.Error, "Nonfinite GPU greedy split score");
+            Require(!FixedSplits.Enabled() || G.Policy != 2 || frontier.Selected <= 1,
+                "CUDA Region fixed splits cannot produce a branching prefix");
             if (!frontier.Selected) break;
             const auto* selected = static_cast<const uint32_t*>(Selected.contents);
             const auto* rightIds = static_cast<const uint32_t*>(RightIds.contents);
             const auto* winners = static_cast<const CBMGreedySplit*>(Winners.contents);
             leafNodes.resize(frontier.NewLeaves);
-            if (Yeti) { unscored.resize(frontier.NewLeaves, 0); cachedWinners.resize(frontier.NewLeaves); }
+            if (Yeti || Langevin) { unscored.resize(frontier.NewLeaves, 0); cachedWinners.resize(frontier.NewLeaves); }
             for (uint32_t i = 0; i < frontier.Selected; ++i) {
                 const uint32_t parent = selected[i], rightLeaf = rightIds[parent];
-                if (Yeti) { unscored[parent] = unscored[rightLeaf] = 1; cachedWinners[parent] = {}; }
+                if (FixedSplits.Enabled()) fixedSearch.Split(parent, rightLeaf);
+                if (Yeti || Langevin) { unscored[parent] = unscored[rightLeaf] = 1; cachedWinners[parent] = {}; }
                 const auto split = winners[parent];
                 Require(parent < K.Leaves && rightLeaf < frontier.NewLeaves && split.Valid,
                     "Invalid GPU greedy frontier metadata");
@@ -968,10 +1194,25 @@ private:
         }
         // CUDA visits the initial root before its first termination check.
         // Retain this unused host scorer draw for a requested constant tree.
-        if (Yeti && Options.candidates && !YetiSearchAttempts) YetiSearchAttempts = 1;
+        if ((Yeti || Langevin) && !FixedSplits.Enabled() && Options.candidates && !YetiSearchAttempts) {
+            YetiSearchAttempts = 1;
+            if (Langevin) ReadLangevinSeed(CBM_LANGEVIN_SEARCH);
+        }
     }
     void StepImpl() {
         if (!YetiPrepared) SearchTreeImpl();
+        if (Langevin && Options.leaf_method <= 1) {
+            // Source DocParallel visits each leaf task in permutation order.
+            // Search may have used any history, so reconstruct each partition
+            // before calling its sequential stochastic leaf oracle.
+            if (DatasetBins.size() > 1)
+                std::memcpy(PermutationNodes.contents, Nodes.data(), Nodes.size() * sizeof(CBMGreedyNode));
+            for (uint32_t p = 0; p < DatasetBins.size(); ++p) {
+                Data = DatasetBins[p]; Prediction = DatasetPredictions[p];
+                if (DatasetBins.size() > 1) RoutePermutation();
+                EstimateLeaves(p);
+            }
+        } else {
         EstimateLeaves(SearchPermutation);
         const uint32_t last = DatasetBins.size() - 1;
         if (last) {
@@ -986,18 +1227,8 @@ private:
             for (uint32_t p = 0; p <= last; ++p) {
                 if (p == SearchPermutation) continue;
                 Data = DatasetBins[p]; Prediction = DatasetPredictions[p];
-                Command route(*Context, Info.stats);
-                const EvaluationParams e = {K.Rows, K.Features, G.MaxDepth, 0};
-                route.Dispatch("RouteGreedyFixedTree", {Data, PermutationNodes, LeafIds}, e, K.Rows);
-                route.Dispatch("InitializeRootPartition", {Rows, Offsets}, K, K.Rows);
-                // A stable leaf-ID sort recreates original row order inside
-                // each leaf without repeating the structure search or sampling.
-                PermutationSort->Encode(route.Buffer, LeafIds, Rows, K.Rows, RowPrefix, NextRows,
-                    &Info.stats.kernel_dispatches, 16);
-                const CBMExactLeafParams offsets = {K.Rows, K.Leaves, 0, K.HistogramTiles, 0, 0, 0, 0};
-                route.Dispatch("BuildExactLeafOffsets", {RowPrefix, Offsets}, offsets, uint64_t(K.Leaves) + 1);
-                route.Wait(); std::swap(Rows, NextRows);
-                EstimateLeaves(p);
+                RoutePermutation();
+                EstimateLeaves(p, Options.leaf_method == 3);
             }
             if (SearchPermutation == last) {
                 std::memcpy(Values.contents, LeafSums.contents, 4ull * K.Leaves);
@@ -1006,18 +1237,41 @@ private:
             }
             Data = DatasetBins[last]; Prediction = DatasetPredictions[last];
         }
+        }
         Info.node_count = static_cast<uint32_t>(Nodes.size());
         Info.leaf_count = K.Leaves;
         ++Info.completed_iterations;
         Info.finished = Info.completed_iterations == Options.iterations;
         if (Yeti) { YetiSeeds.clear(); YetiPrepared = false; YetiSeedPosition = 0; }
     }
-    void EstimateLeaves(uint32_t permutation) {
-        if (Yeti) YetiSeedPosition = 1 + permutation * (Options.leaf_iterations + uint32_t(Options.leaf_iterations > 1));
+    void RoutePermutation() {
+        Command route(*Context, Info.stats);
+        const EvaluationParams e = {K.Rows, K.Features, G.MaxDepth, 0};
+        route.Dispatch("RouteGreedyFixedTree", {Data, PermutationNodes, LeafIds}, e, K.Rows);
+        route.Dispatch("InitializeRootPartition", {Rows, Offsets}, K, K.Rows);
+        // Stable leaf-ID sorting retains original row order within each leaf.
+        PermutationSort->Encode(route.Buffer, LeafIds, Rows, K.Rows, RowPrefix, NextRows,
+            &Info.stats.kernel_dispatches, 16);
+        const CBMExactLeafParams offsets = {K.Rows, K.Leaves, 0, K.HistogramTiles, 0, 0, 0, 0};
+        route.Dispatch("BuildExactLeafOffsets", {RowPrefix, Offsets}, offsets, uint64_t(K.Leaves) + 1);
+        route.Wait(); std::swap(Rows, NextRows);
+    }
+    void EstimateLeaves(uint32_t permutation, bool reuseSimple = false) {
+        if (Yeti && !Langevin) YetiSeedPosition = 1 + permutation * (Options.leaf_iterations + uint32_t(Options.leaf_iterations > 1));
         Command estimate(*Context, Info.stats);
-        estimate.Dispatch("InitializeLeafValues", {RawValues, OutputWeights}, K, K.Leaves);
-        if (Options.leaf_method == 2) {
+        if (!reuseSimple) estimate.Dispatch("InitializeLeafValues", {RawValues, OutputWeights}, K, K.Leaves);
+        if (Options.leaf_method == 3) {
+            if (!reuseSimple) {
+                estimate.Dispatch("ReduceStructurePartials", {Gradient, StructureWeight, Rows, Offsets, ObjectivePartials},
+                    K, K.HistogramTiles, true, K.Leaves);
+                estimate.Dispatch("EstimateGreedySimpleLeaves", {ObjectivePartials, RawValues, OutputWeights}, K, K.Leaves, true);
+            }
+        } else if (Options.leaf_method == 2) {
             EncodeExactLeaves(estimate);
+        } else if (Langevin) {
+            estimate.Wait();
+            EstimateLangevinLeaves();
+            estimate.Reset();
         } else if (BacktrackingType && Options.leaf_iterations > 1) {
             estimate.Wait();
             EstimateBacktrackingLeaves();
@@ -1025,16 +1279,24 @@ private:
         } else for (uint32_t iteration = 0; iteration < Options.leaf_iterations; ++iteration) {
             K.LeafIteration = iteration;
             EncodeObjectivePartials(estimate);
-            estimate.Dispatch("EstimateNewtonLeafValues", {ObjectivePartials, RawValues, OutputWeights}, K, K.Leaves, true);
+            if (AddRidge) {
+                const BacktrackingParams b = {1.f, 0, 1, 0};
+                estimate.Dispatch("PrepareBacktrackingDirection", {ObjectivePartials, RawValues, Directions,
+                    OutputWeights, DirectionDot}, K, K.Leaves, true, 1, &b, sizeof(b));
+                estimate.Dispatch("BuildBacktrackingCandidate", {RawValues, Directions, OutputWeights, TrialValues},
+                    K, K.Leaves, false, 1, &b, sizeof(b));
+                std::swap(RawValues, TrialValues);
+            } else estimate.Dispatch("EstimateNewtonLeafValues", {ObjectivePartials, RawValues, OutputWeights}, K, K.Leaves, true);
         }
         if (Yeti) {
-            if (Options.leaf_iterations > 1) ++YetiSeedPosition;
-            Require(YetiSeedPosition == 1 + (permutation + 1) * (Options.leaf_iterations + uint32_t(Options.leaf_iterations > 1)),
+            if (!Langevin && Options.leaf_iterations > 1) ++YetiSeedPosition;
+            Require(Langevin || YetiSeedPosition == 1 + (permutation + 1) * (Options.leaf_iterations + uint32_t(Options.leaf_iterations > 1)),
                 "Greedy YetiRank did not consume its complete dataset leaf schedule");
             Yeti->EncodeCenterLeafValues(estimate.Buffer, RawValues, K.Leaves, &Info.stats.kernel_dispatches);
         }
-        if (Pairwise) Pairwise->EncodeCenterLeafValues(estimate.Buffer, RawValues, K.Leaves, &Info.stats.kernel_dispatches);
-        estimate.Dispatch("FinalizeLeafValues", {RawValues, Values}, K, K.Leaves);
+        if (Pairwise && Options.leaf_method != 3)
+            Pairwise->EncodeCenterLeafValues(estimate.Buffer, RawValues, K.Leaves, &Info.stats.kernel_dispatches);
+        if (!reuseSimple) estimate.Dispatch("FinalizeLeafValues", {RawValues, Values}, K, K.Leaves);
         estimate.Dispatch("AddObjectiveBinModelValue", {LeafIds, Values, Prediction}, K, K.Rows);
         EncodeLoss(estimate);
         estimate.Wait();
@@ -1042,11 +1304,12 @@ private:
         const auto* leafWeights = static_cast<const float*>(OutputWeights.contents);
         double estimatedWeight = 0;
         for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf) {
-            Require(std::isfinite(values[leaf]) && std::isfinite(leafWeights[leaf]) && leafWeights[leaf] >= 0,
+            Require(std::isfinite(values[leaf]) && std::isfinite(leafWeights[leaf])
+                    && (Options.leaf_method == 3 || leafWeights[leaf] >= 0),
                 "Invalid GPU greedy leaf estimate");
             estimatedWeight += leafWeights[leaf];
         }
-        Require(std::abs(estimatedWeight - TotalWeight) <= std::max(1e-6, TotalWeight * 2e-5),
+        Require(Options.leaf_method == 3 || std::abs(estimatedWeight - TotalWeight) <= std::max(1e-6, TotalWeight * 2e-5),
             "GPU greedy leaf weights do not cover the training observations");
         const auto* predictions = static_cast<const float*>(Prediction.contents);
         for (uint32_t row = 0; row < K.Rows; ++row)
@@ -1171,14 +1434,18 @@ std::shared_ptr<Evaluation> GetEvaluation(void* handle) {
 template <class Callback>
 int ApiCall(char* error, size_t capacity, Callback callback) {
     CopyText(error, capacity, "");
+    struct Invocation { Callback& Function; char* Error; size_t Capacity; } invocation = {callback, error, capacity};
+    auto invoke = [](void* context) -> int {
+        auto& call = *static_cast<Invocation*>(context);
+        // Keep Objective-C exceptions here and match vendored C++ exception
+        // types in the same pure-C++ bridge as the symmetric trainer.
+        @try { call.Function(); return 0; }
+        @catch (NSException* exception) { CopyText(call.Error, call.Capacity, [[exception reason] UTF8String]); }
+        return 1;
+    };
     @autoreleasepool {
-        @try {
-            try { callback(); return 0; }
-            catch (const std::exception& exception) { CopyText(error, capacity, exception.what()); }
-            catch (...) { CopyText(error, capacity, "Unexpected greedy Metal training failure"); }
-        } @catch (NSException* exception) { CopyText(error, capacity, [[exception reason] UTF8String]); }
+        return CBMInvokeCppGuard(invoke, &invocation, error, capacity);
     }
-    return 1;
 }
 }
 
@@ -1281,6 +1548,13 @@ extern "C" int cbm_greedy_session_create_yeti(const CBMGreedyTrainParams* params
         *handle = reinterpret_cast<void*>(id);
     });
 }
+extern "C" int cbm_greedy_session_set_fixed_splits(void* handle, uint32_t count,
+    const uint32_t* features, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle); std::lock_guard<std::mutex> guard(session->Mutex);
+        session->SetFixedSplits(count, features);
+    });
+}
 extern "C" int cbm_greedy_session_set_yeti_oracle_seeds(void* handle, uint32_t count,
     const uint64_t* seeds, char* error, size_t capacity) {
     return ApiCall(error, capacity, [&] {
@@ -1340,12 +1614,35 @@ extern "C" int cbm_greedy_session_set_backtracking(void* handle, uint32_t type, 
         session->SetBacktracking(type);
     });
 }
+extern "C" int cbm_greedy_session_set_add_ridge(void* handle, uint32_t enabled, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle);
+        std::lock_guard<std::mutex> guard(session->Mutex);
+        session->SetAddRidge(enabled);
+    });
+}
+extern "C" int cbm_greedy_session_set_langevin(void* handle, float temperature,
+    CBMLangevinNoiseCallback noise, CBMLangevinSeedCallback seed, void* context, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle);
+        std::lock_guard<std::mutex> guard(session->Mutex);
+        session->SetLangevin(temperature, noise, seed, context);
+    });
+}
 extern "C" int cbm_greedy_session_set_bootstrap(void* handle, const CBMBootstrapOptions* options,
     char* error, size_t capacity) {
     return ApiCall(error, capacity, [&] {
         auto session = GetSession(handle);
         std::lock_guard<std::mutex> guard(session->Mutex);
         session->SetBootstrap(options);
+    });
+}
+extern "C" int cbm_greedy_session_set_feature_weights(void* handle, uint32_t count,
+    const float* weights, char* error, size_t capacity) {
+    return ApiCall(error, capacity, [&] {
+        auto session = GetSession(handle);
+        std::lock_guard<std::mutex> guard(session->Mutex);
+        session->SetFeatureWeights(count, weights);
     });
 }
 extern "C" int cbm_greedy_session_set_score_noise(void* handle, const CBMScoreNoiseOptions* options,

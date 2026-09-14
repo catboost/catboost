@@ -6,6 +6,17 @@
 #include <util/stream/fwd.h>
 
 namespace NCB {
+    struct TMetalTreeCtrScoringFeature {
+        ui32 AbsoluteFeature = 0;
+        ui32 Policy = 0; // CUDA Binary/HalfByte/OneByte = 0/1/2
+    };
+
+    struct TMetalTreeCtrScoringPack {
+        ui64 BaseTensorHash = 0;
+        ui32 PolicyMask = 0;
+        TVector<TMetalTreeCtrScoringFeature> Features;
+    };
+
     // Append this batch after the existing feature bank. CandidateFeatures are
     // local to the batch; ActiveFeatures are absolute runtime feature IDs and
     // describe every currently eligible dynamic feature (not just this batch).
@@ -61,6 +72,12 @@ namespace NCB {
         // Absolute IDs of registered configurations, including inactive ones;
         // transient unused history variants are excluded from this set.
         TVector<ui32> GetRegisteredFeatures() const;
+        // One logical scoring pack per admitted base tensor. CUDA may split
+        // it by category for memory, but each physical pack uses the same
+        // base hash and complete configured policy mask. Keep memberships
+        // separate across bases; never overwrite a feature's earlier pack.
+        // Query between AddSplit and the next search; no GPU work is issued.
+        TVector<TMetalTreeCtrScoringPack> GetActiveScoringPacks() const;
         TIntrusivePtr<TStaticCtrProvider> GetCtrProvider() const;
 
         // Save after a completed tree. Restore into a fresh helper and append

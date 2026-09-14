@@ -116,12 +116,14 @@ kernel void ExportSimplePairwiseLeaves(const device float* direction [[buffer(0)
 kernel void SelectPairwiseSplitWinner(const device float2* scores [[buffer(0)]],
     const device uint* features [[buffer(1)]], const device float* feature_weights [[buffer(2)]],
     device uint* winner [[buffer(3)]], device float2* selected_score_gain [[buffer(4)]],
-    constant PairwiseSelectionParams& p [[buffer(5)]], uint tid [[thread_position_in_threadgroup]]) {
+    const device uchar* active [[buffer(5)]],
+    constant PairwiseSelectionParams& p [[buffer(6)]], uint tid [[thread_position_in_threadgroup]]) {
     threadgroup float gains[256], raw_scores[256];
     threadgroup uint indices[256];
     float best_gain = -INFINITY, best_score = -INFINITY;
     uint best = 0xffffffffu;
     for (uint index = tid; index < p.candidates; index += 256) {
+        if (p.reserved1 && !active[index]) continue;
         if (features[index] >= p.features) continue;
         const float score = scores[index].x + scores[index].y;
         const uint feature = features[index];

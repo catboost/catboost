@@ -491,7 +491,6 @@ def test_native_plain_compounds_preserve_exact_leaf_estimation(tmp_path, loss, c
     ({"grow_policy": "Depthwise", "data_partition": "DocParallel"}, "compound CTRs support.*symmetric"),
     ({"grow_policy": "Lossguide", "max_leaves": 5, "data_partition": "DocParallel"}, "compound CTRs support.*symmetric"),
     ({"grow_policy": "Region", "data_partition": "DocParallel"}, "compound CTRs support.*symmetric"),
-    ({"counter_calc_method": "Full"}, "learn-only CTR|SkipTest"),
     ({"max_ctr_complexity": 32}, "max ctr complexity"),
     ({"combinations_ctr": ["Borders:PriorEstimation=BetaPrior"]}, "(?i)prior estimation|prior.*unsupported|unsupported.*prior"),
     ({"combinations_ctr": ["Counter:Prior=0.5"]}, "(?i)CTR.*(support|implement)|support.*CTR"),

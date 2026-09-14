@@ -16,6 +16,7 @@ Logloss/L2 and 0.01676455 for MultiClass/L2.
 
 - [ ] Resolve general tied/empty-child split semantics behind Logloss/L2 divergence.
 - [ ] Resolve equivalent CTR alias choices and their later feature-penalty effects in MultiClass/L2.
+- [ ] Reconcile existing greedy QueryRMSE/QuerySoftMax/PairLogit Gradient/Newton weak-score denominator dispatch with CUDA; new Simple leaves follow the source mapping.
 - [ ] Complete CUDA GPU random-buffer state and consumption semantics.
 - [ ] Compare training behavior across multiple seeds and representative datasets.
 - [ ] Extend saved-reference checks with configuration-matched live NVIDIA comparisons when hardware is available.

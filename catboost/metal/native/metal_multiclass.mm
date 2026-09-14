@@ -10,6 +10,8 @@
 #include "metal_multiclass_math.h"
 #include "metal_multiclass_scores.h"
 #include "metal_greedy_kernels.h"
+#include "metal_fixed_splits.h"
+#include "metal_exception.h"
 #include "metal_greedy_bootstrap_kernels.h"
 #include "metal_greedy_vector_scores.h"
 #include "metal_multioutput_math_kernels.h"
@@ -18,6 +20,7 @@
 #include "metal_score_noise_kernels.h"
 #include "metal_multiclass_bootstrap.h"
 #include "metal_multiclass_backtracking.h"
+#include "metal_vector_langevin.h"
 #include "metal_kernel_abi.h"
 #include <algorithm>
 #include <cmath>
@@ -66,10 +69,11 @@ uint32_t StatsWidth(const MathParams& p) {
     return 1 + p.Classes + (p.Objective == 0 ? p.Classes * (p.Classes + 1) / 2 : p.Classes);
 }
 void ValidateMath(const MathParams& p, const uint32_t* labels, const float* weights, const float* logits,
-                  const float* targets = nullptr) {
+                  const float* targets = nullptr, bool allowSimple = false) {
     Require(p.Rows > 0 && p.Rows <= (1u << 24), "rows must be in [1,16777216]");
     Require(p.Classes >= 2 && p.Classes <= 64, "classes must be in [2,64]");
-    Require(p.Objective <= 5 && p.LeafMethod <= 1, "Unsupported vector objective or leaf method");
+    Require(p.Objective <= 5 && (p.LeafMethod <= 1 || (allowSimple && p.LeafMethod == 3)),
+            "Unsupported vector objective or leaf method");
     Require(p.Objective != 3 || p.Classes == 2, "RMSEWithUncertainty requires two outputs");
     Require(p.Leaves > 0 && p.Leaves <= 65536, "leaves must be in [1,65536]");
     Require(std::isfinite(p.L2) && p.L2 >= 0, "l2 must be finite and nonnegative");
@@ -112,6 +116,7 @@ struct Runtime {
             CBMMetalMulticlassBacktrackingSource, CBMMetalMultioutputMathSource];
         source = [source stringByAppendingFormat:@"\n%s\n%s\n%s", CBMMetalGreedySource,
             CBMMetalGreedyBootstrapSource, CBMMetalGreedyVectorScoresSource];
+        source = [source stringByAppendingFormat:@"\n%s", CBMMetalVectorLangevinSource];
         NSError* error = nil;
         id<MTLLibrary> library = [Device newLibraryWithSource:source options:options error:&error];
         Require(library != nil, "Multiclass shader compilation failed: " + Error(error));
@@ -125,9 +130,10 @@ struct Runtime {
             "ApplyMulticlassBootstrap", "ReduceMulticlassScoreStatistics", "MulticlassBacktrackingDirectionDot",
             "MulticlassBacktrackingBuildCandidate", "MulticlassBacktrackingReduceObjective", "MulticlassBacktrackingBuildCursor",
             "MultioutputDerivatives", "MultioutputReduceLeafStats", "MultioutputSolveLeaves", "MultioutputBacktrackingReduceObjective",
-            "FindGreedyVectorSplitWinners", "ReduceGreedySplitWinners", "SelectGreedyLeaves",
+            "FindGreedyVectorSplitWinners", "EstimateGreedyVectorSimpleLeaves", "ReduceGreedySplitWinners", "SelectGreedyLeaves",
             "RouteGreedySplitRows", "UpdateGreedyLeafDepths", "CountGreedyPartitionBits", "ScanGreedyPartitionTiles",
-            "BuildGreedyPartitionOffsets", "ScatterGreedyPartitionRows", "CountGreedyBootstrapRows", "PrefixGreedyBootstrapOffsets"};
+            "BuildGreedyPartitionOffsets", "ScatterGreedyPartitionRows", "CountGreedyBootstrapRows", "PrefixGreedyBootstrapOffsets",
+            "VectorLangevinDirection", "VectorLangevinCandidate", "VectorLangevinGauge"};
         for (const char* name : names) {
             id<MTLFunction> function = [library newFunctionWithName:[NSString stringWithUTF8String:name]];
             Require(function != nil, std::string("Missing multiclass kernel: ") + name);
@@ -213,11 +219,15 @@ public:
         } else Require(p.depth <= 16, "Multiclass tree depth must be in [0,16]");
         const uint32_t capacity = Greedy ? std::min(greedy->max_leaves,
             greedy->policy == 2 ? p.depth + 1 : (1u << std::min(p.depth, 16u))) : 1u << p.depth;
+        // Public CUDA options normalize an exactly zero L2 before Simple
+        // consumes the searched weak model. Preserve legacy private 0/1 math.
+        if (p.leaf_method == 3 && Options.l2 == 0) Options.l2 = 1e-20f;
         M = {p.rows, p.classes, p.objective, capacity, p.l2, 1e-20f, p.leaf_method, 0};
-        ValidateMath(M, labels, weights, nullptr, targets);
+        ValidateMath(M, labels, weights, nullptr, targets, true);
         Require(p.features > 0 && p.bins_per_feature > 0 && p.bins_per_feature <= 256, "Invalid feature or bin count");
         Require(p.iterations > 0 && p.iterations <= 100000, "iterations must be in [1,100000]");
         Require(p.leaf_iterations > 0 && p.leaf_iterations <= 1000, "leaf_iterations must be in [1,1000]");
+        Require(p.leaf_method != 3 || p.leaf_iterations == 1, "Simple leaf estimation requires exactly one iteration");
         Require(p.score_function <= 1 || (p.score_function >= 4 && p.score_function <= 6),
                 "Vector score_function must be L2, Cosine, SolarL2, LOOL2 or SatL2");
         Require(!p.reserved && !p.reserved1 && !p.reserved2, "Reserved parameters must be zero");
@@ -341,7 +351,7 @@ public:
         Require(!options->mvs_reg_is_set || (std::isfinite(options->mvs_reg) && options->mvs_reg >= 0), "Invalid mvs_reg");
         Require(!options->initial_mvs_lambda_is_set, "Multiclass does not accept MVS continuation state");
         const uint64_t extra = options->bootstrap_type ? uint64_t(Options.rows) * 8 : 0;
-        Require(WorkingBytes + PermutationBytes + extra + NoiseBytes + BacktrackingBytes <= MemoryLimit, "Multiclass bootstrap exceeds 1 GiB working set");
+        Require(WorkingBytes + PermutationBytes + extra + NoiseBytes + BacktrackingBytes + LangevinBytes <= MemoryLimit, "Multiclass bootstrap exceeds 1 GiB working set");
         if (extra) {
             auto& r = Context(); StructureWeights = r.Buffer(uint64_t(Options.rows) * 4);
             Multipliers = r.Buffer(uint64_t(Options.rows) * 4);
@@ -356,28 +366,66 @@ public:
         *iteration = BootstrapOptions.iteration_offset + Completed;
         *lambda = HasMVSLambda ? MVSLambda : 0; *valid = HasMVSLambda;
     }
+    void ConfigureFixedSplits(uint32_t count, const uint32_t* features) {
+        Require(Greedy && Completed == 0 && !TreeActive,
+            "Fixed splits require a greedy vector session before its first tree");
+        FixedSplits.Configure(count, features, Options.features, Options.candidates,
+            static_cast<const uint32_t*>(CandidateFeatures.contents),
+            static_cast<const uint32_t*>(CandidateBins.contents),
+            static_cast<const uint8_t*>(CandidateTypes.contents));
+    }
     void ConfigureNoise(const CBMScoreNoiseOptions* options) {
         Require(options && !options->reserved0 && !options->reserved1 && !options->reserved2 && Completed == 0,
                 "Score noise must be configured before training");
         Require(std::isfinite(options->random_strength) && options->random_strength >= 0, "Invalid random_strength");
         const uint64_t extra = options->random_strength > 0 && K.ScoreFunction == 1
             ? uint64_t(std::min(4096u, (Options.rows + 255) / 256)) * 8 : 0;
-        Require(WorkingBytes + PermutationBytes + BootstrapBytes + extra + BacktrackingBytes <= MemoryLimit, "Multiclass score noise exceeds 1 GiB working set");
+        Require(WorkingBytes + PermutationBytes + BootstrapBytes + extra + BacktrackingBytes + LangevinBytes <= MemoryLimit, "Multiclass score noise exceeds 1 GiB working set");
         NoiseStatistics = extra ? Context().Buffer(extra) : nil;
         RandomStrength = options->random_strength; NoiseBytes = extra;
         if (!extra) std::fill_n(static_cast<float*>(FeatureNoise.contents), Options.features, 0.0f);
     }
     void ConfigureBacktracking(uint32_t type) {
         Require(type <= 2 && Completed == 0, "Backtracking must be No, AnyImprovement or Armijo and configured before training");
-        const uint64_t extra = type && Options.leaf_iterations > 1 ? uint64_t(MaxLeaves) * (D * 4 + 16) +
+        const uint64_t extra = ((type && Options.leaf_iterations > 1) || (Langevin && M.LeafMethod != 3)) ? uint64_t(MaxLeaves) * (D * 4 + 16) +
             uint64_t(std::min(256u, (Options.rows + 255) / 256)) * 8 : 0;
-        Require(WorkingBytes + PermutationBytes + BootstrapBytes + NoiseBytes + extra <= MemoryLimit, "Multiclass backtracking exceeds 1 GiB working set");
+        Require(WorkingBytes + PermutationBytes + BootstrapBytes + NoiseBytes + extra + LangevinBytes <= MemoryLimit, "Multiclass backtracking exceeds 1 GiB working set");
         if (extra) {
             TrialValues = Context().Buffer(uint64_t(MaxLeaves) * D * 4);
             DirectionDots = Context().Buffer(uint64_t(MaxLeaves) * 16);
             TrialLoss = Context().Buffer(uint64_t(std::min(256u, (Options.rows + 255) / 256)) * 8);
         } else { TrialValues = nil; DirectionDots = nil; TrialLoss = nil; }
         BacktrackingType = type; BacktrackingBytes = extra;
+    }
+    void ConfigureLangevin(float temperature, CBMLangevinNoiseCallback noise,
+                           CBMLangevinSeedCallback seed, void* context) {
+        Require(!Completed && !Langevin && noise && seed,
+            "Configure vector Langevin once with valid callbacks before the first tree");
+        Require(std::isfinite(temperature) && temperature >= 0,
+            "Vector Langevin temperature must be finite and nonnegative");
+        const uint64_t gradientCells = uint64_t(MaxLeaves) * M.Classes;
+        const uint64_t hessianCells = gradientCells * ((M.LeafMethod == 1 || M.Objective == 1) ? 1 : M.Classes);
+        const uint64_t workspaceCells = uint64_t(MaxLeaves) * (M.Classes * M.Classes + 2 * M.Classes);
+        const uint64_t bytes = M.LeafMethod == 3 ? 0 : 20 * gradientCells + 8 * (hessianCells + workspaceCells);
+        const uint64_t backtracking = M.LeafMethod == 3 ? BacktrackingBytes : uint64_t(MaxLeaves) * (D * 4 + 16)
+            + uint64_t(std::min(256u, (Options.rows + 255) / 256)) * 8;
+        Require(WorkingBytes + PermutationBytes + BootstrapBytes + NoiseBytes + bytes + backtracking <= MemoryLimit,
+            "Vector Langevin workspace exceeds 1 GiB");
+        if (bytes) {
+            auto gradient = Context().Buffer(8 * gradientCells);
+            auto hessian = Context().Buffer(8 * hessianCells);
+            auto workspace = Context().Buffer(8 * workspaceCells);
+            auto point = Context().Buffer(4 * gradientCells), trial = Context().Buffer(4 * gradientCells);
+            auto direction = Context().Buffer(4 * gradientCells);
+            LangevinGradientNoise = gradient; LangevinHessianNoise = hessian; LangevinWorkspace = workspace;
+            LangevinPoint = point; LangevinTrial = trial; LangevinDirection = direction;
+        }
+        Langevin = true; LangevinBytes = bytes;
+        try { ConfigureBacktracking(BacktrackingType); }
+        catch (...) { Langevin = false; LangevinBytes = 0;
+            LangevinGradientNoise = nil; LangevinHessianNoise = nil; LangevinWorkspace = nil;
+            LangevinPoint = nil; LangevinTrial = nil; LangevinDirection = nil; throw; }
+        LangevinNoise = noise; LangevinSeed = seed; LangevinContext = context;
     }
     void ConfigureFeaturePenalties(const CBMFeaturePenaltyOptions* options, const uint32_t* counts,
                                    const float* weights, const uint8_t* used) {
@@ -399,6 +447,14 @@ public:
     void CopyFeaturePenaltyState(uint8_t* used) const {
         Require(used != nullptr, "Feature penalty state output is required");
         std::copy(UsedFeatures.begin(), UsedFeatures.end(), used);
+    }
+    void ConfigureGreedyFeatureWeights(uint32_t count, const float* weights) {
+        Require(Greedy && Completed == 0 && count == Options.features && weights,
+                "Greedy feature weights must match all features and precede training");
+        for (uint32_t feature = 0; feature < count; ++feature)
+            Require(std::isfinite(weights[feature]) && weights[feature] >= 0,
+                    "Greedy feature weights must be finite and nonnegative");
+        std::memcpy(FeatureWeights.contents, weights, uint64_t(count) * 4);
     }
     void Step(CBMStepInfo* info, uint32_t* depth, uint32_t* splitFeatures, uint32_t* splitBins,
               uint8_t* splitTypes, float* leafValues, float* leafWeights) {
@@ -447,6 +503,7 @@ public:
             std::fill(splitTypes, splitTypes + Options.depth, 0);
         }
         M.Leaves = MaxLeaves; K.Leaves = 1;
+        if (Langevin && !ForcedTree && BootstrapOptions.bootstrap_type) ReadLangevinSeed(CBM_LANGEVIN_WEAK_SEED_CACHE);
         {
             Command c(Stats); c.Copy(Cursor, Base, uint64_t(Options.rows) * D * 4);
             c.Dispatch("MulticlassInitializeTree", {LeafIds, RawValues}, M, std::max(Options.rows, MaxLeaves * D));
@@ -456,12 +513,14 @@ public:
         uint32_t actualDepth = 0;
         const float noiseScale = ForcedTree ? 0 : PrepareStructure();
         std::vector<uint32_t> chosen;
+        uint32_t scoredBatches = 0;
         while (actualDepth < Options.depth && (ForcedTree ? actualDepth < ForcedTree->size() : Options.candidates != 0)) {
             SplitState winner;
             if (ForcedTree) {
                 winner = (*ForcedTree)[actualDepth];
                 std::memcpy(Winner.contents, &winner, sizeof(winner));
             } else {
+            if (Langevin) { ReadLangevinSeed(CBM_LANGEVIN_SEARCH); ++scoredBatches; }
             UpdateFeatureWeights();
             Command c(Stats);
             for (uint32_t k = 0; k < D; ++k) {
@@ -489,7 +548,13 @@ public:
             winner = *static_cast<const SplitState*>(Winner.contents);
             Require(!winner.InvalidScore, "Nonfinite multiclass split score");
             if (winner.Valid && CtrUniqueValues[winner.Feature]) UsedFeatures[winner.Feature] = 1;
-            if (!winner.Valid || winner.Score >= 0 || std::find(chosen.begin(), chosen.end(), winner.Index) != chosen.end()) break;
+            // CUDA's generic symmetric vector search keeps a repeated
+            // negative winner, including empty child branches. New Simple
+            // and Langevin modes follow that rule; retain the published
+            // legacy stop rule for their existing disabled counterparts.
+            if (!winner.Valid || winner.Score >= 0 ||
+                ((!Langevin && M.LeafMethod != 3) &&
+                 std::find(chosen.begin(), chosen.end(), winner.Index) != chosen.end())) break;
             chosen.push_back(winner.Index);
             }
             splitFeatures[actualDepth] = winner.Feature; splitBins[actualDepth] = winner.Bin;
@@ -506,12 +571,21 @@ public:
             partition.Dispatch("ScatterDeepPartitionRows", {RowIndices, LeafIds, RowPrefix, TilePrefix, BlockPrefix, NextRows}, K, Options.rows);
             partition.Wait(); std::swap(RowIndices, NextRows); std::swap(Offsets, NextOffsets);
         }
-        EstimateAndPublish(leafValues, leafWeights);
+        // Greedy vector CUDA registers the initial root score even for a
+        // depth-zero model. Forced replay never owns search draws.
+        if (Langevin && !ForcedTree && Options.candidates && !scoredBatches)
+            ReadLangevinSeed(CBM_LANGEVIN_SEARCH);
+        if (!DeferLeafEstimation) EstimateAndPublish(leafValues, leafWeights);
         *depth = actualDepth; Info(*info);
     }
     void EstimateAndPublish(float* leafValues, float* leafWeights) {
         M.Leaves = K.Leaves;
-        if (BacktrackingBytes) {
+        const bool simple = M.LeafMethod == 3;
+        if (simple) {
+            EstimateSimple();
+        } else if (Langevin) {
+            EstimateLangevinLeaves();
+        } else if (BacktrackingBytes) {
             EstimateBacktracking();
         } else for (uint32_t iteration = 0; iteration < Options.leaf_iterations; ++iteration) {
             Command c(Stats); Derivatives(c);
@@ -533,7 +607,7 @@ public:
         const auto* values = static_cast<const float*>(RawValues.contents);
         const auto* statistics = static_cast<const float*>(LeafStats.contents);
         for (uint32_t leaf = 0; leaf < M.Leaves; ++leaf) {
-            leafWeights[leaf] = statistics[uint64_t(leaf) * StatsWidth(M)];
+            leafWeights[leaf] = statistics[simple ? leaf : uint64_t(leaf) * StatsWidth(M)];
             for (uint32_t k = 0; k < D; ++k) {
                 float value = Options.learning_rate * values[uint64_t(leaf) * D + k];
                 Require(std::isfinite(value), "Nonfinite multiclass leaf value");
@@ -546,6 +620,42 @@ public:
                          M, uint64_t(M.Rows) * M.Classes, false, 1, 1, &Options.learning_rate, sizeof(float));
         publish.Wait(); std::swap(Published, NextPublished);
         ++Completed;
+    }
+    void EstimateSimple() {
+        Command c(Stats);
+        const bool copied = ForcedGreedyRounds || ForcedTree;
+        if (copied) {
+            // CUDA copies the searched weak model into every permutation;
+            // these solver buffers are otherwise unused by Simple.
+            c.Copy(Directions, RawValues, uint64_t(K.Leaves) * D * 4);
+            c.Copy(SolveWorkspace, LeafStats, uint64_t(K.Leaves) * 4);
+        } else {
+            // The last split changes leaf membership after its statistics were
+            // scored. Project the sampled weak target into the final leaves,
+            // including root-only trees, before any fresh derivatives overwrite it.
+            for (uint32_t k = 0; k < D; ++k) {
+                Binding gradient(Gradients, uint64_t(k) * Options.rows * 4);
+                Binding leafSums(LeafSums, uint64_t(k) * MaxLeaves * 8);
+                c.Dispatch("ReduceStructurePartials", {gradient, StructureWeights, RowIndices, Offsets, Partials},
+                    K, K.HistogramTiles, true, K.Leaves);
+                c.Dispatch("MulticlassCollectPartitionStatistics", {Partials, leafSums, LeafWeights}, K, K.Leaves, true);
+            }
+            CBMGreedyParams simple = {};
+            simple.Leaves = K.Leaves; simple.Dimensions = D; simple.LeafStride = MaxLeaves;
+            simple.MulticlassOptimization = M.Objective == 0; simple.L2 = M.L2;
+            c.Dispatch("EstimateGreedyVectorSimpleLeaves", {LeafSums, LeafWeights, RawValues, LeafStats, Status},
+                simple, K.Leaves);
+        }
+        c.Wait();
+        if (!copied) {
+            const auto* status = static_cast<const uint32_t*>(Status.contents);
+            for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf)
+                Require(status[leaf] == 0, "Nonfinite vector Simple leaf statistics or value");
+        }
+        Command update(Stats);
+        update.Dispatch("MulticlassBuildCursor", {Base, RawValues, LeafIds, Cursor}, M, uint64_t(M.Rows) * D,
+            false, 1, 1, &Options.learning_rate, sizeof(float));
+        Derivatives(update); update.Wait();
     }
     void StepGreedy(CBMGreedyStepInfo* info, CBMGreedyNode* nodes, float* values, float* weights) {
         Require(Greedy && info && nodes && values && weights, "Vector greedy session and output buffers are required");
@@ -567,8 +677,13 @@ public:
         std::vector<float> temporaryValues(uint64_t(MaxLeaves) * Options.classes), temporaryWeights(MaxLeaves);
         GreedyRounds selected;
         try {
-            for (uint32_t order = 0; order < count; ++order) {
-                const uint32_t index = order == 0 ? SearchPermutation : (order - 1 < SearchPermutation ? order - 1 : order);
+            // Search the chosen weak history first, then evaluate every leaf
+            // oracle in source history order. Structure-only work draws no leaf noise.
+            const bool defer = Langevin && M.LeafMethod != 3;
+            for (uint32_t order = 0; order < count + uint32_t(defer); ++order) {
+                const uint32_t index = defer ? (order ? order - 1 : SearchPermutation)
+                    : (order == 0 ? SearchPermutation : (order - 1 < SearchPermutation ? order - 1 : order));
+                DeferLeafEstimation = defer && order == 0;
                 LoadPermutation(index); Completed = priorCompleted;
                 ForcedGreedyRounds = order ? &selected : nullptr;
                 const bool exported = index + 1 == count;
@@ -577,12 +692,20 @@ public:
                     exported ? values : temporaryValues.data(), exported ? weights : temporaryWeights.data());
                 Permutations[index].Cursor = Cursor; Permutations[index].Published = Published;
                 Permutations[index].Loss = Loss;
-                if (!order) selected = SelectedGreedyRounds;
+                if (!order) {
+                    selected = SelectedGreedyRounds;
+                    if (M.LeafMethod == 3 && count > 1) {
+                        Command cache(Stats);
+                        cache.Copy(RawValues, Directions, uint64_t(K.Leaves) * D * 4);
+                        cache.Copy(LeafStats, SolveWorkspace, uint64_t(K.Leaves) * 4);
+                        cache.Wait();
+                    }
+                }
             }
-            ForcedGreedyRounds = nullptr; Completed = priorCompleted + 1;
+            ForcedGreedyRounds = nullptr; DeferLeafEstimation = false; Completed = priorCompleted + 1;
             LoadPermutation(count - 1); info->loss = Loss; info->stats = Stats;
         } catch (...) {
-            ForcedGreedyRounds = nullptr;
+            ForcedGreedyRounds = nullptr; DeferLeafEstimation = false;
             Command restore(Stats);
             for (uint32_t index = 0; index < count; ++index) {
                 auto& state = Permutations[index];
@@ -617,6 +740,8 @@ public:
         SelectedGreedyRounds.clear();
         std::vector<CBMGreedyNode> nodes = {{0, 0, 0, 0, 0, 0}};
         std::vector<uint32_t> leafNodes = {0};
+        CBMFixedSplitSearch fixedSearch(FixedSplits);
+        if (Langevin && !ForcedGreedyRounds && BootstrapOptions.bootstrap_type) ReadLangevinSeed(CBM_LANGEVIN_WEAK_SEED_CACHE);
         {
             Command c(Stats); c.Copy(Cursor, Base, uint64_t(Options.rows) * D * 4);
             c.Dispatch("MulticlassInitializeTree", {LeafIds, RawValues}, M, std::max(Options.rows, MaxLeaves * D));
@@ -625,6 +750,10 @@ public:
         }
         const float noiseScale = ForcedGreedyRounds ? 0 : PrepareStructure();
         uint32_t round = 0;
+        uint32_t scoredRound = 0;
+        uint32_t scoredBatches = 0;
+        std::vector<uint8_t> unscored(1, 1);
+        std::vector<CBMGreedySplit> cachedWinners(1);
         while (K.Leaves < MaxLeaves && Options.depth &&
                (ForcedGreedyRounds ? round < ForcedGreedyRounds->size() : Options.candidates != 0)) {
             CBMGreedyFrontier frontier;
@@ -641,6 +770,32 @@ public:
                 }
                 std::memcpy(GreedyFrontier.contents, &frontier, sizeof(frontier));
             } else {
+                bool scoreNewLeaves = true;
+                std::vector<uint8_t> scoreMask;
+                if (FixedSplits.Enabled() || Langevin) {
+                    id<MTLBuffer> eligibilityOffsets = Offsets;
+                    if (BootstrapOptions.bootstrap_type >= 2) {
+                        Command eligibility(Stats);
+                        const CBMGreedyBootstrapParams p = {K.Rows, K.Leaves, BootstrapOptions.bootstrap_type, 0};
+                        eligibility.Dispatch("CountGreedyBootstrapRows", {Multipliers, RowIndices, Offsets, GreedySampledOffsets}, p, K.Leaves, true);
+                        eligibility.Dispatch("PrefixGreedyBootstrapOffsets", {GreedySampledOffsets}, p, 1, true);
+                        eligibility.Wait(); eligibilityOffsets = GreedySampledOffsets;
+                    }
+                    const auto* depths = static_cast<const uint32_t*>(GreedyDepths.contents);
+                    const auto* offsets = static_cast<const uint32_t*>(eligibilityOffsets.contents);
+                    if (FixedSplits.Enabled()) scoreNewLeaves = fixedSearch.Begin(K.Leaves,
+                        depths, offsets, G.MaxDepth, G.MinDataInLeaf);
+                    else {
+                        scoreMask.resize(K.Leaves, 0); scoreNewLeaves = false;
+                        for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf) {
+                            const bool root = K.Leaves == 1 && depths[leaf] == 0;
+                            scoreMask[leaf] = unscored[leaf] && (root ||
+                                (depths[leaf] < G.MaxDepth && offsets[leaf + 1] - offsets[leaf] > G.MinDataInLeaf));
+                            scoreNewLeaves |= scoreMask[leaf] != 0; unscored[leaf] = 0;
+                        }
+                    }
+                }
+                if (Langevin && scoreNewLeaves) { ReadLangevinSeed(CBM_LANGEVIN_SEARCH); ++scoredBatches; }
                 Command c(Stats);
                 for (uint32_t k = 0; k < D; ++k) {
                     Binding gradient(Gradients, uint64_t(k) * Options.rows * 4);
@@ -654,15 +809,17 @@ public:
                         K, K.HistogramTiles, true, K.Features, K.Leaves);
                     c.Dispatch("ScanHistograms", {histogram, HistWeights, FeatureTypes}, K, uint64_t(K.Leaves) * K.Features, true);
                 }
-                if (NoiseStatistics) {
+                if (NoiseStatistics && scoreNewLeaves) {
                     auto noise = BootstrapParameters(); noise.Rows = Options.features;
-                    noise.Stream = round + 1; noise.NoiseScale = noiseScale;
+                    noise.Stream = (FixedSplits.Enabled() || Langevin) ? ++scoredRound : round + 1; noise.NoiseScale = noiseScale;
                     c.Dispatch("GenerateScoreFeatureNoise", {FeatureNoise}, noise, Options.features);
                 }
+                if (!fixedSearch.IsForced()) {
                 c.Dispatch("FindGreedyVectorSplitWinners", {HistSums, HistWeights, LeafSums, LeafWeights,
                     CandidateFeatures, CandidateBins, CandidateTypes, GreedyFeatureOffsets, FeatureWeights,
                     FeatureNoise, GreedyPartials}, G, G.ScoreGroups, true, G.Leaves);
                 c.Dispatch("ReduceGreedySplitWinners", {GreedyPartials, GreedyWinners}, G, G.Leaves, true);
+                }
                 id<MTLBuffer> terminalOffsets = Offsets;
                 if (BootstrapOptions.bootstrap_type >= 2) {
                     const CBMGreedyBootstrapParams p = {K.Rows, K.Leaves, BootstrapOptions.bootstrap_type, 0};
@@ -670,19 +827,41 @@ public:
                     c.Dispatch("PrefixGreedyBootstrapOffsets", {GreedySampledOffsets}, p, 1, true);
                     terminalOffsets = GreedySampledOffsets;
                 }
-                c.Dispatch("SelectGreedyLeaves", {GreedyWinners, terminalOffsets, GreedyDepths,
-                    GreedySelected, GreedyRightIds, GreedyFrontier}, G, 1);
-                c.Wait(); frontier = *static_cast<const CBMGreedyFrontier*>(GreedyFrontier.contents);
+                if (FixedSplits.Enabled() || Langevin) {
+                    c.Wait();
+                    auto* winners = static_cast<CBMGreedySplit*>(GreedyWinners.contents);
+                    if (FixedSplits.Enabled()) fixedSearch.Merge(winners);
+                    else for (uint32_t leaf = 0; leaf < K.Leaves; ++leaf) {
+                        if (scoreMask[leaf]) cachedWinners[leaf] = winners[leaf];
+                        else winners[leaf] = cachedWinners[leaf];
+                    }
+                    auto selection = G;
+                    if (fixedSearch.ForceAll()) selection.Policy = 0;
+                    Command select(Stats);
+                    select.Dispatch("SelectGreedyLeaves", {GreedyWinners, terminalOffsets, GreedyDepths,
+                        GreedySelected, GreedyRightIds, GreedyFrontier}, selection, 1);
+                    select.Wait();
+                } else {
+                    c.Dispatch("SelectGreedyLeaves", {GreedyWinners, terminalOffsets, GreedyDepths,
+                        GreedySelected, GreedyRightIds, GreedyFrontier}, G, 1);
+                    c.Wait();
+                }
+                frontier = *static_cast<const CBMGreedyFrontier*>(GreedyFrontier.contents);
             }
             Require(!frontier.Error, "Nonfinite vector greedy split score");
+            Require(!FixedSplits.Enabled() || G.Policy != 2 || frontier.Selected <= 1,
+                "CUDA Region fixed splits cannot produce a branching prefix");
             if (!frontier.Selected) break;
             const auto* selected = static_cast<const uint32_t*>(GreedySelected.contents);
             const auto* rightIds = static_cast<const uint32_t*>(GreedyRightIds.contents);
             const auto* winners = static_cast<const CBMGreedySplit*>(GreedyWinners.contents);
             std::vector<GreedyBranch> branches;
             leafNodes.resize(frontier.NewLeaves);
+            if (Langevin) { unscored.resize(frontier.NewLeaves, 0); cachedWinners.resize(frontier.NewLeaves); }
             for (uint32_t i = 0; i < frontier.Selected; ++i) {
                 const uint32_t parent = selected[i], right = rightIds[parent];
+                if (FixedSplits.Enabled() && !ForcedGreedyRounds) fixedSearch.Split(parent, right);
+                if (Langevin) { unscored[parent] = unscored[right] = 1; cachedWinners[parent] = {}; }
                 const auto split = winners[parent];
                 Require(parent < K.Leaves && right < frontier.NewLeaves && split.Valid, "Invalid vector greedy frontier");
                 const uint32_t leftNode = nodes.size(), rightNode = leftNode + 1;
@@ -702,7 +881,9 @@ public:
             c.Wait(); std::swap(RowIndices, NextRows); std::swap(Offsets, NextOffsets); std::swap(GreedyDepths, GreedyNextDepths);
             K.Leaves = G.Leaves = frontier.NewLeaves; ++round;
         }
-        EstimateAndPublish(values, weights);
+        if (Langevin && !ForcedGreedyRounds && !FixedSplits.Enabled() && Options.candidates && !scoredBatches)
+            ReadLangevinSeed(CBM_LANGEVIN_SEARCH);
+        if (!DeferLeafEstimation) EstimateAndPublish(values, weights);
         std::copy(nodes.begin(), nodes.end(), output);
         *info = {}; info->completed_iterations = Completed; info->finished = Completed == Options.iterations;
         info->node_count = nodes.size(); info->leaf_count = K.Leaves; info->loss = Loss; info->stats = Stats;
@@ -720,7 +901,7 @@ public:
         const uint64_t activeBytes = uint64_t(Options.rows) * D * 4;
         const uint64_t fullBytes = uint64_t(Options.rows) * Options.classes * 4;
         const uint64_t extra = uint64_t(count - 1) * (cells + activeBytes + fullBytes) + uint64_t(count) * (activeBytes + fullBytes);
-        Require(WorkingBytes + BootstrapBytes + NoiseBytes + BacktrackingBytes + extra <= MemoryLimit,
+        Require(WorkingBytes + BootstrapBytes + NoiseBytes + BacktrackingBytes + extra + LangevinBytes <= MemoryLimit,
                 "Multiclass permutation datasets and rollback cursors exceed 1 GiB working set");
         // Validate every permutation before mutating any existing resident state.
         for (uint32_t permutation = 0; permutation < count; ++permutation) {
@@ -843,6 +1024,7 @@ public:
         if (!Permutations.empty()) LoadPermutation(count - 1);
     }
 private:
+    CBMFixedSplits FixedSplits;
     bool Greedy = false;
     CBMVectorGreedyOptions GreedyOptions = {};
     CBMGreedyParams G = {};
@@ -857,7 +1039,13 @@ private:
     uint32_t D, MaxLeaves, HistCells;
     double TotalWeight;
     bool TreeActive = false;
-    uint64_t WorkingBytes = 0, BootstrapBytes = 0, NoiseBytes = 0, BacktrackingBytes = 0;
+    uint64_t WorkingBytes = 0, BootstrapBytes = 0, NoiseBytes = 0, BacktrackingBytes = 0, LangevinBytes = 0;
+    bool Langevin = false, DeferLeafEstimation = false;
+    CBMLangevinNoiseCallback LangevinNoise = nullptr;
+    CBMLangevinSeedCallback LangevinSeed = nullptr;
+    void* LangevinContext = nullptr;
+    id<MTLBuffer> LangevinGradientNoise, LangevinHessianNoise, LangevinWorkspace;
+    id<MTLBuffer> LangevinPoint, LangevinTrial, LangevinDirection;
     CBMBootstrapOptions BootstrapOptions = {0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0};
     float MVSLambda = 0, RandomStrength = 0;
     bool HasMVSLambda = false;
@@ -909,8 +1097,13 @@ private:
         std::vector<float> temporaryValues(uint64_t(MaxLeaves) * Options.classes), temporaryWeights(MaxLeaves);
         std::vector<SplitState> selected;
         try {
-            for (uint32_t order = 0; order < count; ++order) {
-                const uint32_t index = order == 0 ? SearchPermutation : (order - 1 < SearchPermutation ? order - 1 : order);
+            // Search the chosen weak history first, then evaluate every leaf
+            // oracle in source history order. Structure-only work draws no leaf noise.
+            const bool defer = Langevin && M.LeafMethod != 3;
+            for (uint32_t order = 0; order < count + uint32_t(defer); ++order) {
+                const uint32_t index = defer ? (order ? order - 1 : SearchPermutation)
+                    : (order == 0 ? SearchPermutation : (order - 1 < SearchPermutation ? order - 1 : order));
+                DeferLeafEstimation = defer && order == 0;
                 LoadPermutation(index); Completed = priorCompleted;
                 ForcedTree = order ? &selected : nullptr;
                 const bool exported = index + 1 == count;
@@ -923,13 +1116,24 @@ private:
                         exported ? values : temporaryValues.data(), exported ? weights : temporaryWeights.data());
                 Permutations[index].Cursor = Cursor; Permutations[index].Published = Published;
                 Permutations[index].Loss = Loss;
-                if (order == 0) for (uint32_t level = 0; level < *treeDepth; ++level)
-                    selected.push_back({level, treeFeatures[level], treeBins[level], treeTypes[level], 0, 1, 0, 0});
+                if (order == 0) {
+                    for (uint32_t level = 0; level < *treeDepth; ++level)
+                        selected.push_back({level, treeFeatures[level], treeBins[level], treeTypes[level], 0, 1, 0, 0});
+                    if (M.LeafMethod == 3 && count > 1) {
+                        // CUDA NeedEstimation=false copies the weak values
+                        // and sampled masses into every history. Reuse the
+                        // solver buffers, which Simple never consumes.
+                        Command cache(Stats);
+                        cache.Copy(RawValues, Directions, uint64_t(K.Leaves) * D * 4);
+                        cache.Copy(LeafStats, SolveWorkspace, uint64_t(K.Leaves) * 4);
+                        cache.Wait();
+                    }
+                }
             }
-            ForcedTree = nullptr; Completed = priorCompleted + 1;
+            ForcedTree = nullptr; DeferLeafEstimation = false; Completed = priorCompleted + 1;
             LoadPermutation(count - 1); Info(*info);
         } catch (...) {
-            ForcedTree = nullptr;
+            ForcedTree = nullptr; DeferLeafEstimation = false;
             Command restore(Stats);
             for (uint32_t index = 0; index < count; ++index) {
                 auto& state = Permutations[index];
@@ -961,6 +1165,95 @@ private:
         double sum = 0;
         for (uint32_t i = 0; i < count; ++i) sum += double(values[2 * i]) + values[2 * i + 1];
         return sum;
+    }
+    uint64_t ReadLangevinSeed(uint32_t event) {
+        uint64_t seed = 0;
+        Require(LangevinSeed && LangevinSeed(LangevinContext, event, &seed) == 0,
+            "Vector Langevin seed callback failed");
+        return seed;
+    }
+    void EstimateLangevinLeaves() {
+        const uint32_t groups = std::min(256u, (Options.rows + 255) / 256);
+        const uint32_t gradientCells = M.Leaves * M.Classes;
+        const uint32_t hessianCells = gradientCells * ((M.LeafMethod == 1 || M.Objective == 1) ? 1 : M.Classes);
+        std::memset(LangevinPoint.contents, 0, uint64_t(gradientCells) * 4);
+        auto evaluate = [&](id<MTLBuffer> point) {
+            Command oracle(Stats);
+            oracle.Dispatch("MulticlassBacktrackingBuildCursor", {Base, point, LeafIds, Cursor}, M, uint64_t(M.Rows) * D);
+            Derivatives(oracle);
+            oracle.Dispatch(M.Objective < 2 ? "MulticlassReduceLeafStats" : "MultioutputReduceLeafStats",
+                {Gradients, Probabilities, Weights, RowIndices, Offsets, LeafStats},
+                M, uint64_t(M.Leaves) * StatsWidth(M), true);
+            oracle.Dispatch(M.Objective < 2 ? "MulticlassBacktrackingReduceObjective" : "MultioutputBacktrackingReduceObjective",
+                {Labels, Weights, Base, LeafIds, point, TrialLoss}, M, groups, true);
+            oracle.Wait();
+            return ReadExpansion(TrialLoss, groups);
+        };
+        auto noise = [&](uint32_t event, bool hessian, bool add) {
+            const uint32_t count = hessian ? hessianCells : gradientCells;
+            std::vector<double> values(count);
+            Require(LangevinNoise(LangevinContext, event, count, values.data()) == 0,
+                "Vector Langevin noise callback failed");
+            auto* output = static_cast<float*>((hessian ? LangevinHessianNoise : LangevinGradientNoise).contents);
+            for (uint32_t i = 0; i < count; ++i) {
+                double value = values[i];
+                if (add) value += double(output[2 * i]) + output[2 * i + 1];
+                Require(std::isfinite(value) && std::isfinite(float(value)),
+                    "Vector Langevin callback noise must be finite and fit float expansions");
+                output[2 * i] = float(value); output[2 * i + 1] = float(value - double(output[2 * i]));
+            }
+        };
+        auto solve = [&]() {
+            Command direction(Stats);
+            direction.Dispatch("VectorLangevinDirection", {LeafStats, LangevinGradientNoise, LangevinHessianNoise,
+                LangevinWorkspace, LangevinDirection, DirectionDots, Status}, M, M.Leaves);
+            direction.Wait();
+            const auto* status = static_cast<const uint32_t*>(Status.contents);
+            for (uint32_t leaf = 0; leaf < M.Leaves; ++leaf)
+                Require(status[leaf] == 0, "Nonfinite vector Langevin leaf direction");
+            const auto* partials = static_cast<const float*>(DirectionDots.contents);
+            double dot = 0;
+            for (uint32_t leaf = 0; leaf < M.Leaves; ++leaf) {
+                Require(std::isfinite(partials[4 * leaf + 2]) && partials[4 * leaf + 2] >= -1022 && partials[4 * leaf + 2] <= 1023,
+                    "Invalid vector Langevin direction exponent");
+                dot += std::ldexp(double(partials[4 * leaf]) + partials[4 * leaf + 1], int(partials[4 * leaf + 2]));
+            }
+            Require(std::isfinite(dot), "Nonfinite vector Langevin direction dot product");
+            return dot;
+        };
+        double currentValue = evaluate(RawValues);
+        Require(std::isfinite(currentValue), "Nonfinite vector Langevin initial objective");
+        noise(CBM_LANGEVIN_INITIAL_GRADIENT, false, false);
+        noise(CBM_LANGEVIN_INITIAL_HESSIAN, true, false);
+        double directionDot = solve();
+        BacktrackingParams b = {1, BacktrackingType, 0, 0};
+        bool accepted = false;
+        for (uint32_t attempt = 0; attempt < Options.leaf_iterations || (!accepted && attempt < 100); ++attempt) {
+            Command move(Stats);
+            move.Dispatch("VectorLangevinCandidate", {LangevinPoint, LangevinDirection, LeafStats, LangevinTrial},
+                M, gradientCells, false, 1, 1, &b, sizeof(b));
+            move.Dispatch("VectorLangevinGauge", {LangevinTrial, TrialValues}, M, uint64_t(M.Leaves) * D);
+            move.Wait();
+            if (Options.leaf_iterations == 1) {
+                std::swap(RawValues, TrialValues); std::swap(LangevinPoint, LangevinTrial); break;
+            }
+            const double trialValue = evaluate(TrialValues);
+            noise(CBM_LANGEVIN_TRIAL_GRADIENT, false, false);
+            const double threshold = currentValue + (b.Type == 2 ? 1e-5 * double(b.Step) * directionDot : 0);
+            if (b.Type == 0 || (std::isfinite(trialValue) && trialValue >= threshold)) {
+                std::swap(RawValues, TrialValues); std::swap(LangevinPoint, LangevinTrial);
+                noise(CBM_LANGEVIN_ACCEPTED_GRADIENT, false, true);
+                std::memset(LangevinHessianNoise.contents, 0, uint64_t(hessianCells) * 8);
+                // NextPoint computes the accepted direction even at the
+                // terminal iteration; no new target evaluation/noise occurs.
+                directionDot = solve();
+                currentValue = trialValue; accepted = true; b.Step = 1;
+            } else b.Step *= .5f;
+        }
+        Command finish(Stats);
+        finish.Dispatch("MulticlassBuildCursor", {Base, RawValues, LeafIds, Cursor}, M, uint64_t(M.Rows) * D,
+            false, 1, 1, &Options.learning_rate, sizeof(float));
+        Derivatives(finish); finish.Wait();
     }
     void EstimateBacktracking() {
         const uint32_t groups = std::min(256u, (Options.rows + 255) / 256);
@@ -1066,14 +1359,31 @@ private:
     }
 };
 template <class F> int Guard(char* error, size_t capacity, F action) {
+    Text(error, capacity, "");
+    struct Invocation { F& Function; char* Error; size_t Capacity; } invocation = {action, error, capacity};
+    auto invoke = [](void* context) -> int {
+        auto& call = *static_cast<Invocation*>(context);
+        @try { call.Function(); return 0; }
+        @catch (NSException* exception) { Text(call.Error, call.Capacity, [[exception reason] UTF8String]); }
+        return 1;
+    };
     @autoreleasepool {
-        try { action(); Text(error, capacity, ""); return 0; }
-        catch (const std::exception& exception) { Text(error, capacity, exception.what()); return 1; }
+        return CBMInvokeCppGuard(invoke, &invocation, error, capacity);
     }
 }
 Session& Get(void* session) { Require(session != nullptr, "Multiclass session is closed"); return *static_cast<Session*>(session); }
 }
 
+extern "C" int cbm_multiclass_session_set_fixed_splits(void* session, uint32_t count,
+    const uint32_t* features, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto& s = Get(session); std::lock_guard<std::mutex> lock(s.Mutex);
+        s.ConfigureFixedSplits(count, features); });
+}
+extern "C" int cbm_multiclass_session_set_langevin(void* session, float temperature,
+    CBMLangevinNoiseCallback noise, CBMLangevinSeedCallback seed, void* context, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto& s = Get(session); std::lock_guard<std::mutex> lock(s.Mutex);
+        s.ConfigureLangevin(temperature, noise, seed, context); });
+}
 extern "C" int cbm_multiclass_session_create(const CBMMulticlassParams* params, const uint8_t* bins,
     const uint32_t* labels, const float* weights, const float* initial, const uint32_t* features,
     const uint32_t* borders, const uint8_t* types, void** session, char* error, size_t capacity) {
@@ -1169,6 +1479,11 @@ extern "C" int cbm_multiclass_session_set_feature_penalties(void* session, const
 extern "C" int cbm_multiclass_session_copy_feature_penalty_state(void* session, uint8_t* output, char* error, size_t capacity) {
     return Guard(error, capacity, [&] { auto& s = Get(session); std::lock_guard<std::mutex> lock(s.Mutex);
         s.CopyFeaturePenaltyState(output); });
+}
+extern "C" int cbm_multiclass_session_set_greedy_feature_weights(void* session, uint32_t count,
+    const float* weights, char* error, size_t capacity) {
+    return Guard(error, capacity, [&] { auto& s = Get(session); std::lock_guard<std::mutex> lock(s.Mutex);
+        s.ConfigureGreedyFeatureWeights(count, weights); });
 }
 extern "C" void cbm_multiclass_session_close(void* session) { @autoreleasepool { delete static_cast<Session*>(session); } }
 

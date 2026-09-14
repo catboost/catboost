@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "metal_langevin.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,6 +83,33 @@ int cbm_session_create(
     const float* sample_weights, const float* initial_predictions,
     const uint32_t* candidate_features, const uint32_t* candidate_bins,
     const uint8_t* candidate_types, void** session, char* error, size_t error_capacity);
+
+// Additive CUDA scalar scoring/leaf regularization. Defaults preserve the
+// original ABI. normalize_leaf applies to symmetric scalar tasks in either partition;
+// normalize_score applies to symmetric Cosine/NewtonCosine scores.
+typedef struct {
+    uint32_t normalize_score, normalize_leaf, add_ridge, reserved;
+    float meta_l2_exponent;
+    double meta_l2_frequency;
+} CBMRegularizationOptions;
+typedef int (*CBMMetaL2ExponentCallback)(void* context, uint32_t feature_count, uint8_t* choices);
+int cbm_session_set_regularization(void* session, const CBMRegularizationOptions* options,
+    char* error, size_t error_capacity);
+// Fractional-frequency MetaL2 calls this once per scalar structure depth.
+// Supply each feature's exponent choices: bit0=1, bit1=configured exponent,
+// using CUDA's existing dataset/policy score seeds. Repeated dynamic packs can
+// select both: the GPU compares two complete candidate scores. Return zero.
+// Frequencies <=0 or >1 need no callback. Frequency1 preserves CUDA's
+// inclusive random endpoint. No configuration consumes additional host RNG.
+int cbm_session_set_meta_l2_exponent_callback(void* session, CBMMetaL2ExponentCallback callback,
+    void* context, char* error, size_t error_capacity);
+
+// Enable CUDA Langevin events before the first tree. weak_noise is one for
+// scalar DocParallel, zero for Plain FeatureParallel. Callbacks remain owned
+// by the caller and are synchronous; exact leaves skip leaf-noise callbacks.
+int cbm_session_set_langevin(void* session, float diffusion_temperature, uint32_t weak_noise,
+    CBMLangevinNoiseCallback noise_callback, CBMLangevinSeedCallback seed_callback,
+    void* context, char* error, size_t error_capacity);
 
 // Executes exactly one tree. Caller allocates max-depth/max-leaf output arrays;
 // trailing entries are zeroed. depth and info describe the completed tree.
@@ -352,6 +380,11 @@ int cbm_session_set_feature_penalties(void* session, const CBMFeaturePenaltyOpti
     const uint8_t* used_features, char* error, size_t error_capacity);
 int cbm_session_copy_feature_penalty_state(void* session, uint8_t* used_features,
     char* error, size_t error_capacity);
+
+// Full-matrix objectives retain one boolean feature mask across all depths.
+// Configure between trees or after begin_tree and before its first grow_tree.
+int cbm_session_set_feature_sampling_mask(void* session, uint32_t feature_count,
+    const uint8_t* active_features, char* error, size_t error_capacity);
 
 int cbm_session_get_workspace_info(void* session, uint32_t* histogram_tiles,
     uint64_t* histogram_bytes, uint64_t* estimated_peak_gpu_bytes, char* error, size_t error_capacity);

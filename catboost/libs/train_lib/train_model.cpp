@@ -56,6 +56,10 @@
 #include <library/cpp/threading/local_executor/tbb_local_executor.h>
 #include <functional>
 
+#if defined(CATBOOST_HAVE_METAL)
+#include <catboost/metal/train_lib/learn_cursor.h>
+#endif
+
 using namespace NCB;
 
 static bool SupportsMultipleEvalSets(ETaskType taskType) {
@@ -1069,11 +1073,22 @@ static void TrainModel(
         catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
     }
 
-    pools.Learn = ReorderByTimestampLearnDataIfNeeded(catBoostOptions, pools.Learn, executor);
+    THolder<TArraySubsetIndexing<ui32>> metalLearnObjectOrder;
+#if defined(CATBOOST_HAVE_METAL)
+    if (taskType == ETaskType::GPU && metricsAndTimeHistory) {
+        // Capture each actual preprocessing permutation before quantization can
+        // materialize feature arrays and discard their source indexing.
+        metalLearnObjectOrder = MakeHolder<TArraySubsetIndexing<ui32>>(
+            TFullSubset<ui32>(pools.Learn->GetObjectCount()));
+    }
+#endif
+    pools.Learn = ReorderByTimestampLearnDataIfNeeded(
+        catBoostOptions, pools.Learn, executor, metalLearnObjectOrder.Get());
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
-    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
+    pools.Learn = ShuffleLearnDataIfNeeded(
+        catBoostOptions, pools.Learn, executor, &rand, metalLearnObjectOrder.Get());
 
     const ui64 cpuUsedRamLimit = ParseMemorySizeDescription(
         catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()
@@ -1112,7 +1127,8 @@ static void TrainModel(
         &labelConverter,
         executor,
         &rand,
-        initModel);
+        initModel,
+        metalLearnObjectOrder.Get());
 
     THolder<TMasterContext> masterContext;
 
@@ -1193,6 +1209,11 @@ static void TrainModel(
         evalResultPtrs,
         metricsAndTimeHistory,
         dstLearnProgress);
+#if defined(CATBOOST_HAVE_METAL)
+    if (metalLearnObjectOrder) {
+        RestoreMetalLearnCursorOrder(*metalLearnObjectOrder, &metricsAndTimeHistory->MetalLearnCursor);
+    }
+#endif
 }
 
 

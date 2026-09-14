@@ -230,7 +230,6 @@ def test_native_model_size_regularization_penalizes_unused_ctr_features(tmp_path
 
 @pytest.mark.parametrize("options,error", [
     ({"max_ctr_complexity": 2, "data_partition": "DocParallel"}, "FeatureParallel"),
-    ({"counter_calc_method": "Full"}, "learn-only CTR"),
 ])
 def test_native_unsupported_ctr_modes_reject_explicitly(options, error):
     train = Pool([["a"], ["b"], ["c"], ["a"], ["b"], ["c"]], [0, 1, 2, 0, 1, 2], cat_features=[0])

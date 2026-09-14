@@ -107,9 +107,28 @@ def test_grouped_categorical_query_datasets_raw_quantized_snapshot(tmp_path,poli
 
 @pytest.mark.parametrize('policy', POLICIES)
 @pytest.mark.parametrize('loss', LOSSES)
-def test_native_greedy_query_simple_leaves_rejected_before_runtime(policy, loss):
-    pool, *_ = pool_for(loss)
+def test_native_greedy_query_simple_exports_the_sampled_weak_statistics(policy, loss, tmp_path):
+    from cuda_querywise_reference import query_terms
+    pool, x, y, groups, weights = pool_for(loss)
     options = config(policy, loss, iterations=1, leaf_estimation_method='Simple',
-                     leaf_estimation_iterations=1, leaf_estimation_backtracking='No')
-    with pytest.raises(CatBoostError, match='Metal greedy training does not support Simple leaf estimation'):
-        CatBoostRanker().set_params(**options).fit(pool)
+                     leaf_estimation_iterations=1, leaf_estimation_backtracking='No', boost_from_average=False)
+    model = CatBoostRanker().set_params(**options).fit(pool, eval_set=pool, use_best_model=False)
+    params = model.get_all_params()
+    assert params['leaf_estimation_method'] == 'Simple'
+    assert params['score_function'] == 'Cosine' and params['bootstrap_type'] == 'No'
+    offsets = np.r_[0, np.flatnonzero(groups[1:] != groups[:-1]) + 1, len(groups)].astype(np.uint32)
+    gradient, hessian, _, _ = query_terms(y, np.zeros(len(y), np.float32), weights,
+        offsets, loss.partition(':')[0], .7, .03)
+    ids = model.calc_leaf_indexes(pool)[:, 0]
+    count = int(model.get_tree_leaf_counts()[0])
+    sums = np.bincount(ids, weights=gradient, minlength=count)
+    # CUDA querywise StochasticDer reverses the score-family dispatch: Cosine
+    # requests NewtonAt, so Simple exports curvature rather than row weights.
+    masses = np.bincount(ids, weights=hessian, minlength=count)
+    expected = np.divide(sums, masses + float(np.float32(params['l2_leaf_reg'])),
+                         out=np.zeros(count), where=masses > 1e-20)
+    expected = np.float32(np.float32(expected) * np.float32(params['learning_rate']))
+    np.testing.assert_allclose(model.get_leaf_values(), expected, rtol=6e-5, atol=3e-6)
+    np.testing.assert_allclose(model.get_leaf_weights(), masses, rtol=6e-5, atol=5e-6)
+    np.testing.assert_allclose(model.get_test_eval(), expected[ids], rtol=6e-5, atol=3e-6)
+    readers(model, x, tmp_path)

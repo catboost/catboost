@@ -370,10 +370,14 @@ namespace NCB {
             return searchDrawCount;
         }
 
-        void SetFeaturePenalties(TConstArrayRef<ui32> counts, float modelSizeReg) {
-            CB_ENSURE(counts.size() == Params.features, "Metal Ordered CTR counts must match features");
+        void SetFeaturePenalties(TConstArrayRef<ui32> counts, float modelSizeReg,
+                                TConstArrayRef<float> featureWeights = {}) {
+            CB_ENSURE(counts.size() == Params.features &&
+                (featureWeights.empty() || featureWeights.size() == Params.features),
+                "Metal Ordered CTR counts and weights must match features");
             CBMFeaturePenaltyOptions options = {modelSizeReg, 0, 0, 0}; char error[2048] = {};
-            CB_ENSURE(cbm_ordered_session_set_feature_penalties(Session.Value, &options, counts.data(), nullptr,
+            CB_ENSURE(cbm_ordered_session_set_feature_penalties(Session.Value, &options, counts.data(),
+                featureWeights.empty() ? nullptr : featureWeights.data(),
                 error, sizeof(error)) == 0, "Metal Ordered CTR penalty setup failed: " << error);
         }
 

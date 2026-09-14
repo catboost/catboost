@@ -35,6 +35,39 @@ inline float GreedyWideRound(GreedyVectorWide a) { return ldexp(VectorScoreRound
 inline bool GreedyWeightAbove(float2 weight, float threshold) {
     return VectorScoreRound(VectorScoreAdd(weight, float2(-threshold, 0))) > 0;
 }
+
+// CUDA greedy_search_helper.cpp exports the sampled weak statistics directly
+// for Simple. MultiClass adds the sum of the rounded C-1 coordinates to each
+// coordinate, retaining the fixed zero anchor in the published C-vector.
+kernel void EstimateGreedyVectorSimpleLeaves(
+    const device float2* sums [[buffer(0)]], const device float2* weights [[buffer(1)]],
+    device float* values [[buffer(2)]], device float* output_weights [[buffer(3)]],
+    device uint* status [[buffer(4)]], constant GreedyParams& p [[buffer(5)]],
+    uint leaf [[thread_position_in_grid]]) {
+    if (leaf >= p.leaves) return;
+    const float2 weight = weights[leaf];
+    output_weights[leaf] = VectorScoreRound(weight);
+    uint invalid = !all(isfinite(weight)) || !isfinite(output_weights[leaf]) || output_weights[leaf] < 0;
+    // The source compares a double mass to the double literal 1e-20.
+    const float2 cutoff = float2(1e-20f, 3.173447746e-28f);
+    const bool occupied = VectorScoreRound(VectorScoreAdd(weight, -cutoff)) > 0;
+    const auto denominator = GreedyWideAdd(GreedyWide(weight), GreedyWide(float2(p.l2, 0)));
+    auto total = GreedyWide(float2(0));
+    for (uint k = 0; k < p.dimensions; ++k) {
+        const float2 gradient = sums[ulong(k) * p.leaf_stride + leaf];
+        const float value = occupied ? GreedyWideRound(GreedyWideDivide(GreedyWide(gradient), denominator)) : 0;
+        invalid |= !all(isfinite(gradient)) || !isfinite(value);
+        values[ulong(leaf) * p.dimensions + k] = value;
+        total = GreedyWideAdd(total, GreedyWide(float2(value, 0)));
+    }
+    if (p.multiclass_optimization) for (uint k = 0; k < p.dimensions; ++k) {
+        const ulong index = ulong(leaf) * p.dimensions + k;
+        values[index] = GreedyWideRound(GreedyWideAdd(GreedyWide(float2(values[index], 0)), total));
+        invalid |= !isfinite(values[index]);
+    }
+    status[leaf] = invalid;
+}
+
 struct GreedyVectorScore {
     float value;
     GreedyVectorWide numerator, denominator;

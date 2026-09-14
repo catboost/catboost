@@ -8,7 +8,7 @@ struct OrderedTrainingParams {
     uint leaf_iterations, permutations, min_fold_size, normalize;
     float learning_rate, l2, bias, fold_growth;
     float objective_param;
-    uint reserved0, reserved1, reserved2;
+    uint reserved0, reserved1, reserved2; // internal row stride, additive ridge flag, caller Simple flag
 };
 struct OrderedStepParams { uint tasks, leaves, cursor_count, selected_permutation; };
 
@@ -152,7 +152,11 @@ kernel void OrderedSessionEstimateLeaves(const device float* targets [[buffer(0)
         const float diagonal = s.y + p.l2 * (p.normalize ? mass : 1.0f);
         float next = point;
         if (s.z < 1e-20f) next = 0.0f;
-        else if (diagonal > 0.0f) next += s.x / (diagonal + 1e-20f);
+        else if (diagonal > 0.0f) {
+            const float gradient = p.reserved1
+                ? s.x - p.l2 * (p.normalize ? mass : 1.0f) * point : s.x;
+            next += gradient / (diagonal + 1e-20f);
+        }
         values[output] = next; leaf_weights[output] = s.z;
         if (!all(isfinite(s)) || !isfinite(mass) || !isfinite(diagonal) || !isfinite(next) || s.y < 0.0f || s.z < 0.0f)
             atomic_store_explicit(status, 1u, memory_order_relaxed);

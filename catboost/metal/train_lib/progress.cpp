@@ -1,5 +1,6 @@
 #include "progress.h"
 #include "combination.h"
+#include "estimated_features_apply.h"
 #include "query_cross_entropy.h"
 
 #include <catboost/libs/eval_result/eval_result.h>
@@ -12,6 +13,8 @@
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/private/libs/algo/apply.h>
 #include <util/generic/hash.h>
+
+#include <cmath>
 
 namespace NCB {
     namespace {
@@ -90,11 +93,13 @@ namespace NCB {
         void AddTreeToCursor(
             const TFullModel& tree,
             const TTrainingDataProvider& data,
+            const TFeatureEstimatorsPtr& featureEstimators,
             NPar::ILocalExecutor* executor,
             TVector<TVector<double>>* cursor)
         {
-            const auto delta = ApplyModelMulti(
-                tree, *data.ObjectsData, EPredictionType::RawFormulaVal, 0, 1, executor);
+            const auto delta = tree.ModelTrees->GetEstimatedFeatures().empty()
+                ? ApplyModelMulti(tree, *data.ObjectsData, EPredictionType::RawFormulaVal, 0, 1, executor)
+                : ApplyMetalModelWithEstimatedFeatures(tree, data, featureEstimators, executor);
             CB_ENSURE(delta.size() == cursor->size(),
                 "Unexpected Metal training progress prediction dimensions");
             for (size_t dim = 0; dim < delta.size(); ++dim) {
@@ -392,6 +397,20 @@ namespace NCB {
             LearnCursor = MakeInitialCursor(*Data.Learn, bias, initModel,
                 initModelApplyCompatiblePools ? initModelApplyCompatiblePools->Learn->ObjectsData.Get() : nullptr,
                 executor, ApproxDimension, BaselineColumns);
+            if (Options.LossFunctionDescription->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
+                // Shared defaults map training-only objectives to their metric
+                // counterparts, including PairLogitPairwise and both Yeti modes.
+                const auto& objectiveDescription = Options.MetricOptions->ObjectiveMetric.Get();
+                auto objectiveMetrics = CreateMetricFromDescription(objectiveDescription, ApproxDimension);
+                ReplaceCombinationMetrics(&objectiveMetrics);
+                CB_ENSURE(objectiveMetrics.size() == 1, "Metal initial objective requires one metric value");
+                if (!objectiveMetrics[0]->UseWeights.IsIgnored() && !objectiveMetrics[0]->UseWeights.IsUserDefined()) {
+                    objectiveMetrics[0]->UseWeights.SetDefaultValue(true);
+                }
+                History.MetalObjectiveMetric = objectiveMetrics[0]->GetDescription();
+                History.MetalInitialLoss = EvaluateMetric(*objectiveMetrics[0], *Data.Learn, LearnCursor, Executor,
+                    Options.LossFunctionDescription.Get(), QceMetrics);
+            }
             for (size_t test = 0; test < Data.Test.size(); ++test) {
                 TestCursor.push_back(MakeInitialCursor(*Data.Test[test], bias, initModel,
                     initModelApplyCompatiblePools ? initModelApplyCompatiblePools->Test[test]->ObjectsData.Get() : nullptr,
@@ -475,7 +494,7 @@ namespace NCB {
             } else if (learnCursor.empty()) {
                 CB_ENSURE(!RequireLearnCursor,
                     "A live GPU learn cursor is required after replaying Metal progress");
-                AddTreeToCursor(tree, *Data.Learn, Executor, &LearnCursor);
+                AddTreeToCursor(tree, *Data.Learn, Data.FeatureEstimators, Executor, &LearnCursor);
             } else {
                 CB_ENSURE(learnCursor.size() == ui64(ApproxDimension) * LearnCursor[0].size(),
                     "Metal learn cursor size differs from the training pool");
@@ -487,7 +506,7 @@ namespace NCB {
                 RequireLearnCursor = false;
             }
             for (size_t test = 0; test < Data.Test.size(); ++test) {
-                AddTreeToCursor(tree, *Data.Test[test], Executor, &TestCursor[test]);
+                AddTreeToCursor(tree, *Data.Test[test], Data.FeatureEstimators, Executor, &TestCursor[test]);
             }
             ProfileInfo->AddOperation("Update approximations");
 
@@ -540,6 +559,10 @@ namespace NCB {
                                 BestModelMinTreesTracker->AddError(error, iteration);
                                 if (BestModelMinTreesTracker->GetBestIteration() == static_cast<int>(iteration)) {
                                     BestTestCursor = TestCursor;
+                                    // A replayed tree cannot reproduce online
+                                    // learn CTR values; restore its saved best
+                                    // cursor after replay instead.
+                                    if (!restoredHistory) BestLearnCursor = LearnCursor;
                                 }
                             }
                         }
@@ -588,10 +611,51 @@ namespace NCB {
             ProfileInfo->InitProfileInfo(std::move(profileData));
         }
 
+        void RestoreCursor(TConstArrayRef<float> cursor, TVector<TVector<double>>* destination) {
+            CB_ENSURE(!IterationStarted && cursor.size() == ui64(ApproxDimension) * Data.Learn->GetObjectCount(),
+                "Saved Metal learn cursor dimensions differ from the training pool");
+            destination->resize(ApproxDimension);
+            for (ui32 dim = 0; dim < ApproxDimension; ++dim) {
+                (*destination)[dim].resize(Data.Learn->GetObjectCount());
+                for (size_t row = 0; row < Data.Learn->GetObjectCount(); ++row) {
+                    const float value = cursor[row * ApproxDimension + dim];
+                    CB_ENSURE(std::isfinite(value), "Saved Metal learn cursor contains a nonfinite value");
+                    (*destination)[dim][row] = value;
+                }
+            }
+        }
+
+        void RestoreLearnCursor(TConstArrayRef<float> cursor) {
+            RestoreCursor(cursor, &LearnCursor);
+            RequireLearnCursor = false;
+        }
+
+        i32 GetBestLearnIteration() const {
+            return BestModelMinTreesTracker ? BestModelMinTreesTracker->GetBestIteration() : -1;
+        }
+
+        void RestoreBestLearnCursor(TConstArrayRef<float> cursor, i32 iteration) {
+            if (cursor.empty() || iteration < 0 || iteration != GetBestLearnIteration()) BestLearnCursor.clear();
+            else RestoreCursor(cursor, &BestLearnCursor);
+        }
+
+        TVector<float> CopyBestLearnCursor() const {
+            TVector<float> result;
+            if (!BestLearnCursor.empty()) {
+                result.resize(ui64(ApproxDimension) * Data.Learn->GetObjectCount());
+                for (ui32 dim = 0; dim < ApproxDimension; ++dim)
+                    for (size_t row = 0; row < Data.Learn->GetObjectCount(); ++row)
+                        result[row * ApproxDimension + dim] = static_cast<float>(BestLearnCursor[dim][row]);
+            }
+            return result;
+        }
+
         void Finish(TFullModel* model, const TVector<TEvalResult*>& evalResult) {
-            CB_ENSURE(model, "Metal progress requires a model to finalize");
             CB_ENSURE(evalResult.empty() || evalResult.size() == TestCursor.size(),
                 "Evaluation results must match the number of evaluation pools");
+            // Metrics-only callers (CV and parameter search) still consume the
+            // final evaluation cursor, but never need an aggregate model.
+            const size_t totalTrees = model ? model->GetTreeCount() : InitialTreeCount + History.TimeHistory.size();
             if (ErrorTracker && ErrorTracker->GetBestIteration() >= 0) {
                 CATBOOST_NOTICE_LOG << "bestTest = " << ErrorTracker->GetBestError() << Endl;
                 CATBOOST_NOTICE_LOG << "bestIteration = " << ErrorTracker->GetBestIteration() << Endl;
@@ -604,19 +668,22 @@ namespace NCB {
                 } else if (BestModelMinTreesTracker->GetBestIteration() >= 0) {
                     const size_t bestNewTrees = BestModelMinTreesTracker->GetBestIteration() + 1;
                     const size_t bestTotalTrees = InitialTreeCount + bestNewTrees;
-                    CB_ENSURE(bestTotalTrees <= model->GetTreeCount(), "Best iteration exceeds the Metal model tree count");
-                    if (bestTotalTrees < model->GetTreeCount()) {
-                        CATBOOST_NOTICE_LOG << "Shrink model to first " << bestTotalTrees << " iterations.";
-                        if (ErrorTracker->GetBestIteration() + 1 < static_cast<int>(bestNewTrees)) {
-                            CATBOOST_NOTICE_LOG << " (min iterations for best model = " << OutputOptions.BestModelMinTrees << ")";
+                    CB_ENSURE(bestTotalTrees <= totalTrees, "Best iteration exceeds the Metal model tree count");
+                    if (bestTotalTrees < totalTrees) {
+                        if (model) {
+                            CATBOOST_NOTICE_LOG << "Shrink model to first " << bestTotalTrees << " iterations.";
+                            if (ErrorTracker->GetBestIteration() + 1 < static_cast<int>(bestNewTrees)) {
+                                CATBOOST_NOTICE_LOG << " (min iterations for best model = " << OutputOptions.BestModelMinTrees << ")";
+                            }
+                            CATBOOST_NOTICE_LOG << Endl;
+                            model->Truncate(0, bestTotalTrees);
                         }
-                        CATBOOST_NOTICE_LOG << Endl;
-                        model->Truncate(0, bestTotalTrees);
                         useBestCursor = true;
                     }
                 }
             }
             auto& outputCursor = useBestCursor ? BestTestCursor : TestCursor;
+            History.MetalLearnCursor = useBestCursor ? BestLearnCursor : LearnCursor;
             CB_ENSURE(!useBestCursor || outputCursor.size() == TestCursor.size(),
                 "Best Metal evaluation approximations are missing");
             for (size_t test = 0; test < evalResult.size(); ++test) {
@@ -650,6 +717,7 @@ namespace NCB {
         TVector<bool> SkipOnLearn;
         TVector<TVector<bool>> SkipOnTest;
         TVector<TVector<double>> LearnCursor;
+        TVector<TVector<double>> BestLearnCursor;
         TVector<TVector<TVector<double>>> TestCursor;
         TVector<TVector<TVector<double>>> BestTestCursor;
         bool CalcEvalMetricOnEveryIteration = false;
@@ -690,6 +758,26 @@ namespace NCB {
 
     const TMetricsAndTimeLeftHistory& TMetalTrainingProgress::GetHistory() const {
         return Impl->History;
+    }
+
+    double TMetalTrainingProgress::GetInitialObjectiveLoss() const {
+        return Impl->History.MetalInitialLoss;
+    }
+
+    TVector<float> TMetalTrainingProgress::CopyBestLearnCursor() const {
+        return Impl->CopyBestLearnCursor();
+    }
+
+    i32 TMetalTrainingProgress::GetBestLearnIteration() const {
+        return Impl->GetBestLearnIteration();
+    }
+
+    void TMetalTrainingProgress::RestoreBestLearnCursor(TConstArrayRef<float> cursor, i32 iteration) {
+        Impl->RestoreBestLearnCursor(cursor, iteration);
+    }
+
+    void TMetalTrainingProgress::RestoreLearnCursor(TConstArrayRef<float> cursor) {
+        Impl->RestoreLearnCursor(cursor);
     }
 
     bool TMetalTrainingProgress::ReplayIteration(

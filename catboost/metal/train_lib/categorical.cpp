@@ -4,6 +4,7 @@
 #include "categorical.h"
 #include "tree_ctr_permutations.h"
 
+#include <catboost/cuda/ctrs/prior_estimator.h>
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/checksum.h>
@@ -27,7 +28,9 @@ namespace {
 
     void AppendFeature(TConstArrayRef<ui8> bins, TVector<TModelSplit>&& splits,
                        ui8 type, ui32 binCount, TMetalCategoricalData* result,
-                       ui32 ctrUniqueValues = 0) {
+                       ui32 ctrUniqueValues = 0, const TModelCtr* modelCtr = nullptr,
+                       const NCatboostOptions::TBinarizationOptions* ctrBinarization = nullptr,
+                       ui32 uniqueValuesOnAll = 0, ui32 catFeatureIndex = ui32(-1)) {
         CB_ENSURE(ui64(result->Bins.size()) + bins.size() <= MaxInputBytes,
                   "Metal categorical input exceeds the experimental 1 GiB limit");
         const ui32 feature = result->SplitCandidates.size();
@@ -38,6 +41,12 @@ namespace {
             result->CandidateTypes.push_back(type);
         }
         result->SplitCandidates.push_back(std::move(splits));
+        result->ColumnModelCtrs.emplace_back();
+        if (modelCtr) result->ColumnModelCtrs.back() = *modelCtr;
+        result->ColumnCtrBinarizations.emplace_back();
+        if (ctrBinarization) result->ColumnCtrBinarizations.back() = *ctrBinarization;
+        result->ColumnUniqueValuesOnAll.push_back(uniqueValuesOnAll);
+        result->ColumnCatFeatureIndices.push_back(catFeatureIndex);
         result->CtrUniqueValues.push_back(ctrUniqueValues);
         result->BinsPerFeature = Max(result->BinsPerFeature, binCount);
     }
@@ -127,9 +136,27 @@ namespace {
         return CalcHash(0, static_cast<ui64>(static_cast<i32>(hash)));
     }
 
+    TCategoryColumn JoinCategoryColumns(const TCategoryColumn& learn, const TCategoryColumn& evaluation) {
+        CB_ENSURE(ui64(learn.Bins.size()) + evaluation.Bins.size() <= (1u << 24),
+                  "Metal Full CTR learn+eval rows exceed the 2^24 row limit");
+        TCategoryColumn result;
+        result.Hashes = learn.Hashes;
+        result.Hashes.insert(result.Hashes.end(), evaluation.Hashes.begin(), evaluation.Hashes.end());
+        SortUnique(result.Hashes);
+        result.UniqueValuesOnAll = Max(learn.UniqueValuesOnAll, evaluation.UniqueValuesOnAll);
+        result.Bins.reserve(learn.Bins.size() + evaluation.Bins.size());
+        for (const auto* column : {&learn, &evaluation}) {
+            for (ui32 bin : column->Bins) {
+                const auto found = std::lower_bound(result.Hashes.begin(), result.Hashes.end(), column->Hashes[bin]);
+                result.Bins.push_back(found - result.Hashes.begin());
+            }
+        }
+        return result;
+    }
+
     void AddFinalTable(const TModelCtrBase& base, const TCategoryColumn& column,
                        TConstArrayRef<ui32> counts, const TVector<TVector<float>>& sums,
-                       TMetalCategoricalData* result) {
+                       TIntrusivePtr<TStaticCtrProvider>* provider) {
         TCtrValueTable table;
         table.ModelCtrBase = base;
         auto indexBuilder = table.GetIndexHashBuilder(column.Hashes.size());
@@ -166,8 +193,8 @@ namespace {
                 }
             }
         }
-        if (!result->CtrProvider) result->CtrProvider = MakeIntrusive<TStaticCtrProvider>();
-        result->CtrProvider->AddCtrCalcerData(std::move(table));
+        if (!*provider) *provider = MakeIntrusive<TStaticCtrProvider>();
+        (*provider)->AddCtrCalcerData(std::move(table));
     }
 
     void AddCtrFeatures(const TCatFeature& feature, const TCategoryColumn& column,
@@ -176,7 +203,8 @@ namespace {
                          const NCatboostOptions::TCatBoostOptions& options,
                          const TVector<NCatboostOptions::TCtrDescription>& descriptions,
                          const TMetalCategoricalData* gridReference,
-                         TMetalCategoricalData* result) {
+                         TMetalCategoricalData* result,
+                         const TCategoryColumn* fullColumn) {
         const ui32 rows = column.Bins.size();
         TVector<ui32> historyBins(rows), sortedBins(rows), indices(rows);
         for (ui32 row = 0; row < rows; ++row) historyBins[row] = column.Bins[historyOrder[row]];
@@ -188,6 +216,21 @@ namespace {
         result->Stats.kernel_dispatches += sortStats.kernel_dispatches;
         result->Stats.gpu_seconds += sortStats.gpu_seconds;
         std::memcpy(result->Stats.device_name, sortStats.device_name, sizeof(sortStats.device_name));
+        TVector<ui32> fullSortedBins, fullIndices;
+        TVector<float> fullTargets;
+        if (fullColumn) {
+            const ui32 fullRows = fullColumn->Bins.size();
+            TVector<ui32> fullOrder(fullRows);
+            std::iota(fullOrder.begin(), fullOrder.end(), 0);
+            fullSortedBins.resize(fullRows);
+            fullIndices.resize(fullRows);
+            fullTargets.resize(fullRows, 0);
+            CB_ENSURE(cbm_sort_u32(fullColumn->Bins.data(), fullOrder.data(), fullRows,
+                fullSortedBins.data(), fullIndices.data(), &sortStats, sortError, sizeof(sortError)) == 0,
+                "Metal Full categorical sorting failed: " << sortError);
+            result->Stats.kernel_dispatches += sortStats.kernel_dispatches;
+            result->Stats.gpu_seconds += sortStats.gpu_seconds;
+        }
         const auto targetBorders = BuildBorders(targets, static_cast<ui32>(options.RandomSeed.Get()),
                                                 options.CatFeatureParams->TargetBinarization.Get());
         CB_ENSURE(targetBorders.size() <= 255, "Metal CTR targets require at most 255 borders");
@@ -199,8 +242,12 @@ namespace {
             CB_ENSURE(type == ECtrType::Borders || type == ECtrType::Buckets ||
                       type == ECtrType::FloatTargetMeanValue || type == ECtrType::FeatureFreq,
                       "Metal supports Borders, Buckets, FloatTargetMeanValue, and FeatureFreq CTRs");
-            CB_ENSURE(description.PriorEstimation == EPriorEstimation::No,
-                      "Metal does not yet support automatic CTR prior estimation");
+            // EstimateMetalCtrPriors resolves the complete-learn prior before
+            // any permutation is built. Like CUDA, it retains BetaPrior in the
+            // option metadata; multi-border targets keep their configured prior.
+            CB_ENSURE(description.PriorEstimation == EPriorEstimation::No ||
+                      (description.PriorEstimation == EPriorEstimation::BetaPrior && type == ECtrType::Borders),
+                      "Metal automatic prior estimation supports simple Borders CTRs only");
             CB_ENSURE(description.CtrBinarization->BorderCount <= 255,
                       "Metal supports at most 255 borders per CTR feature");
             const ui32 paramsCount = type == ECtrType::Borders ? targetBorders.size()
@@ -216,6 +263,7 @@ namespace {
             base.CtrType = type;
             TVector<TVector<float>> finalSums(paramsCount);
             TVector<ui32> counts(column.Hashes.size());
+            TVector<ui32> fullCounts;
             for (ui32 param = 0; param < paramsCount; ++param) {
                 // CUDA omits bucket zero for binary targets because bucket
                 // one contains the equivalent complementary information.
@@ -241,6 +289,24 @@ namespace {
                     result->Stats.gpu_seconds += stats.gpu_seconds;
                     std::memcpy(result->Stats.device_name, stats.device_name, sizeof(stats.device_name));
                     finalSums[param] = std::move(sums);
+                    if (type == ECtrType::FeatureFreq && fullColumn) {
+                        // Only precomputed FeatureFreq consults Full. Its
+                        // unweighted GPU count includes evaluation rows and
+                        // evaluation-only categories, independently of labels,
+                        // object/group weights and history permutations.
+                        params.rows = fullColumn->Bins.size();
+                        params.categories = fullColumn->Hashes.size();
+                        values.resize(params.rows);
+                        TVector<float> fullSums(params.categories);
+                        fullCounts.resize(params.categories);
+                        CB_ENSURE(cbm_compute_ctrs(&params, fullSortedBins.data(), fullIndices.data(), fullTargets.data(),
+                            values.data(), fullSums.data(), fullCounts.data(), &stats, error, sizeof(error)) == 0,
+                            "Metal Full categorical statistics failed: " << error);
+                        result->Stats.kernel_dispatches += stats.kernel_dispatches;
+                        result->Stats.gpu_seconds += stats.gpu_seconds;
+                        // CUDA's border builder sees only the learn slice.
+                        values.resize(rows);
+                    }
                     TModelCtr ctr;
                     ctr.Base = base;
                     ctr.TargetBorderIdx = param;
@@ -259,11 +325,19 @@ namespace {
                     } else {
                         borders = BuildBorders(values, static_cast<ui32>(options.RandomSeed.Get()),
                                                description.GetCtrBinarization());
+                        // CUDA's CTR border builder retains a .5 candidate
+                        // even for a constant column. New RSM sampling must
+                        // keep that packed-grid entry without drawing again.
+                        // Preserve accepted rsm=1 grids byte for byte.
+                        if (options.ObliviousTreeOptions->Rsm < 1 && borders.empty()) {
+                            borders.push_back(.5f);
+                        }
                     }
                     TVector<TModelSplit> splits;
                     for (float border : borders) splits.emplace_back(TModelCtrSplit{ctr, border});
                     AppendFeature(BinarizeLine<ui8>(values, ENanMode::Forbidden, borders),
-                                  std::move(splits), 0, borders.size() + 1, result, column.UniqueValuesOnAll);
+                                  std::move(splits), 0, borders.size() + 1, result, column.UniqueValuesOnAll,
+                                  &ctr, &description.GetCtrBinarization(), column.UniqueValuesOnAll, feature.Position.Index);
                 }
             }
             if (type == ECtrType::Buckets && paramsCount == 2) {
@@ -273,11 +347,18 @@ namespace {
             }
             // CUDA writes test/full-learn tables while processing permutation
             // zero. Other permutations share those inference statistics.
-            if (!gridReference) AddFinalTable(base, column, counts, finalSums, result);
+            if (!gridReference) {
+                if (type == ECtrType::FeatureFreq && fullColumn) {
+                    AddFinalTable(base, *fullColumn, fullCounts, {}, &result->CtrProvider);
+                    AddFinalTable(base, column, counts, finalSums, &result->FinalCounterProvider);
+                } else {
+                    AddFinalTable(base, column, counts, finalSums, &result->CtrProvider);
+                }
+            }
         }
         if (result->SplitCandidates.size() == runtimeFeatureStart) {
             TVector<ui8> bins(rows, 0);
-            AppendFeature(bins, {}, 0, 1, result);
+            AppendFeature(bins, {}, 0, 1, result, 0, nullptr, nullptr, column.UniqueValuesOnAll, feature.Position.Index);
         }
     }
 }
@@ -286,6 +367,72 @@ TMetalCategoryColumn ReadMetalCategoryColumn(const TQuantizedObjectsDataProvider
                                             const TCatFeature& feature,
                                             NPar::ILocalExecutor* executor) {
     return ReadCategoryColumn(objects, feature, objects.GetObjectCount(), executor);
+}
+
+void EstimateMetalCtrPriors(const TTrainingDataProvider& data,
+                           NCatboostOptions::TCatBoostOptions* options) {
+    CB_ENSURE(options, "Metal CTR prior estimation requires training options");
+    auto& categorical = options->CatFeatureParams.Get();
+    const auto needsEstimation = [](const TVector<NCatboostOptions::TCtrDescription>& descriptions) {
+        return std::any_of(descriptions.begin(), descriptions.end(), [](const auto& description) {
+            return description.PriorEstimation != EPriorEstimation::No;
+        });
+    };
+    const bool estimateSimple = needsEstimation(categorical.SimpleCtrs.Get());
+    const bool estimatePerFeature = std::any_of(categorical.PerFeatureCtrs->begin(),
+        categorical.PerFeatureCtrs->end(), [&](const auto& item) { return needsEstimation(item.second); });
+    const auto& layout = *data.ObjectsData->GetFeaturesLayout();
+    if ((!estimateSimple && !estimatePerFeature) || !layout.GetCatFeatureCount()) return;
+    const auto target = data.TargetData->GetTarget();
+    CB_ENSURE(target && target->size() == 1 && (*target)[0].size() == data.GetObjectCount(),
+              "Metal CTR prior estimation requires one scalar learn target per row");
+    const ui32 rows = data.GetObjectCount();
+    CB_ENSURE(rows > 0 && rows <= (1u << 24), "Metal CTR prior estimation row count is invalid");
+    // Prepare the actual shared target grid before calling the estimator.
+    // Its inputs are learn labels and original quantized category bins, never
+    // an exclusive CTR history, a row permutation or effective sample weights.
+    const auto borders = BuildBorders((*target)[0], static_cast<ui32>(options->RandomSeed.Get()),
+                                      categorical.TargetBinarization.Get());
+    if (borders.size() > 1) return; // CUDA leaves existing priors unchanged here.
+    const auto classes = BinarizeLine<ui8>((*target)[0], ENanMode::Forbidden, borders);
+    auto& perFeature = categorical.PerFeatureCtrs.Get();
+    for (ui32 index = 0; index < layout.GetCatFeatureCount(); ++index) {
+        if (!layout.GetInternalFeatureMetaInfo(index, EFeatureType::Categorical).IsAvailable) continue;
+        const ui32 flatIndex = layout.GetExternalFeatureIdx(index, EFeatureType::Categorical);
+        auto found = perFeature.find(flatIndex);
+        if (found == perFeature.end()) {
+            if (!estimateSimple) continue;
+            found = perFeature.emplace(flatIndex, categorical.SimpleCtrs.Get()).first;
+        }
+        auto& descriptions = found->second;
+        if (!needsEstimation(descriptions)) continue;
+        TMaybe<TBetaPriorEstimator::TBetaPrior> estimated;
+        for (auto& description : descriptions) {
+            if (description.Type == ECtrType::Borders && categorical.TargetBinarization->BorderCount == 1u) {
+                if (!estimated) {
+                    const auto holder = data.ObjectsData->GetCatFeature(index);
+                    CB_ENSURE(holder, "Metal prior estimation category values are unavailable");
+                    const auto& values = **holder;
+                    const ui32 unique = data.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(
+                        TCatFeatureIdx(index)).OnAll;
+                    CB_ENSURE(ui64(unique) * 2 * sizeof(double) <= MaxInputBytes,
+                              "Metal prior estimator category statistics exceed the experimental 1 GiB limit");
+                    estimated = TBetaPriorEstimator::EstimateBetaPrior(
+                        classes.data(), values.GetBlockIterator(), values.GetSize(), unique);
+                    CB_ENSURE(std::isfinite(estimated->Alpha) && std::isfinite(estimated->Beta) &&
+                              estimated->Alpha > 0 && estimated->Beta > 0,
+                              "Metal CTR prior estimation produced invalid Beta parameters");
+                }
+                // When any description requests estimation, CUDA replaces
+                // every Borders prior on this feature, including No siblings.
+                description.Priors = {{static_cast<float>(estimated->Alpha),
+                                       static_cast<float>(estimated->Alpha + estimated->Beta)}};
+            } else {
+                CB_ENSURE(description.PriorEstimation == EPriorEstimation::No,
+                          "Metal auto prior estimation requires simple Borders CTRs and ctr_target_border_count=1");
+            }
+        }
+    }
 }
 
 const TModelSplit& TMetalCategoricalData::GetSplit(ui32 feature, ui32 bin, ui8 type) const {
@@ -323,7 +470,8 @@ TMetalCategoricalData PrepareCategoricalPermutation(const TTrainingDataProvider&
                                                     const NCatboostOptions::TCatBoostOptions& options,
                                                     NPar::ILocalExecutor* executor,
                                                     ui32 permutation,
-                                                    const TMetalCategoricalData* gridReference) {
+                                                    const TMetalCategoricalData* gridReference,
+                                                    const TTrainingDataProvider* evaluation) {
     TMetalCategoricalData result;
     const auto& objects = *data.ObjectsData;
     const auto& layout = *objects.GetFeaturesLayout();
@@ -332,7 +480,10 @@ TMetalCategoricalData PrepareCategoricalPermutation(const TTrainingDataProvider&
     const ui32 rows = data.GetObjectCount();
     CB_ENSURE(rows > 0 && rows <= (1u << 24), "Metal categorical training row count is invalid");
     const auto& categoricalOptions = options.CatFeatureParams.Get();
-    CB_ENSURE(categoricalOptions.OneHotMaxSize <= 255, "Metal currently supports one_hot_max_size up to 255");
+    // Native training uses all uint8 values as known-category bins. Unseen
+    // inference categories are handled by the shared hashed model reader,
+    // rather than a reserved training bin.
+    CB_ENSURE(categoricalOptions.OneHotMaxSize <= 256, "Metal currently supports one_hot_max_size up to 256");
     const auto target = data.TargetData->GetTarget();
     CB_ENSURE(!target || target->size() == 1,
               "Metal categorical training currently requires scalar targets");
@@ -356,7 +507,8 @@ TMetalCategoricalData PrepareCategoricalPermutation(const TTrainingDataProvider&
                 for (ui32 hash : column.Hashes)
                     splits.emplace_back(TOneHotSplit{feature.Position.Index, static_cast<i32>(hash)});
             }
-            AppendFeature(bins, std::move(splits), 1, Max<ui32>(1, column.Hashes.size()), &result);
+            AppendFeature(bins, std::move(splits), 1, Max<ui32>(1, column.Hashes.size()), &result,
+                          0, nullptr, nullptr, column.UniqueValuesOnAll, feature.Position.Index);
         } else {
             CB_ENSURE(target && target->size() == 1 && (*target)[0].size() == rows,
                       "Metal categorical CTR training requires one scalar target per row");
@@ -378,13 +530,19 @@ TMetalCategoricalData PrepareCategoricalPermutation(const TTrainingDataProvider&
                     std::fill(groupIds.begin() + bounds.Begin, groupIds.begin() + bounds.End, group);
                 }
             }
-            CB_ENSURE(categoricalOptions.CounterCalcMethod == ECounterCalc::SkipTest,
-                      "Metal currently supports learn-only CTR frequency tables (counter_calc_method='SkipTest')");
             const auto perFeature = categoricalOptions.PerFeatureCtrs->find(feature.Position.FlatIndex);
             const auto& descriptions = perFeature == categoricalOptions.PerFeatureCtrs->end()
                 ? categoricalOptions.SimpleCtrs.Get() : perFeature->second;
             CB_ENSURE(!descriptions.empty(), "Metal high-cardinality categories require simple_ctr configurations");
-            AddCtrFeatures(feature, column, targets, historyOrder, groupIds, options, descriptions, gridReference, &result);
+            TMaybe<TCategoryColumn> fullColumn;
+            if (categoricalOptions.CounterCalcMethod == ECounterCalc::Full && evaluation &&
+                std::any_of(descriptions.begin(), descriptions.end(), [](const auto& description) {
+                    return description.Type == ECtrType::FeatureFreq;
+                })) {
+                fullColumn = JoinCategoryColumns(column, ReadMetalCategoryColumn(*evaluation->ObjectsData, feature, executor));
+            }
+            AddCtrFeatures(feature, column, targets, historyOrder, groupIds, options, descriptions, gridReference, &result,
+                           fullColumn ? &*fullColumn : nullptr);
         }
     }
     return result;
@@ -398,8 +556,9 @@ TConstArrayRef<ui8> TMetalCategoricalData::GetPermutationBins(ui32 permutation) 
 
 TMetalCategoricalData PrepareMetalCategoricalData(const TTrainingDataProvider& data,
                                                  const NCatboostOptions::TCatBoostOptions& options,
-                                                 NPar::ILocalExecutor* executor) {
-    auto result = PrepareCategoricalPermutation(data, options, executor, 0, nullptr);
+                                                 NPar::ILocalExecutor* executor,
+                                                 const TTrainingDataProvider* evaluation) {
+    auto result = PrepareCategoricalPermutation(data, options, executor, 0, nullptr, evaluation);
     CB_ENSURE(!result.CtrProvider || options.BoostingOptions->PermutationCount <= 1,
               "Metal currently supports one CTR permutation; set permutation_count=1");
     return result;
@@ -407,8 +566,9 @@ TMetalCategoricalData PrepareMetalCategoricalData(const TTrainingDataProvider& d
 
 TMetalCategoricalData PrepareMetalCategoricalPermutations(const TTrainingDataProvider& data,
                                                          const NCatboostOptions::TCatBoostOptions& options,
-                                                         NPar::ILocalExecutor* executor) {
-    auto result = PrepareCategoricalPermutation(data, options, executor, 0, nullptr);
+                                                         NPar::ILocalExecutor* executor,
+                                                         const TTrainingDataProvider* evaluation) {
+    auto result = PrepareCategoricalPermutation(data, options, executor, 0, nullptr, evaluation);
     // As in CUDA Plain boosting, numeric/one-hot-only training needs just one
     // dataset. has_time also disables the internal category permutations.
     const bool featureParallel = options.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel;
@@ -421,14 +581,27 @@ TMetalCategoricalData PrepareMetalCategoricalPermutations(const TTrainingDataPro
               "Metal categorical permutation inputs exceed the experimental 1 GiB limit");
     result.AdditionalPermutationBins.reserve(permutationCount - 1);
     for (ui32 permutation = 1; permutation < permutationCount; ++permutation) {
-        auto current = PrepareCategoricalPermutation(data, options, executor, permutation, &result);
+        auto current = PrepareCategoricalPermutation(data, options, executor, permutation, &result, evaluation);
         CB_ENSURE(current.SplitCandidates == result.SplitCandidates && current.Bins.size() == result.Bins.size() &&
-                  current.CtrUniqueValues == result.CtrUniqueValues,
+                  current.CtrUniqueValues == result.CtrUniqueValues &&
+                  current.ColumnModelCtrs == result.ColumnModelCtrs &&
+                  current.ColumnCtrBinarizations == result.ColumnCtrBinarizations &&
+                  current.ColumnUniqueValuesOnAll == result.ColumnUniqueValuesOnAll &&
+                  current.ColumnCatFeatureIndices == result.ColumnCatFeatureIndices,
                   "Metal CTR permutations require identical feature columns and split grids");
         result.Stats.kernel_dispatches += current.Stats.kernel_dispatches;
         result.Stats.gpu_seconds += current.Stats.gpu_seconds;
         result.AdditionalPermutationBins.push_back(std::move(current.Bins));
     }
     return result;
+}
+
+void FinalizeMetalCounterTables(const TMetalCategoricalData& data, TFullModel* model) {
+    if (!data.FinalCounterProvider) return;
+    CB_ENSURE(model && model->CtrProvider, "Metal final counter tables require a model CTR provider");
+    for (const auto& [base, table] : data.FinalCounterProvider->CtrData.LearnCtrs) {
+        Y_UNUSED(base);
+        model->CtrProvider->AddCtrCalcerData(TCtrValueTable(table));
+    }
 }
 }
