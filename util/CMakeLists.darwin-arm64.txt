@@ -222,7 +222,6 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/condvar.h
   ${PROJECT_SOURCE_DIR}/util/system/context.h
   ${PROJECT_SOURCE_DIR}/util/system/context_aarch64.h
-  ${PROJECT_SOURCE_DIR}/util/system/context_i686.h
   ${PROJECT_SOURCE_DIR}/util/system/context_x86.h
   ${PROJECT_SOURCE_DIR}/util/system/context_x86_64.h
   ${PROJECT_SOURCE_DIR}/util/system/cpu_id.h

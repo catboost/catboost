@@ -18,7 +18,6 @@ class App(ConanFile):
     def build_requirements(self):
         self.tool_requires("ragel/6.10")
         self.tool_requires("swig/4.0.2")
-        self.tool_requires("yasm/1.3.0")
 
     def generate(self):
         CMakeDeps(self).generate()
@@ -33,11 +32,7 @@ class App(ConanFile):
                     if not env.vars(self).get("SWIG_LIB"):
                         env.define("SWIG_LIB", os.path.join(bindir, "swiglib"))
             for bindir in dep.cpp_info.bindirs:
-                copy(self, pattern="*yasm*", src=bindir, dst=self.build_folder + "../../../.././bin")
-            for bindir in dep.cpp_info.bindirs:
                 copy(self, pattern="ragel*", src=bindir, dst=self.build_folder + "../../../.././bin")
-            for bindir in dep.cpp_info.bindirs:
-                copy(self, pattern="ytasm*", src=bindir, dst=self.build_folder + "../../../.././bin")
 
     def layout(self):
         cmake_layout(self)

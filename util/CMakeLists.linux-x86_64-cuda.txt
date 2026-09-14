@@ -48,6 +48,7 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/digest/city.cpp
   ${PROJECT_SOURCE_DIR}/util/random/random.cpp
   ${PROJECT_SOURCE_DIR}/util/string/cast.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/context_x86.S
   ${PROJECT_SOURCE_DIR}/util/system/valgrind.cpp
   ${PROJECT_SOURCE_DIR}/util/system/mktemp_system.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/base.h
@@ -224,7 +225,6 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/condvar.h
   ${PROJECT_SOURCE_DIR}/util/system/context.h
   ${PROJECT_SOURCE_DIR}/util/system/context_aarch64.h
-  ${PROJECT_SOURCE_DIR}/util/system/context_i686.h
   ${PROJECT_SOURCE_DIR}/util/system/context_x86.h
   ${PROJECT_SOURCE_DIR}/util/system/context_x86_64.h
   ${PROJECT_SOURCE_DIR}/util/system/cpu_id.h
@@ -592,13 +592,4 @@ target_ragel_lexers(yutil
   PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/parser.rl6
   -CG2
-)
-
-target_yasm_source(yutil
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}/util/system/context_x86.asm
-  -I
-  ${PROJECT_BINARY_DIR}
-  -I
-  ${PROJECT_SOURCE_DIR}
 )

@@ -36,7 +36,7 @@
     #define USE_UCONTEXT_CONT
 #elif defined(_win_)
     #define USE_FIBER_CONT
-#elif (defined(_i386_) || defined(_x86_64_) || defined(_arm64_)) && !defined(_k1om_)
+#elif (defined(_x86_64_) || defined(_arm64_)) && !defined(_k1om_)
     #define USE_JUMP_CONT
 #else
     #define USE_UCONTEXT_CONT

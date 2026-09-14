@@ -1,16 +1,31 @@
-        [bits 64]
+#if defined(__APPLE__)
+    #define CNAME(name) _ ## name
+#else
+    #define CNAME(name) name
+#endif
 
-        %define MJB_RBX    0
-        %define MJB_RBP    1
-        %define MJB_R12    2
-        %define MJB_R13    3
-        %define MJB_R14    4
-        %define MJB_R15    5
-        %define MJB_RSP    6
-        %define MJB_PC     7
-        %define MJB_SIZE (8*8)
+#define EXPORT(name, id) \
+    .globl CNAME(name); \
+    .set CNAME(name), id ## f; \
+    id:
 
-EXPORT __mylongjmp
+.text
+.p2align 4
+.intel_syntax noprefix
+
+.code64
+
+#define MJB_RBX 0
+#define MJB_RBP 1
+#define MJB_R12 2
+#define MJB_R13 3
+#define MJB_R14 4
+#define MJB_R15 5
+#define MJB_RSP 6
+#define MJB_PC 7
+#define MJB_SIZE (8 * 8)
+
+EXPORT(__mylongjmp, 1)
         mov rbx, [rdi + MJB_RBX * 8]
         mov rbp, [rdi + MJB_RBP * 8]
         mov r12, [rdi + MJB_R12 * 8]
@@ -25,7 +40,7 @@ EXPORT __mylongjmp
         mov rsp, [rdi + MJB_RSP * 8]
         jmp rdx
 
-EXPORT __mysetjmp
+EXPORT(__mysetjmp, 2)
         mov [rdi + MJB_RBX * 8], rbx
         mov [rdi + MJB_RBP * 8], rbp
         mov [rdi + MJB_R12 * 8], r12
