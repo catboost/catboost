@@ -2003,7 +2003,10 @@ _CREATE_ALIGNED_STORAGE_SPECIALIZATION(0x800);
 _CREATE_ALIGNED_STORAGE_SPECIALIZATION(0x1000);
 _CREATE_ALIGNED_STORAGE_SPECIALIZATION(0x2000);
 // PE/COFF does not support alignment beyond 8192 (=0x2000)
-#if !defined(_LIBCPP_OBJECT_FORMAT_COFF)
+// Under clang -x hip the host pass targets Windows
+// (8192 cap) but the HIP object-format detection leaves _LIBCPP_OBJECT_FORMAT_COFF
+// unset, so also gate on _WIN32 to exclude the 16384 specialization on the host.
+#if !defined(_LIBCPP_OBJECT_FORMAT_COFF) && !defined(_WIN32)
 _CREATE_ALIGNED_STORAGE_SPECIALIZATION(0x4000);
 #endif // !defined(_LIBCPP_OBJECT_FORMAT_COFF)
 

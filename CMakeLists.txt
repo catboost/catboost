@@ -29,6 +29,39 @@ endif()
 set(BUILD_SHARED_LIBS Off)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS Off)
+
+# HAVE_HIP turns on the HIP toolchain branch in cuda.cmake and defines USE_HIP
+# for the compat header. The hip_compat dir
+# supplies forwarding shims for the CUDA-toolkit header names the GPU runtime
+# layer includes directly (<cuda_runtime.h>, <cuda_fp16.h>, <cub/...>,
+# <cooperative_groups.h>); it must precede /opt/rocm/include so the shims win.
+if (HAVE_HIP)
+  add_compile_definitions(USE_HIP)
+  # The per-directory generated CMakeLists.txt dispatchers gate the GPU subtree
+  # (catboost/cuda, library/cpp/cuda, the model CUDA evaluator) on HAVE_CUDA.
+  # Reuse that routing for HIP: set HAVE_CUDA so every dispatcher includes its
+  # *-cuda.txt (the .cu source lists), while cuda.cmake takes its HIP branch
+  # first and returns before the CUDA enable block. This avoids editing dozens
+  # of generated dispatchers.
+  set(HAVE_CUDA ON)
+  include_directories(BEFORE ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/hip_compat)
+  # Host C++ TUs in the GPU runtime layer include <hip/hip_runtime.h> (via the
+  # cuda_runtime.h shim) but are not compiled by hipcc, so add the ROCm headers.
+  if (NOT DEFINED ROCM_PATH)
+    if (DEFINED ENV{ROCM_PATH})
+      set(ROCM_PATH $ENV{ROCM_PATH})
+    else()
+      set(ROCM_PATH /opt/rocm)
+    endif()
+  endif()
+  include_directories(${ROCM_PATH}/include)
+  # On Windows the ROCm SDK include dir ships a vanilla
+  # flatbuffers/ (no Yandex kCppYandexMapsIter), which the global add above lets
+  # shadow CatBoost's bundled flatbuffers for host tools like flatc. Prepend the
+  # bundled flatbuffers include so the in-tree copy wins. (/opt/rocm on Linux
+  # ships no flatbuffers, so this never bit there.)
+  include_directories(BEFORE ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/include)
+endif()
 set(CATBOOST_MAX_LINK_JOBS 5 CACHE STRING "Maximum parallel link jobs for Ninja generator")
 set_property(GLOBAL PROPERTY JOB_POOLS link_jobs=${CATBOOST_MAX_LINK_JOBS})
 set(CMAKE_JOB_POOL_LINK link_jobs)
@@ -55,7 +88,11 @@ include(cmake/shared_libs.cmake)
 include(cmake/swig.cmake)
 
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT HAVE_CUDA)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_HIP)
+  # Reuse the CUDA source lists; the .cu files are retagged
+  # LANGUAGE HIP by the cuda.cmake HIP branch, so no separate -hip.txt is needed.
+  include(CMakeLists.linux-x86_64-cuda.txt)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT HAVE_CUDA)
   include(CMakeLists.linux-x86_64.txt)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_CUDA)
   include(CMakeLists.linux-x86_64-cuda.txt)

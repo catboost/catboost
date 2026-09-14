@@ -288,7 +288,7 @@ namespace NKernel
             const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;\
             const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
             numBlocks.x = (fCount + 3) / 4;\
-            numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));\
+            ScaleBlockCountToOccupancy(numBlocks, maxActiveBlocks);\
             if (IsGridEmpty(numBlocks)) {\
                 return;\
             }\
@@ -353,7 +353,7 @@ namespace NKernel
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
         const int groupCount = (fCount + 3) / 4;\
         numBlocks.x = groupCount;\
-        numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.y * numBlocks.z * numBlocks.x));\
+        ScaleBlockCountToOccupancy(numBlocks, 2 * maxActiveBlocks);\
         if (IsGridEmpty(numBlocks)) {\
             return;\
         }\
@@ -425,7 +425,7 @@ namespace NKernel
             const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;\
             const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
             numBlocks.x = (fCount + 3) / 4;\
-            numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));\
+            ScaleBlockCountToOccupancy(numBlocks, 2 * maxActiveBlocks);\
             if (IsGridEmpty(numBlocks)) {\
                 return;\
             }\
@@ -487,7 +487,7 @@ namespace NKernel
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
         const int groupCount = (fCount + 3) / 4;\
         numBlocks.x = groupCount;\
-        numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.y * numBlocks.z * numBlocks.x));\
+        ScaleBlockCountToOccupancy(numBlocks, 2 * maxActiveBlocks);\
         if (IsGridEmpty(numBlocks)) {\
             return;\
         }\
