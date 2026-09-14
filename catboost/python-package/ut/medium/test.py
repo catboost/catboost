@@ -10855,6 +10855,80 @@ def test_select_features(task_type, train_final_model):
         assert model.evals_result_ == {}
 
 
+# used to crash with std::terminate (uncaught exception in a worker thread), see #1935
+@pytest.mark.parametrize('grow_policy', ['Depthwise', 'Lossguide'])
+def test_select_features_by_shap_values_unsupported_calc_type_nonsymmetric(task_type, grow_policy):
+    learn = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=10,
+        learning_rate=0.03,
+        grow_policy=grow_policy,
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0'
+    )
+    with pytest.raises(CatBoostError, match='supported only for symmetric trees'):
+        model.select_features(
+            learn,
+            eval_set=test,
+            steps=1,
+            algorithm='RecursiveByShapValues',
+            shap_calc_type='Exact',
+            train_final_model=False,
+            features_for_select='0-16',
+            num_features_to_select=10
+        )
+
+
+@pytest.mark.parametrize('grow_policy', ['Depthwise', 'Lossguide'])
+def test_select_features_by_shap_values_nonsymmetric(task_type, grow_policy):
+    learn = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=10,
+        learning_rate=0.03,
+        grow_policy=grow_policy,
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0'
+    )
+    summary = model.select_features(
+        learn,
+        eval_set=test,
+        steps=2,
+        algorithm='RecursiveByShapValues',
+        shap_calc_type='Regular',
+        train_final_model=True,
+        features_for_select='0-16',
+        num_features_to_select=10
+    )
+    assert len(summary['selected_features']) == 10
+    assert model.is_fitted()
+
+
+# 'Independent' calculation type is selected by passing reference_data
+@pytest.mark.parametrize('calc_type', ['Exact', 'Independent'])
+def test_shap_values_unsupported_calc_type_nonsymmetric(task_type, calc_type):
+    learn = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=10,
+        learning_rate=0.03,
+        grow_policy='Depthwise',
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0'
+    )
+    model.fit(learn)
+    with pytest.raises(CatBoostError, match='supported only for symmetric trees'):
+        model.get_feature_importance(
+            learn,
+            type='ShapValues',
+            shap_calc_type='Exact' if calc_type == 'Exact' else 'Regular',
+            reference_data=learn if calc_type == 'Independent' else None
+        )
+
+
 def test_select_features_with_custom_eval_metric():
     class CustomMetric(object):
         def get_final_error(self, error, weight):

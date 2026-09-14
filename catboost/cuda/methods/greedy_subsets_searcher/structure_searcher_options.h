@@ -22,5 +22,8 @@ namespace NCatboostCuda {
 
         double MinLeafSize = 1;
         double RandomStrength = 0;
+
+        // regularization for MVS bootstrap when mvs_reg is not set explicitly (L1 leaves sum of the previous tree)
+        TMaybe<float> MvsLambda;
     };
 }
