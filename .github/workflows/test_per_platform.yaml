@@ -282,6 +282,10 @@ jobs:
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/pytest
           python -m pytest -n auto
 
+          $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_model_export
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/libs/model/model_export/ut
+          python -m pytest -n auto
+
       - name: Run python package tests
         shell: pwsh
         run: |
@@ -353,4 +357,3 @@ jobs:
 
           Rscript -e "install.packages('remotes', Ncpus = parallel::detectCores()); remotes::install_local('catboost_R_package/catboost-R-darwin-universal2.tgz', INSTALL_opts = c('--no-multiarch', '--no-staged-install', '--install-tests'))"
           Rscript -e "install.packages(c('testthat','caret','tibble'), Ncpus = parallel::detectCores()); testthat::test_package('catboost')"
-
