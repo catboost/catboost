@@ -146,9 +146,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.44.5"
-#define SQLITE_VERSION_NUMBER 3044005
-#define SQLITE_SOURCE_ID      "2025-07-24 14:26:41 a88185782279322fea69eebb4bad1fc9c215dc5a7cb2f3d79fcf19f15e90alt1"
+#define SQLITE_VERSION        "3.45.3"
+#define SQLITE_VERSION_NUMBER 3045003
+#define SQLITE_SOURCE_ID      "2024-04-15 13:34:05 8653b758870e6ef0c98d46b3ace27849054af85da891eb121e9aaa537f1ealt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -420,6 +420,8 @@ typedef int (*sqlite3_callback)(void*,int,char**, char**);
 **      the 1st parameter to sqlite3_exec() while sqlite3_exec() is running.
 ** <li> The application must not modify the SQL statement text passed into
 **      the 2nd parameter of sqlite3_exec() while sqlite3_exec() is running.
+** <li> The application must not dereference the arrays or string pointers
+**       passed as the 3rd and 4th callback parameters after it returns.
 ** </ul>
 */
 SQLITE_API int sqlite3_exec(
@@ -3971,15 +3973,17 @@ SQLITE_API void sqlite3_free_filename(sqlite3_filename);
 ** </ul>
 **
 ** ^The sqlite3_errmsg() and sqlite3_errmsg16() return English-language
-** text that describes the error, as either UTF-8 or UTF-16 respectively.
+** text that describes the error, as either UTF-8 or UTF-16 respectively,
+** or NULL if no error message is available.
 ** (See how SQLite handles [invalid UTF] for exceptions to this rule.)
 ** ^(Memory to hold the error message string is managed internally.
 ** The application does not need to worry about freeing the result.
 ** However, the error string might be overwritten or deallocated by
 ** subsequent calls to other SQLite interface functions.)^
 **
-** ^The sqlite3_errstr() interface returns the English-language text
-** that describes the [result code], as UTF-8.
+** ^The sqlite3_errstr(E) interface returns the English-language text
+** that describes the [result code] E, as UTF-8, or NULL if E is not an
+** result code for which a text error message is available.
 ** ^(Memory to hold the error message string is managed internally
 ** and must not be freed by the application)^.
 **
@@ -8054,9 +8058,11 @@ SQLITE_API int sqlite3_vfs_unregister(sqlite3_vfs*);
 **
 ** ^(Some systems (for example, Windows 95) do not support the operation
 ** implemented by sqlite3_mutex_try().  On those systems, sqlite3_mutex_try()
-** will always return SQLITE_BUSY. The SQLite core only ever uses
-** sqlite3_mutex_try() as an optimization so this is acceptable
-** behavior.)^
+** will always return SQLITE_BUSY. In most cases the SQLite core only uses
+** sqlite3_mutex_try() as an optimization, so this is acceptable
+** behavior. The exceptions are unix builds that set the
+** SQLITE_ENABLE_SETLK_TIMEOUT build option. In that case a working
+** sqlite3_mutex_try() is required.)^
 **
 ** ^The sqlite3_mutex_leave() routine exits a mutex that was
 ** previously entered by the same thread.   The behavior
@@ -8315,6 +8321,7 @@ SQLITE_API int sqlite3_test_control(int op, ...);
 #define SQLITE_TESTCTRL_ASSERT                  12
 #define SQLITE_TESTCTRL_ALWAYS                  13
 #define SQLITE_TESTCTRL_RESERVE                 14  /* NOT USED */
+#define SQLITE_TESTCTRL_JSON_SELFCHECK          14
 #define SQLITE_TESTCTRL_OPTIMIZATIONS           15
 #define SQLITE_TESTCTRL_ISKEYWORD               16  /* NOT USED */
 #define SQLITE_TESTCTRL_SCRATCHMALLOC           17  /* NOT USED */
@@ -12828,8 +12835,11 @@ struct Fts5PhraseIter {
 **   created with the "columnsize=0" option.
 **
 ** xColumnText:
-**   This function attempts to retrieve the text of column iCol of the
-**   current document. If successful, (*pz) is set to point to a buffer
+**   If parameter iCol is less than zero, or greater than or equal to the
+**   number of columns in the table, SQLITE_RANGE is returned.
+**
+**   Otherwise, this function attempts to retrieve the text of column iCol of
+**   the current document. If successful, (*pz) is set to point to a buffer
 **   containing the text in utf-8 encoding, (*pn) is set to the size in bytes
 **   (not characters) of the buffer and SQLITE_OK is returned. Otherwise,
 **   if an error occurs, an SQLite error code is returned and the final values
@@ -12839,8 +12849,10 @@ struct Fts5PhraseIter {
 **   Returns the number of phrases in the current query expression.
 **
 ** xPhraseSize:
-**   Returns the number of tokens in phrase iPhrase of the query. Phrases
-**   are numbered starting from zero.
+**   If parameter iCol is less than zero, or greater than or equal to the
+**   number of phrases in the current query, as returned by xPhraseCount,
+**   0 is returned. Otherwise, this function returns the number of tokens in
+**   phrase iPhrase of the query. Phrases are numbered starting from zero.
 **
 ** xInstCount:
 **   Set *pnInst to the total number of occurrences of all phrases within
@@ -12856,12 +12868,13 @@ struct Fts5PhraseIter {
 **   Query for the details of phrase match iIdx within the current row.
 **   Phrase matches are numbered starting from zero, so the iIdx argument
 **   should be greater than or equal to zero and smaller than the value
-**   output by xInstCount().
+**   output by xInstCount(). If iIdx is less than zero or greater than
+**   or equal to the value returned by xInstCount(), SQLITE_RANGE is returned.
 **
-**   Usually, output parameter *piPhrase is set to the phrase number, *piCol
+**   Otherwise, output parameter *piPhrase is set to the phrase number, *piCol
 **   to the column in which it occurs and *piOff the token offset of the
-**   first token of the phrase. Returns SQLITE_OK if successful, or an error
-**   code (i.e. SQLITE_NOMEM) if an error occurs.
+**   first token of the phrase. SQLITE_OK is returned if successful, or an
+**   error code (i.e. SQLITE_NOMEM) if an error occurs.
 **
 **   This API can be quite slow if used with an FTS5 table created with the
 **   "detail=none" or "detail=column" option.
@@ -12886,6 +12899,10 @@ struct Fts5PhraseIter {
 **   function may be used to access the properties of each matched row.
 **   Invoking Api.xUserData() returns a copy of the pointer passed as
 **   the third argument to pUserData.
+**
+**   If parameter iPhrase is less than zero, or greater than or equal to
+**   the number of phrases in the query, as returned by xPhraseCount(),
+**   this function returns SQLITE_RANGE.
 **
 **   If the callback function returns any value other than SQLITE_OK, the
 **   query is abandoned and the xQueryPhrase function returns immediately.
@@ -13001,9 +13018,42 @@ struct Fts5PhraseIter {
 **
 ** xPhraseNextColumn()
 **   See xPhraseFirstColumn above.
+**
+** xQueryToken(pFts5, iPhrase, iToken, ppToken, pnToken)
+**   This is used to access token iToken of phrase iPhrase of the current
+**   query. Before returning, output parameter *ppToken is set to point
+**   to a buffer containing the requested token, and *pnToken to the
+**   size of this buffer in bytes.
+**
+**   If iPhrase or iToken are less than zero, or if iPhrase is greater than
+**   or equal to the number of phrases in the query as reported by
+**   xPhraseCount(), or if iToken is equal to or greater than the number of
+**   tokens in the phrase, SQLITE_RANGE is returned and *ppToken and *pnToken
+     are both zeroed.
+**
+**   The output text is not a copy of the query text that specified the
+**   token. It is the output of the tokenizer module. For tokendata=1
+**   tables, this includes any embedded 0x00 and trailing data.
+**
+** xInstToken(pFts5, iIdx, iToken, ppToken, pnToken)
+**   This is used to access token iToken of phrase hit iIdx within the
+**   current row. If iIdx is less than zero or greater than or equal to the
+**   value returned by xInstCount(), SQLITE_RANGE is returned.  Otherwise,
+**   output variable (*ppToken) is set to point to a buffer containing the
+**   matching document token, and (*pnToken) to the size of that buffer in
+**   bytes. This API is not available if the specified token matches a
+**   prefix query term. In that case both output variables are always set
+**   to 0.
+**
+**   The output text is not a copy of the document text that was tokenized.
+**   It is the output of the tokenizer module. For tokendata=1 tables, this
+**   includes any embedded 0x00 and trailing data.
+**
+**   This API can be quite slow if used with an FTS5 table created with the
+**   "detail=none" or "detail=column" option.
 */
 struct Fts5ExtensionApi {
-  int iVersion;                   /* Currently always set to 2 */
+  int iVersion;                   /* Currently always set to 3 */
 
   void *(*xUserData)(Fts5Context*);
 
@@ -13038,6 +13088,13 @@ struct Fts5ExtensionApi {
 
   int (*xPhraseFirstColumn)(Fts5Context*, int iPhrase, Fts5PhraseIter*, int*);
   void (*xPhraseNextColumn)(Fts5Context*, Fts5PhraseIter*, int *piCol);
+
+  /* Below this point are iVersion>=3 only */
+  int (*xQueryToken)(Fts5Context*,
+      int iPhrase, int iToken,
+      const char **ppToken, int *pnToken
+  );
+  int (*xInstToken)(Fts5Context*, int iIdx, int iToken, const char**, int*);
 };
 
 /*
