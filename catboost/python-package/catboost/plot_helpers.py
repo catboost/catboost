@@ -43,7 +43,6 @@ def save_plot_file(plot_file, plot_name, figs):
             graph_div = plotly_plot(
                 fig,
                 output_type='div',
-                show_link=False,
                 include_plotlyjs=False
             )
             plot_file_stream.write('\n{}\n'.format(graph_div))
