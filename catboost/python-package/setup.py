@@ -200,6 +200,12 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
     topnames += get_all_files_wo_built_artifacts(topdir, 'library', exclude_regexp, verbose)
     topnames += get_all_files_wo_built_artifacts(
         topdir,
+        os.path.join('catboost', 'metal'),
+        r'.*(__pycache__|[\\/]\.(build|pytest_cache)|\.(so|dylib|dll|pyd))$',
+        verbose
+    )
+    topnames += get_all_files_wo_built_artifacts(
+        topdir,
         os.path.join('catboost', 'python-package', 'catboost'),
         exclude_regexp,
         verbose
