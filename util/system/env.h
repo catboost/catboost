@@ -13,7 +13,7 @@
  * Search the environment list provided by the host environment for associated variable.
  *
  * @param key   String identifying the name of the environmental variable to look for
- * @param def   String that returns if environmental variable not found by key
+ * @param def   String that is returned if environmental variable not found by key
  *
  * @return      String that is associated with the matched environment variable or the value of `def` parameter if
  *              such variable is missing.
