@@ -968,7 +968,12 @@ namespace NCB {
         TMaybe<NCatboostOptions::TLossDescription> modelLossDescription;
         if (const auto* modelInfoLoss = MapFindPtr(model.ModelInfo, "loss_function")) {
             modelLossDescription.ConstructInPlace();
-            modelLossDescription->Load(ReadTJsonValue(*modelInfoLoss));
+            auto lossJson = ReadTJsonValue(*modelInfoLoss);
+            if (lossJson.GetType() != NJson::JSON_NULL && lossJson.GetType() != NJson::JSON_UNDEFINED) {
+                modelLossDescription->Load(lossJson);
+            } else {
+                *modelLossDescription = NCatboostOptions::ParseLossDescription(*modelInfoLoss);
+            }
         } else if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
             NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
 
