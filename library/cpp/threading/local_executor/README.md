@@ -68,7 +68,7 @@ LocalExecutor().ExecRange([](int id) {
 
 By default if an uncaught exception is thrown in a task that runs through the Local Executor, then `std::terminate()` will be called immediately. Best practice is to handle exception within a task, or avoid throwing exceptions at all for performance reasons.
 
-However, if you'd like to get exceptions that might have occured during the tasks execution instead, you can use `ExecRangeWithFutures()`.
+However, if you'd like to get exceptions that might have occurred during the tasks execution instead, you can use `ExecRangeWithFutures()`.
 It returns a vector of [0 .. LastId-FirstId] elements, where i-th element is a `TFuture` corresponding to the task with `id = (FirstId + i)`.
 Use a method `.HasValue()` of the element to check in Async mode if the corresponding task is complete.
 Use `.GetValue()` or `.GetValueSync()` to wait for completion of the corresponding task. `GetValue()` and `GetValueSync()` will also rethrow an exception if it has been thrown during the execution of the task.

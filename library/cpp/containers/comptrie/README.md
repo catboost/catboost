@@ -87,7 +87,7 @@ The second optimization function results in fewer cache misses, but it causes th
 tree to grow in size. Our experience has shown a 5% gain
 in speed for some tries. The algorithm consumes about three times more memory than
 the amount required for the source tree. So if the machine has enough memory to
-assemble a tree, it does not neccessarily mean that it has enough memory to run
+assemble a tree, it does not necessarily mean that it has enough memory to run
 the algorithm. To learn about the theory behind this algorithm, read the comments before the declaration of the CompactTrieMinimize function.
 
 Serializing trees
