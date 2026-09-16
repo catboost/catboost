@@ -1864,6 +1864,7 @@ typedef internal::IgnoredValue Unused;
 
 // Deprecated single-argument DoAll.
 template <typename Action>
+GTEST_INTERNAL_DEPRECATE_AND_INLINE("Avoid using DoAll() for single actions")
 typename std::decay<Action>::type DoAll(Action&& action) {
   return std::forward<Action>(action);
 }
