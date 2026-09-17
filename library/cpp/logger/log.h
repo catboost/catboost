@@ -9,8 +9,9 @@
 #include <util/generic/fwd.h>
 #include <util/generic/ptr.h>
 
-#include <functional>
 #include <cstdarg>
+#include <functional>
+#include <memory>
 
 using TLogFormatter = std::function<TString(ELogPriority priority, TStringBuf)>;
 
@@ -38,6 +39,7 @@ public:
     TLog(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY);
     // Construct any type of logger
     TLog(THolder<TLogBackend> backend);
+    TLog(std::unique_ptr<TLogBackend> backend);
 
     TLog(const TLog&);
     TLog(TLog&&);
@@ -48,6 +50,7 @@ public:
     // Change underlying backend.
     // NOTE: not thread safe.
     void ResetBackend(THolder<TLogBackend> backend) noexcept;
+    void ResetBackend(std::unique_ptr<TLogBackend> backend) noexcept;
     // Reset underlying backend, `IsNullLog()` will return `true` after this call.
     // NOTE: not thread safe.
     THolder<TLogBackend> ReleaseBackend() noexcept;
