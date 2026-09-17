@@ -706,3 +706,72 @@ test_that("model: feature_count attribute", {
   model <- catboost.train(train_pool, params = params)
   expect_equal(model$feature_count, feature_count - 1)
 })
+
+test_that("model: catboost.plot_tree", {
+  docs_count <- 40
+  target <- seq_len(docs_count)
+  features <- data.frame(f1 = target, f2 = docs_count - target)
+  pool <- catboost.load_pool(features, target)
+  params <- list(iterations = 2,
+                 depth = 2,
+                 loss_function = "RMSE",
+                 random_seed = 12345,
+                 logging_level = "Silent",
+                 allow_writing_files = FALSE)
+
+  model <- catboost.train(pool, params = params)
+  tree <- catboost.plot_tree(model, 0)
+
+  expect_true(inherits(tree, "catboost.TreePlot"))
+  expect_true(is.character(tree))
+  expect_match(as.character(tree), "digraph \\{")
+  expect_match(as.character(tree), "shape=\"ellipse\"")
+  expect_match(as.character(tree), "shape=\"rect\"")
+  expect_match(as.character(tree), "val =")
+  expect_match(as.character(tree), '"0" -> "1" \\[label="No"\\]')
+  expect_match(as.character(tree), '"0" -> "2" \\[label="Yes"\\]')
+  expect_error(catboost.plot_tree(model, -1), "tree_idx should be non-negative and less than tree_count.", fixed = TRUE)
+  expect_error(catboost.plot_tree(model, model$tree_count), "tree_idx should be non-negative and less than tree_count.", fixed = TRUE)
+  expect_error(catboost.plot_tree(model, NA), "tree_idx should be an integer.", fixed = TRUE)
+  expect_error(catboost.plot_tree(model, Inf), "tree_idx should be an integer.", fixed = TRUE)
+  expect_error(catboost.plot_tree(model, 1.5), "tree_idx should be an integer.", fixed = TRUE)
+  expect_error(catboost.plot_tree(model, c(0, 1)), "tree_idx should be an integer.", fixed = TRUE)
+  expect_error(catboost.plot_tree(model, .Machine$integer.max + 1),
+               "tree_idx should be non-negative and less than tree_count.", fixed = TRUE)
+})
+
+test_that("model: catboost.plot_tree with categorical features and pool", {
+  docs_count <- 40
+  target <- rep(c(0, 1), docs_count / 2)
+  features <- data.frame(cat_feature = as.factor(ifelse(target == 1, "yes", "no")))
+  pool <- catboost.load_pool(features, target)
+  params <- list(iterations = 2,
+                 depth = 1,
+                 loss_function = "Logloss",
+                 one_hot_max_size = 10,
+                 random_seed = 12345,
+                 logging_level = "Silent",
+                 allow_writing_files = FALSE)
+
+  model <- catboost.train(pool, params = params)
+  tree <- catboost.plot_tree(model, 0, pool)
+
+  expect_true(inherits(tree, "catboost.TreePlot"))
+  expect_match(as.character(tree), "digraph \\{")
+  expect_match(as.character(tree), "shape=\"rect\"")
+})
+
+test_that("model: catboost.plot_tree non-oblivious DOT builder", {
+  dot <- catboost._plot_nonsymmetric_tree(
+    splits = c("0, bin=1"),
+    leaf_values = c("val = -1", "val = 1"),
+    step_nodes = matrix(c(1, 0, 0, 2, 0, 0), ncol = 2),
+    node_to_leaf = c(0, 0, 1)
+  )
+
+  expect_match(dot, '"node_0" \\[label="0, value>1", color="black", shape="ellipse"\\]')
+  expect_match(dot, '"leaf_0" \\[label="val = -1", color="red", shape="rect"\\]')
+  expect_match(dot, '"leaf_1" \\[label="val = 1", color="red", shape="rect"\\]')
+  expect_match(dot, '"node_0" -> "leaf_0" \\[label="No"\\]')
+  expect_match(dot, '"node_0" -> "leaf_1" \\[label="Yes"\\]')
+})

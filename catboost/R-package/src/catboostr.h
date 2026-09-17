@@ -145,6 +145,12 @@ EXPORT_FUNCTION CatBoostShrinkModel_R(
 
 EXPORT_FUNCTION CatBoostDropUnusedFeaturesFromModel_R(SEXP modelParam);
 
+EXPORT_FUNCTION CatBoostGetTreeInfo_R(
+    SEXP modelParam,
+    SEXP treeIdxParam,
+    SEXP poolParam
+);
+
 EXPORT_FUNCTION CatBoostGetModelParams_R(SEXP modelParam);
 
 EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam);
