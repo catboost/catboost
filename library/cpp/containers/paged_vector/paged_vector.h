@@ -1,11 +1,11 @@
 #pragma once
 
-#include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 
 #include <algorithm>
 #include <iterator>
+#include <memory>
 
 namespace NPagedVector {
     template <class T, ui32 PageSize = 1u << 20u>
@@ -172,7 +172,7 @@ namespace NPagedVector {
             }
         };
 
-        using TPages = TVector<THolder<TPage>>;
+        using TPages = TVector<std::unique_ptr<TPage>>;
         using TSelf = TPagedVector<T, PageSize>;
 
         TPages Pages_;
@@ -199,7 +199,7 @@ namespace NPagedVector {
             Pages_.reserve(other.Pages_.size());
             try {
                 for (auto& ptr : other.Pages_) {
-                    auto& newPage = *Pages_.emplace_back(MakeHolder<TPage>());
+                    auto& newPage = *Pages_.emplace_back(std::make_unique<TPage>());
                     CurrentPageSize_ = 0;
                     const size_t copyCount = Pages_.size() == other.Pages_.size()
                                                  ? other.CurrentPageSize_
@@ -345,7 +345,7 @@ namespace NPagedVector {
         }
 
         void AllocateNewPage() {
-            Pages_.emplace_back(MakeHolder<TPage>());
+            Pages_.emplace_back(std::make_unique<TPage>());
             CurrentPageSize_ = 0;
         }
 
