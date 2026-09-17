@@ -742,6 +742,7 @@ void TClientRequest::Process(void* ThreadSpecificResource) {
             auto maxRequestsPerConnection = HttpServ()->Options().MaxRequestsPerConnection;
             HttpConn_->Output()->EnableKeepAlive(HttpServ()->Options().KeepAliveEnabled && (!maxRequestsPerConnection || Conn_->ReceivedRequests < maxRequestsPerConnection));
             HttpConn_->Output()->EnableCompression(HttpServ()->Options().CompressionEnabled);
+            HttpConn_->Output()->SetContentEncodingPredicate(HttpServ()->Options().ContentEncodingPredicate);
         }
 
         if (!BeforeParseRequestOk(ThreadSpecificResource)) {

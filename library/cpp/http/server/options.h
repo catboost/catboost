@@ -1,5 +1,7 @@
 #pragma once
 
+#include <library/cpp/http/io/headers.h>
+
 #include <util/network/ip.h>
 #include <util/network/init.h>
 #include <util/network/address.h>
@@ -43,6 +45,11 @@ public:
     inline THttpServerOptions& EnableCompression(bool enable) noexcept {
         CompressionEnabled = enable;
 
+        return *this;
+    }
+
+    inline THttpServerOptions& SetContentEncodingPredicate(TEncodeContentPredicate predicate) {
+        ContentEncodingPredicate = std::move(predicate);
         return *this;
     }
 
@@ -164,6 +171,7 @@ public:
 
     bool KeepAliveEnabled = true;
     bool CompressionEnabled = false;
+    TEncodeContentPredicate ContentEncodingPredicate;
     bool RejectExcessConnections = false;
     bool ReusePort = false; // set SO_REUSEPORT socket option
     bool ReuseAddress = true; // set SO_REUSEADDR socket option
