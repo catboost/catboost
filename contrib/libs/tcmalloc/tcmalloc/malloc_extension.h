@@ -672,6 +672,11 @@ class MallocExtension final {
   static void SetSoftMemoryLimitHandler(SoftMemoryLimitCallback* handler);
   static SoftMemoryLimitCallback* GetSoftMemoryLimitHandler();
 
+  // Terminate an OOM via _exit(exit_code) rather than abort(), leaving no
+  // coredump; diagnostics are still logged. Disabled by default.
+  static void SetFailFastOnOomExitCode(int exit_code);
+  static std::optional<int> GetFailFastOnOomExitCode();
+
   using CreateSampleUserDataCallback = void*();
   using CopySampleUserDataCallback = void*(void*);
   using DestroySampleUserDataCallback = void(void*);

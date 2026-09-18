@@ -818,6 +818,23 @@ MallocExtension::SoftMemoryLimitCallback* MallocExtension::GetSoftMemoryLimitHan
 #endif
 }
 
+// Widened past int so that every exit code stays representable alongside the sentinel.
+static constexpr int64_t kFailFastOnOomDisabled = std::numeric_limits<int64_t>::min();
+
+ABSL_CONST_INIT static std::atomic<int64_t> FailFastOnOomExitCode_{kFailFastOnOomDisabled};
+
+void MallocExtension::SetFailFastOnOomExitCode(int exit_code) {
+  FailFastOnOomExitCode_.store(exit_code, std::memory_order_relaxed);
+}
+
+std::optional<int> MallocExtension::GetFailFastOnOomExitCode() {
+  int64_t exit_code = FailFastOnOomExitCode_.load(std::memory_order_relaxed);
+  if (exit_code == kFailFastOnOomDisabled) {
+    return std::nullopt;
+  }
+  return static_cast<int>(exit_code);
+}
+
 void MallocExtension::SetSampleUserDataCallbacks(
     CreateSampleUserDataCallback create,
     CopySampleUserDataCallback copy,

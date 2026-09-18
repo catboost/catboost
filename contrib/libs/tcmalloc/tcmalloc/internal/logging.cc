@@ -38,6 +38,7 @@
 #include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/environment.h"
 #include "tcmalloc/internal/parameter_accessors.h"
+#include "tcmalloc/malloc_extension.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
@@ -171,6 +172,12 @@ static void Crash(const char* filename, int line, const char* msg,
       (*log_message_writer)(stats_buffer, std::min(n, kStatsBufferSize));
     }
 #endif  // __APPLE__
+  }
+
+  if (oom) {
+    if (auto exit_code = MallocExtension::GetFailFastOnOomExitCode()) {
+      _exit(*exit_code);
+    }
   }
 
   abort();
