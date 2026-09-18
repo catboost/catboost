@@ -3,6 +3,8 @@
 #include <util/system/compiler.h>
 #include <util/system/defaults.h>
 
+#include <optional>
+#include <type_traits>
 #include <utility>
 
 namespace NPrivate {
@@ -56,3 +58,55 @@ namespace NPrivate {
 // ok = true;
 // \endcode
 #define Y_DEFER Y_SCOPE_EXIT(&)
+
+// A RAII scope guard.
+// By default, invokes the provided callback when destroyed.
+// The callback can be invoked earlier by `CallNow()` or cancelled by `Drop()`,
+// in these cases the destructor becomes no-op.
+template <typename F>
+class TDeferredOnceFunction {
+    static_assert(std::is_nothrow_invocable_v<F>);
+
+public:
+    TDeferredOnceFunction(const F& function)
+        : Function_{function}
+    {
+    }
+
+    TDeferredOnceFunction(F&& function)
+        : Function_{std::move(function)}
+    {
+    }
+
+    ~TDeferredOnceFunction() {
+        if (Function_) {
+            (*Function_)();
+        }
+    }
+
+    TDeferredOnceFunction(const TDeferredOnceFunction&) = delete;
+    TDeferredOnceFunction& operator=(const TDeferredOnceFunction&) = delete;
+
+    TDeferredOnceFunction(TDeferredOnceFunction&& other) {
+        // Cannot use Function_.swap because F may be not move-assignable (e.g. a lambda with captures)
+        if (other.Function_.has_value()) {
+            Function_.emplace(std::move(*other.Function_));
+            other.Function_.reset();
+        }
+    }
+
+    // Not sure if there are any valid usecases for assignment.
+    TDeferredOnceFunction& operator=(TDeferredOnceFunction&&) = delete;
+
+    void CallNow() && noexcept {
+        (*Function_)();
+        Function_.reset();
+    }
+
+    void Drop() && noexcept {
+        Function_.reset();
+    }
+
+private:
+    std::optional<F> Function_; // Not TMaybe, because scope.h is used in builds with disabled exceptions
+};
