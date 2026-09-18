@@ -7,6 +7,7 @@
 #include "typetraits.h"
 #include "singleton.h"
 
+#include <memory>
 #include <type_traits>
 #include <utility>
 
@@ -259,6 +260,7 @@ private:
     mutable T* T_;
 };
 
+// Deprecated, use std::unique_ptr instead
 template <class T, class D>
 class Y_TRIVIAL_ABI THolder: public TPointerBase<THolder<T, D>, T> {
 public:
@@ -296,6 +298,13 @@ public:
     template <class U, class = TGuardConversion<T, U>>
     inline THolder(THolder<U, D>&& that) noexcept
         : T_(that.Release())
+    {
+    }
+
+    template <class U, class = std::enable_if_t<std::is_same_v<D, TDelete> &&
+                                                !std::is_array_v<U> && std::is_convertible_v<U*, T*>>>
+    explicit THolder(std::unique_ptr<U>&& that) noexcept
+        : T_(that.release())
     {
     }
 
@@ -344,6 +353,18 @@ public:
         return T_;
     }
 
+    inline T* release() noexcept Y_WARN_UNUSED_RESULT {
+        return Release();
+    }
+
+    Y_REINITIALIZES_OBJECT inline void reset(T* t) noexcept {
+        Reset(t);
+    }
+
+    Y_REINITIALIZES_OBJECT inline void reset() noexcept {
+        Reset();
+    }
+
     inline operator TAutoPtr<T, D>() noexcept {
         return Release();
     }
@@ -356,6 +377,19 @@ public:
     THolder& operator=(THolder&& that) noexcept {
         this->Reset(that.Release());
         return *this;
+    }
+
+    template <class U, class = std::enable_if_t<std::is_same_v<D, TDelete> &&
+                                                !std::is_array_v<U> && std::is_convertible_v<U*, T*>>>
+    THolder& operator=(std::unique_ptr<U>&& that) noexcept {
+        this->Reset(that.release());
+        return *this;
+    }
+
+    template <class U, class = std::enable_if_t<std::is_same_v<D, TDelete> &&
+                                                !std::is_array_v<U> && std::is_convertible_v<T*, U*>>>
+    explicit operator std::unique_ptr<U>() && noexcept {
+        return std::unique_ptr<U>(Release());
     }
 
     template <class U>
