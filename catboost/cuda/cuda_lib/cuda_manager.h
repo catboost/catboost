@@ -455,11 +455,11 @@ namespace NCudaLib {
 
 using TComputationStream = NCudaLib::TCudaManager::TComputationStream;
 
-static inline TComputationStream DefaultStream() {
+inline TComputationStream DefaultStream() {
     return NCudaLib::GetCudaManager().DefaultStream();
 }
 
-static inline TComputationStream RequestStream() {
+inline TComputationStream RequestStream() {
     return NCudaLib::GetCudaManager().RequestStream();
 }
 

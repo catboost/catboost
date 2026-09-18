@@ -10,7 +10,7 @@
 #include <catboost/private/libs/options/enums.h>
 
 template <typename T>
-static inline TString BuildDescription(const TMetricParam<T>& param) {
+inline TString BuildDescription(const TMetricParam<T>& param) {
     if (param.IsUserDefined()) {
         return TStringBuilder() << param.GetName() << "=" << ToString(param.Get());
     }
@@ -26,7 +26,7 @@ inline TString BuildDescription<bool>(const TMetricParam<bool>& param) {
 }
 
 template <typename T>
-static inline TString BuildDescription(const char* fmt, const TMetricParam<T>& param) {
+inline TString BuildDescription(const char* fmt, const TMetricParam<T>& param) {
     if (param.IsUserDefined()) {
         return TStringBuilder() << param.GetName() << "=" << Sprintf(fmt, param.Get());
     }
@@ -47,7 +47,7 @@ inline TString BuildDescription(const char* fmt, const TMetricParam<TVector<doub
 }
 
 template <typename T, typename... TRest>
-static inline TString BuildDescription(const TMetricParam<T>& param, const TRest&... rest) {
+inline TString BuildDescription(const TMetricParam<T>& param, const TRest&... rest) {
     const TString& head = BuildDescription(param);
     const TString& tail = BuildDescription(rest...);
     const TString& sep = (head.empty() || tail.empty()) ? "" : ";";
@@ -55,7 +55,7 @@ static inline TString BuildDescription(const TMetricParam<T>& param, const TRest
 }
 
 template <typename T, typename... TRest>
-static inline TString BuildDescription(const char* fmt, const TMetricParam<T>& param, const TRest&... rest) {
+inline TString BuildDescription(const char* fmt, const TMetricParam<T>& param, const TRest&... rest) {
     const TString& head = BuildDescription(fmt, param);
     const TString& tail = BuildDescription(rest...);
     const TString& sep = (head.empty() || tail.empty()) ? "" : ";";
@@ -63,14 +63,14 @@ static inline TString BuildDescription(const char* fmt, const TMetricParam<T>& p
 }
 
 template <typename... TParams>
-static inline TString BuildDescription(ELossFunction lossFunction, const TParams&... params) {
+inline TString BuildDescription(ELossFunction lossFunction, const TParams&... params) {
     const TString& tail = BuildDescription(params...);
     const TString& sep = tail.empty() ? "" : ":";
     return TStringBuilder() << ToString(lossFunction) << sep << tail;
 }
 
 template <typename... TParams>
-static inline TString BuildDescription(const TString& description, const TParams&... params) {
+inline TString BuildDescription(const TString& description, const TParams&... params) {
     Y_ASSERT(!description.empty());
     const TString& tail = BuildDescription(params...);
     const TString& sep = tail.empty() ? "" : description.Contains(':') ? ";" : ":";
@@ -79,10 +79,10 @@ static inline TString BuildDescription(const TString& description, const TParams
 
 TString BuildDescriptionFromParams(ELossFunction lossFunction, const TLossParams& params);
 
-static inline TMetricParam<double> MakeTargetBorderParam(double targetBorder) {
+inline TMetricParam<double> MakeTargetBorderParam(double targetBorder) {
     return {"border", targetBorder, targetBorder != GetDefaultTargetBorder()};
 }
 
-static inline TMetricParam<double> MakePredictionBorderParam(double predictionBorder) {
+inline TMetricParam<double> MakePredictionBorderParam(double predictionBorder) {
     return {NCatboostOptions::TMetricOptions::PREDICTION_BORDER_PARAM, predictionBorder, predictionBorder != GetDefaultPredictionBorder()};
 }

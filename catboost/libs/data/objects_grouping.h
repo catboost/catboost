@@ -240,7 +240,7 @@ namespace NCB {
         TArraySubsetIndexing<ui32>* testIndices
     );
 
-    static inline ui32 GetClassSplitMinLen(
+    inline ui32 GetClassSplitMinLen(
         ui32 objectCount,
         const TVector<TVector<ui32>>& splittedByClass
     ) {

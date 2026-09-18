@@ -97,7 +97,7 @@ public:
 
 };
 
-inline static TSumMulti MakeZeroDers(
+inline TSumMulti MakeZeroDers(
     int approxDimension,
     ELeavesEstimation estimationMethod,
     EHessianType hessianType

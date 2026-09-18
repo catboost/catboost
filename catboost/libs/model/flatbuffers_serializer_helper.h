@@ -34,7 +34,7 @@ private:\
 };
 
 
-inline static ENanMode NanValueTreatmentToNanMode(TFloatFeature::ENanValueTreatment nanValueTreatment) {
+inline ENanMode NanValueTreatmentToNanMode(TFloatFeature::ENanValueTreatment nanValueTreatment) {
     switch (nanValueTreatment) {
         case TFloatFeature::ENanValueTreatment::AsFalse:
             return ENanMode::Min;
@@ -47,7 +47,7 @@ inline static ENanMode NanValueTreatmentToNanMode(TFloatFeature::ENanValueTreatm
     }
 }
 
-inline static TFloatFeature::ENanValueTreatment NanModeToNanValueTreatment(ENanMode nanMode) {
+inline TFloatFeature::ENanValueTreatment NanModeToNanValueTreatment(ENanMode nanMode) {
     switch (nanMode) {
         case ENanMode::Min:
             return TFloatFeature::ENanValueTreatment::AsFalse;
@@ -60,7 +60,7 @@ inline static TFloatFeature::ENanValueTreatment NanModeToNanValueTreatment(ENanM
     }
 }
 
-inline static NCatBoostFbs::ENanValueTreatment NanModeToFbsEnumValue(TFloatFeature::ENanValueTreatment nanTreatment) {
+inline NCatBoostFbs::ENanValueTreatment NanModeToFbsEnumValue(TFloatFeature::ENanValueTreatment nanTreatment) {
     switch (nanTreatment) {
         case TFloatFeature::ENanValueTreatment::AsFalse:
             return NCatBoostFbs::ENanValueTreatment_AsFalse;
@@ -73,7 +73,7 @@ inline static NCatBoostFbs::ENanValueTreatment NanModeToFbsEnumValue(TFloatFeatu
     }
 }
 
-inline static TFloatFeature::ENanValueTreatment NanModeFromFbsEnumValue(NCatBoostFbs::ENanValueTreatment nanTreatment) {
+inline TFloatFeature::ENanValueTreatment NanModeFromFbsEnumValue(NCatBoostFbs::ENanValueTreatment nanTreatment) {
     switch (nanTreatment) {
         case NCatBoostFbs::ENanValueTreatment_AsFalse:
             return TFloatFeature::ENanValueTreatment::AsFalse;
@@ -86,7 +86,7 @@ inline static TFloatFeature::ENanValueTreatment NanModeFromFbsEnumValue(NCatBoos
     }
 }
 
-inline static NCatBoostFbs::ESourceFeatureType SourceFeatureTypeToFbsEnumValue(EEstimatedSourceFeatureType sourceFeatureType) {
+inline NCatBoostFbs::ESourceFeatureType SourceFeatureTypeToFbsEnumValue(EEstimatedSourceFeatureType sourceFeatureType) {
     switch (sourceFeatureType) {
         case EEstimatedSourceFeatureType::Text:
             return NCatBoostFbs::ESourceFeatureType_Text;
@@ -97,7 +97,7 @@ inline static NCatBoostFbs::ESourceFeatureType SourceFeatureTypeToFbsEnumValue(E
     }
 }
 
-inline static EEstimatedSourceFeatureType SourceFeatureTypeFromFbsEnumValue(NCatBoostFbs::ESourceFeatureType sourceFeatureType) {
+inline EEstimatedSourceFeatureType SourceFeatureTypeFromFbsEnumValue(NCatBoostFbs::ESourceFeatureType sourceFeatureType) {
     switch (sourceFeatureType) {
         case NCatBoostFbs::ESourceFeatureType_Text:
             return EEstimatedSourceFeatureType::Text;

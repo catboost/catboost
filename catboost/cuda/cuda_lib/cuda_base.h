@@ -104,11 +104,11 @@ namespace NCudaLib {
         }
     };
 
-    static inline TCudaStream& GetDefaultStream() {
+    inline TCudaStream& GetDefaultStream() {
         return FastTlsSingleton<TDefaultStreamRef>()->Get();
     }
 
-    static inline void SetDefaultStream(TCudaStream& stream) {
+    inline void SetDefaultStream(TCudaStream& stream) {
         FastTlsSingleton<TDefaultStreamRef>()->SetDefaultStream(stream);
     }
 

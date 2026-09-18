@@ -84,7 +84,7 @@ namespace NCudaLib {
     using TCudaEvent = TCudaEventsProvider::TCudaEvent;
     using TCudaEventPtr = TCudaEventsProvider::TCudaEventPtr;
 
-    inline static TCudaEventsProvider& CudaEventProvider() {
+    inline TCudaEventsProvider& CudaEventProvider() {
         return *FastTlsSingleton<TCudaEventsProvider>();
     }
 

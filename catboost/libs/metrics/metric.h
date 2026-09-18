@@ -261,12 +261,12 @@ struct TUniversalMetric : public TMetric, ISingleTargetEval, IMultiTargetEval {
         : TMetric(lossFunction, descriptionParams) {}
 };
 
-static inline int GetMinBlockSize(int objectCount) {
+inline int GetMinBlockSize(int objectCount) {
     return 10000 < objectCount && objectCount < 100000 ? 1000 : 10000;
 }
 
 template <typename TEvalFunction>
-static inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockSize, int begin, int end, NPar::ILocalExecutor& executor) {
+inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockSize, int begin, int end, NPar::ILocalExecutor& executor) {
     NPar::ILocalExecutor::TExecRangeParams blockParams(begin, end);
 
     const int threadCount = executor.GetThreadCount() + 1;

@@ -33,26 +33,26 @@ bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fit
  * TUnsizedVector -> TVector -> TArrayRef
  */
 template <typename TData>
-static inline TData* GetDataPtr(TArrayRef<TData> data, size_t offset = 0) {
+inline TData* GetDataPtr(TArrayRef<TData> data, size_t offset = 0) {
     return data.empty() ? nullptr : data.data() + offset;
 }
 
 template <typename TData>
-static inline const TData* GetDataPtr(TConstArrayRef<TData> data, size_t offset = 0) {
+inline const TData* GetDataPtr(TConstArrayRef<TData> data, size_t offset = 0) {
     return data.empty() ? nullptr : data.data() + offset;
 }
 
 template <typename TData, typename TAlloc>
-static inline TData* GetDataPtr(TVector<TData, TAlloc>& data, size_t offset = 0) {
+inline TData* GetDataPtr(TVector<TData, TAlloc>& data, size_t offset = 0) {
     return GetDataPtr(TArrayRef<TData>(data), offset);
 }
 
 template <typename TData, typename TAlloc>
-static inline const TData* GetDataPtr(const TVector<TData, TAlloc>& data, size_t offset = 0) {
+inline const TData* GetDataPtr(const TVector<TData, TAlloc>& data, size_t offset = 0) {
     return GetDataPtr(TConstArrayRef<TData>(data), offset);
 }
 
-static inline float GetBernoulliSampleRate(
+inline float GetBernoulliSampleRate(
     const NCatboostOptions::TOption<NCatboostOptions::TBootstrapConfig>& samplingConfig
 ) {
     if (samplingConfig->GetBootstrapType() == EBootstrapType::Bernoulli) {
@@ -61,7 +61,7 @@ static inline float GetBernoulliSampleRate(
     return 1.0f;
 }
 
-static inline int GetMaxBodyTailCount(const TVector<TFold>& folds) {
+inline int GetMaxBodyTailCount(const TVector<TFold>& folds) {
     int maxBodyTailCount = 0;
     for (const auto& fold : folds) {
         maxBodyTailCount = Max(maxBodyTailCount, fold.BodyTailArr.ysize());
@@ -98,7 +98,7 @@ static_assert(
     "TBucketStats must be pod to avoid memory initialization in yresize"
 );
 
-inline static int CountNonCtrBuckets(
+inline int CountNonCtrBuckets(
     const NCB::TFeaturesLayout& featuresLayout,
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
     ui32 oneHotMaxSize

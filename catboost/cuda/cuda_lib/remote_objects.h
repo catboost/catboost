@@ -71,7 +71,7 @@ namespace NCudaLib {
         }
     };
 
-    static inline TObjectByHandleStorage& GetHandleStorage() {
+    inline TObjectByHandleStorage& GetHandleStorage() {
         return *HugeSingleton<TObjectByHandleStorage>();
     }
 
