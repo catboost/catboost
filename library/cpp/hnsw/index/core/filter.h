@@ -3,11 +3,11 @@
 #include "filter_base.h"
 #include "neighbors_getter.h"
 
-#include <util/generic/ptr.h>
 #include <util/system/compiler.h>
 #include <util/system/types.h>
 
 #include <cstddef>
+#include <utility>
 
 namespace NHnsw {
     class TDefaultFilter {
@@ -36,12 +36,20 @@ namespace NHnsw {
             , FilterCheckLimit_(filterCheckLimit)
         {}
 
-        template <typename TSearchContext>
-        THolder<INeighborsGetter> CreateNeighborsGetter(const TLevelRows& rows, TSearchContext& context) {
+        template <CNeighborRowAccessor TRowAccessor, class TSearchContext, class TCallback>
+        void VisitNeighborsGetter(
+            TRowAccessor rows,
+            TSearchContext& context,
+            TCallback&& callback
+        ) {
             if (FilterMode_ == EFilterMode::ACORN) {
-                return MakeAcornNeighborsGetter<TSearchContext, TFilterAdapter>(rows, context, *this);
+                TAcornNeighborsGetterImpl<TRowAccessor, TSearchContext, TFilterAdapter> getter(
+                    std::move(rows), context, *this
+                );
+                std::forward<TCallback>(callback)(getter);
             } else {
-                return MakeNeighborsGetter<TSearchContext>(rows, context);
+                TNeighborsGetter<TRowAccessor, TSearchContext> getter(std::move(rows), context);
+                std::forward<TCallback>(callback)(getter);
             }
         }
 

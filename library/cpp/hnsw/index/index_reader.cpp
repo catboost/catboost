@@ -1,5 +1,7 @@
 #include "index_reader.h"
 
+#include <library/cpp/hnsw/index/layout/index_layout.h>
+
 #include <util/generic/yexception.h>
 #include <util/system/unaligned_mem.h>
 
@@ -104,28 +106,6 @@ namespace NHnsw {
             ReadPackedLayout(blob, layout);
         } else {
             ReadUi32Layout(blob, layout);
-        }
-    }
-
-    void THnswIndexReader::ReadIndex(
-        const TBlob& blob,
-        TVector<ui32>* numNeighborsInLevels,
-        TVector<const ui32*>* levels
-    ) const {
-        if (blob.Empty()) {
-            return;
-        }
-
-        THnswIndexLayout layout;
-        ReadIndex(blob, &layout);
-        Y_ENSURE(
-            layout.Format == ENeighborIdFormat::Ui32,
-            "packed hnsw neighbor ids require the layout-aware ReadIndex overload"
-        );
-
-        for (const auto& level : layout.Levels) {
-            levels->push_back(reinterpret_cast<const ui32*>(layout.Payload + (level.BitOffset >> 3)));
-            numNeighborsInLevels->push_back(level.NumNeighbors);
         }
     }
 } // namespace Hnsw

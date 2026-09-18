@@ -18,6 +18,7 @@ add_library(cpp-online_hnsw-base)
 target_link_libraries(cpp-online_hnsw-base PUBLIC
   contrib-libs-cxxsupp
   yutil
+  hnsw-index-layout
   cpp-hnsw-index_builder
   cpp-containers-dense_hash
   cpp-threading-local_executor

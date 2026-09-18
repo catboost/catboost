@@ -3,6 +3,7 @@
 #include <library/cpp/hnsw/helpers/neighbor_id_format.h>
 
 #include <util/generic/fwd.h>
+
 #include <stddef.h>
 
 class IOutputStream;
@@ -39,6 +40,20 @@ namespace NHnsw {
         ENeighborIdFormat format = ENeighborIdFormat::Ui32
     );
 
+    /**
+ * @brief A generic API for writing HNSW index.
+ */
+    template <class TIndexWriter>
+    concept CIndexWriter = requires(const TIndexWriter& writer,
+                                    const THnswIndexData& index,
+                                    IOutputStream& out) {
+        writer.Write(index, out);
+    };
+    template <CIndexWriter TGraphWriter>
+    void WriteIndex(const THnswIndexData& index, IOutputStream& out, const TGraphWriter& writer) {
+        writer.Write(index, out);
+    }
+
     void DebugIndexDump(const THnswIndexData& index, IOutputStream& out);
 
-}
+} // namespace NHnsw
