@@ -2261,9 +2261,6 @@ class _CatBoostBase(object):
             'check_estimators_empty_data_messages':
                 'TODO: raise ValueError instead of generic CatBoostError.'
                 ' https://github.com/catboost/catboost/issues/2996',
-            'check_estimators_unfitted':
-                'TODO: raise NotFittedError instead of generic CatBoostError.'
-                ' https://github.com/catboost/catboost/issues/3002',
             'check_fit1d':
                 'TODO: CatBoost API allows to pass 1d array as features data (as a single feature),'
                 ' maybe this behavior should be tunable in the future',
@@ -2967,8 +2964,10 @@ class CatBoost(_CatBoostBase):
 
     def _process_predict_input_data(self, data, parent_method_name, thread_count, label=None):
         if not self.is_fitted() or self.tree_count_ is None:
-            raise CatBoostError(("There is no trained model to use {}(). "
-                                 "Use fit() to train model. Then use this method.").format(parent_method_name))
+            from ._exceptions import _CatBoostNotFittedError
+
+            raise _CatBoostNotFittedError(("There is no trained model to use {}(). "
+                                          "Use fit() to train model. Then use this method.").format(parent_method_name))
         is_single_object = _is_data_single_object(data)
         if not isinstance(data, Pool):
             data = Pool(
