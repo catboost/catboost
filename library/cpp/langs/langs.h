@@ -172,6 +172,8 @@ enum ELanguage: unsigned {
     LANG_JDT = 155,         // Judeo-Tat
     LANG_ARE = 156,         // Emirati Arabic
     LANG_CKT = 157,         // Chukchi
+    LANG_KPY = 158,         // Koryak
+    LANG_TKR = 159,         // Tsakhur
     LANG_MAX
 };
 

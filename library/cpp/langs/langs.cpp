@@ -187,6 +187,8 @@ namespace {
         {LANG_JDT, SCRIPT_CYRILLIC, "Judeo-Tat", "jdt", "jdt", nullptr},
         {LANG_ARE, SCRIPT_ARABIC, "Emirati Arabic", "are", "ae", "ar-AE"},
         {LANG_CKT, SCRIPT_CYRILLIC, "Chukchi", "ckt", "ckt", nullptr},
+        {LANG_KPY, SCRIPT_CYRILLIC, "Koryak", "kpy", "kpy", nullptr},
+        {LANG_TKR, SCRIPT_CYRILLIC, "Tsakhur", "tkr", "tkr", nullptr},
     };
 
     static_assert(static_cast<size_t>(LANG_MAX) == Y_ARRAY_SIZE(LanguageNameAndEnum), "Size doesn't match");
