@@ -41,6 +41,9 @@ public:
     template <class T>
     void WritePodAt(size_t offset, const T& value);
 
+    //! Drops everything past #length, which must not exceed the current length.
+    void Truncate(size_t length);
+
     //! For testing only.
     static void DisablePerThreadCache();
 
@@ -80,7 +83,7 @@ constexpr ui32 WellKnownTagFlag = 1u << 31;
 //! Producer side: serializes the message and its tags into a payload.
 /*!
  *  Owns a per-thread chunk-cached buffer; both the message text (#BeginMessage) and
- *  tag values (#BeginTag) are appended through the returned #TStringBuilderBase, so a
+ *  tag values (#AppendTag) are appended through #TStringBuilderBase, so a
  *  formatted value is built directly into the payload without an intermediate
  *  allocation/copy. The length-prefix framing lives entirely here -- the underlying
  *  builder is format-agnostic.
@@ -103,19 +106,17 @@ public:
     //! called exactly once, after the message text and before any tag/#Finish.
     TTaggedPayloadWriter& EndMessage() &;
 
-    //! Begins a tag: writes #key, then reserves the value's length prefix and returns
-    //! a builder for appending the value. Lets the value be formatted directly into the
-    //! payload buffer. Pair with #EndTag. Must follow #EndMessage.
-    TStringBuilderBase* BeginTag(TStringBuf key) &;
+    //! Appends a tag whose value is written by #formatter. If formatting throws,
+    //! restores the payload to its state before the tag was started. Must follow #EndMessage.
+    template <class TFormatter>
+    TTaggedPayloadWriter& AppendTag(TStringBuf key, const TFormatter& formatter) &;
 
-    //! Like #BeginTag, but marks the tag well-known (sets #WellKnownTagFlag).
-    TStringBuilderBase* BeginWellKnownTag(TStringBuf key) &;
-
-    //! Ends the current tag, filling in the value's reserved length prefix.
-    TTaggedPayloadWriter& EndTag() &;
+    //! Like #AppendTag, but marks the tag well-known (sets #WellKnownTagFlag).
+    template <class TFormatter>
+    TTaggedPayloadWriter& AppendWellKnownTag(TStringBuf key, const TFormatter& formatter) &;
 
     //! Splices an already-serialized tag section (see #TLoggingTagList::GetPayload)
-    //! verbatim. Must follow #EndMessage, must not interrupt a tag, and must precede
+    //! verbatim. Must follow #EndMessage and must precede
     //! any well-known tag, which the layout requires to come last.
     TTaggedPayloadWriter& AppendTags(TLoggingTagListPayloadView tags) &;
 
@@ -143,10 +144,16 @@ private:
     //! Offset of the length prefix currently being filled (message or tag value).
     size_t PrefixOffset_ = 0;
 
-    //! Shared implementation of #BeginTag and #BeginWellKnownTag.
     TStringBuilderBase* DoBeginTag(TStringBuf key, bool wellKnown);
+
+    void EndTag();
+
+    template <class TFormatter>
+    TTaggedPayloadWriter& DoAppendTag(TStringBuf key, bool wellKnown, const TFormatter& formatter);
+
     //! Reserves a length prefix at the current position, remembering its offset.
     void ReserveLengthPrefix();
+
     //! Backpatches the reserved prefix with the length appended after it.
     void BackpatchLengthPrefix();
 };
