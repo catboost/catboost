@@ -92,7 +92,7 @@ namespace NKernel {
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
 
         numBlocks.x = (fCount + 31) / 32;
-        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        ScaleBlockCountToOccupancy(numBlocks, maxActiveBlocks);
         if (IsGridEmpty(numBlocks)) {
             return;
         }
@@ -131,7 +131,7 @@ namespace NKernel {
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
 
         numBlocks.x = (fCount + 31) / 32;
-        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        ScaleBlockCountToOccupancy(numBlocks, maxActiveBlocks);
         if (IsGridEmpty(numBlocks)) {
             return;
         }
@@ -172,7 +172,7 @@ namespace NKernel {
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
 
         numBlocks.x = (fCount + 31) / 32;
-        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        ScaleBlockCountToOccupancy(numBlocks, maxActiveBlocks);
         if (IsGridEmpty(numBlocks)) {
             return;
         }
@@ -210,7 +210,7 @@ namespace NKernel {
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
 
         numBlocks.x = (fCount + 31) / 32;
-        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        ScaleBlockCountToOccupancy(numBlocks, maxActiveBlocks);
         if (IsGridEmpty(numBlocks)) {
             return;
         }
