@@ -69,6 +69,9 @@ namespace NLastGetopt {
         TString CustomUsage;        // user defined usage string
 
         TVector<std::pair<TString, TString>> Sections;  // additional help entries to print after usage
+        bool ShowDefaultValuesForNoArgumentOptions_ = true;
+        bool ShowFreeArgTitlesInErrors_ = false;
+        bool ShowExceptionTypeInUsageErrors_ = true;
 
     public:
         /**
@@ -447,6 +450,13 @@ namespace NLastGetopt {
         }
 
         /**
+         * Hide default values for options that take no arguments.
+         */
+        void HideDefaultValuesForNoArgumentOptions() {
+            ShowDefaultValuesForNoArgumentOptions_ = false;
+        }
+
+        /**
          * Add a section to print after the main usage spec.
          */
         void AddSection(TString title, TString text) {
@@ -495,6 +505,29 @@ namespace NLastGetopt {
          */
         ui32 GetFreeArgsMin() const {
             return FreeArgsMin_;
+        }
+
+        /**
+         * Name missing positional arguments in usage errors.
+         */
+        void ShowFreeArgTitlesInErrors() {
+            ShowFreeArgTitlesInErrors_ = true;
+        }
+
+        /**
+         * Hide the exception type prefix in usage error messages.
+         */
+        void HideExceptionTypeInUsageErrors() {
+            ShowExceptionTypeInUsageErrors_ = false;
+        }
+
+        /**
+         * Enable concise help and informative usage errors.
+         */
+        void EnableUserFriendlyUsage() {
+            HideDefaultValuesForNoArgumentOptions();
+            ShowFreeArgTitlesInErrors();
+            HideExceptionTypeInUsageErrors();
         }
 
         /**

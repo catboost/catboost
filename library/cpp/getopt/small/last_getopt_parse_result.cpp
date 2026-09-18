@@ -210,7 +210,17 @@ namespace NLastGetopt {
     }
 
     void TOptsParseResult::HandleError() const {
-        Cerr << CurrentExceptionMessage() << Endl;
+        TString message;
+        try {
+            throw;
+        } catch (const TUsageException& error) {
+            message = Parser_.Get() && !Parser_->Opts_->ShowExceptionTypeInUsageErrors_
+                ? error.what()
+                : CurrentExceptionMessage();
+        } catch (...) {
+            message = CurrentExceptionMessage();
+        }
+        Cerr << message << Endl;
         if (Parser_.Get()) { // parser initializing can fail (and we get here, see Init)
             if (Parser_->Opts_->FindLongOption("help") != nullptr) {
                 Cerr << "Try '" << Parser_->ProgramName_ << " --help' for more information." << Endl;

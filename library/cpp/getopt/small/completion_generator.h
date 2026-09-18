@@ -28,9 +28,14 @@ namespace NLastGetopt {
 
     public:
         void Generate(TStringBuf command, IOutputStream& stream) override;
+        void Generate(const TCompletionConfig& config, IOutputStream& stream);
 
     private:
-        static void GenerateModesCompletion(TFormattedOutput& out, const TModChooser& chooser, NComp::TCompleterManager& manager);
+        static void GenerateModesCompletion(
+            TFormattedOutput& out,
+            const TModChooser& chooser,
+            NComp::TCompleterManager& manager,
+            const TOpts* optionsBeforeMode = nullptr);
         static void GenerateOptsCompletion(TFormattedOutput& out, const TOpts& opts, NComp::TCompleterManager& manager);
         static void GenerateDefaultOptsCompletion(TFormattedOutput& out, NComp::TCompleterManager& manager);
         static void GenerateOptCompletion(TFormattedOutput& out, const TOpts& opts, const TOpt& opt, NComp::TCompleterManager& manager);
@@ -42,10 +47,15 @@ namespace NLastGetopt {
 
     public:
         void Generate(TStringBuf command, IOutputStream& stream) override;
+        void Generate(const TCompletionConfig& config, IOutputStream& stream);
 
     private:
         static void GenerateModesCompletion(TFormattedOutput& out, const TModChooser& chooser, NComp::TCompleterManager& manager, size_t level);
         static void GenerateOptsCompletion(TFormattedOutput& out, const TOpts& opts, NComp::TCompleterManager& manager, size_t level);
+        static void GenerateOptionsBeforeModeCompletion(
+            TFormattedOutput& out,
+            const TOpts& opts,
+            const TModChooser& chooser);
         static void GenerateDefaultOptsCompletion(TFormattedOutput& out, NComp::TCompleterManager& manager);
     };
 

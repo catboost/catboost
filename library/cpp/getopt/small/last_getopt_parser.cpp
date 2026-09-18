@@ -2,7 +2,10 @@
 
 #include <library/cpp/colorizer/colors.h>
 
+#include <util/generic/vector.h>
+
 #include <util/string/escape.h>
+#include <util/string/join.h>
 
 namespace NLastGetopt {
     void TOptsParser::Init(const TOpts* opts, int argc, const char* argv[]) {
@@ -65,11 +68,24 @@ namespace NLastGetopt {
 
         Y_ASSERT(!Stopped_);
 
-        if (Opts_->FreeArgsMin_ == Opts_->FreeArgsMax_ && Argc_ - Pos_ != Opts_->FreeArgsMin_)
+        const size_t freeArgCount = Argc_ - Pos_;
+        if (Opts_->ShowFreeArgTitlesInErrors_ && freeArgCount < Opts_->FreeArgsMin_) {
+            TVector<TStringBuf> missingArguments;
+            for (size_t index = freeArgCount; index < Opts_->FreeArgsMin_; ++index) {
+                missingArguments.push_back(Opts_->GetFreeArgTitle(index));
+            }
+            throw TUsageException()
+                << "missing required positional argument"
+                << (missingArguments.size() == 1 ? "" : "s")
+                << ": "
+                << JoinSeq(" ", missingArguments);
+        }
+
+        if (Opts_->FreeArgsMin_ == Opts_->FreeArgsMax_ && freeArgCount != Opts_->FreeArgsMin_)
             throw TUsageException() << "required exactly " << Opts_->FreeArgsMin_ << " free args";
-        else if (Argc_ - Pos_ < Opts_->FreeArgsMin_)
+        else if (freeArgCount < Opts_->FreeArgsMin_)
             throw TUsageException() << "required at least " << Opts_->FreeArgsMin_ << " free args";
-        else if (Argc_ - Pos_ > Opts_->FreeArgsMax_)
+        else if (freeArgCount > Opts_->FreeArgsMax_)
             throw TUsageException() << "required at most " << Opts_->FreeArgsMax_ << " free args";
 
         return false;
