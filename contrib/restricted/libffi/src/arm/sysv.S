@@ -120,9 +120,11 @@
 #endif
 
 
+#ifdef __ELF__
 	/* We require interworking on LDM, which implies ARMv5T,
 	   which implies the existance of BLX.  */
  	.arch	armv5t
+#endif
 
 	/* Note that we use STC and LDC to encode VFP instructions,
 	   so that we do not need ".fpu vfp", nor get that added to

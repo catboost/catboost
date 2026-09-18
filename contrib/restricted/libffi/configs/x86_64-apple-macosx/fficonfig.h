@@ -60,6 +60,9 @@
 /* Define if __attribute__((visibility("hidden"))) is supported. */
 #define HAVE_HIDDEN_VISIBILITY_ATTRIBUTE 1
 
+/* Define if __int128_t and __uint128_t are supported. */
+#define HAVE_INT128 1
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
@@ -121,7 +124,7 @@
 #define PACKAGE_NAME "libffi"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "libffi 3.5.2"
+#define PACKAGE_STRING "libffi 3.6.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "libffi"
@@ -130,7 +133,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.5.2"
+#define PACKAGE_VERSION "3.6.0"
 
 /* The size of `double', as computed by sizeof. */
 #define SIZEOF_DOUBLE 8
@@ -154,7 +157,7 @@
 /* #undef USING_PURIFY */
 
 /* Version number of package */
-#define VERSION "3.5.2"
+#define VERSION "3.6.0"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
