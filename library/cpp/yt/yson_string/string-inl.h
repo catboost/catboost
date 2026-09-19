@@ -100,17 +100,17 @@ inline bool operator != (const TYsonStringBuf& lhs, const TYsonStringBuf& rhs)
 ////////////////////////////////////////////////////////////////////////////////
 
 //! Abseil hash support for TYsonString.
-template <class THash>
-THash AbslHashValue(THash hash, const TYsonString& str)
+template <class THashState>
+THashState AbslHashValue(THashState hash, const TYsonString& str)
 {
-    return THash::combine(std::move(hash), str.AsStringBuf());
+    return THashState::combine(std::move(hash), str ? str.AsStringBuf() : TStringBuf());
 }
 
 //! Abseil hash support for TYsonStringBuf.
-template <class THash>
-THash AbslHashValue(THash hash, const TYsonStringBuf& str)
+template <class THashState>
+THashState AbslHashValue(THashState hash, const TYsonStringBuf& str)
 {
-    return THash::combine(std::move(hash), str.AsStringBuf());
+    return THashState::combine(std::move(hash), str ? str.AsStringBuf() : TStringBuf());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

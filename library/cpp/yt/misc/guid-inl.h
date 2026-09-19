@@ -74,10 +74,10 @@ Y_FORCE_INLINE std::strong_ordering operator <=> (TGuid lhs, TGuid rhs) noexcept
 ////////////////////////////////////////////////////////////////////////////////
 
 //! Abseil hash support for TGuid.
-template <class THash>
-THash AbslHashValue(THash hash, const TGuid& guid)
+template <class THashState>
+THashState AbslHashValue(THashState hash, const TGuid& guid)
 {
-    return THash::combine(std::move(hash), guid.Parts64[0], guid.Parts64[1]);
+    return THashState::combine(std::move(hash), guid.Parts64[0], guid.Parts64[1]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
