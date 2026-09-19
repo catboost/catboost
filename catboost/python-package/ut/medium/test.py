@@ -3949,6 +3949,29 @@ def test_cv_without_loss_function():
         pytest.fail("Parameter loss_function should be specified for cross-validation")
 
 
+@pytest.mark.parametrize('loss_function', ['MultiClass', 'MultiClassOneVsAll'])
+def test_cv_multiclass_auc(task_type, loss_function):
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    train_dir_prefix = test_output_path('')
+    results = cv(
+        pool,
+        {
+            "iterations": 5,
+            "learning_rate": 0.03,
+            "loss_function": loss_function,
+            "eval_metric": "AUC",
+            "custom_metric": ["AUC:type=OneVsAll"],
+            "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
+        },
+        fold_count=3,
+    )
+    for column in ["test-AUC:type=Mu-mean", "test-AUC:class=0-mean", "test-AUC:class=1-mean", "test-AUC:class=2-mean"]:
+        assert column in results
+        assert np.all(np.isfinite(results[column]))
+
+
 def test_tune_hyperparams_small_data():
     train_data = [[1, 4, 5, 6],
                   [4, 5, 6, 7],
