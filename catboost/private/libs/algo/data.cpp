@@ -51,6 +51,99 @@ namespace NCB {
         return result;
     }
 
+    void InitializeLabelConverterFromRawData(
+        const TDataProvider& srcData,
+        const NCatboostOptions::TCatBoostOptions& params,
+        NPar::ILocalExecutor* localExecutor,
+        TLabelConverter* labelConverter) {
+
+        if (labelConverter->IsInitialized()) {
+            return;
+        }
+
+        const auto& dataProcessingOptions = params.DataProcessingOptions.Get();
+        const auto& rawTargetData = srcData.RawTargetData;
+
+        TInputClassificationInfo inputClassificationInfo {
+            dataProcessingOptions.ClassesCount.Get() ? TMaybe<ui32>(dataProcessingOptions.ClassesCount.Get()) : Nothing(),
+            dataProcessingOptions.ClassWeights.Get(),
+            dataProcessingOptions.AutoClassWeights.Get(),
+            dataProcessingOptions.ClassLabels.Get(),
+            dataProcessingOptions.TargetBorder.Get()
+        };
+
+        const auto targetCreationOptions = MakeTargetCreationOptions(
+            rawTargetData,
+            GetMetricDescriptions(params),
+            /*knownModelApproxDimension*/ Nothing(),
+            inputClassificationInfo,
+            dataProcessingOptions.AllowConstLabel.Get(),
+            srcData.MetaInfo.FeaturesLayout->HasGraphForAggregatedFeatures()
+        );
+
+        if (targetCreationOptions.CreateBinClassTarget) {
+            labelConverter->InitializeBinClass();
+            return;
+        }
+        if (!targetCreationOptions.CreateMultiClassTarget && !targetCreationOptions.CreateMultiLabelTarget) {
+            return;
+        }
+
+        bool isRealTarget;
+        TMaybe<ui32> knownClassCount;
+        TInputClassificationInfo updatedInputClassificationInfo;
+
+        UpdateTargetProcessingParams(
+            inputClassificationInfo,
+            targetCreationOptions,
+            /*knownApproxDimension*/ Nothing(),
+            &params.LossFunctionDescription.Get(),
+            &isRealTarget,
+            &knownClassCount,
+            &updatedInputClassificationInfo
+        );
+
+        ui32 classCount = knownClassCount.GetOrElse(0);
+        TVector<NJson::TJsonValue> classLabels = dataProcessingOptions.ClassLabels.Get();
+
+        auto convertedTarget = ConvertTarget(
+            rawTargetData.GetTarget(),
+            rawTargetData.GetTargetType(),
+            isRealTarget,
+            targetCreationOptions.IsClass,
+            targetCreationOptions.IsMultiClass,
+            targetCreationOptions.IsMultiLabel,
+            updatedInputClassificationInfo.TargetBorder,
+            !knownClassCount,
+            updatedInputClassificationInfo.ClassLabels,
+            targetCreationOptions.AllowConstLabel,
+            &classLabels,
+            localExecutor,
+            &classCount
+        );
+        classCount = (ui32)GetClassesCount((int)classCount, classLabels);
+
+        if (targetCreationOptions.CreateMultiClassTarget) {
+            CB_ENSURE(!convertedTarget.empty(), "Multi classification loss/metrics require label data");
+
+            if ((classCount == 1) && targetCreationOptions.AllowConstLabel) {
+                classCount = 2;
+            }
+            CB_ENSURE(
+                classCount >= 2,
+                "Multiclass metric/loss specified but target data does not have more than one different labels"
+            );
+
+            labelConverter->InitializeMultiClass(
+                *convertedTarget[0],
+                classCount,
+                targetCreationOptions.AllowConstLabel
+            );
+        } else {
+            labelConverter->InitializeMultiClass(classCount);
+        }
+    }
+
     using TInitialBorders = TMaybe<TVector<TConstArrayRef<float>>>;
 
     static TInitialBorders GetInitialBorders(TMaybe<TFullModel*> initModel) {
