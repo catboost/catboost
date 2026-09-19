@@ -91,3 +91,6 @@ target_sources(catboost-libs-train_lib.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/model_import_snapshot.cpp
 )
 
+if (HAVE_METAL)
+  target_compile_definitions(catboost-libs-train_lib.global PRIVATE CATBOOST_HAVE_METAL=1)
+endif()

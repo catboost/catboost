@@ -1227,6 +1227,30 @@ class Pool(_PoolBase):
         self._set_group_weight(group_weight)
         return self
 
+    def get_group_weight(self):
+        """Return original group weights as a list with one value per object.
+
+        Objects without explicit group weights have weight 1. Object weights
+        returned by get_weight() are separate and are not multiplied here.
+        """
+        return self._get_group_weight()
+
+    def get_pairs(self):
+        """Return stored winner/loser row indices as a list of pairs.
+
+        Indices refer to the current Pool, including after slicing. A Pool
+        without explicitly stored pairs returns an empty list.
+        """
+        return self._get_pairs()
+
+    def get_pairs_weight(self):
+        """Return stored pair weights in the same order as get_pairs().
+
+        Pairs without explicit weights have weight 1. Object and group weights
+        are separate and are not multiplied here. No stored pairs returns [].
+        """
+        return self._get_pairs_weight()
+
     def set_subgroup_id(self, subgroup_id):
         self._check_subgroup_id_type(subgroup_id)
         subgroup_id = self._if_pandas_to_numpy(subgroup_id)
@@ -6664,7 +6688,7 @@ class CatBoostRanker(CatBoost):
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
         return self
 
-    def predict(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
+    def predict(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
         """
         Predict with data.
         Parameters
@@ -6685,13 +6709,15 @@ class CatBoostRanker(CatBoost):
             If -1, then the number of threads is set to the number of CPU cores.
         verbose : bool
             If True, writes the evaluation metric measured set to stderr.
+        task_type : str, optional (default="CPU")
+            Model evaluation device: "CPU" or "GPU".
         Returns
         -------
         prediction :
             If data is for a single object, the return value is single float formula return value
             otherwise one-dimensional numpy.ndarray of formula return values for each object.
         """
-        return self._predict(X, 'RawFormulaVal', ntree_start, ntree_end, thread_count, verbose, 'predict')
+        return self._predict(X, 'RawFormulaVal', ntree_start, ntree_end, thread_count, verbose, 'predict', task_type)
 
     def staged_predict(self, X, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """

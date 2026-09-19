@@ -452,7 +452,7 @@ public:
     void AddLeafWeight(double leafWeight);
 
     /**
-     * Truncate oblivous trees to contain only trees from [begin; end) interval.
+     * Truncate trees to contain only trees from [begin; end) interval.
      * @param begin
      * @param end
      */
