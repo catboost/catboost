@@ -11,23 +11,25 @@
 
 #include <util/stream/file.h>
 
+#include <memory>
+
 void TNlpTokenizer::Tokenize(const wchar16* str,
                              size_t size,
                              const TTokenizerOptions& opts) {
     bool semicolonBreaksSentence = opts.LangMask == TLangMask(LANG_GRE);
     TSentBreakFilter sentBreakFilter(opts.LangMask);
-    THolder<TNlpParser> parser;
+    std::unique_ptr<TNlpParser> parser;
     switch (opts.Version) {
         case 2:
-            parser = MakeHolder<TVersionedNlpParser<2>>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
+            parser = std::make_unique<TVersionedNlpParser<2>>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
                     BackwardCompatible, semicolonBreaksSentence, opts.UrlDecode);
             break;
         case 3:
-            parser = MakeHolder<TVersionedNlpParser<3>>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
+            parser = std::make_unique<TVersionedNlpParser<3>>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
                     BackwardCompatible, semicolonBreaksSentence, opts.UrlDecode, opts.KeepAffixes);
             break;
         default:
-            parser = MakeHolder<TDefaultNlpParser>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
+            parser = std::make_unique<TDefaultNlpParser>(TokenHandler, sentBreakFilter, Buffer, opts.SpacePreserve,
                     BackwardCompatible, semicolonBreaksSentence, opts.UrlDecode);
             break;
     }
