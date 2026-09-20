@@ -1,0 +1,108 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Minimal <memory_resource> for the HIP build on Windows.
+//
+// CatBoost's bundled Windows libc++ (libcxxmsvc, _LIBCPP_VERSION 15000) ships no
+// <memory_resource>, unlike its Linux bundle (libcxxcuda11, libc++ 18, which has
+// the full std::pmr). TBB's oneapi cache_aligned_allocator.h / tbb_allocator.h
+// include <memory_resource> unconditionally; with no in-tree header the include
+// falls through to the MSVC STL (reachable via the INCLUDE env var, which
+// -nostdinc++ does not suppress), whose std::memory_order then collides with
+// libcxxmsvc's std::__y1::memory_order ("reference to memory_order is ambiguous").
+//
+// TBB uses only std::pmr::memory_resource and std::pmr::get_default_resource
+// (verified across the whole tbb+catboost tree: no polymorphic_allocator, no pool
+// resources), so this provides exactly the C++17 std::pmr core, self-contained
+// and header-only (inline definitions, no separate runtime TU). It mirrors the
+// libc++ interface and lives only on the libcxxmsvc include path, so libcxxmsvc
+// resolves the include before the MSVC STL is ever consulted.
+//
+//===----------------------------------------------------------------------===//
+#ifndef _LIBCPP_MEMORY_RESOURCE
+#define _LIBCPP_MEMORY_RESOURCE
+
+#include <__config>
+#include <cstddef>
+#include <new>
+
+#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#  pragma GCC system_header
+#endif
+
+#if _LIBCPP_STD_VER >= 17
+
+_LIBCPP_BEGIN_NAMESPACE_STD
+namespace pmr {
+
+class memory_resource {
+  static const size_t __max_align = alignof(max_align_t);
+
+public:
+  virtual ~memory_resource() = default;
+
+  inline void* allocate(size_t __bytes, size_t __align = __max_align) { return do_allocate(__bytes, __align); }
+  inline void deallocate(void* __p, size_t __bytes, size_t __align = __max_align) {
+    do_deallocate(__p, __bytes, __align);
+  }
+  inline bool is_equal(const memory_resource& __other) const noexcept { return do_is_equal(__other); }
+
+private:
+  virtual void* do_allocate(size_t, size_t)                       = 0;
+  virtual void do_deallocate(void*, size_t, size_t)               = 0;
+  virtual bool do_is_equal(const memory_resource&) const noexcept = 0;
+};
+
+inline bool operator==(const memory_resource& __lhs, const memory_resource& __rhs) noexcept {
+  return &__lhs == &__rhs || __lhs.is_equal(__rhs);
+}
+inline bool operator!=(const memory_resource& __lhs, const memory_resource& __rhs) noexcept {
+  return !(__lhs == __rhs);
+}
+
+// new_delete_resource forwards to the global aligned operator new/delete; it is
+// stateless, so per-translation-unit identity is harmless.
+class __new_delete_memory_resource final : public memory_resource {
+  void* do_allocate(size_t __bytes, size_t __align) override {
+    return ::operator new(__bytes, std::align_val_t(__align));
+  }
+  void do_deallocate(void* __p, size_t __bytes, size_t __align) override {
+    ::operator delete(__p, __bytes, std::align_val_t(__align));
+  }
+  bool do_is_equal(const memory_resource& __other) const noexcept override { return this == &__other; }
+};
+
+class __null_memory_resource final : public memory_resource {
+  void* do_allocate(size_t, size_t) override { throw bad_alloc(); }
+  void do_deallocate(void*, size_t, size_t) override {}
+  bool do_is_equal(const memory_resource& __other) const noexcept override { return this == &__other; }
+};
+
+inline memory_resource* new_delete_resource() noexcept {
+  static __new_delete_memory_resource __r;
+  return &__r;
+}
+inline memory_resource* null_memory_resource() noexcept {
+  static __null_memory_resource __r;
+  return &__r;
+}
+// Plain inline (external linkage) so the function-local static is ODR-merged to a
+// single instance program-wide -- the default resource is shared across TUs.
+inline memory_resource*& __default_memory_resource() noexcept {
+  static memory_resource* __res = new_delete_resource();
+  return __res;
+}
+inline memory_resource* get_default_resource() noexcept { return __default_memory_resource(); }
+inline memory_resource* set_default_resource(memory_resource* __r) noexcept {
+  memory_resource*& __cur = __default_memory_resource();
+  memory_resource* __old  = __cur;
+  __cur                   = __r ? __r : new_delete_resource();
+  return __old;
+}
+
+} // namespace pmr
+_LIBCPP_END_NAMESPACE_STD
+
+#endif // _LIBCPP_STD_VER >= 17
+
+#endif // _LIBCPP_MEMORY_RESOURCE
