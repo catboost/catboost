@@ -31,6 +31,7 @@ fit(X,
     snapshot_file=None,
     snapshot_interval=None,
     init_model=None,
+    callbacks=None,
     log_cout=sys.stdout,
     log_cerr=sys.stderr)
 ```
@@ -555,6 +556,8 @@ None (incremental learning is not used)
 **Supported processing units**
 
 {{ calcer_type__cpu }}
+
+{% include [python__callbacks](../_includes/work_src/reusage-python/python__callbacks.md) %}
 
 {% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 

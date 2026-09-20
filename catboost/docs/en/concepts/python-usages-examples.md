@@ -1236,3 +1236,80 @@ class AccuracyMetric(object):
 ```python
 model = CatBoostClassifier(eval_metric=AccuracyMetric())
 ```
+
+
+## Using callbacks {#callbacks}
+
+Callbacks are user-defined objects that are invoked at the end of each training iteration. Use them to monitor the training process or to stop it according to a custom rule. Pass the list of callbacks to the `callbacks` parameter of the `fit` method.
+
+Each callback must implement the following interface:
+
+```python
+class UserDefinedCallback(object):
+    def after_iteration(self, info):
+        # info.iteration is the number of completed iterations (starts from 1).
+        # info.metrics is a dictionary of metric values for all completed iterations:
+        # {'learn': {'Logloss': [...]}, 'validation': {'Logloss': [...], 'AUC': [...]}}
+        # Return True to continue training and False to stop it.
+        pass
+```
+
+{% include [reusage-common-phrases-implementation-example](../_includes/work_src/reusage-common-phrases/implementation-example.md) %}
+
+
+```python
+from catboost import CatBoostClassifier
+
+train_data = [[0, 3],
+              [4, 1],
+              [8, 1],
+              [9, 1]]
+train_labels = [0, 0, 1, 1]
+
+eval_data = [[2, 1],
+             [3, 1],
+             [9, 0],
+             [5, 3]]
+eval_labels = [0, 1, 1, 0]
+
+
+class MetricsLogger(object):
+    def after_iteration(self, info):
+        # print the value of every metric on the evaluation dataset
+        for metric_name, values in info.metrics['validation'].items():
+            print('iteration {}: {} = {}'.format(info.iteration, metric_name, values[-1]))
+        return True
+
+
+class EarlyStopper(object):
+    def __init__(self, metric_name, threshold):
+        self._metric_name = metric_name
+        self._threshold = threshold
+
+    def after_iteration(self, info):
+        # stop training as soon as the metric on the evaluation dataset reaches the threshold
+        last_value = info.metrics['validation'][self._metric_name][-1]
+        return last_value > self._threshold
+
+
+model = CatBoostClassifier(iterations=100,
+                           learning_rate=0.1,
+                           custom_metric=['AUC'],
+                           logging_level='Silent')
+
+model.fit(train_data,
+          train_labels,
+          eval_set=(eval_data, eval_labels),
+          callbacks=[MetricsLogger(), EarlyStopper('Logloss', 0.6)])
+
+# the number of trees in the model equals the number of completed iterations
+print(model.tree_count_)
+```
+
+{% note info %}
+
+- Callbacks are invoked in the order they are listed. If a callback returns `False`, the following callbacks are not invoked on this iteration and training stops.
+- Metric values are recorded only on the iterations on which they are calculated. Use the default value of the `metric_period` parameter to receive them on every iteration.
+- Callbacks are supported only for training on CPU.
+
+{% endnote %}
