@@ -1,7 +1,6 @@
 #pragma once
 
 #include <util/generic/noncopyable.h>
-#include <util/generic/ptr.h>
 #include <util/generic/ylimits.h>
 #include <util/system/compiler.h>
 #include <util/system/datetime.h>
@@ -11,6 +10,7 @@
 
 #include <atomic>
 #include <type_traits>
+#include <utility>
 
 #if defined(_MSC_VER) && !defined(__clang__)
     #include <intrin.h>
@@ -63,13 +63,11 @@ namespace NThreading {
             static_assert(std::atomic<TT>::is_always_lock_free, "TAtomicRef requires a lock-free std::atomic<TT>");
             static_assert(
                 !std::is_const<TT>::value && !std::is_volatile<TT>::value,
-                "TAtomicRef cannot be used with cv-qualified types"
-            );
+                "TAtomicRef cannot be used with cv-qualified types");
             static_assert(alignof(TT) == sizeof(TT), "TT must have natural alignment");
             static_assert(
                 (sizeof(TT) == 1) || (sizeof(TT) == 2) || (sizeof(TT) == 4) || (sizeof(TT) == 8),
-                "sizeof(TT) different from 1, 2, 4 or 8 is not supported"
-            );
+                "sizeof(TT) different from 1, 2, 4 or 8 is not supported");
     #if !defined(_MSC_VER) || defined(__clang__)
             static_assert(static_cast<int>(std::memory_order_release) == __ATOMIC_RELEASE);
             static_assert(static_cast<int>(std::memory_order_acquire) == __ATOMIC_ACQUIRE);
@@ -87,8 +85,7 @@ namespace NThreading {
     #if defined(_MSC_VER) && !defined(__clang__)
                 Y_ABORT_IF(
                     order == std::memory_order_acq_rel || order == std::memory_order_release,
-                    "load: Invalid memory order"
-                );
+                    "load: Invalid memory order");
 
                 if (order == std::memory_order_seq_cst) {
                     if constexpr (sizeof(TT) == 1) {
@@ -133,11 +130,8 @@ namespace NThreading {
             void store(TT desired, std::memory_order order) noexcept {
     #if defined(_MSC_VER) && !defined(__clang__)
                 Y_ABORT_IF(
-                    order == std::memory_order_acq_rel
-                    || order == std::memory_order_consume
-                    || order == std::memory_order_acquire,
-                    "store: Invalid memory order"
-                );
+                    order == std::memory_order_acq_rel || order == std::memory_order_consume || order == std::memory_order_acquire,
+                    "store: Invalid memory order");
 
                 if (order == std::memory_order_seq_cst) {
                     if constexpr (sizeof(TT) == 1) {
@@ -646,56 +640,4 @@ namespace NThreading {
             return false;
         }
     };
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // Simple wrapper to deal with AutoPtrs
-
-    template <typename T, typename TImpl>
-    class TAutoQueueBase: private TNonCopyable {
-    private:
-        TImpl Impl;
-
-    public:
-        using TItem = TAutoPtr<T>;
-
-        ~TAutoQueueBase() {
-            TItem value;
-            while (Dequeue(value)) {
-                // do nothing
-            }
-        }
-
-        void Enqueue(TItem value) {
-            Impl.Enqueue(value.Get());
-            Y_UNUSED(value.Release());
-        }
-
-        bool Dequeue(TItem& value) {
-            T* ptr = nullptr;
-            if (Impl.Dequeue(ptr)) {
-                value.Reset(ptr);
-                return true;
-            }
-            return false;
-        }
-
-        bool IsEmpty() {
-            return Impl.IsEmpty();
-        }
-    };
-
-    template <typename T, size_t ChunkSize = PLATFORM_PAGE_SIZE>
-    using TAutoOneOneQueue = TAutoQueueBase<T, TOneOneQueue<T*, ChunkSize>>;
-
-    template <typename T, size_t Concurrency = 4, size_t ChunkSize = PLATFORM_PAGE_SIZE>
-    using TAutoManyOneQueue = TAutoQueueBase<T, TManyOneQueue<T*, Concurrency, ChunkSize>>;
-
-    template <typename T, size_t ChunkSize = PLATFORM_PAGE_SIZE, typename TLock = TAdaptiveLock>
-    using TAutoManyManyQueue = TAutoQueueBase<T, TManyManyQueue<T*, ChunkSize, TLock>>;
-
-    template <typename T, size_t Concurrency = 4, size_t ChunkSize = PLATFORM_PAGE_SIZE>
-    using TAutoRelaxedManyOneQueue = TAutoQueueBase<T, TRelaxedManyOneQueue<T*, Concurrency, ChunkSize>>;
-
-    template <typename T, size_t Concurrency = 4, size_t ChunkSize = PLATFORM_PAGE_SIZE>
-    using TAutoRelaxedManyManyQueue = TAutoQueueBase<T, TRelaxedManyManyQueue<T*, Concurrency, ChunkSize>>;
 } // namespace NThreading
