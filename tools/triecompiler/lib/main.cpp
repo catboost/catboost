@@ -318,7 +318,7 @@ static int ProcessFile(IInputStream& in, const TOptions& o, const TPacker& packe
         size_t datalength = builder->Save(raw);
         if (o.Flags & CTBF_VERBOSE)
             Cerr << "Data length (before compression): " << datalength << Endl;
-        builder.Destroy();
+        builder.reset();
 
         datalength = CompactTrieMinimize(*currentOutput, raw.Buffer().Data(), raw.Buffer().Size(), o.Flags & CTBF_VERBOSE, packer);
         if (o.Flags & CTBF_VERBOSE)
@@ -329,7 +329,7 @@ static int ProcessFile(IInputStream& in, const TOptions& o, const TPacker& packe
             Cerr << "Data length: " << datalength << Endl;
     }
     if (o.FastLayout) {
-        builder.Destroy();
+        builder.reset();
         size_t datalength = CompactTrieMakeFastLayout(out, inputForFastLayout.Buffer().Data(),
             inputForFastLayout.Buffer().Size(), o.Flags & CTBF_VERBOSE, packer);
         if (o.Flags & CTBF_VERBOSE)
