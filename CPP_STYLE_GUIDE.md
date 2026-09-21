@@ -205,7 +205,7 @@ The style of the curly brackets must be consistent within the same file.
 
 Single-line bodies of operators and inline functions must begin with a new line and be enclosed in curly brackets.
 
-Reason: Bodies of operators and functions declared in the same line make debugging difficult.
+Reason: Bodies of operators and functions defined in the same line make debugging difficult.
 ```cpp
 if (something) {
     A();
@@ -375,7 +375,7 @@ int level, array[16], *pValue; // prohibited: mixed types
 
 - A structure can only contain public data members. You don't need to specify `public:` access specifier for it. If the structure contains anything other than data members, a constructor, and a destructor, we recommend that you rename it to a class.
 
-- The access specifier labels start from the same column where the class declaration begins. Specifying access labels is mandatory, including the first private access specifier.
+- The access specifier labels start from the same column where the class definition begins. Specifying access labels is mandatory, including the first private access specifier.
 
 - Methods and data members must not share the same access section. Separate them by explicitly repeating the access specifier. Keep the number of access specifier sections to an absolute minimum, reordering class members where necessary to achieve this.
 
@@ -586,7 +586,7 @@ The include files should not be interdependent, meaning an include file must be 
 
 - If this is a standard type, include the minimum standard include file, such as `cstddef` or `cstdio`.
 - If this is the name of a class, structure, or enumeration, and it is used by a reference or pointer, write a forward declaration directly in the include file.
-- In all other cases, include a file with the declaration of the corresponding class.
+- In all other cases, include a file with the definition of the corresponding class.
 
 The `using namespace` declaration is not allowed inside include files.
 
