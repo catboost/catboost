@@ -2,6 +2,7 @@
 
 #include "fwd.h"
 
+#include <util/datetime/base.h>
 #include <util/str_stl.h>
 
 /**
@@ -42,6 +43,11 @@ struct TGUID {
      * https://datatracker.ietf.org/doc/html/rfc4122#section-4.1
      **/
     static TGUID CreateTimebased();
+
+    /**
+     * Generate a time-ordered UUID version 7 as specified by RFC 9562.
+     **/
+    static TGUID CreateUuidV7();
 };
 
 constexpr bool operator==(const TGUID& a, const TGUID& b) noexcept {
@@ -77,3 +83,14 @@ bool GetGuid(TStringBuf s, TGUID& result);
  **/
 TGUID GetUuid(TStringBuf s);
 bool GetUuid(TStringBuf s, TGUID& result);
+
+/**
+ * Returns true if uuid is an RFC 9562 UUID version 7 with the RFC variant.
+ **/
+bool IsUuidV7(const TGUID& uuid) noexcept;
+
+/**
+ * Extracts the timestamp from a UUID version 7.
+ * Asserts that uuid is a valid UUIDv7.
+ **/
+TInstant GetUuidV7Timestamp(const TGUID& uuid) noexcept;

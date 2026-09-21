@@ -6,9 +6,16 @@
 #include <util/string/builder.h>
 #include <util/stream/format.h>
 #include <util/system/unaligned_mem.h>
+#include <util/system/yassert.h>
 #include <util/random/easy.h>
 
 namespace {
+    constexpr ui32 UUID_V7_VERSION_MASK = 0x0000f000;
+    constexpr ui32 UUID_V7_VERSION = 0x00007000;
+    constexpr ui32 UUID_VARIANT_MASK = 0xc0000000;
+    constexpr ui32 UUID_RFC_VARIANT = 0x80000000;
+    constexpr ui64 UUID_V7_TIMESTAMP_MASK = (ui64{1} << 48) - 1;
+
     inline void LowerCaseHex(TString& s) {
         for (auto&& c : s) {
             c = AsciiToLower(c);
@@ -63,6 +70,31 @@ TGUID TGUID::CreateTimebased() {
     result.dw[2] = (clockSeq << 16) | RandomNumber<ui16>();
     result.dw[3] = RandomNumber<ui32>() | (1 << 24);
     return result;
+}
+
+TGUID TGUID::CreateUuidV7() {
+    const ui64 timestamp = MilliSeconds() & UUID_V7_TIMESTAMP_MASK;
+    const ui64 randB = RandomNumber<ui64>();
+
+    TGUID result;
+    result.dw[0] = static_cast<ui32>(timestamp >> 16);
+    result.dw[1] = static_cast<ui32>(timestamp << 16) |
+                   UUID_V7_VERSION |
+                   (RandomNumber<ui32>() & 0x0fff);
+    result.dw[2] = (static_cast<ui32>(randB >> 32) & ~UUID_VARIANT_MASK) | UUID_RFC_VARIANT;
+    result.dw[3] = static_cast<ui32>(randB);
+    return result;
+}
+
+bool IsUuidV7(const TGUID& uuid) noexcept {
+    return (uuid.dw[1] & UUID_V7_VERSION_MASK) == UUID_V7_VERSION &&
+           (uuid.dw[2] & UUID_VARIANT_MASK) == UUID_RFC_VARIANT;
+}
+
+TInstant GetUuidV7Timestamp(const TGUID& uuid) noexcept {
+    Y_ASSERT(IsUuidV7(uuid));
+    const ui64 timestamp = (static_cast<ui64>(uuid.dw[0]) << 16) | (uuid.dw[1] >> 16);
+    return TInstant::MilliSeconds(timestamp);
 }
 
 TString GetGuidAsString(const TGUID& g) {
