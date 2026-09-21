@@ -588,7 +588,9 @@ The include files should not be interdependent, meaning an include file must be 
 - If this is the name of a class, structure, or enumeration, and it is used by a reference or pointer, write a forward declaration directly in the include file.
 - In all other cases, include a file with the definition of the corresponding class.
 
-The `using namespace` declaration is not allowed inside include files.
+The `using namespace` declaration must not appear at global scope in include files unless it is used to introduce literals from the standard library.
+Note: include file `util/generic/strbuf.h` adds `operator ""sv()` to global scope.
+
 
 Include files should be specified in the order of less general to more general (regardless of whether it's in cpp or another include), so that a more specific file is included before a more general file. This order allows you to once again check the independence of the other included header files. For example, for the `library/cpp/json/some_program/some_class.cpp` file, the order of inclusion is:
 
