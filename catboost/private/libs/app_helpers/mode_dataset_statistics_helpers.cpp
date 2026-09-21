@@ -274,8 +274,8 @@ void NCB::CalculateDatasetStatisticsSingleHost(const TCalculateStatisticsParams&
             TFeatureStatistics featureStatistics = visitor->GetDatasetStatistics().FeatureStatistics;
 
             // clean up resources before 2nd pass
-            visitor.Destroy();
-            datasetLoader.Destroy();
+            visitor.reset();
+            datasetLoader.reset();
 
             CalculateHistogram(
                 calculateStatisticsParams,

@@ -321,7 +321,7 @@ TLearnContext::TLearnContext(
             );
 
             // destroy old LearnProgress to save resources
-            initLearnProgress.Destroy();
+            initLearnProgress.reset();
         }
 
         CATBOOST_DEBUG_LOG << "Create new LearnProgress\n";
