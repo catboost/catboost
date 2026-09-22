@@ -156,4 +156,7 @@ namespace NX86 {
 
 } // namespace NX86
 
+/// @return zero-terminated ASCII string stored in 'store' memory.
+///         returns a meaningful result only on x86 and x86_64 architectures
+///         returns an empty string on other architectures
 const char* CpuBrand(ui32 store[12]) noexcept;
