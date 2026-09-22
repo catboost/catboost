@@ -603,7 +603,7 @@ inline void FormatValue(TStringBuilderBase* builder, const std::string_view& val
 // std::filesystem::path
 inline void FormatValue(TStringBuilderBase* builder, const std::filesystem::path& value, TStringBuf spec)
 {
-    FormatValue(builder, std::string(value), spec);
+    FormatValue(builder, value.string(), spec);
 }
 #endif
 
