@@ -73,4 +73,4 @@ It returns a vector of [0 .. LastId-FirstId] elements, where i-th element is a `
 Use a method `.HasValue()` of the element to check in Async mode if the corresponding task is complete.
 Use `.GetValue()` or `.GetValueSync()` to wait for completion of the corresponding task. `GetValue()` and `GetValueSync()` will also rethrow an exception if it has been thrown during the execution of the task.
 
-You may also use `ExecRangeWithThrow()` to just receive an exception from a range if it has been thrown from at least one task. It rethrows an exception from a task with the minimal `id` from all the tasks where exceptions have been thrown or just continues as normal of there were no exceptions.
+You may also use `ExecRangeWithThrow()` to just receive an exception from a range if it has been thrown from at least one task. It rethrows an exception from a task with the minimal `id` from all the tasks where exceptions have been thrown or just continues as normal if there were no exceptions.
