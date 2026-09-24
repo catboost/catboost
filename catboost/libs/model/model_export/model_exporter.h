@@ -31,5 +31,6 @@ namespace NCB {
 
     TString ConvertTreeToOnnxProto(
         const TFullModel& model,
-        const TString& userParametersJson = "");
+        const TString& userParametersJson = "",
+        const THashMap<ui32, TString>* catFeaturesHashToString = nullptr);
 }
