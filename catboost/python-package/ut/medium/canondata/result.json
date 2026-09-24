@@ -733,6 +733,12 @@
     "test.test_multiregression[500]": {
         "uri": "file://test.test_multiregression_500_/predictions.txt"
     },
+    "test.test_multiregression_with_missing_values[CPU-100]": {
+        "uri": "file://test.test_multiregression_with_missing_values_CPU-100_/predictions.txt"
+    },
+    "test.test_multiregression_with_missing_values[CPU-500]": {
+        "uri": "file://test.test_multiregression_with_missing_values_CPU-500_/predictions.txt"
+    },
     "test.test_non_ones_weight[CPU]": {
         "uri": "file://test.test_non_ones_weight_CPU_/model.bin"
     },
