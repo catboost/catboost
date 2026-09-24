@@ -42,6 +42,11 @@ void THttpInputHeader::OutTo(IOutputStream* stream) const {
     stream->Write(parts, sizeof(parts) / sizeof(*parts));
 }
 
+template <>
+void Out<THttpInputHeader>(IOutputStream& out, const THttpInputHeader& h) {
+    h.OutTo(&out);
+}
+
 THttpHeaders::THttpHeaders(IInputStream* stream) {
     TString header;
     TString line;
