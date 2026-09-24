@@ -111,6 +111,26 @@ TVector<double> NCatboostOptions::GetAlphaMultiQuantile(const TMap<TString, TStr
     return alpha;
 }
 
+TVector<double> NCatboostOptions::GetBoundariesPiecewiseQuantile(const TMap<TString, TString>& lossParams) {
+    const TString defaultBoundaries("0");
+    const TStringBuf param(lossParams.contains("boundaries") ? lossParams.at("boundaries") : defaultBoundaries);
+    TVector<double> boundaries;
+    for (const auto& value : StringSplitter(param).Split(',').SkipEmpty()) {
+        boundaries.emplace_back(FromString<double>(value.Token()));
+    }
+    return boundaries;
+}
+
+TVector<double> NCatboostOptions::GetQuantilesPiecewiseQuantile(const TMap<TString, TString>& lossParams) {
+    const TString defaultQuantiles("1,0.5");
+    const TStringBuf param(lossParams.contains("quantiles") ? lossParams.at("quantiles") : defaultQuantiles);
+    TVector<double> quantiles;
+    for (const auto& value : StringSplitter(param).Split(',').SkipEmpty()) {
+        quantiles.emplace_back(FromString<double>(value.Token()));
+    }
+    return quantiles;
+}
+
 double NCatboostOptions::GetAlphaQueryCrossEntropy(const TMap<TString, TString>& lossParams) {
     return GetParamOrDefault(lossParams, "alpha", 0.95);
 }

@@ -83,6 +83,10 @@ static TEvaluateDerivativesFunc GetEvaluateDerivativesFunc(ELossFunction lossFun
         case ELossFunction::MAE:
         case ELossFunction::Quantile:
             return EvaluateDerivativesForError<TQuantileError>;
+        case ELossFunction::PiecewiseQuantile:
+            // Uses default constructor -- document importance uses default boundaries/quantiles,
+            // not the user's custom params, because loss params aren't threaded here.
+            return EvaluateDerivativesForError<TPiecewiseQuantileError>;
         case ELossFunction::Expectile:
             return EvaluateDerivativesForError<TExpectileError>;
         case ELossFunction::LogLinQuantile:
