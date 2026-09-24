@@ -207,14 +207,20 @@ struct TEnumTraits<T, true>
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <typename T>
+concept CEnum = TEnumTraits<T>::IsEnum;
+
+template <typename T>
+concept CBitEnum = TEnumTraits<T>::IsBitEnum;
+
+////////////////////////////////////////////////////////////////////////////////
+
 //! Returns |true| iff the enumeration value is not bitwise zero.
-template <typename E>
-    requires TEnumTraits<E>::IsBitEnum
+template <CBitEnum E>
 constexpr bool Any(E value) noexcept;
 
 //! Returns |true| iff the enumeration value is bitwise zero.
-template <typename E>
-    requires TEnumTraits<E>::IsBitEnum
+template <CBitEnum E>
 constexpr bool None(E value) noexcept;
 
 //! Returns the number of set bits in |value|.
@@ -230,8 +236,7 @@ constexpr bool None(E value) noexcept;
 //! );
 //!
 //! `PopCount(EMyEnum::Both)` will return 2.
-template <typename E>
-    requires TEnumTraits<E>::IsBitEnum
+template <CBitEnum E>
 constexpr int PopCount(E value);
 
 ////////////////////////////////////////////////////////////////////////////////
