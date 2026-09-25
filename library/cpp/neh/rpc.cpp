@@ -64,7 +64,7 @@ namespace {
         }
 
         inline ~TServices() override {
-            LF_.Destroy();
+            LF_.reset();
             RR_.Reset();
         }
 
@@ -122,7 +122,7 @@ namespace {
                 LF_->SyncStop();
             }
             RQ_->Clear();
-            LF_.Destroy();
+            LF_.reset();
         }
 
         void OnRequest(IRequestRef req) override {

@@ -606,7 +606,7 @@ namespace NNetliba_v12 {
                 // ignore all continuation packets because we can't probably say where are their starts.
             }
 
-            RecvContUdpPacket.Destroy();
+            RecvContUdpPacket.reset();
             Zero(RecvContAddress);
             RecvContUdpPacketSize = 0;
         }

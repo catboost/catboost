@@ -840,7 +840,7 @@ namespace {
                 PrepareParser();
 
                 if (!THttp2Options::KeepInputBufferForCachedConnections) {
-                    Buff_.Destroy();
+                    Buff_.reset();
                 }
                 //continue async. read from socket
                 ctx.ContinueUseHandler(THttp2Options::InputDeadline);

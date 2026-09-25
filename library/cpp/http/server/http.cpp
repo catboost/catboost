@@ -278,8 +278,8 @@ public:
             Connections->Clear();
         }
 
-        Connections.Destroy();
-        Poller.Destroy();
+        Connections.reset();
+        Poller.reset();
     }
 
     void Shutdown() {
@@ -721,7 +721,7 @@ void TClientRequest::ResetConnection() {
     if (HttpConn_) {
         // send RST packet to client
         HttpConn_->Reset();
-        HttpConn_.Destroy();
+        HttpConn_.reset();
     }
 }
 
