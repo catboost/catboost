@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <type_traits>
 
 namespace NYT {
 
@@ -152,6 +153,9 @@ private:
 
     using TOnHeapStorage = TCompactVectorOnHeapStorage<T>;
 
+    static constexpr bool PreferFixedSizeMemoryOperations =
+        sizeof(TCompactVector) <= 8 * sizeof(uintptr_t);
+
     static constexpr size_t ByteSize =
         (sizeof(T) * N + alignof(T) + sizeof(uintptr_t) - 1) &
         ~(sizeof(uintptr_t) - 1);
@@ -189,6 +193,8 @@ private:
     };
 
     bool IsInline() const;
+    void RelocateFrom(TCompactVector& other);
+    void SwapTriviallyCopyable(TCompactVector& other);
     void SetSize(size_t newSize);
     void EnsureOnHeapCapacity(size_t newCapacity, bool incremental);
     template <class TPtr, class F>
