@@ -1475,31 +1475,27 @@ def test_load_model_preserves_poisson_link():
     model = CatBoostRegressor(loss_function='Poisson', iterations=20, verbose=False)
     model.fit(features, target)
 
-    with tempfile.NamedTemporaryFile(suffix='.cbm', delete=False) as tmp:
-        output_model_path = tmp.name
-    try:
-        model.save_model(output_model_path)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
 
-        predictions_from_path = model.predict(features)
+    predictions_from_path = model.predict(features)
 
-        with open(output_model_path, 'rb') as f:
-            model_blob = f.read()
-        model_from_blob = CatBoostRegressor()
-        model_from_blob.load_model(blob=model_blob)
+    with open(output_model_path, 'rb') as f:
+        model_blob = f.read()
+    model_from_blob = CatBoostRegressor()
+    model_from_blob.load_model(blob=model_blob)
 
-        model_from_stream = CatBoostRegressor()
-        with open(output_model_path, 'rb') as f:
-            model_from_stream.load_model(stream=f, format='cbm')
+    model_from_stream = CatBoostRegressor()
+    with open(output_model_path, 'rb') as f:
+        model_from_stream.load_model(stream=f, format='cbm')
 
-        assert np.allclose(predictions_from_path, model_from_blob.predict(features))
-        assert np.allclose(predictions_from_path, model_from_stream.predict(features))
+    assert np.allclose(predictions_from_path, model_from_blob.predict(features))
+    assert np.allclose(predictions_from_path, model_from_stream.predict(features))
 
-        # The default prediction must be the exponentiated target, not the raw
-        # formula value (that was the bug).
-        raw_predictions = model.predict(features, prediction_type='RawFormulaVal')
-        assert not np.allclose(predictions_from_path, raw_predictions)
-    finally:
-        os.unlink(output_model_path)
+    # The default prediction must be the exponentiated target, not the raw
+    # formula value (that was the bug).
+    raw_predictions = model.predict(features, prediction_type='RawFormulaVal')
+    assert not np.allclose(predictions_from_path, raw_predictions)
 
 
 def test_load_model_incorrect_argument(task_type):
