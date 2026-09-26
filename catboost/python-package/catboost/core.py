@@ -2014,12 +2014,9 @@ class _CatBoostBase(object):
     def _load_model(self, model_file, format):
         if not isinstance(model_file, PATH_TYPES):
             raise CatBoostError("Invalid fname type={}: must be str or os.PathLike.".format(type(model_file)))
-        self._init_params = {}
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
-        for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
-            self._init_params[key] = value
-        self._canonized_params = None
+        self._refresh_params_from_model()
 
     def _serialize_model(self):
         return self._object._serialize_model()
@@ -2031,10 +2028,18 @@ class _CatBoostBase(object):
     def _load_from_blob(self, blob):
         self._deserialize_model(blob)
         self._set_trained_model_attributes()
+        self._refresh_params_from_model()
 
     def _load_from_stream(self, stream):
         self._object._load_from_stream(stream)
         self._set_trained_model_attributes()
+        self._refresh_params_from_model()
+
+    def _refresh_params_from_model(self):
+        self._init_params = {}
+        for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
+            self._init_params[key] = value
+        self._canonized_params = None
 
     def _sum_models(self, models_base, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
         if weights is None:
