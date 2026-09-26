@@ -58,6 +58,10 @@ target_sources(private-libs-app_helpers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_normalize_model_helpers.cpp
 )
 
+if (HAVE_METAL)
+  target_link_libraries(private-libs-app_helpers PUBLIC catboost-metal-train_lib)
+endif()
+
 
 generate_enum_serilization(private-libs-app_helpers
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/implementation_type_enum.h

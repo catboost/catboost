@@ -9,6 +9,8 @@
 
 #include <util/generic/maybe.h>
 
+#include <limits>
+
 class TLogger;
 struct TProfileResults;
 
@@ -31,6 +33,15 @@ struct TMetricsAndTimeLeftHistory {
     TMaybe<size_t> BestIteration;  // For last test for eval metric or loss function
     THashMap<TString, double> LearnBestError;
     TVector<THashMap<TString, double>> TestBestError;
+
+    // Native Metal frontend results are transient. Keep training cursors and
+    // adapter diagnostics out of snapshots and serialized model metadata.
+    TVector<TVector<double>> MetalLearnCursor; // [approximation dimension][object]
+    double MetalInitialLoss = std::numeric_limits<double>::quiet_NaN();
+    TString MetalObjectiveMetric;
+    ui32 MetalResumedIterations = 0;
+    ui64 MetalKernelDispatches = 0;
+    double MetalGpuSeconds = 0;
 
     Y_SAVELOAD_DEFINE(LearnMetricsHistory, TestMetricsHistory, TimeHistory, BestIteration, LearnBestError, TestBestError);
 

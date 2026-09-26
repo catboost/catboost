@@ -11,6 +11,13 @@ namespace NCB {
 
         Y_UNUSED(end);
 
+        // Check before source-column remapping: tokenization replaces original
+        // text columns, so an iterator cannot recover raw inputs for final
+        // model calcers from a public quantized Pool.
+        CB_ENSURE(model.ModelTrees->GetEstimatedFeatures().empty() ||
+            !dynamic_cast<const TQuantizedObjectsDataProvider*>(&objectsData),
+            "Prediction for text or embedding models requires an unquantized Pool");
+
         THashMap<ui32, ui32> columnReorderMap;
         CheckModelAndDatasetCompatibility(model, objectsData, &columnReorderMap);
 

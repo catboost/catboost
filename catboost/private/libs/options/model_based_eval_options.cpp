@@ -67,7 +67,10 @@ bool NCatboostOptions::TModelBasedEvalOptions::operator!=(const TModelBasedEvalO
 }
 
 void NCatboostOptions::TModelBasedEvalOptions::Validate() const {
-    CB_ENSURE(ExperimentCount * ExperimentSize <= Offset, "Offset must be greater than or equal to ExperimentCount * ExperimentSize");
+    CB_ENSURE(Offset > 0 && ExperimentCount > 0 && ExperimentSize > 0,
+        "Model based evaluation offset, experiment_count and experiment_size must be positive");
+    CB_ENSURE(ui64(ExperimentCount.Get()) * ui64(ExperimentSize.Get()) <= ui64(Offset.Get()),
+        "Offset must be greater than or equal to ExperimentCount * ExperimentSize");
 }
 
 TString NCatboostOptions::GetExperimentName(ui32 featureSetIdx, ui32 experimentIdx) {
