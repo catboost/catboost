@@ -181,7 +181,10 @@ protected:
 
     inline static const SimpleScanner& Null()
     {
-        static const SimpleScanner n = Fsm::MakeFalse().Compile<SimpleScanner>();
+        static const SimpleScanner n = [] {
+            Impl::ScopedOperationBudgetPause pause;
+            return Fsm::MakeFalse().Compile<SimpleScanner>();
+        }();
         return n;
     }
 
@@ -236,6 +239,7 @@ inline SimpleScanner::SimpleScanner(Fsm& fsm, size_t distance)
     }
     fsm.Canonize();
 
+    Impl::ChargeOperations(fsm.Size(), STATE_ROW_SIZE);
     m.statesCount = fsm.Size();
     m_buffer = BufferType(new char[BufSize()]);
     memset(m_buffer.Get(), 0, BufSize());

@@ -265,6 +265,8 @@ namespace {
                             Error("Wrong character range");
                     }
 
+                    if (begin <= end)
+                        Impl::ChargeOperations(size_t(end) - begin + 1);
                     for (ch = begin; ch <= end; ++ch) {
                         cs.first.insert(Term::String(1, ch));
                     }

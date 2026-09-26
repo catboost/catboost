@@ -191,6 +191,7 @@ namespace Pire {
                     reachedFinal = true;
                     newLastFinalCount = count;
                 }
+                ChargeOperations(States.size() + 1);
                 for (const auto& addedState : States) {
                     if (addedState.State == state) {
                         return;

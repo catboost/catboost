@@ -334,7 +334,10 @@ protected:
 
     inline static const Scanner& Null()
     {
-        static const Scanner n = Fsm::MakeFalse().Compile< Scanner<Relocation, Shortcutting> >();
+        static const Scanner n = [] {
+            Impl::ScopedOperationBudgetPause pause;
+            return Fsm::MakeFalse().Compile<Scanner<Relocation, Shortcutting>>();
+        }();
 
         return n;
     }
@@ -348,6 +351,8 @@ protected:
     template<class Eq>
     void Init(size_t states, const Partition<Char, Eq>& letters, size_t finalStatesCount, size_t startState, size_t regexpsCount = 1)
     {
+        Impl::ChargeOperations(states, letters.Size() + 1);
+        Impl::ChargeOperations(finalStatesCount);
         std::memset(&m, 0, sizeof(m));
         m.relocationSignature = Relocation::Signature;
         m.shortcuttingSignature = Shortcutting::Signature;

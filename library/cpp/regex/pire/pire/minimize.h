@@ -3,6 +3,7 @@
 
 #include "stub/stl.h"
 #include "partition.h"
+#include "operation_budget.h"
 
 namespace Pire {
     namespace Impl {
@@ -96,7 +97,9 @@ namespace Pire {
                 queuedClasses[currentClass][currentLetter] = 0;
                 TVector<size_t> splittedClasses;
 
+                ChargeOperations(classStates[currentClass].size());
                 for (const auto& classState : classStates[currentClass]) {
+                    ChargeOperations(task.Previous(classState, currentLetter).size());
                     for (const auto& state: task.Previous(classState, currentLetter)) {
                         if (classChange[stateClass[state]] != task.GetClassesNumber()) {
                             classChange[stateClass[state]] = task.GetClassesNumber();
@@ -114,6 +117,8 @@ namespace Pire {
                         continue;
                     }
 
+                    ChargeOperations(classStates[splittedClass].size());
+                    ChargeOperations(task.LettersCount());
                     const auto newClass = task.GetClassesNumber()++;
                     classChange[splittedClass] = newClass;
                     std::swap(classStates[newClass], removedStates[splittedClass]);
