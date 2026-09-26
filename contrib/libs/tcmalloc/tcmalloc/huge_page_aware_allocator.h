@@ -58,6 +58,9 @@ bool use_huge_region_more_often();
 class StaticForwarder {
  public:
   // Runtime parameters.  This can change between calls.
+  static absl::Duration filler_skip_subrelease_interval() {
+    return Parameters::filler_skip_subrelease_interval();
+  }
   static absl::Duration filler_skip_subrelease_short_interval() {
     return Parameters::filler_skip_subrelease_short_interval();
   }
@@ -257,6 +260,7 @@ class HugePageAwareAllocator final : public PageAllocatorInterface {
    public:
     explicit Unback(HugePageAwareAllocator& hpaa ABSL_ATTRIBUTE_LIFETIME_BOUND)
         : hpaa_(hpaa) {}
+    ~Unback() override = default;
 
     [[nodiscard]] bool operator()(Range r) override
         ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) {
@@ -275,6 +279,7 @@ class HugePageAwareAllocator final : public PageAllocatorInterface {
     explicit UnbackWithoutLock(
         HugePageAwareAllocator& hpaa ABSL_ATTRIBUTE_LIFETIME_BOUND)
         : hpaa_(hpaa) {}
+    ~UnbackWithoutLock() override = default;
 
     [[nodiscard]] bool operator()(Range r) override
         ABSL_NO_THREAD_SAFETY_ANALYSIS {
@@ -304,6 +309,7 @@ class HugePageAwareAllocator final : public PageAllocatorInterface {
     explicit VirtualMemoryAllocator(
         HugePageAwareAllocator& hpaa ABSL_ATTRIBUTE_LIFETIME_BOUND)
         : hpaa_(hpaa) {}
+    ~VirtualMemoryAllocator() override = default;
 
     [[nodiscard]] AddressRange operator()(size_t bytes, size_t align) override
         ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) {
@@ -319,6 +325,7 @@ class HugePageAwareAllocator final : public PageAllocatorInterface {
     explicit ArenaMetadataAllocator(
         HugePageAwareAllocator& hpaa ABSL_ATTRIBUTE_LIFETIME_BOUND)
         : hpaa_(hpaa) {}
+    ~ArenaMetadataAllocator() override = default;
 
     [[nodiscard]] void* operator()(size_t bytes) override {
       return hpaa_.forwarder_.arena().Alloc(bytes);
@@ -953,6 +960,7 @@ inline Length HugePageAwareAllocator<Forwarder>::ReleaseAtLeastNPages(
       released += regions_.ReleasePagesByPeakDemand(
           desired,
           SkipSubreleaseIntervals{
+              .peak_interval = forwarder_.filler_skip_subrelease_interval(),
               .short_interval =
                   forwarder_.filler_skip_subrelease_short_interval(),
               .long_interval =
@@ -972,6 +980,7 @@ inline Length HugePageAwareAllocator<Forwarder>::ReleaseAtLeastNPages(
       released += filler_.ReleasePages(
           num_pages - released,
           SkipSubreleaseIntervals{
+              .peak_interval = forwarder_.filler_skip_subrelease_interval(),
               .short_interval =
                   forwarder_.filler_skip_subrelease_short_interval(),
               .long_interval =

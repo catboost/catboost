@@ -62,7 +62,8 @@ void Update(const uint64_t input, const size_t size, Residency::Info& info) {
 
 }  // namespace
 
-Residency::Residency() : fd_(signal_safe_open("/proc/self/pagemap", O_RDONLY)) {
+ResidencyPageMap::ResidencyPageMap()
+    : fd_(signal_safe_open("/proc/self/pagemap", O_RDONLY)) {
   TC_CHECK_GE(sizeof(buf_), kSizeOfHugepageInPagemap,
               "Buffer size is not large enough to hold the pagemap entries");
   TC_CHECK_LE(kNativePagesInHugePage, kMaxResidencyBits,
@@ -70,7 +71,7 @@ Residency::Residency() : fd_(signal_safe_open("/proc/self/pagemap", O_RDONLY)) {
               "total capacity of residency bitmaps");
 }
 
-Residency::Residency(const char* const alternate_filename)
+ResidencyPageMap::ResidencyPageMap(const char* const alternate_filename)
     : fd_(signal_safe_open(alternate_filename, O_RDONLY)) {
   TC_CHECK_GE(sizeof(buf_), kSizeOfHugepageInPagemap,
               "Buffer size is not large enough to hold the pagemap entries");
@@ -79,13 +80,13 @@ Residency::Residency(const char* const alternate_filename)
               "total capacity of residency bitmaps");
 }
 
-Residency::~Residency() {
+ResidencyPageMap::~ResidencyPageMap() {
   if (fd_ >= 0) {
     signal_safe_close(fd_);
   }
 }
 
-absl::StatusCode Residency::Seek(const uintptr_t vaddr) {
+absl::StatusCode ResidencyPageMap::Seek(const uintptr_t vaddr) {
   size_t offset = vaddr / kPageSize * kPagemapEntrySize;
   // Note: lseek can't be interrupted.
   off_t status = ::lseek(fd_, offset, SEEK_SET);
@@ -95,7 +96,7 @@ absl::StatusCode Residency::Seek(const uintptr_t vaddr) {
   return absl::StatusCode::kOk;
 }
 
-std::optional<uint64_t> Residency::ReadOne() {
+std::optional<uint64_t> ResidencyPageMap::ReadOne() {
   static_assert(sizeof(buf_) >= kPagemapEntrySize);
   // /proc/pid/pagemap is a sequence of 64-bit values in machine endianness, one
   // per page. The style guide really does not want me to do this "unsafe
@@ -109,7 +110,8 @@ std::optional<uint64_t> Residency::ReadOne() {
   return buf_[0];
 }
 
-absl::StatusCode Residency::ReadMany(int64_t num_pages, Residency::Info& info) {
+absl::StatusCode ResidencyPageMap::ReadMany(int64_t num_pages,
+                                            Residency::Info& info) {
   while (num_pages > 0) {
     const size_t batch_size = std::min<int64_t>(kEntriesInBuf, num_pages);
     const size_t to_read = kPagemapEntrySize * batch_size;
@@ -129,8 +131,8 @@ absl::StatusCode Residency::ReadMany(int64_t num_pages, Residency::Info& info) {
   return absl::StatusCode::kOk;
 }
 
-std::optional<Residency::Info> Residency::Get(const void* const addr,
-                                              const size_t size) {
+std::optional<Residency::Info> ResidencyPageMap::Get(const void* const addr,
+                                                     const size_t size) {
   if (fd_ < 0) {
     return std::nullopt;
   }
@@ -184,19 +186,19 @@ std::optional<Residency::Info> Residency::Get(const void* const addr,
   return info;
 }
 
-Residency::SinglePageBitmaps Residency::GetHolesAndSwappedBitmaps(
+Residency::SinglePageBitmaps ResidencyPageMap::GetUnbackedAndSwappedBitmaps(
     const void* const addr) {
-  Bitmap<kMaxResidencyBits> page_holes;
+  Bitmap<kMaxResidencyBits> page_unbacked;
   Bitmap<kMaxResidencyBits> page_swapped;
   uintptr_t currPage = reinterpret_cast<uintptr_t>(addr);
   if ((currPage & kHugePageMask) != currPage) {
     TC_LOG("Address is not hugepage aligned");
-    return SinglePageBitmaps{page_holes, page_swapped,
+    return SinglePageBitmaps{page_unbacked, page_swapped,
                              absl::StatusCode::kFailedPrecondition};
   }
   auto res = Seek(currPage);
   if (res != absl::StatusCode::kOk) {
-    return SinglePageBitmaps{page_holes, page_swapped,
+    return SinglePageBitmaps{page_unbacked, page_swapped,
                              absl::StatusCode::kUnavailable};
   }
   auto status = signal_safe_read(fd_, reinterpret_cast<char*>(buf_),
@@ -206,23 +208,22 @@ Residency::SinglePageBitmaps Residency::GetHolesAndSwappedBitmaps(
         "Could not read from pagemap file due to unexpected number of bytes "
         "read. Expected %d bytes, got %d bytes",
         kSizeOfHugepageInPagemap, status);
-    return SinglePageBitmaps{page_holes, page_swapped,
+    return SinglePageBitmaps{page_unbacked, page_swapped,
                              absl::StatusCode::kUnavailable};
   }
 
   for (int native_page_idx = 0; native_page_idx < kNativePagesInHugePage;
        ++native_page_idx) {
     uint64_t page_map = buf_[native_page_idx];
-    // Case for page hole
     if (!PagePresent(page_map)) {
-      page_holes.SetBit(native_page_idx);
-      // Case for zswap
       if (PageSwapped(page_map)) {
         page_swapped.SetBit(native_page_idx);
+      } else {
+        page_unbacked.SetBit(native_page_idx);
       }
     }
   }
-  return SinglePageBitmaps{page_holes, page_swapped, absl::StatusCode::kOk};
+  return SinglePageBitmaps{page_unbacked, page_swapped, absl::StatusCode::kOk};
 }
 
 }  // namespace tcmalloc_internal

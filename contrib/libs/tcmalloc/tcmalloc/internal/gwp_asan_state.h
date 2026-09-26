@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TCMALLOC_INTERNAL_MISMATCHED_DELETE_STATE_H_
-#define TCMALLOC_INTERNAL_MISMATCHED_DELETE_STATE_H_
+#ifndef TCMALLOC_INTERNAL_GWP_ASAN_STATE_H_
+#define TCMALLOC_INTERNAL_GWP_ASAN_STATE_H_
 
 #include <algorithm>
 #include <cstddef>
@@ -29,14 +29,22 @@ GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
-class MismatchedDeleteState {
+class GwpAsanState {
  public:
-  constexpr MismatchedDeleteState() = default;
+  constexpr GwpAsanState() = default;
 
-  bool triggered() const { return triggered_; }
+  enum class Type {
+    kNone,
+    kMismatchedDelete,
+    kDoubleFree,
+  };
+
+  Type type() const { return type_; }
+
+  bool triggered() const { return type_ != Type::kNone; }
 
   std::optional<absl::Span<void* const>> AllocationStack() const {
-    TC_ASSERT(triggered_);
+    TC_ASSERT_NE(type_, Type::kNone);
 
     if (!allocation_stack_depth_.has_value()) {
       return std::nullopt;
@@ -46,7 +54,7 @@ class MismatchedDeleteState {
   }
 
   std::optional<absl::Span<void* const>> DeallocationStack() const {
-    TC_ASSERT(triggered_);
+    TC_ASSERT_NE(type_, Type::kNone);
     if (!deallocation_stack_depth_.has_value()) {
       return std::nullopt;
     }
@@ -55,29 +63,29 @@ class MismatchedDeleteState {
   }
 
   size_t provided_min() const {
-    TC_ASSERT(triggered_);
+    TC_ASSERT_EQ(type_, Type::kMismatchedDelete);
     return provided_min_;
   }
   size_t provided_max() const {
-    TC_ASSERT(triggered_);
+    TC_ASSERT_EQ(type_, Type::kMismatchedDelete);
     return provided_max_;
   }
 
   size_t minimum_size() const {
-    TC_ASSERT(triggered_);
+    TC_ASSERT_EQ(type_, Type::kMismatchedDelete);
     return minimum_;
   }
 
   size_t maximum_size() const {
-    TC_ASSERT(triggered_);
+    TC_ASSERT_EQ(type_, Type::kMismatchedDelete);
     return maximum_;
   }
 
-  void Record(size_t provided_min, size_t provided_max, size_t minimum,
-              size_t maximum,
-              std::optional<absl::Span<void* const>> allocation_stack,
-              std::optional<absl::Span<void* const>> deallocation_stack) {
-    triggered_ = true;
+  void RecordMismatch(
+      size_t provided_min, size_t provided_max, size_t minimum, size_t maximum,
+      std::optional<absl::Span<void* const>> allocation_stack,
+      std::optional<absl::Span<void* const>> deallocation_stack) {
+    type_ = Type::kMismatchedDelete;
 
     provided_min_ = provided_min;
     provided_max_ = provided_max;
@@ -105,8 +113,18 @@ class MismatchedDeleteState {
     }
   }
 
+  void RecordDoubleFree(absl::Span<void* const> deallocation_stack) {
+    type_ = Type::kDoubleFree;
+
+    size_t deallocation_stack_depth =
+        std::min<size_t>(kMaxStackDepth, deallocation_stack.size());
+    memcpy(deallocation_stack_, deallocation_stack.data(),
+           sizeof(void*) * deallocation_stack_depth);
+    deallocation_stack_depth_ = deallocation_stack_depth;
+  }
+
  private:
-  bool triggered_ = false;
+  Type type_ = Type::kNone;
   size_t provided_min_ = 0, provided_max_ = 0, minimum_ = 0, maximum_ = 0;
 
   void* allocation_stack_[kMaxStackDepth] = {};
@@ -119,4 +137,4 @@ class MismatchedDeleteState {
 }  // namespace tcmalloc
 GOOGLE_MALLOC_SECTION_END
 
-#endif  // TCMALLOC_INTERNAL_MISMATCHED_DELETE_STATE_H_
+#endif  // TCMALLOC_INTERNAL_GWP_ASAN_STATE_H_

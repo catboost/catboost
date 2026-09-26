@@ -59,6 +59,10 @@ bool InitNumaTopology(size_t cpu_to_scaled_partition[kMaxCpus],
   // Node 0 will always map to partition 0; record it here in case the system
   // doesn't support NUMA or the user opts out of our awareness of it - in
   // either case we'll record nothing in the loop below.
+
+  const char* e =
+      tcmalloc::tcmalloc_internal::thread_safe_getenv("TCMALLOC_NUMA_AWARE");
+
   partition_to_nodes[NodeToPartition(0, num_partitions)] |= 1 << 0;
 
   // We rely on rseq to quickly obtain a CPU ID & lookup the appropriate
@@ -75,8 +79,6 @@ bool InitNumaTopology(size_t cpu_to_scaled_partition[kMaxCpus],
   // cpu_to_scaled_partition & partition_to_nodes arrays are zero initialized
   // we're trivially done - CPUs all map to partition 0, which contains only
   // CPU 0 added above.
-  const char* e =
-      tcmalloc::tcmalloc_internal::thread_safe_getenv("TCMALLOC_NUMA_AWARE");
   bool enabled = true;
   if (e == nullptr) {
     // Enable NUMA awareness iff default_want_numa_aware().

@@ -92,15 +92,6 @@
 #endif
 #endif
 
-#if !defined(__i386__) && !defined(__x86_64__) && !defined(__ppc64__) && \
-    !defined(__arm__) && !defined(__aarch64__) && !defined(__riscv)
-#error "Unsupported architecture."
-#endif
-
-#ifndef ABSL_IS_LITTLE_ENDIAN
-#error "TCMalloc only supports little endian architectures"
-#endif
-
 #ifndef __linux__
 #error "TCMalloc is only supported on Linux."
 #endif

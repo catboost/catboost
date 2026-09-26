@@ -15,11 +15,16 @@
 #include "tcmalloc/internal/logging.h"
 
 #include <fcntl.h>
+#ifdef _WINDOWS
+#include <io.h>
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef __linux__
 #include <unistd.h>
+#endif  // __linux__
 
 #include <algorithm>
 #include <array>
@@ -61,7 +66,13 @@ static char stats_buffer[kStatsBufferSize] = {0};
 #endif  // __APPLE__
 
 static void WriteMessage(const char* msg, int length) {
-  (void)::write(STDERR_FILENO, msg, length);
+  const int fd =
+#ifdef _WINDOWS
+      fileno(stderr);
+#else
+      STDERR_FILENO;
+#endif
+  (void)::write(fd, msg, length);
 }
 
 void (*log_message_writer)(const char* msg, int length) = WriteMessage;

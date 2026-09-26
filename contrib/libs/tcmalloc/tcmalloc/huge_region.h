@@ -569,8 +569,15 @@ inline Length HugeRegionSet<Region>::GetDesiredReleasablePages(
   UpdateStatsTracker();
 
   Length required_pages;
-  required_pages = regionstats_tracker_.GetRecentDemand(
-      intervals.short_interval, intervals.long_interval);
+  // There are two ways to calculate the demand requirement. We give priority to
+  // using the peak if peak_interval is set.
+  if (intervals.IsPeakIntervalSet()) {
+    required_pages =
+        regionstats_tracker_.GetRecentPeak(intervals.peak_interval);
+  } else {
+    required_pages = regionstats_tracker_.GetRecentDemand(
+        intervals.short_interval, intervals.long_interval);
+  }
 
   Length current_pages = used_pages() + free_pages();
 

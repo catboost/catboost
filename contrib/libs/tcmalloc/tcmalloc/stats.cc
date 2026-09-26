@@ -167,7 +167,7 @@ void PageAllocInfo::Print(Printer& out) const {
   out.printf("%s: per-size information:\n", label_);
 
   auto print_counts = [this, hz, &out](const Counts& c, Length nmin,
-                                       Length nmax) {
+                                       Length nmax) GOOGLE_MALLOC_SECTION {
     const size_t a = c.nalloc;
     const size_t f = c.nfree;
     const Length a_pages = c.alloc_size;
@@ -227,8 +227,9 @@ void PageAllocInfo::PrintInPbtxt(PbtxtRegion& region,
   region.PrintI64("num_slack_pages", total_slack_.raw_num());
   region.PrintI64("largest_allocation_pages", largest_seen_.raw_num());
 
-  auto print_counts = [hz, &region, &stat_name](const Counts& c, Length nmin,
-                                                Length nmax) {
+  auto print_counts = [hz, &region, &stat_name](
+                          const Counts& c, Length nmin,
+                          Length nmax) GOOGLE_MALLOC_SECTION {
     const size_t a = c.nalloc;
     const size_t f = c.nfree;
     const Length a_pages = c.alloc_size;

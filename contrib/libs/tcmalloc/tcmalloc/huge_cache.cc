@@ -322,8 +322,14 @@ HugeLength HugeCache::GetDesiredReleaseablePages(
   TC_CHECK(intervals.SkipSubreleaseEnabled());
   UpdateStatsTracker();
   HugeLength required_by_demand;
-  required_by_demand = HLFromPages(cachestats_tracker_.GetRecentDemand(
-      intervals.short_interval, intervals.long_interval, CapDemandInterval()));
+  if (intervals.IsPeakIntervalSet()) {
+    required_by_demand =
+        HLFromPages(cachestats_tracker_.GetRecentPeak(intervals.peak_interval));
+  } else {
+    required_by_demand = HLFromPages(cachestats_tracker_.GetRecentDemand(
+        intervals.short_interval, intervals.long_interval,
+        CapDemandInterval()));
+  }
 
   HugeLength current = usage() + size();
   if (required_by_demand != NHugePages(0)) {

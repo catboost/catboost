@@ -586,6 +586,28 @@ void MallocExtension::SetSkipSubreleaseLongInterval(absl::Duration value) {
 #endif
 }
 
+bool MallocExtension::GetCacheDemandBasedRelease() {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  if (MallocExtension_Internal_GetCacheDemandBasedRelease == nullptr) {
+    return false;
+  }
+  return MallocExtension_Internal_GetCacheDemandBasedRelease();
+#else
+  return false;
+#endif
+}
+
+void MallocExtension::SetCacheDemandBasedRelease(bool value) {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  if (MallocExtension_Internal_SetCacheDemandBasedRelease == nullptr) {
+    return;
+  }
+  MallocExtension_Internal_SetCacheDemandBasedRelease(value);
+#else
+  (void)value;
+#endif
+}
+
 absl::Duration MallocExtension::GetCacheDemandReleaseShortInterval() {
 #if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
   if (MallocExtension_Internal_GetCacheDemandReleaseShortInterval == nullptr) {
@@ -686,6 +708,17 @@ std::optional<size_t> MallocExtension::GetNumericProperty(
   // LINT.ThenChange(:SanitizerGetProperties)
 #endif  // TCMALLOC_UNDER_SANITIZERS
   return std::nullopt;
+}
+
+size_t MallocExtension::GetEstimatedAllocatedSize(size_t size,
+                                                  hot_cold_t hot_cold) {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  if (MallocExtension_Internal_GetEstimatedAllocatedSize != nullptr) {
+    return MallocExtension_Internal_GetEstimatedAllocatedSize(size, hot_cold);
+  }
+#endif
+  // Fall-through to assuming that the hot/cold hint doesn't affect the
+  return nallocx(size, 0);
 }
 
 size_t MallocExtension::GetEstimatedAllocatedSize(size_t size) {

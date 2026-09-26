@@ -30,6 +30,8 @@ ABSL_ATTRIBUTE_WEAK void TCMalloc_Internal_SetBackgroundReleaseRate(
 ABSL_ATTRIBUTE_WEAK uint64_t TCMalloc_Internal_GetHeapSizeHardLimit();
 ABSL_ATTRIBUTE_WEAK bool TCMalloc_Internal_GetHPAASubrelease();
 ABSL_ATTRIBUTE_WEAK void
+TCMalloc_Internal_GetHugePageFillerSkipSubreleaseInterval(absl::Duration* v);
+ABSL_ATTRIBUTE_WEAK void
 TCMalloc_Internal_GetHugePageFillerSkipSubreleaseShortInterval(
     absl::Duration* v);
 ABSL_ATTRIBUTE_WEAK void
@@ -83,6 +85,8 @@ ABSL_ATTRIBUTE_WEAK void TCMalloc_Internal_SetBackgroundProcessActionsEnabled(
     bool v);
 ABSL_ATTRIBUTE_WEAK void TCMalloc_Internal_SetBackgroundProcessSleepInterval(
     absl::Duration v);
+ABSL_ATTRIBUTE_WEAK void
+TCMalloc_Internal_SetHugePageFillerSkipSubreleaseInterval(absl::Duration v);
 ABSL_ATTRIBUTE_WEAK void
 TCMalloc_Internal_SetHugePageFillerSkipSubreleaseShortInterval(
     absl::Duration v);

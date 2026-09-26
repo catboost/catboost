@@ -15,19 +15,21 @@
 
 #include <string.h>
 
+#include "absl/base/attributes.h"
 #include "tcmalloc/internal/config.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
+#ifdef __linux__
 // POSIX provides the **environ array which contains environment variables in a
 // linear array, terminated by a NULL string.  This array is only perturbed when
 // the environment is changed (which is inherently unsafe) so it's safe to
 // return a const pointer into it.
 // e.g. { "SHELL=/bin/bash", "MY_ENV_VAR=1", "" }
 extern "C" char** environ;
-const char* thread_safe_getenv(const char* env_var) {
+ABSL_ATTRIBUTE_WEAK const char* thread_safe_getenv(const char* env_var) {
   int var_len = strlen(env_var);
 
   char** envv = environ;
@@ -41,6 +43,9 @@ const char* thread_safe_getenv(const char* env_var) {
 
   return nullptr;
 }
+#else
+const char* thread_safe_getenv(const char* env_var) { return nullptr; }
+#endif
 
 }  // namespace tcmalloc_internal
 }  // namespace tcmalloc

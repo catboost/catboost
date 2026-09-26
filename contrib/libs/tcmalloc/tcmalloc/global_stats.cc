@@ -546,6 +546,9 @@ void DumpStats(Printer& out, int level) {
                Parameters::max_total_thread_cache_bytes());
     out.printf("PARAMETER malloc_release_bytes_per_sec %llu\n",
                Parameters::background_release_rate());
+    out.printf(
+        "PARAMETER tcmalloc_skip_subrelease_interval %s\n",
+        absl::FormatDuration(Parameters::filler_skip_subrelease_interval()));
     out.printf("PARAMETER tcmalloc_skip_subrelease_short_interval %s\n",
                absl::FormatDuration(
                    Parameters::filler_skip_subrelease_short_interval()));
@@ -568,6 +571,8 @@ void DumpStats(Printer& out, int level) {
                Parameters::release_pages_from_huge_region() ? 1 : 0);
     out.printf("PARAMETER tcmalloc_use_wider_slabs %d\n",
                tc_globals.cpu_cache().UseWiderSlabs() ? 1 : 0);
+    out.printf("PARAMETER tag_metadata_separately %d\n",
+               tc_globals.system_allocator().tag_metadata_separately() ? 1 : 0);
 
     out.printf(
         "PARAMETER size_class_config %s\n",
@@ -755,6 +760,9 @@ void DumpStatsInPbtxt(Printer& out, int level) {
                   Parameters::max_total_thread_cache_bytes());
   region.PrintI64("malloc_release_bytes_per_sec",
                   static_cast<int64_t>(Parameters::background_release_rate()));
+  region.PrintI64(
+      "tcmalloc_skip_subrelease_interval_ns",
+      absl::ToInt64Nanoseconds(Parameters::filler_skip_subrelease_interval()));
   region.PrintI64("tcmalloc_skip_subrelease_short_interval_ns",
                   absl::ToInt64Nanoseconds(
                       Parameters::filler_skip_subrelease_short_interval()));

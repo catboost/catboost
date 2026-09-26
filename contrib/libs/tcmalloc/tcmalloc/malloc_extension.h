@@ -133,6 +133,9 @@ class Profile final {
   struct Sample {
     static constexpr int kMaxStackDepth = 64;
 
+    // Estimated number of allocated bytes for this sample.
+    //
+    // Requested bytes can be estimated via count * requested_size.
     int64_t sum;
     // The reported count of samples, with possible rounding up for unsample.
     // A given sample typically corresponds to some allocated objects, and the
@@ -140,14 +143,20 @@ class Profile final {
     // between previous and current samples) divided by the requested size.
     int64_t count;
 
+    // The size parameter to new/malloc/etc.
     size_t requested_size;
+    // The requested alignment if specified.  malloc() implicitly aligns to
+    // alignof(std::max_align_t) and this value is used.
     size_t requested_alignment;
+    // The actual size allocated considering size, implicit/explicit alignment,
+    // GWP-ASan.
     size_t allocated_size;
 
     // Return whether the allocation was returned with
     // tcmalloc_size_returning_operator_new or its variants.
     bool requested_size_returning;
 
+    // The hint provided to the hot-cold methods.  Hot if not provided.
     enum class Access : uint8_t {
       Hot,
       Cold,
@@ -157,6 +166,8 @@ class Profile final {
       kDoNotUse,
     };
     hot_cold_t access_hint;
+    // The actual access value used for the allocation considering
+    // implementation constraints.
     Access access_allocated;
 
     // Whether this sample captures allocations where the deallocation event
@@ -185,9 +196,8 @@ class Profile final {
       MProtectFailed = -6,
       // Used in an improved guarding selection algorithm.
       Filtered = -7,
-      // An unexpected state, which represents that branch for selection was
-      // missed.
-      Unknown = -100,
+      // An unexpected state that will be removed.
+      Unknown ABSL_DEPRECATED("Unused") = -100,
       // When guarding is not even considered on a sample.
       NotAttempted = 0,
       // The following values do not represent final states, but rather intent
@@ -201,7 +211,7 @@ class Profile final {
       // The result when a sample is actually guarded by GWP-ASAN.
       Guarded = 10,
     };
-    GuardedStatus guarded_status = GuardedStatus::Unknown;
+    GuardedStatus guarded_status;
 
     // How the memory was allocated (new/malloc/etc.).
     enum class AllocationType : uint8_t {
@@ -524,17 +534,25 @@ class MallocExtension final {
   // demand fluctuation, and long-term demand trend. Zero duration means not
   // considering corresponding demand history for delayed subrelease. Delayed
   // subrelease is disabled if all intervals are zero.
+  //
+  // TODO(b/394157733): Remove non-short/long skip subrelease accessers.
+  ABSL_DEPRECATED("This feature is being removed.")
   static absl::Duration GetSkipSubreleaseInterval();
+  ABSL_DEPRECATED("This feature is being removed.")
   static void SetSkipSubreleaseInterval(absl::Duration value);
   static absl::Duration GetSkipSubreleaseShortInterval();
   static void SetSkipSubreleaseShortInterval(absl::Duration value);
   static absl::Duration GetSkipSubreleaseLongInterval();
   static void SetSkipSubreleaseLongInterval(absl::Duration value);
 
+  // Enables and Disables the demand-based release feature in HugeCache.
+  static bool GetCacheDemandBasedRelease();
+  static void SetCacheDemandBasedRelease(bool value);
+
   // Gets and sets intervals used for finding the recent short-term demand
   // fluctuation and long-term demand trend in HugeCache. Zero duration means
   // not considering corresponding demand history for delayed (demand-based)
-  // hugepage release. The feature is disabled if both intervals are zero.
+  // hugepage release. These intervals are used for performance tuning.
   static absl::Duration GetCacheDemandReleaseShortInterval();
   static void SetCacheDemandReleaseShortInterval(absl::Duration value);
   static absl::Duration GetCacheDemandReleaseLongInterval();
@@ -544,6 +562,12 @@ class MallocExtension final {
   // of "size" bytes.  This is an estimate: an allocation of "size" bytes may
   // reserve more bytes, but will never reserve fewer.
   static size_t GetEstimatedAllocatedSize(size_t size);
+
+  // Returns the estimated number of bytes that will be allocated for a request
+  // of "size" bytes.  This is an estimate: an allocation of "size" bytes may
+  // reserve more bytes, but will never reserve fewer.
+  static size_t GetEstimatedAllocatedSize(size_t size,
+                                          tcmalloc::hot_cold_t hot_cold);
 
   // Returns the actual number N of bytes reserved by tcmalloc for the pointer
   // p.  This number may be equal to or greater than the number of bytes
