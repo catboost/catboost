@@ -1835,6 +1835,11 @@ class _CatBoostBase(object):
         if '__model' in state:
             self._load_from_blob(state['__model'])
             del state['__model']
+            # `_load_from_blob` now refreshes `_init_params` from the model, but
+            # pickle round-trips must restore the exact init params captured by
+            # `__getstate__` (which are still in `state` below) — not the
+            # model-derived defaults.
+            self._init_params = {}
         if '_test_eval' in state:
             self._set_test_evals([state['_test_eval']])
             del state['_test_eval']
