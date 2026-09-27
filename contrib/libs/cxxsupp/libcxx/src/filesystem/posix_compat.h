@@ -132,14 +132,8 @@ namespace detail {
 class WinHandle {
 public:
   WinHandle(const wchar_t* p, DWORD access, DWORD flags) {
-    h = CreateFileW(
-        p,
-        access,
-        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-        nullptr,
-        OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS | flags,
-        nullptr);
+    h = CreateFileW(p, access, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING,
+                    FILE_FLAG_BACKUP_SEMANTICS | flags, nullptr);
   }
   ~WinHandle() {
     if (h != INVALID_HANDLE_VALUE)
