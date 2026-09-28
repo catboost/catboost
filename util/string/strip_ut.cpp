@@ -200,7 +200,9 @@ Y_UNIT_TEST_SUITE(TStripStringTest) {
 
         UNIT_ASSERT(s == s2);
 #ifndef TSTRING_IS_STD_STRING
-        UNIT_ASSERT(s.c_str() == s2.c_str()); // Collapse() does not change the string at all
+        if (TStringUseCow) {
+            UNIT_ASSERT(s.c_str() == s2.c_str()); // Collapse() does not change the string at all
+        }
 #endif
     }
 
@@ -217,7 +219,9 @@ Y_UNIT_TEST_SUITE(TStripStringTest) {
 
         UNIT_ASSERT(s == s2);
 #ifndef TSTRING_IS_STD_STRING
-        UNIT_ASSERT(s.c_str() == s2.c_str()); // Collapse() does not change the string at all
+        if (TStringUseCow) {
+            UNIT_ASSERT(s.c_str() == s2.c_str()); // Collapse() does not change the string at all
+        }
 #endif
     }
 
@@ -234,7 +238,9 @@ Y_UNIT_TEST_SUITE(TStripStringTest) {
 
         UNIT_ASSERT(s == s2);
 #ifndef TSTRING_IS_STD_STRING
-        UNIT_ASSERT(s.c_str() == s2.c_str()); // Collapse() does not change the string at all
+        if (TStringUseCow) {
+            UNIT_ASSERT(s.c_str() == s2.c_str()); // Collapse() does not change the string at all
+        }
 #endif
     }
 
