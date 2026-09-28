@@ -32,6 +32,7 @@ namespace NAsio {
 
             if (s == INVALID_SOCKET) {
                 ec.Assign(LastSystemError());
+                return;
             }
 
             FixIPv6ListenSocket(s);
