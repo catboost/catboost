@@ -23,9 +23,7 @@ namespace NCB::NModelEvaluation {
                 CB_ENSURE(!model.HasTextFeatures(), "Model contains text features, GPU evaluation impossible");
                 CB_ENSURE(!model.HasEmbeddingFeatures(), "Model contains embedding features, GPU evaluation impossible");
                 CB_ENSURE(model.IsOblivious(), "Model is not oblivious, GPU evaluation impossible");
-
-                // TODO(akhropov): Support Multidimensional models
-                CB_ENSURE(ModelTrees->GetDimensionsCount() == 1, "Model is not one-dimensional, GPU evaluation is not supported yet");
+                CB_ENSURE(ModelTrees->GetDimensionsCount() > 0, "Model has zero dimensions, GPU evaluation impossible");
 
                 TVector<TGPURepackedBin> gpuBins;
                 for (const TRepackedBin& cpuRepackedBin : ModelTrees->GetRepackedBins()) {
@@ -151,7 +149,7 @@ namespace NCB::NModelEvaluation {
                 const size_t stride = CeilDiv<size_t>(*docCount, 32) * 32;
                 Ctx.EvalDataCache.PrepareCopyBufs(
                     ApplyData->MinimalSufficientFloatFeaturesVectorSize * stride,
-                    *docCount
+                    *docCount * Ctx.GPUModelData.ApproxDimension
                 );
                 TGPUDataInput dataInput;
                 dataInput.ObjectCount = *docCount;
@@ -202,7 +200,7 @@ namespace NCB::NModelEvaluation {
                 dataInput.ObjectCount = docCount;
                 dataInput.FloatFeatureCount = expectedFlatVecSize;
                 dataInput.Stride = stride;
-                Ctx.EvalDataCache.PrepareCopyBufs(docCount * stride, docCount);
+                Ctx.EvalDataCache.PrepareCopyBufs(docCount * stride, docCount * Ctx.GPUModelData.ApproxDimension);
                 dataInput.FlatFloatsVector = Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef();
                 auto copyBufRef = Ctx.EvalDataCache.CopyDataBufHost.AsArrayRef();
                 for (size_t docId = 0; docId < docCount; ++docId) {
@@ -360,7 +358,7 @@ namespace NCB::NModelEvaluation {
             dataInput.ObjectCount = docCount;
             dataInput.FloatFeatureCount = expectedFlatVecSize;
             dataInput.Stride = stride;
-            Ctx.EvalDataCache.PrepareCopyBufs(docCount * stride, docCount);
+            Ctx.EvalDataCache.PrepareCopyBufs(docCount * stride, docCount * Ctx.GPUModelData.ApproxDimension);
             dataInput.FlatFloatsVector = Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef();
             auto copyBufRef = Ctx.EvalDataCache.CopyDataBufHost.AsArrayRef();
             for (size_t docId = 0; docId < docCount; ++docId) {
