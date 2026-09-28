@@ -8,7 +8,7 @@
 #include <numeric>
 
 /**
- * Dot product (Inner product or scalar product) implementation using SSE when possible.
+ * Dot product (Inner product or scalar product) implementation using SIMD when possible.
  */
 namespace NDotProductImpl {
     extern i32 (*DotProductI8Impl)(const i8* lhs, const i8* rhs, size_t length) noexcept;
