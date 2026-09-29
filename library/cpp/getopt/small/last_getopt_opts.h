@@ -221,6 +221,15 @@ namespace NLastGetopt {
             return GetLongOption(name);
         }
 
+        /// @}
+
+        /**
+         * Search for the option with given short name
+         * @param c        short name for search
+         * @return         ref on result (throw exception if not found)
+         */
+        /// @{
+
         const TOpt& GetOption(char c) const {
             return GetCharOption(c);
         }
@@ -434,7 +443,7 @@ namespace NLastGetopt {
         /**
          * Replace help string with given
          *
-         * @param decr        new help string
+         * @param descr     new help string
          */
         void SetCmdLineDescr(const TString& descr) {
             CustomCmdLineDescr = descr;

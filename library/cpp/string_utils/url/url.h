@@ -5,19 +5,16 @@
 
 namespace NUrl {
 
-    /**
-     * Splits URL to host and path
-     * Example:
-     * auto [host, path] = SplitUrlToHostAndPath(url);
-     *
-     * @param[in] url                   any URL
-     * @param[out] <host, path>     parsed host and path
-     */
     struct TSplitUrlToHostAndPathResult {
         TStringBuf host;
         TStringBuf path;
     };
 
+    /**
+     * Splits URL to host and path
+     * Example:
+     * auto [host, path] = SplitUrlToHostAndPath(url);
+     */
     Y_PURE_FUNCTION
     TSplitUrlToHostAndPathResult SplitUrlToHostAndPath(const TStringBuf url Y_LIFETIME_BOUND);
 
@@ -86,9 +83,10 @@ TStringBuf GetSchemeHostAndPort(const TStringBuf url Y_LIFETIME_BOUND, bool trim
  * @param[in] url       any URL
  * @param[out] host     parsed host
  * @param[out] path     parsed path
- */
+ * @{ */
 void SplitUrlToHostAndPath(const TStringBuf url, TStringBuf& host, TStringBuf& path);
 void SplitUrlToHostAndPath(const TStringBuf url, TString& host, TString& path);
+/** @} */
 
 /**
  * Separates URL into url prefix, query (aka cgi params list), and fragment (aka part after #)

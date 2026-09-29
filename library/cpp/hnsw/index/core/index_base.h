@@ -22,21 +22,18 @@
 namespace NHnsw {
     /**
      * @brief Parameters for HNSW search configuration.
-     *
-     * @param TopSize                   The search will return at most this much nearest items.
-     * @param SearchNeighborhoodSize    Size of the dynamic candidate list (ef).
-     *                                  Increasing this makes search slower but more accurate.
-     * @param DistanceCalcLimit         Limit on the number of distance computations.
-     * @param StopSearchSize            Minimum number of nearest neighbors found
-     *                                  before termination conditions are evaluated.
-     * @param UseBaseLevelForEntryInit  If true, entry-point refinement also traverses the base
-     *                                  level (level 0); by default only upper levels are used.
      */
     struct TSearchParameters {
+        /// The search will return at most this much nearest items.
         size_t TopSize;
+        /// Size of the dynamic candidate list (ef). Increasing this makes search slower but more accurate.
         size_t SearchNeighborhoodSize;
+        /// Limit on the number of distance computations.
         size_t DistanceCalcLimit = Max<size_t>();
+        /// Minimum number of nearest neighbors found before termination conditions are evaluated.
         size_t StopSearchSize = 1;
+        /// If true, entry-point refinement also traverses the base
+        /// level (level 0); by default only upper levels are used.
         bool UseBaseLevelForEntryInit = false;
     };
 

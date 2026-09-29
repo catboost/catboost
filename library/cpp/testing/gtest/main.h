@@ -89,7 +89,7 @@ namespace NGTest {
      * Trace files are used by arcadia CI to interact with test runner. They consist of JSON objects, one per line.
      * Each object represents an event, such as 'test started' or 'test finished'.
      *
-     * @param traceFile     where to write trace file. This stream should exist for the entire duration of test run.
+     * @param[out] traceFile    where to write trace file. This stream should exist for the entire duration of test run.
      */
     void SetTraceReporter(std::ostream* traceFile);
 }
