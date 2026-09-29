@@ -1,13 +1,24 @@
 import io
+from typing import List, Tuple, Union
 
 import numpy as np
 import pytest
-from sklearn.datasets import make_classification
 
 from catboost import CatBoostClassifier, Pool
 
+try:
+    from catboost_pytest_lib import generate_random_labeled_dataset
+except ImportError:
+    from lib import generate_random_labeled_dataset
 
-def _search(pool, param_name, values, search_method, metric, train_test=True):
+
+ClassWeights = Union[List[int], str]
+
+
+def _search(
+    pool: Pool, param_name: str, values: List[ClassWeights], search_method: str,
+    metric: str, train_test: bool = True,
+) -> Tuple[ClassWeights, float]:
     model = CatBoostClassifier(
         iterations=12, depth=3, random_seed=42, thread_count=2,
         eval_metric=metric, verbose=False, allow_writing_files=False,
@@ -36,12 +47,13 @@ def _search(pool, param_name, values, search_method, metric, train_test=True):
     ('class_weights', [[1, 1], [1, 5]], 2, 'categorical'),
 ])
 def test_search_class_weights_match_independent_candidates(
-    search_method, sample_weights, param_name, values, n_classes, data_kind
-):
-    X, y = make_classification(
-        n_samples=300, n_features=6, n_informative=4,
-        n_classes=n_classes, weights=[0.85, 0.15] if n_classes == 2 else [0.6, 0.3, 0.1],
-        random_state=42,
+    search_method: str, sample_weights: bool, param_name: str,
+    values: List[ClassWeights], n_classes: int, data_kind: str,
+) -> None:
+    X, y = generate_random_labeled_dataset(
+        n_samples=300, n_features=6,
+        labels=[0] * 17 + [1] * 3 if n_classes == 2 else [0] * 6 + [1] * 3 + [2],
+        seed=42,
     )
     weight = np.linspace(0.5, 1.5, len(y)) if sample_weights else None
     if data_kind == 'categorical':
@@ -67,9 +79,11 @@ def test_search_class_weights_match_independent_candidates(
     ('class_weights', [[1, 1], [1, 5]]),
     ('auto_class_weights', ['Balanced', 'SqrtBalanced']),
 ])
-def test_search_class_weights_allow_unweighted_metric(search_method, train_test, param_name, values):
-    X, y = make_classification(
-        n_samples=120, n_features=6, weights=[0.8, 0.2], random_state=42,
+def test_search_class_weights_allow_unweighted_metric(
+    search_method: str, train_test: bool, param_name: str, values: List[ClassWeights],
+) -> None:
+    X, y = generate_random_labeled_dataset(
+        n_samples=120, n_features=6, labels=[0] * 4 + [1], seed=42,
     )
     # All-one object weights are equivalent to no object weights. Class weights
     # still make use_weights=False valid in both cases.
