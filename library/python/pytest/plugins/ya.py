@@ -610,12 +610,23 @@ def pytest_collection_modifyitems(items, config):
 
 
 def pytest_collectreport(report):
-    if not report.passed:
-        if hasattr(pytest_config, 'ya_trace_reporter'):
-            test_item = TestItem(report, None, None, pytest_config.option.test_suffix)
-            pytest_config.ya_trace_reporter.on_error(test_item)
-        else:
-            sys.stderr.write(yatest_lib.tools.to_utf8(report.longrepr))
+    if report.passed:
+        return
+    if not hasattr(pytest_config, 'ya_trace_reporter'):
+        sys.stderr.write(yatest_lib.tools.to_utf8(report.longrepr))
+        return
+
+    test_item = TestItem(report, None, None, pytest_config.option.test_suffix)
+    if report.skipped:
+        # A skip raised while collecting a module (pytest.skip in pytest_generate_tests,
+        # importorskip, etc.) says nothing about the chunk itself. Report it as a single
+        # skipped test case instead of a chunk error, otherwise the skip-like chunk error
+        # would hide failed test cases behind the GOOD status of the suite.
+        # The same trick is used for module-level skip in collection.py.
+        pytest_config.ya_trace_reporter.on_start_test_case(test_item)
+        pytest_config.ya_trace_reporter.on_finish_test_case(test_item)
+    else:
+        pytest_config.ya_trace_reporter.on_error(test_item)
 
 
 @pytest.hookimpl(tryfirst=True)
