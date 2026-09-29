@@ -39,6 +39,10 @@ public:
         virtual void OnException() {
         }
 
+        virtual void OnAcceptException(int /*errorCode*/) {
+            OnException();
+        }
+
         virtual void OnMaxConn() {
         }
 
