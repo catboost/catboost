@@ -93,6 +93,91 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         }
     }
 
+    using TFixedI8DotProduct = i32 (*)(const i8* lhs, const i8* rhs) noexcept;
+    using TFixedFloatDotProduct = float (*)(const float* lhs, const float* rhs) noexcept;
+
+    void TestFixedLengthI8(size_t length, TFixedI8DotProduct dispatched, TFixedI8DotProduct avx2, TFixedI8DotProduct vnni) {
+        TVector<i8> a(length + 16);
+        TVector<i8> b(length + 16);
+        FillWithRandomNumbers(a.data(), 179, a.size());
+        FillWithRandomNumbers(b.data(), 239, b.size());
+
+        const bool haveAvx2 = NX86::HaveAVX2() && NX86::HaveFMA();
+        const bool haveVnni = HaveVnniDotProduct();
+        const auto check = [&](const i8* lhs, const i8* rhs) {
+            const i32 expected = SimpleDotProduct<i32, i8>(lhs, rhs, length);
+            UNIT_ASSERT_VALUES_EQUAL(dispatched(lhs, rhs), expected);
+            if (haveAvx2) {
+                UNIT_ASSERT_VALUES_EQUAL(avx2(lhs, rhs), expected);
+            }
+            if (haveVnni) {
+                UNIT_ASSERT_VALUES_EQUAL(vnni(lhs, rhs), expected);
+            }
+        };
+
+        for (size_t offset = 0; offset < 16; ++offset) {
+            check(a.data() + offset, b.data() + offset);
+        }
+
+        // extreme values
+        const i8 extremes[][2] = {{-128, -128}, {-128, 127}, {127, 127}, {127, -128}};
+        for (const auto& [l, r] : extremes) {
+            TVector<i8> lhs(length, l);
+            TVector<i8> rhs(length, r);
+            check(lhs.data(), rhs.data());
+        }
+    }
+
+    void TestFixedLengthFloat(size_t length, TFixedFloatDotProduct dispatched, TFixedFloatDotProduct avx2) {
+        TVector<float> a(length + 16);
+        TVector<float> b(length + 16);
+        FillWithRandomFloats(a.data(), 179, a.size());
+        FillWithRandomFloats(b.data(), 239, b.size());
+
+        const bool haveAvx2 = NX86::HaveAVX2() && NX86::HaveFMA();
+        for (size_t offset = 0; offset < 16; ++offset) {
+            const float* lhs = a.data() + offset;
+            const float* rhs = b.data() + offset;
+            const double expected = SimpleDotProduct<double, float>(lhs, rhs, length);
+            UNIT_ASSERT(std::fabs(dispatched(lhs, rhs) - expected) < EPSILON * expected);
+            if (haveAvx2) {
+                UNIT_ASSERT(std::fabs(avx2(lhs, rhs) - expected) < EPSILON * expected);
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestDotProduct64I8) {
+        TestFixedLengthI8(64, &DotProduct64, &DotProduct64Avx2, &DotProduct64Vnni);
+    }
+
+    Y_UNIT_TEST(TestDotProduct128I8) {
+        TestFixedLengthI8(128, &DotProduct128, &DotProduct128Avx2, &DotProduct128Vnni);
+    }
+
+    Y_UNIT_TEST(TestDotProduct256I8) {
+        TestFixedLengthI8(256, &DotProduct256, &DotProduct256Avx2, &DotProduct256Vnni);
+    }
+
+    Y_UNIT_TEST(TestDotProduct512I8) {
+        TestFixedLengthI8(512, &DotProduct512, &DotProduct512Avx2, &DotProduct512Vnni);
+    }
+
+    Y_UNIT_TEST(TestDotProduct64Float) {
+        TestFixedLengthFloat(64, &DotProduct64, &DotProduct64Avx2);
+    }
+
+    Y_UNIT_TEST(TestDotProduct128Float) {
+        TestFixedLengthFloat(128, &DotProduct128, &DotProduct128Avx2);
+    }
+
+    Y_UNIT_TEST(TestDotProduct256Float) {
+        TestFixedLengthFloat(256, &DotProduct256, &DotProduct256Avx2);
+    }
+
+    Y_UNIT_TEST(TestDotProduct512Float) {
+        TestFixedLengthFloat(512, &DotProduct512, &DotProduct512Avx2);
+    }
+
     Y_UNIT_TEST(TestDotProduct8u) {
         TVector<ui8> a(100);
         FillWithRandomNumbers(a.data(), 179, 100);
