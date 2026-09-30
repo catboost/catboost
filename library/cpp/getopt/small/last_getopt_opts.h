@@ -60,6 +60,8 @@ namespace NLastGetopt {
         ui32 FreeArgsMin_; // minimal number of free args
         ui32 FreeArgsMax_; // maximal number of free args
 
+        TVector<const TOpt*> ExclusiveWithFreeArgs_;
+
         TMap<ui32, TFreeArgSpec> FreeArgSpecs_; // mapping [free arg position] -> [free arg specification]
         TFreeArgSpec TrailingArgSpec_;          // spec for the trailing argument (when arguments are unlimited)
         TString DefaultFreeArgTitle_ = "ARG"; // title that's used for free args without a title
@@ -432,6 +434,17 @@ namespace NLastGetopt {
          * Like `MutuallyExclusive`, but accepts `TOpt`s instead of option names.
          */
         void MutuallyExclusiveOpt(TOpt& opt1, TOpt& opt2);
+
+        /**
+         * Indicate that an explicitly specified option can't appear together with free arguments.
+         * Default values do not trigger this check.
+         */
+        template <typename Opt>
+        void MutuallyExclusiveWithFreeArgs(Opt&& name) {
+            TOpt& opt = GetOption(name);
+            ExclusiveWithFreeArgs_.push_back(&opt);
+            opt.IfPresentDisableCompletionForFreeArgs();
+        }
 
         /**
          * @return index of option
