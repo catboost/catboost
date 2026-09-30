@@ -60,6 +60,32 @@ Other info:
 <MiningField name="feature_16" usageType="active"/>
 <MiningField name="prediction" usageType="target"/>
 </MiningSchema>
+<Segmentation multipleModelMethod="modelChain">
+<Segment id="treeEnsemble">
+<True/>
+<MiningModel functionName="regression">
+<MiningSchema>
+<MiningField name="feature_3" usageType="active"/>
+<MiningField name="feature_5" usageType="active"/>
+<MiningField name="feature_7" usageType="active"/>
+<MiningField name="feature_13" usageType="active"/>
+<MiningField name="feature_14" usageType="active"/>
+<MiningField name="feature_15" usageType="active"/>
+<MiningField name="feature_0" usageType="active"/>
+<MiningField name="feature_1" usageType="active"/>
+<MiningField name="feature_2" usageType="active"/>
+<MiningField name="feature_4" usageType="active"/>
+<MiningField name="feature_6" usageType="active"/>
+<MiningField name="feature_8" usageType="active"/>
+<MiningField name="feature_9" usageType="active"/>
+<MiningField name="feature_10" usageType="active"/>
+<MiningField name="feature_11" usageType="active"/>
+<MiningField name="feature_12" usageType="active"/>
+<MiningField name="feature_16" usageType="active"/>
+</MiningSchema>
+<Output>
+<OutputField name="approx" optype="continuous" dataType="double"/>
+</Output>
 <LocalTransformations>
 <DerivedField name="feature_4_mapped" optype="categorical" dataType="integer">
 <MapValues mapMissingTo="2" defaultValue="2" outputColumn="value" dataType="integer">
@@ -151,32 +177,6 @@ Other info:
 </MapValues>
 </DerivedField>
 </LocalTransformations>
-<Segmentation multipleModelMethod="modelChain">
-<Segment id="treeEnsemble">
-<True/>
-<MiningModel functionName="regression">
-<MiningSchema>
-<MiningField name="feature_3" usageType="active"/>
-<MiningField name="feature_5" usageType="active"/>
-<MiningField name="feature_7" usageType="active"/>
-<MiningField name="feature_13" usageType="active"/>
-<MiningField name="feature_14" usageType="active"/>
-<MiningField name="feature_15" usageType="active"/>
-<MiningField name="feature_0" usageType="active"/>
-<MiningField name="feature_1" usageType="active"/>
-<MiningField name="feature_2" usageType="active"/>
-<MiningField name="feature_4" usageType="active"/>
-<MiningField name="feature_6" usageType="active"/>
-<MiningField name="feature_8" usageType="active"/>
-<MiningField name="feature_9" usageType="active"/>
-<MiningField name="feature_10" usageType="active"/>
-<MiningField name="feature_11" usageType="active"/>
-<MiningField name="feature_12" usageType="active"/>
-<MiningField name="feature_16" usageType="active"/>
-</MiningSchema>
-<Output>
-<OutputField name="approx" optype="continuous" dataType="double"/>
-</Output>
 <Segmentation multipleModelMethod="sum">
 <Segment id="0">
 <True/>
@@ -768,27 +768,22 @@ Other info:
 </Segment>
 <Segment id="classifier">
 <True/>
-<TreeModel modelName="selectClass" functionName="classification" splitCharacteristic="binarySplit">
+<RegressionModel modelName="classProbabilities" functionName="classification" normalizationMethod="logit">
 <MiningSchema>
 <MiningField name="approx" usageType="active"/>
+<MiningField name="prediction" usageType="target"/>
 </MiningSchema>
 <Output>
 <OutputField name="prediction" optype="categorical" dataType="boolean"/>
+<OutputField name="probability(false)" optype="continuous" dataType="double" feature="probability" value="false"/>
+<OutputField name="probability(true)" optype="continuous" dataType="double" feature="probability" value="true"/>
 </Output>
-<Node id="root">
-<True/>
-<Node id="1" score="true">
-<SimplePredicate field="approx" operator="greaterThan" value="0.0"/>
-</Node>
-<Node id="0" score="false">
-<True/>
-</Node>
-</Node>
-</TreeModel>
+<RegressionTable targetCategory="true" intercept="0">
+<NumericPredictor name="approx" coefficient="1"/>
+</RegressionTable>
+<RegressionTable targetCategory="false" intercept="0"/>
+</RegressionModel>
 </Segment>
 </Segmentation>
-<Targets>
-<Target rescaleConstant="0" rescaleFactor="1" field="prediction"/>
-</Targets>
 </MiningModel>
 </PMML>
