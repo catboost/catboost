@@ -10,10 +10,13 @@
 
 #include <util/generic/buffer.h>
 #include <util/network/endpoint.h>
+#include <util/network/sock.h>
 #include <util/network/socket.h>
 #include <util/stream/str.h>
 #include <util/string/builder.h>
 #include <util/generic/scope.h>
+#include <util/system/event.h>
+#include <util/system/thread.h>
 
 using namespace NNeh;
 
@@ -49,6 +52,137 @@ Y_UNIT_TEST_SUITE(NehHttp) {
     struct TServ {
         IServicesRef Services;
         ui16 ServerPort;
+    };
+
+    class TIdleResponseServer {
+    public:
+        TIdleResponseServer()
+            : Thread_([this] { Run(); })
+        {
+            TSockAddrInet address("127.0.0.1", 0);
+            UNIT_ASSERT_EQUAL(ListenSocket_.Bind(&address), 0);
+            UNIT_ASSERT_EQUAL(ListenSocket_.Listen(1), 0);
+            SetNonBlock(ListenSocket_);
+            Port_ = address.GetPort();
+            Thread_.Start();
+        }
+
+        ~TIdleResponseServer() {
+            Thread_.Join();
+        }
+
+        ui16 Port() const noexcept {
+            return Port_;
+        }
+
+        void SendUnexpectedResponse() noexcept {
+            SendUnexpectedResponse_.Signal();
+        }
+
+        bool WaitUntilReadyForSecondRequest(TDuration timeout) noexcept {
+            return ReadyForSecondRequest_.WaitT(timeout);
+        }
+
+    private:
+        static bool SendAll(TStreamSocket& socket, TStringBuf data) {
+            while (data) {
+                const ssize_t written = socket.Send(data.data(), data.size());
+                if (written <= 0) {
+                    return false;
+                }
+                data.Skip(written);
+            }
+            return true;
+        }
+
+        static bool ReadRequest(TStreamSocket& socket, TDuration timeout) {
+            TString data;
+            const TInstant deadline = timeout.ToDeadLine();
+            while (!data.Contains("\r\n\r\n")) {
+                const TDuration left = deadline - TInstant::Now();
+                if (left <= TDuration::Zero()) {
+                    return false;
+                }
+                const long timeoutMs = Max<long>(1, left.MilliSeconds());
+                SetSocketTimeout(socket, timeoutMs / 1000, timeoutMs % 1000);
+
+                char buffer[1024];
+                const ssize_t size = socket.Recv(buffer, sizeof(buffer));
+                if (size <= 0) {
+                    return false;
+                }
+                data.append(buffer, size);
+            }
+            return true;
+        }
+
+        bool Accept(TInetStreamSocket& socket, TDuration timeout) {
+            const TInstant deadline = timeout.ToDeadLine();
+            while (TInstant::Now() < deadline) {
+                const int error = ListenSocket_.Accept(&socket);
+                if (error == 0) {
+                    return true;
+                }
+                if (error != -EAGAIN && error != -EWOULDBLOCK) {
+                    return false;
+                }
+                Sleep(TDuration::MilliSeconds(1));
+            }
+            return false;
+        }
+
+        void Run() {
+            static constexpr TStringBuf emptyResponse =
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Length: 0\r\n"
+                "Connection: Keep-Alive\r\n"
+                "\r\n";
+            static constexpr TStringBuf finalResponse =
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Length: 2\r\n"
+                "Connection: Close\r\n"
+                "\r\n"
+                "OK";
+
+            TInetStreamSocket oldConnection;
+            if (!Accept(oldConnection, TDuration::Seconds(3)) ||
+                !ReadRequest(oldConnection, TDuration::Seconds(3)) ||
+                !SendAll(oldConnection, emptyResponse))
+            {
+                return;
+            }
+
+            if (!SendUnexpectedResponse_.WaitT(TDuration::Seconds(3))) {
+                return;
+            }
+            if (!SendAll(oldConnection, emptyResponse)) {
+                return;
+            }
+
+            // Give NEH time to consume the unexpected response while the
+            // connection has no associated request.
+            ReadRequest(oldConnection, TDuration::MilliSeconds(200));
+            ReadyForSecondRequest_.Signal();
+
+            if (ReadRequest(oldConnection, TDuration::Seconds(3))) {
+                return;
+            }
+
+            TInetStreamSocket newConnection;
+            if (!Accept(newConnection, TDuration::Seconds(3)) ||
+                !ReadRequest(newConnection, TDuration::Seconds(3)) ||
+                !SendAll(newConnection, finalResponse))
+            {
+                return;
+            }
+        }
+
+    private:
+        TInetStreamSocket ListenSocket_;
+        ui16 Port_ = 0;
+        TThread Thread_;
+        TManualEvent SendUnexpectedResponse_;
+        TManualEvent ReadyForSecondRequest_;
     };
 
     /**
@@ -163,6 +297,32 @@ Y_UNIT_TEST_SUITE(NehHttp) {
         }
         const TStringBuf responseBuf(resp.data(), resp.size());
         UNIT_ASSERT_C(responseBuf == expectedResponses.Str(), TString("has unexpected responses: ") + responseBuf);
+    }
+
+    Y_UNIT_TEST(TUnexpectedResponseOnIdleConnectionDoesNotHangNextRequest) {
+        TResponseRef secondResponse;
+        {
+            TIdleResponseServer server;
+            const TString address = TStringBuilder() << "http2://127.0.0.1:" << server.Port() << "/ping";
+
+            TResponseRef firstResponse = NNeh::Request(address)->Wait(TDuration::Seconds(3));
+            UNIT_ASSERT_C(firstResponse && !firstResponse->IsError(), "first request failed");
+
+            server.SendUnexpectedResponse();
+            UNIT_ASSERT_C(
+                server.WaitUntilReadyForSecondRequest(TDuration::Seconds(3)),
+                "server did not send unexpected response");
+
+            THandleRef secondHandle = NNeh::Request(address);
+            secondResponse = secondHandle->Wait(TDuration::Seconds(3));
+            if (!secondResponse) {
+                secondHandle->Cancel();
+            }
+        }
+
+        UNIT_ASSERT_C(secondResponse, "second request hung after reusing an invalid idle connection");
+        UNIT_ASSERT_C(!secondResponse->IsError(), secondResponse->GetErrorText());
+        UNIT_ASSERT_VALUES_EQUAL(secondResponse->Data, "OK");
     }
 
     /**

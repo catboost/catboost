@@ -545,13 +545,12 @@ namespace {
 
         //start next request on keep-alive connection
         bool StartNextRequest(THttpRequestRef& req) {
-            if (Finalized_) {
-                return false;
-            }
-
             {
                 //thread safe linking connection->request
                 TGuard<TSpinLock> g(SL_);
+                if (Finalized_) {
+                    return false;
+                }
                 Req_ = req;
             }
 
@@ -822,8 +821,7 @@ namespace {
                 //succesfully reach end of http response
                 THttpRequestRef r(ReleaseRequest());
                 if (!r) {
-                    //lost race to req. canceling
-                    DBGOUT("connection failed");
+                    OnError("response received without an active request");
                     return;
                 }
 
