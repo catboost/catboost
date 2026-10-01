@@ -263,6 +263,12 @@ jobs:
             }
           }
 
+      - if: inputs.os == 'windows'
+        name: Setup MSVC for model export tests
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Run pytest
         shell: pwsh
         run: |
