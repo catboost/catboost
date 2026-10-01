@@ -5,7 +5,9 @@
 
 #if defined(_win_)
     #include <intrin.h>
-    #pragma intrinsic(__rdtsc)
+    #if defined(_x86_)
+        #pragma intrinsic(__rdtsc)
+    #endif
 #endif // _win_
 
 #if defined(_darwin_) && !defined(_x86_)
@@ -48,7 +50,7 @@ namespace NPrivate {
 // PERFORMANCE: rdtsc - 15 cycles per call , rdtscp - 19 cycles per call
 // WARNING: following instruction can be executed out-of-order
 Y_FORCE_INLINE ui64 GetCycleCount() noexcept {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && defined(_x86_)
     // Generates the rdtscp instruction, which returns the processor time stamp.
     // The processor time stamp records the number of clock cycles since the last reset.
     static const bool haveRdtscp = ::NPrivate::HaveRdtscpImpl();
