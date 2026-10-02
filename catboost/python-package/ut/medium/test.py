@@ -37,7 +37,7 @@ from catboost import (
     to_ranker,
     MultiTargetCustomMetric,
 )
-from catboost.core import is_maximizable_metric, is_minimizable_metric
+from catboost.core import is_maximizable_metric, is_minimizable_metric, _plot_feature_statistics_units
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -11699,6 +11699,43 @@ def test_github_issue_2378_numpy_int_is_deprecated():
                               depth=2)
     model.fit(train_data, train_labels)
     model.calc_feature_statistics(train_data, train_labels, plot=False)
+
+
+def test_github_issue_2746_feature_statistics_plot_with_many_cat_values():
+    n_samples = 200
+    np.random.seed(42)
+    cat_values = ['c{}'.format(i) for i in range(15)]
+    X = pd.DataFrame({
+        'num': np.random.rand(n_samples),
+        'cat': [cat_values[i % len(cat_values)] for i in range(n_samples)]
+    })
+    y = np.random.rand(n_samples)
+    model = CatBoostRegressor(iterations=10, one_hot_max_size=255)
+    model.fit(X, y, cat_features=[1], silent=True)
+
+    plot_file = test_output_path('single_pool_plot.html')
+    stats = model.calc_feature_statistics(X, y, feature=1, plot=False, plot_file=plot_file, max_cat_features_on_plot=4)
+    assert len(stats['cat_values']) > 4
+    assert os.path.exists(plot_file)
+
+    plot_file = test_output_path('multi_pool_plot.html')
+    stats = model.calc_feature_statistics(
+        {'learn': X, 'test': X[:100]},
+        {'learn': y, 'test': y[:100]},
+        feature=1,
+        plot=False,
+        plot_file=plot_file,
+        max_cat_features_on_plot=4
+    )
+    assert os.path.exists(plot_file)
+
+    # Bar heights on each partial plot are shares of the whole dataset.
+    figs = _plot_feature_statistics_units(stats, ['learn', 'test'], 'cat', 4)
+    assert len(figs) > 1
+    for pool_idx, pool_size in enumerate([n_samples, 100]):
+        bars = [[trace for trace in fig.data if trace.type == 'bar'][pool_idx] for fig, _ in figs]
+        assert all('(total {})'.format(pool_size) in bar.name for bar in bars)
+        assert np.isclose(sum(sum(bar.y) for bar in bars), 1.0)
 
 
 @pytest.mark.xfail(sys.platform == "win32", reason="tmp dir creation problems")

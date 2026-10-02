@@ -7433,7 +7433,7 @@ def _calc_feature_statistics_layout(go, xaxis, single_pool):
     )
 
 
-def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
+def _build_binarized_feature_statistics_fig(statistics_list, pool_names, objects_in_pools=None):
     try:
         import plotly.graph_objs as go
     except ImportError as e:
@@ -7505,7 +7505,10 @@ def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
             )
 
         if pools_count > 1:
-            objects_in_pool = statistics['objects_per_bin'].sum()
+            if objects_in_pools is None:
+                objects_in_pool = statistics['objects_per_bin'].sum()
+            else:
+                objects_in_pool = objects_in_pools[i]
             color_a = np.array([30, 150, 30])
             color_b = np.array([30, 30, 150])
             color = (color_a * i + color_b * (pools_count - 1 - i)) / float(pools_count - 1)
@@ -7554,12 +7557,13 @@ def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
 def _plot_feature_statistics_units(statistics, pool_names, feature_name, max_cat_features_on_plot):
     if 'cat_values' in statistics[0].keys() and len(statistics[0]['cat_values']) > max_cat_features_on_plot:
         figs = []
+        objects_in_pools = [stats['objects_per_bin'].sum() for stats in statistics]
         for begin in range(0, len(statistics[0]['cat_values']), max_cat_features_on_plot):
             end = begin + max_cat_features_on_plot
             statistics_keys = ['cat_values', 'mean_target', 'mean_weighted_target', 'mean_prediction',
                                'objects_per_bin', 'predictions_on_varying_feature']
-            sub_statistics = dict([(k, dict([(key, stats[key][begin : end]) for key in statistics_keys])) for k, stats in statistics])
-            fig = _build_binarized_feature_statistics_fig(sub_statistics, pool_names)
+            sub_statistics = [{key: stats[key][begin : end] for key in statistics_keys} for stats in statistics]
+            fig = _build_binarized_feature_statistics_fig(sub_statistics, pool_names, objects_in_pools)
             feature_name_with_part_suffix = '{}_parts[{}:{}]'.format(feature_name, begin, end)
             figs += [(fig, feature_name_with_part_suffix)]
         return figs
