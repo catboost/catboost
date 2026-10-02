@@ -5727,7 +5727,6 @@ namespace {
     public:
         explicit TCombinationLoss(const TLossParams& params)
         : TAdditiveSingleTargetMetric(ELossFunction::Combination, params)
-        , Params(params.GetParamsMap())
         {
         }
 
@@ -5748,8 +5747,6 @@ namespace {
         TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
         double GetFinalError(const TMetricHolder& error) const override;
-    private:
-        const TMap<TString, TString> Params;
     };
 }
 
@@ -5784,11 +5781,7 @@ EErrorType TCombinationLoss::GetErrorType() const {
 }
 
 TString TCombinationLoss::GetDescription() const {
-    TString description;
-    for (const auto& [param, value] : Params) {
-        description += BuildDescription(TMetricParam<TString>(param, value, /*userDefined*/true));
-    }
-    return description;
+    return TMetric::GetDescription();
 }
 
 void TCombinationLoss::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
@@ -6289,7 +6282,9 @@ TMetricHolder TMultiCrossEntropyMetric::EvalSingleThread(
         }
     }
     error.Stats[0] = -sumDimErrors / approxDimension;
-    error.Stats[1] = weight.empty() ? end - begin : Accumulate(weight, 0);
+    // Fractional weights must retain their precision, and each parallel
+    // partition contributes only the weights of the rows it evaluated.
+    error.Stats[1] = weight.empty() ? end - begin : Accumulate(weight.Slice(begin, end - begin), 0.0);
     return error;
 }
 
@@ -7005,7 +7000,10 @@ void CheckPreprocessedTarget(
     bool allowConstLabel
 ) {
     ELossFunction lossFunction = lossDesciption.GetLossFunction();
-    if (isNonEmptyAndNonConst && (lossFunction != ELossFunction::PairLogit) && (lossFunction != ELossFunction::PairLogitPairwise)) {
+    // Pairwise metrics use supplied edges and do not require target values.
+    // GPU preparation may synthesize constant targets for an unlabeled Pool;
+    // this must also work when PairAccuracy is requested alongside PairLogit.
+    if (isNonEmptyAndNonConst && !IsPairwiseMetric(lossFunction)) {
         auto targetBounds = CalcMinMax(target);
         CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "All train targets are equal");
     }

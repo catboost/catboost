@@ -1,0 +1,97 @@
+#pragma once
+
+#include "categorical.h"
+
+#include <util/generic/ptr.h>
+#include <util/stream/fwd.h>
+
+namespace NCB {
+    struct TMetalTreeCtrScoringFeature {
+        ui32 AbsoluteFeature = 0;
+        ui32 Policy = 0; // CUDA Binary/HalfByte/OneByte = 0/1/2
+    };
+
+    struct TMetalTreeCtrScoringPack {
+        ui64 BaseTensorHash = 0;
+        ui32 PolicyMask = 0;
+        TVector<TMetalTreeCtrScoringFeature> Features;
+    };
+
+    // Append this batch after the existing feature bank. CandidateFeatures are
+    // local to the batch; ActiveFeatures are absolute runtime feature IDs and
+    // describe every currently eligible dynamic feature (not just this batch).
+    // Static numeric, one-hot and simple CTR features remain caller-owned.
+    struct TMetalTreeCtrBatch {
+        ui32 FirstFeature = 0;
+        TVector<TVector<ui8>> PermutationBins;
+        TVector<ui32> CandidateFeatures;
+        TVector<ui32> CandidateBins;
+        TVector<ui8> CandidateTypes;
+        TVector<ui32> CtrUniqueValues;
+        // One flag for each newly appended column. Registered grids include
+        // selected winners and CUDA's eagerly cached category-only tensors.
+        TVector<ui8> RegisteredCtrFlags;
+        TVector<ui32> ActiveFeatures;
+        ui32 BinsPerFeature = 1;
+        CBMCtrStats Stats = {};
+
+        ui32 GetFeatureCount() const { return CtrUniqueValues.size(); }
+    };
+
+    // CUDA FeatureParallel tree-dependent tensor scheduling, GPU projection
+    // hashing/grouping and exclusive sample/group CTR histories. Explicit
+    // history orders are source-row permutations (whole groups for Group);
+    // an empty collection means identity/P1.
+    // The adapter owns boosting folds, search RNG and the begin/grow/finish
+    // runtime state machine. This helper never changes targets or cursors.
+    class TMetalTreeCtrFeatures {
+    public:
+        TMetalTreeCtrFeatures(
+            const TTrainingDataProvider& data,
+            const NCatboostOptions::TCatBoostOptions& options,
+            NPar::ILocalExecutor* executor,
+            ui32 firstFeature,
+            ui32 learnAndFirstEvalRows,
+            TIntrusivePtr<TStaticCtrProvider> provider = {},
+            TConstArrayRef<TVector<ui32>> historyOrders = {});
+        ~TMetalTreeCtrFeatures();
+
+        // Start every tree with all dynamic features inactive. Prior IDs,
+        // history-specific grid variants and inference tables persist; only
+        // selected/eagerly registered grids are shared across search histories.
+        void BeginTree();
+        TMetalTreeCtrBatch AddSplit(const TModelSplit& split, ui32 borderPermutation = 0);
+        // Call for every selected runtime feature, including the last depth.
+        // Static feature IDs below firstFeature are ignored. The exact CTR
+        // config (including binarization ID) becomes bound to this grid/ID.
+        void MarkSelected(ui32 absoluteFeature);
+
+        const TModelSplit& GetSplit(ui32 absoluteFeature, ui32 bin) const;
+        ui32 GetFeatureCount() const;
+        ui32 GetPermutationCount() const;
+        // Absolute IDs of registered configurations, including inactive ones;
+        // transient unused history variants are excluded from this set.
+        TVector<ui32> GetRegisteredFeatures() const;
+        // One logical scoring pack per admitted base tensor. CUDA may split
+        // it by category for memory, but each physical pack uses the same
+        // base hash and complete configured policy mask. Keep memberships
+        // separate across bases; never overwrite a feature's earlier pack.
+        // Query between AddSplit and the next search; no GPU work is issued.
+        TVector<TMetalTreeCtrScoringPack> GetActiveScoringPacks() const;
+        TIntrusivePtr<TStaticCtrProvider> GetCtrProvider() const;
+
+        // Save after a completed tree. Restore into a fresh helper and append
+        // its returned banks before restoring optimizer state; saved grids and
+        // descriptor order are reused exactly. History policy and group
+        // boundaries are checked; Sample-only version 2 snapshots remain
+        // readable. The caller must validate its
+        // complete data/options fingerprint before Restore. No in-progress
+        // tree is restored.
+        void Save(IOutputStream* output) const;
+        TMetalTreeCtrBatch Restore(IInputStream* input);
+
+    private:
+        class TImpl;
+        THolder<TImpl> Impl;
+    };
+}

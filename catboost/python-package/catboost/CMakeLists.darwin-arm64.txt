@@ -84,6 +84,10 @@ target_allocator(_catboost
   cpp-malloc-mimalloc
 )
 
+if (HAVE_METAL)
+  target_link_libraries(_catboost PUBLIC catboost-metal-train_lib)
+endif()
+
 target_link_options(_catboost PRIVATE
   -headerpad_max_install_names
   -Wl,-platform_version,macos,11.0,11.0

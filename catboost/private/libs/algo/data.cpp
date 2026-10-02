@@ -80,7 +80,8 @@ namespace NCB {
         TMaybe<float>* targetBorder,
         NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
-        TMaybe<TFullModel*> initModel) {
+        TMaybe<TFullModel*> initModel,
+        TArraySubsetIndexing<ui32>* learnObjectOrder) {
 
         const ui64 cpuRamLimit = ParseMemorySizeDescription(params->SystemOptions->CpuUsedRamLimit.Get());
 
@@ -229,6 +230,10 @@ namespace NCB {
         trainingData->UpdateMetaInfo();
 
         if (outputPairsInfo.HasFakeGroupIds()) {
+            if (learnObjectOrder) {
+                *learnObjectOrder = Compose(*learnObjectOrder,
+                    TArraySubsetIndexing<ui32>(TIndexedSubset<ui32>(outputPairsInfo.PermutationForGrouping)));
+            }
             trainingData = trainingData->GetSubset(
                 TObjectsGroupingSubset(
                     trainingData->TargetData->GetObjectsGrouping(),
@@ -476,7 +481,8 @@ namespace NCB {
         TLabelConverter* labelConverter,
         NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
-        TMaybe<TFullModel*> initModel) {
+        TMaybe<TFullModel*> initModel,
+        TArraySubsetIndexing<ui32>* learnObjectOrder) {
 
         TTrainingDataProviders trainingData;
 
@@ -496,7 +502,8 @@ namespace NCB {
             &targetBorder,
             localExecutor,
             rand,
-            initModel
+            initModel,
+            learnObjectOrder
         );
 
         quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();

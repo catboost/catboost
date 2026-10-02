@@ -114,10 +114,11 @@ static void CheckBaseline(
             !classCount || (*classCount == 2),
             "One-dimensional baseline with multiple classes"
         );
-    } else {
-        CB_ENSURE_INTERNAL(classCount, "Multidimensional baseline for non-multiclassification");
+    } else if (classCount) {
         CheckDataSize(baseline.size(), (size_t)*classCount, "Baseline", true, "class count");
     }
+    // Non-classification models may have several approximation dimensions.
+    // Their expected baseline count is checked by target-provider creation.
 
     for (auto i : xrange(baseline.size())) {
         CheckOneBaseline(*(baseline[i]), i, objectCount);
