@@ -28,7 +28,7 @@ namespace NKernel {
         if (size > 0) {
             const ui32 blockSize = 512;
             const ui32 numBlocks = SafeIntegerCast<ui32>((size + blockSize - 1) / (blockSize));
-            FilterImpl << <numBlocks, blockSize, 0, stream>>>(weights, size, result);
+            FilterImpl <<<numBlocks, blockSize, 0, stream>>>(weights, size, result);
         }
     }
 

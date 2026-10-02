@@ -111,13 +111,13 @@ namespace NKernel
         if (fullPass)
         {
             ComputeSplitPropertiesBImpl <BlockSize, true,
-                    BlocksPerFeatureCount > << <numBlocks,BlockSize, 0, stream>>>(
+                    BlocksPerFeatureCount > <<<numBlocks,BlockSize, 0, stream>>>(
                     bFeatures, bCount, cindex, target, weight, indices, partition, binSums, totalFeatureCount
             );
         } else
         {
             ComputeSplitPropertiesBImpl <BlockSize, false,
-                    BlocksPerFeatureCount > << <numBlocks,BlockSize, 0, stream>>>(
+                    BlocksPerFeatureCount > <<<numBlocks,BlockSize, 0, stream>>>(
                     bFeatures, bCount, cindex, target, weight, indices, partition, binSums, totalFeatureCount
             );
         }

@@ -17,6 +17,22 @@ namespace NKernel {
         int* starts = const_cast<int*>((const int*)(segmentStarts));
         int* ends = const_cast<int*>((const int*)(segmentEnds));
 
+#if defined(USE_HIP)
+        // rocPRIM's segmented radix sort writes only the segment-covered ranges
+        // into the active DoubleBuffer and flips Current() to the alternate
+        // buffer, leaving out-of-segment ("gap") elements undefined there; the
+        // copy-back below then propagates those gaps over the input. Seed both
+        // buffers with the input so gap elements are correct whichever buffer
+        // wins. (CUB leaves the result in-place, so this is a no-op difference
+        // there and the guard keeps the CUDA path untouched.)
+        if (keys && tmpKeys) {
+            cudaMemcpyAsync(tmpKeys, keys, sizeof(K) * size, cudaMemcpyDeviceToDevice, stream);
+        }
+        if (values && tmpValues) {
+            cudaMemcpyAsync(tmpValues, values, sizeof(V) * size, cudaMemcpyDeviceToDevice, stream);
+        }
+#endif
+
         if (values) {
             cub::DoubleBuffer<V> doubleBufferValues(values, tmpValues);
 

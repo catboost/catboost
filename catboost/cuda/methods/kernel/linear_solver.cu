@@ -59,7 +59,7 @@ namespace NKernel {
         const int blockSize = 256;
         const int numBlocks = (matCount * 32 + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
-            ExtractMatricesAndTargetsImpl<blockSize> << < numBlocks, blockSize, 0, stream >> > (linearSystem, matCount, rowSize, matrices, targets, matrixDiag);
+            ExtractMatricesAndTargetsImpl<blockSize> <<< numBlocks, blockSize, 0, stream >>> (linearSystem, matCount, rowSize, matrices, targets, matrixDiag);
         }
     }
 
@@ -132,7 +132,7 @@ namespace NKernel {
                 }
 
                 float sum = ShuffleReduce(x, tmp, min(reduceSize, 32));
-                sum = __shfl_sync(0xFFFFFFFF, sum, 0, logicalWarpSize);
+                sum = __shfl_sync(CB_FULL_WARP_MASK, sum, 0, logicalWarpSize);
 
 
                 const float ljj = Ljj[0];
@@ -158,7 +158,7 @@ namespace NKernel {
                 }
 
                 float sum = ShuffleReduce(x, tmp, min(reduceSize, 32));
-                sum = __shfl_sync(0xFFFFFFFF, sum, 0, logicalWarpSize);
+                sum = __shfl_sync(CB_FULL_WARP_MASK, sum, 0, logicalWarpSize);
 
                 __syncwarp();
 
@@ -500,8 +500,8 @@ namespace NKernel {
 
             const int solverNumBlocks = (matCount * rowSize + SOLVER_BLOCK_SIZE - 1) / SOLVER_BLOCK_SIZE;
             if (solverNumBlocks) {
-                SolveForwardImpl<TDirectSystem, SOLVER_BLOCK_SIZE> << < solverNumBlocks, SOLVER_BLOCK_SIZE, 0, stream >> > (matrices, rowSize, rowSize - REMOVE_LAST, matCount, solutions);
-                SolveForwardImpl<TTransposedSystem, SOLVER_BLOCK_SIZE> << < solverNumBlocks, SOLVER_BLOCK_SIZE, 0, stream >> > (matrices, rowSize, rowSize - REMOVE_LAST, matCount, solutions);
+                SolveForwardImpl<TDirectSystem, SOLVER_BLOCK_SIZE> <<< solverNumBlocks, SOLVER_BLOCK_SIZE, 0, stream >>> (matrices, rowSize, rowSize - REMOVE_LAST, matCount, solutions);
+                SolveForwardImpl<TTransposedSystem, SOLVER_BLOCK_SIZE> <<< solverNumBlocks, SOLVER_BLOCK_SIZE, 0, stream >>> (matrices, rowSize, rowSize - REMOVE_LAST, matCount, solutions);
             }
         }
     }
@@ -512,14 +512,14 @@ namespace NKernel {
                               int matCount, TCudaStream stream) {
         const int numBlocks = (matCount * BLOCK_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
-        CalcScoresCholeskyImpl<BLOCK_SIZE> << < numBlocks, BLOCK_SIZE, 0, stream >> >(linearSystem, solutions, rowSize, matCount, scores);
+        CalcScoresCholeskyImpl<BLOCK_SIZE> <<< numBlocks, BLOCK_SIZE, 0, stream >>>(linearSystem, solutions, rowSize, matCount, scores);
     }
 
     void ZeroMean(float* solutions, int rowSize, int matCount, TCudaStream stream) {
         const int blockSize = 256;
         const int numBlocks = (matCount * rowSize + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
-            ZeroMeanImpl<blockSize> << < numBlocks, blockSize, 0, stream >> > (solutions, rowSize, matCount);
+            ZeroMeanImpl<blockSize> <<< numBlocks, blockSize, 0, stream >>> (solutions, rowSize, matCount);
         }
     }
 

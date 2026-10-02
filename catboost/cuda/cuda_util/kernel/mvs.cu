@@ -203,7 +203,14 @@ __global__ void MvsBootstrapRadixSortImpl(
 
     const int idx = blockOffset + threadIdx.x;
     const float inf = sqrtf(std::numeric_limits<float>::max()) - 2 * lambda;
+#if defined(USE_HIP)
+    // hipCUB's CacheModifiedInputIterator<MOD, T> ctor takes a non-const T*
+    // (CUB deduces the const qualifier into the value type); the iterator only
+    // reads, so const_cast is safe.
+    cub::CacheModifiedInputIterator<cub::LOAD_CS, float> inputIterator(const_cast<float*>(ders));
+#else
     cub::CacheModifiedInputIterator<cub::LOAD_CS, float> inputIterator(ders);
+#endif
     cub::LoadDirectWarpStriped(
         idx,
         inputIterator,
