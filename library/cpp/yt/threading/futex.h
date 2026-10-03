@@ -1,6 +1,8 @@
 #pragma once
 
-#include <util/datetime/base.h>
+// TODO(babenko): Drop this shim; include library/cpp/yt/system/futex.h instead.
+
+#include <library/cpp/yt/system/futex.h>
 
 namespace NYT::NThreading {
 
@@ -8,8 +10,8 @@ namespace NYT::NThreading {
 
 #ifdef _linux_
 
-int FutexWait(int* addr, int value, TDuration timeout = TDuration::Max());
-int FutexWake(int* addr, int count);
+using ::NYT::FutexWait;
+using ::NYT::FutexWake;
 
 #endif
 

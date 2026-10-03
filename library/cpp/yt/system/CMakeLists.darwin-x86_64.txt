@@ -28,17 +28,32 @@ target_compile_options(cpp-yt-system PRIVATE
 target_link_libraries(cpp-yt-system PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-yt-assert
   cpp-yt-cpu_clock
   cpp-yt-exception
   cpp-yt-misc
 )
 
 target_sources(cpp-yt-system PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/at_fork.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/count_down_latch.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/cpu_id.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/env.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/event_count.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/exit.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/fork_aware_rw_spin_lock.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/fork_aware_spin_lock.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/futex.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/notification_handle.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/process_id.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/recursive_spin_lock.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/rw_spin_lock.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/spin_lock.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/spin_lock_count.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/spin_wait.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/spin_wait_hook.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/thread_id.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/thread_name.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/writer_starving_rw_spin_lock.cpp
 )
 

@@ -1,0 +1,39 @@
+#pragma once
+
+#include "spin_lock.h"
+
+#include <util/system/src_location.h>
+
+namespace NYT {
+
+////////////////////////////////////////////////////////////////////////////////
+
+//! Wraps TSpinLock and additionally acquires a global fork lock (in read mode)
+//! preventing concurrent forks from happening.
+class TForkAwareSpinLock
+{
+public:
+    static constexpr bool Traced = true;
+
+    TForkAwareSpinLock(const TForkAwareSpinLock&) = delete;
+    TForkAwareSpinLock& operator =(const TForkAwareSpinLock&) = delete;
+
+    constexpr TForkAwareSpinLock() = default;
+
+    explicit constexpr TForkAwareSpinLock(const ::TSourceLocation& location)
+        : SpinLock_(location)
+    { }
+
+    void Acquire() noexcept;
+    bool TryAcquire() noexcept;
+    void Release() noexcept;
+
+    bool IsLocked() const noexcept;
+
+private:
+    ::NYT::TSpinLock SpinLock_;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+} // namespace NYT
