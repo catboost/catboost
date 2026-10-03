@@ -1101,7 +1101,7 @@ static void CalcShapValuesForDocumentBlockMulti(
     shapValuesForAllDocuments->resize(oldShapValuesSize + end - start);
 
     NPar::ILocalExecutor::TExecRangeParams blockParams(0, documentCount);
-    localExecutor->ExecRange([&] (size_t documentIdxInBlock) {
+    localExecutor->ExecRangeWithThrow([&] (size_t documentIdxInBlock) {
         TVector<TVector<double>>& shapValues = (*shapValuesForAllDocuments)[oldShapValuesSize + documentIdxInBlock];
 
         CalcShapValuesForDocumentMulti(
@@ -1117,7 +1117,7 @@ static void CalcShapValuesForDocumentBlockMulti(
             /*documentIdx*/ documentIdxInBlock + start
         );
 
-    }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+    }, blockParams.FirstId, blockParams.LastId, NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 static void CalcShapValuesByLeafForTreeBlock(
@@ -1135,7 +1135,7 @@ static void CalcShapValuesByLeafForTreeBlock(
     const bool isOblivious = forest.GetModelTreeData()->GetNonSymmetricStepNodes().empty() && forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId().empty();
 
     NPar::ILocalExecutor::TExecRangeParams blockParams(start, end);
-    localExecutor->ExecRange([&] (size_t treeIdx) {
+    localExecutor->ExecRangeWithThrow([&] (size_t treeIdx) {
         if (preparedTrees->CalcShapValuesByLeafForAllTrees && isOblivious) {
             const size_t leafCount = (size_t(1) << forest.GetModelTreeData()->GetTreeSizes()[treeIdx]);
             TVector<TVector<TShapValue>>& shapValuesByLeaf = preparedTrees->ShapValuesByLeafForAllTrees[treeIdx];
@@ -1201,7 +1201,7 @@ static void CalcShapValuesByLeafForTreeBlock(
                 }
             }
         }
-    }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+    }, blockParams.FirstId, blockParams.LastId, NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 void CalcShapValuesByLeaf(
@@ -1276,7 +1276,7 @@ void CalcShapValuesInternalForFeature(
             MakeArrayRef(indices.data(), binarizedFeaturesForBlock->GetObjectsCount() * forest.GetTreeCount())
         );
 
-        localExecutor->ExecRange([&](ui32 documentIdx) {
+        localExecutor->ExecRangeWithThrow([&](ui32 documentIdx) {
             TVector<TVector<double>> &docShapValues = (*shapValues)[documentIdx];
             docShapValues.assign(featuresCount, TVector<double>(forest.GetDimensionsCount() + 1, 0.0));
             auto docIndices = MakeArrayRef(indices.data() + forest.GetTreeCount() * (documentIdx - startIdx), forest.GetTreeCount());
@@ -1380,7 +1380,7 @@ void CalcShapValuesInternalForFeature(
                     }
                 }
             }
-        }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+        }, blockParams.FirstId, blockParams.LastId, NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 }
 
@@ -1557,7 +1557,7 @@ TVector<TVector<TVector<double>>> CalcShapValueWithQuantizedData(
         NPar::ILocalExecutor::TExecRangeParams blockParams(startIdx, startIdx + Min(documentBlockSize, documentCount - startIdx));
         auto quantizedFeaturesBlock = quantizedFeatures[blockIdx];
         auto& indicesForBlock = indices[blockIdx];
-        localExecutor->ExecRange([&](ui32 documentIdx) {
+        localExecutor->ExecRangeWithThrow([&](ui32 documentIdx) {
             const size_t documentIdxInBlock = documentIdx - startIdx;
             auto docIndices = MakeArrayRef(indicesForBlock.data() + forest.GetTreeCount() * documentIdxInBlock, forest.GetTreeCount());
             CalcShapValuesForDocumentMulti(
@@ -1571,7 +1571,7 @@ TVector<TVector<TVector<double>>> CalcShapValueWithQuantizedData(
                 &shapValues[documentIdx],
                 calcType
             );
-        }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+        }, blockParams.FirstId, blockParams.LastId, NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 
     const auto& swapedShapValues = SwapFeatureAndDocumentAxes(shapValues);

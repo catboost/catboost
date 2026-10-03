@@ -285,10 +285,12 @@ namespace NCudaLib {
 namespace NCatboostCuda {
     static TOptimizationTarget ComputeTarget(EScoreFunction scoreFunction,
                                              const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
+                                             TMaybe<float> mvsLambda,
                                              const IWeakObjective& objective) {
         const bool isSecondOrderScoreFunction = IsSecondOrderScoreFunction(scoreFunction);
         TOptimizationTarget target;
         objective.StochasticDer(bootstrapConfig,
+                                mvsLambda,
                                 isSecondOrderScoreFunction,
                                 &target);
         return target;
@@ -380,6 +382,7 @@ namespace NCatboostCuda {
     TPointsSubsets TGreedySearchHelper::CreateInitialSubsets(const IWeakObjective& objective) {
         auto target = ComputeTarget(Options.ScoreFunction,
                                     Options.BootstrapOptions,
+                                    Options.MvsLambda,
                                     objective);
         if (Options.RandomStrength) {
             ScoreStdDev = Options.RandomStrength * ComputeTargetStdDev(target);

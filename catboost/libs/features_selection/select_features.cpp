@@ -39,6 +39,17 @@ namespace NCB {
             );
         }
 
+        if ((featuresSelectOptions.Algorithm.Get() == EFeaturesSelectionAlgorithm::RecursiveByShapValues) &&
+            (catBoostOptions.ObliviousTreeOptions->GrowPolicy.Get() != EGrowPolicy::SymmetricTree))
+        {
+            const auto shapCalcType = featuresSelectOptions.ShapCalcType.Get();
+            CB_ENSURE(
+                (shapCalcType == ECalcTypeShapValues::Regular) || (shapCalcType == ECalcTypeShapValues::Approximate),
+                "shap_calc_type '" << shapCalcType << "' is supported only for symmetric trees"
+                " (grow_policy=SymmetricTree), use 'Regular' or 'Approximate' for " << catBoostOptions.ObliviousTreeOptions->GrowPolicy.Get()
+            );
+        }
+
         auto checkCountConsistency = [] (
             auto entriesForSelectSize,
             const TOption<int>& numberOfEntriesToSelect,
