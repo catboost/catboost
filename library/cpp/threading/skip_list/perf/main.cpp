@@ -13,6 +13,8 @@
 #include <util/system/mutex.h>
 #include <util/system/thread.h>
 
+#include <memory>
+
 namespace {
     using namespace NThreading;
 
@@ -96,8 +98,8 @@ namespace {
         }
     };
 
-    inline TAutoPtr<TWorkerThread> StartThread(std::function<void()> func) {
-        TAutoPtr<TWorkerThread> thread = new TWorkerThread(func);
+    inline std::unique_ptr<TWorkerThread> StartThread(std::function<void()> func) {
+        auto thread = std::make_unique<TWorkerThread>(func);
         thread->Start();
         return thread;
     }
@@ -287,7 +289,7 @@ namespace {
         void TEST_Concurrent() {
             LogInfo() << "starting producers..." << Endl;
 
-            TVector<TAutoPtr<TWorkerThread>> producers(NumWriters);
+            TVector<std::unique_ptr<TWorkerThread>> producers(NumWriters);
             for (size_t i1 = 0; i1 < producers.size(); ++i1) {
                 producers[i1] = StartThread([&] {
                     TInstant started = TInstant::Now();
@@ -307,7 +309,7 @@ namespace {
 
             LogInfo() << "starting consumers..." << Endl;
 
-            TVector<TAutoPtr<TWorkerThread>> consumers(NumReaders);
+            TVector<std::unique_ptr<TWorkerThread>> consumers(NumReaders);
             for (size_t i1 = 0; i1 < consumers.size(); ++i1) {
                 consumers[i1] = StartThread([&] {
                     TInstant started = TInstant::Now();
