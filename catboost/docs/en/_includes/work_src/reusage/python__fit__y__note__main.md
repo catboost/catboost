@@ -1,2 +1,2 @@
 
-Do not use this parameter if the input training dataset (specified in the `X` parameter) type is {{ python-type--pool }}.
+If the input training dataset (specified in the `X` parameter) type is {{ python-type--pool }}, passing `y` calls `X.set_label(y)` on the Pool, replacing any existing labels in place. A `UserWarning` is emitted when this overwrites pre-existing labels, so the mutation is not silent. If `y` is omitted, labels must already be set on the Pool. All other ancillary arguments (`cat_features`, `sample_weight`, `group_id`, `baseline`, etc.) must remain `None` when `X` is a Pool — they are carried by the Pool itself.
