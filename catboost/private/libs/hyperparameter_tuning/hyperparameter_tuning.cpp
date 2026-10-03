@@ -392,7 +392,7 @@ namespace {
         );
     }
 
-    bool QuantizeDataIfNeeded(
+    bool PrepareTrainingDataIfNeeded(
         bool allowWriteFiles,
         const TString& tmpDir,
         NCB::TFeaturesLayoutPtr featuresLayout,
@@ -400,16 +400,23 @@ namespace {
         NCB::TDataProviderPtr data,
         const TQuantizationParamsInfo& oldQuantizedParamsInfo,
         const TQuantizationParamsInfo& newQuantizedParamsInfo,
+        bool updateClassWeights,
         TLabelConverter* labelConverter,
         NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         NCatboostOptions::TCatBoostOptions* catBoostOptions,
+        NCB::TQuantizedObjectsDataProviderPtr* quantizedObjectsData,
         NCB::TTrainingDataProviderPtr* result) {
 
-        if (oldQuantizedParamsInfo.BinsCount != newQuantizedParamsInfo.BinsCount ||
+        const bool quantizationChanged =
+            oldQuantizedParamsInfo.BinsCount != newQuantizedParamsInfo.BinsCount ||
             oldQuantizedParamsInfo.BorderType != newQuantizedParamsInfo.BorderType ||
-            oldQuantizedParamsInfo.NanMode != newQuantizedParamsInfo.NanMode)
-        {
+            oldQuantizedParamsInfo.NanMode != newQuantizedParamsInfo.NanMode;
+        if (!quantizationChanged && !updateClassWeights) {
+            return false;
+        }
+
+        if (quantizationChanged) {
             NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization(
                 newQuantizedParamsInfo.BorderType,
                 newQuantizedParamsInfo.BinsCount,
@@ -417,8 +424,6 @@ namespace {
             );
 
             TVector<ui32> ignoredFeatureNums; // TODO(ilikepugs): MLTOOLS-3838
-            TMaybe<float> targetBorder = catBoostOptions->DataProcessingOptions->TargetBorder;
-
             quantizedFeaturesInfo = MakeIntrusive<NCB::TQuantizedFeaturesInfo>(
                 *(featuresLayout.Get()),
                 MakeConstArrayRef(ignoredFeatureNums),
@@ -426,26 +431,35 @@ namespace {
                 /*perFloatFeatureQuantization*/TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
                 /*floatFeaturesAllowNansInTestOnly*/true
             );
-            // Quantizing training data
-            *result = GetTrainingData(
-                data,
-                /*dataCanBeEmpty*/ false,
-                /*isLearnData*/ true,
-                /*datasetName*/ TStringBuf(),
-                /*bordersFile*/ Nothing(),  // Already at quantizedFeaturesInfo
-                /*unloadCatFeaturePerfectHashFromRam*/ allowWriteFiles,
-                /*ensureConsecutiveLearnFeaturesDataForCpu*/ false, // data will be split afterwards anyway
-                tmpDir,
-                quantizedFeaturesInfo,
-                catBoostOptions,
-                labelConverter,
-                &targetBorder,
-                localExecutor,
-                rand
+        } else {
+            // Reuse quantized features, but recreate targets from the original
+            // object weights so class weights are not applied cumulatively.
+            data = MakeIntrusive<NCB::TDataProvider>(
+                NCB::TDataMetaInfo(data->MetaInfo),
+                *quantizedObjectsData,
+                data->ObjectsGrouping,
+                NCB::TRawTargetDataProvider(data->RawTargetData)
             );
-            return true;
         }
-        return false;
+        TMaybe<float> targetBorder = catBoostOptions->DataProcessingOptions->TargetBorder;
+        *result = GetTrainingData(
+            data,
+            /*dataCanBeEmpty*/ false,
+            /*isLearnData*/ true,
+            /*datasetName*/ TStringBuf(),
+            /*bordersFile*/ Nothing(),  // Already at quantizedFeaturesInfo
+            /*unloadCatFeaturePerfectHashFromRam*/ allowWriteFiles,
+            /*ensureConsecutiveLearnFeaturesDataForCpu*/ false, // data will be split afterwards anyway
+            tmpDir,
+            quantizedFeaturesInfo,
+            catBoostOptions,
+            labelConverter,
+            &targetBorder,
+            localExecutor,
+            rand
+        );
+        *quantizedObjectsData = (*result)->ObjectsData;
+        return true;
     }
 
     bool QuantizeAndSplitDataIfNeeded(
@@ -458,14 +472,16 @@ namespace {
         NCB::TDataProviderPtr data,
         const TQuantizationParamsInfo& oldQuantizedParamsInfo,
         const TQuantizationParamsInfo& newQuantizedParamsInfo,
+        bool updateClassWeights,
         TLabelConverter* labelConverter,
         NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         NCatboostOptions::TCatBoostOptions* catBoostOptions,
+        NCB::TQuantizedObjectsDataProviderPtr* quantizedObjectsData,
         NCB::TTrainingDataProviders* result) {
 
         NCB::TTrainingDataProviderPtr quantizedData;
-        bool isNeedSplit = QuantizeDataIfNeeded(
+        bool isNeedSplit = PrepareTrainingDataIfNeeded(
             allowWriteFiles,
             tmpDir,
             featuresLayout,
@@ -473,10 +489,12 @@ namespace {
             data,
             oldQuantizedParamsInfo,
             newQuantizedParamsInfo,
+            updateClassWeights,
             labelConverter,
             localExecutor,
             rand,
             catBoostOptions,
+            quantizedObjectsData,
             &quantizedData
         );
 
@@ -824,7 +842,9 @@ namespace {
                 catBoostOptions.MetricOptions,
                 evalMetricDescriptor,
                 approxDimension,
-                data->MetaInfo.HasWeights
+                data->MetaInfo.HasWeights ||
+                    !catBoostOptions.DataProcessingOptions->ClassWeights.Get().empty() ||
+                    catBoostOptions.DataProcessingOptions->AutoClassWeights.Get() != EAutoClassWeightsType::None
             );
             double bestMetricValue = cvResult[0].AverageTest.back(); //[testId][lossDescription]
             if (iterationIdx == 0) {
@@ -945,7 +965,10 @@ namespace {
         double bestParamsSetMetricValue = 0;
         // Other parameters
         NCB::TTrainingDataProviders trainTestData;
+        NCB::TQuantizedObjectsDataProviderPtr quantizedObjectsData;
         TQuantizationParamsInfo lastQuantizationParamsSet;
+        TVector<float> lastClassWeights;
+        EAutoClassWeightsType lastAutoClassWeights = EAutoClassWeightsType::None;
         TLabelConverter labelConverter;
         int iterationIdx = 0;
         int bestIterationIdx = 0;
@@ -1002,6 +1025,8 @@ namespace {
             TMetricsAndTimeLeftHistory metricsAndTimeHistory;
             {
                 TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+                const auto classWeights = catBoostOptions.DataProcessingOptions->ClassWeights.Get();
+                const auto autoClassWeights = catBoostOptions.DataProcessingOptions->AutoClassWeights.Get();
                 QuantizeAndSplitDataIfNeeded(
                     allowWriteFiles,
                     tmpDir,
@@ -1012,13 +1037,17 @@ namespace {
                     data,
                     lastQuantizationParamsSet,
                     quantizationParamsSet,
+                    classWeights != lastClassWeights || autoClassWeights != lastAutoClassWeights,
                     &labelConverter,
                     localExecutor,
                     &rand,
                     &catBoostOptions,
+                    &quantizedObjectsData,
                     &trainTestData
                 );
                 lastQuantizationParamsSet = quantizationParamsSet;
+                lastClassWeights = classWeights;
+                lastAutoClassWeights = autoClassWeights;
                 THolder<IModelTrainer> modelTrainerHolder = THolder<IModelTrainer>(TTrainerFactory::Construct(catBoostOptions.GetTaskType()));
 
                 TEvalResult evalRes;
@@ -1059,7 +1088,7 @@ namespace {
                 catBoostOptions.MetricOptions,
                 evalMetricDescriptor,
                 approxDimension,
-                data->MetaInfo.HasWeights
+                trainTestData.Learn->MetaInfo.HasWeights
             );
 
             const TString& lossDescription = metrics[0]->GetDescription();
