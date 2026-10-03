@@ -263,6 +263,12 @@ jobs:
             }
           }
 
+      - if: inputs.os == 'windows'
+        name: Setup MSVC for model export tests
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Run pytest
         shell: pwsh
         run: |
@@ -280,6 +286,10 @@ jobs:
           $Env:PORT_SYNC_PATH = Join-Path ${{ github.workspace }} port_sync
           $Env:HAVE_CUDA = 0
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/pytest
+          python -m pytest -n auto
+
+          $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_model_export
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/libs/model/model_export/ut
           python -m pytest -n auto
 
       - name: Run python package tests
@@ -353,4 +363,3 @@ jobs:
 
           Rscript -e "install.packages('remotes', Ncpus = parallel::detectCores()); remotes::install_local('catboost_R_package/catboost-R-darwin-universal2.tgz', INSTALL_opts = c('--no-multiarch', '--no-staged-install', '--install-tests'))"
           Rscript -e "install.packages(c('testthat','caret','tibble'), Ncpus = parallel::detectCores()); testthat::test_package('catboost')"
-
