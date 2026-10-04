@@ -237,7 +237,8 @@ enum class ELossFunction {
 enum class ERankingType {
     CrossEntropy,
     AbsoluteValue,
-    Order
+    Order,
+    UserDefined
 };
 
 enum class EHessianType {
