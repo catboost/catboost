@@ -38,6 +38,12 @@ typedef struct {
 	/// marker. This may become true before next_finished becomes true.
 	bool this_finished;
 
+	/// The preset dictionary that dict.buf still holds since the
+	/// previous initialization, or NULL. The caller must not change the
+	/// bytes of a preset dictionary between initializations of a coder.
+	const uint8_t *resident_dict;
+	size_t resident_size;
+
 	/// Temporary buffer needed when the LZ-based filter is not the last
 	/// filter in the chain. The output of the next filter is first
 	/// decoded into buffer[], which is then used as input for the actual
@@ -58,6 +64,8 @@ lz_decoder_reset(lzma_coder *coder)
 	coder->dict.buf[LZ_DICT_INIT_POS - 1] = '\0';
 	coder->dict.has_wrapped = false;
 	coder->dict.need_reset = false;
+	coder->resident_dict = NULL;
+	coder->resident_size = 0;
 	return;
 }
 
@@ -236,6 +244,9 @@ lzma_lz_decoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 
 		coder->dict.buf = NULL;
 		coder->dict.size = 0;
+		coder->dict.has_wrapped = false;
+		coder->resident_dict = NULL;
+		coder->resident_size = 0;
 		coder->lz = LZMA_LZ_DECODER_INIT;
 		coder->next = LZMA_NEXT_CODER_INIT;
 	}
@@ -278,6 +289,7 @@ lzma_lz_decoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 
 	// Allocate and initialize the dictionary.
 	if (coder->dict.size != alloc_size) {
+		coder->resident_dict = NULL;
 		coder->dict.size = 0;
 		lzma_free(coder->dict.buf, allocator);
 
@@ -296,6 +308,10 @@ lzma_lz_decoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 		coder->dict.size = alloc_size;
 	}
 
+	const uint8_t *resident = coder->dict.has_wrapped
+			? NULL : coder->resident_dict;
+	const size_t resident_size = coder->resident_size;
+
 	lz_decoder_reset(next->coder);
 
 	// Use the preset dictionary if it was given to us.
@@ -306,9 +322,18 @@ lzma_lz_decoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 		const size_t copy_size = my_min(lz_options.preset_dict_size,
 				lz_options.dict_size);
 		const size_t offset = lz_options.preset_dict_size - copy_size;
-		memcpy(coder->dict.buf + coder->dict.pos,
-				lz_options.preset_dict + offset,
-				copy_size);
+
+		// Decoding since the previous initialization wrote only past
+		// the preset dictionary unless the dictionary wrapped or was
+		// reset, so the same preset is still in place.
+		if (resident != lz_options.preset_dict + offset
+				|| resident_size != copy_size)
+			memcpy(coder->dict.buf + coder->dict.pos,
+					lz_options.preset_dict + offset,
+					copy_size);
+
+		coder->resident_dict = lz_options.preset_dict + offset;
+		coder->resident_size = copy_size;
 
 		// dict.pos isn't zero after lz_decoder_reset().
 		coder->dict.pos += copy_size;
