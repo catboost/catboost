@@ -393,6 +393,34 @@ def test_multiregression(niter, n=10):
     return local_canonical_file(preds_path)
 
 
+@pytest.mark.parametrize('niter', [100, 500])
+def test_multiregression_with_missing_values(niter, task_type, n=10):
+    xs = np.arange(n).reshape((-1, 1)).astype(np.float32)
+    ys = np.hstack([
+        (xs > 0.5 * n),
+        (xs < 0.5 * n)
+    ]).astype(np.float32)
+    ys[0][0] = np.nan
+    ys[n - 1][1] = np.nan
+
+    model = CatBoostRegressor(
+        loss_function='MultiRMSEWithMissingValues',
+        iterations=niter,
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0'
+    )
+    model.fit(xs, ys)
+    ys_pred = model.predict(xs)
+
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(ys_pred), fmt='%.8f')
+
+    assert ys_pred.shape == ys.shape
+    assert np.all(np.isfinite(ys_pred))
+    return local_canonical_file(preds_path)
+
+
 @pytest.mark.parametrize('niter', [1, 100, 500])
 def test_save_model_multiregression(niter):
     train_file = MULTIREGRESSION_TRAIN_FILE
