@@ -263,12 +263,6 @@ jobs:
             }
           }
 
-      - if: inputs.os == 'windows'
-        name: Setup MSVC for model export tests
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-
       - name: Run pytest
         shell: pwsh
         run: |
@@ -288,7 +282,22 @@ jobs:
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/pytest
           python -m pytest -n auto
 
+      - if: inputs.os == 'windows'
+        name: Setup MSVC for model export tests
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Run model export pytest
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
+          $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
           $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_model_export
+          $Env:PORT_SYNC_PATH = Join-Path ${{ github.workspace }} port_sync
+          $Env:HAVE_CUDA = 0
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/libs/model/model_export/ut
           python -m pytest -n auto
 
