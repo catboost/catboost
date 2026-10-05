@@ -4,7 +4,7 @@
 
 #include <util/generic/ptr.h>
 
-// named sempahore
+// named semaphore
 class TSemaphore {
 public:
     TSemaphore(const char* name, ui32 maxFreeCount);
@@ -13,7 +13,7 @@ public:
     // Increase the semaphore counter.
     void Release() noexcept;
 
-    // Keep a thread held while the semaphore counter is equal 0.
+    // Keep a thread held while the semaphore counter is equal to 0.
     void Acquire() noexcept;
 
     // Try to enter the semaphore gate. A non-blocking variant of Acquire.
@@ -25,7 +25,7 @@ private:
     THolder<TImpl> Impl_;
 };
 
-// unnamed semaphore, faster, than previous
+// unnamed semaphore, faster than previous
 class TFastSemaphore {
 public:
     TFastSemaphore(ui32 maxFreeCount);
