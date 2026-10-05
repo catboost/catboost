@@ -44,6 +44,7 @@ target_sources(cpp-yt-system PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/fork_aware_rw_spin_lock.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/fork_aware_spin_lock.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/futex.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/local_host.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/notification_handle.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/process_id.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/recursive_spin_lock.cpp
