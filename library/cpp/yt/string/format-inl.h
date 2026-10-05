@@ -21,12 +21,10 @@
 #include <util/system/platform.h>
 
 #include <cctype>
+#include <filesystem>
 #include <optional>
 #include <span>
 
-#if __cplusplus >= 202302L
-    #include <filesystem>
-#endif
 
 #ifdef __cpp_lib_source_location
 #include <source_location>
@@ -599,7 +597,8 @@ inline void FormatValue(TStringBuilderBase* builder, const std::string_view& val
     FormatValue(builder, TStringBuf(value), spec);
 }
 
-#if __cplusplus >= 202302L
+#ifdef _LIBCPP_VERSION
+// This branch can not be built against libstdc++ 10, see YT-29941 regarding this gate removal.
 // std::filesystem::path
 inline void FormatValue(TStringBuilderBase* builder, const std::filesystem::path& value, TStringBuf spec)
 {
