@@ -7,7 +7,7 @@ A list of user-defined callback objects that are invoked at the end of each trai
 Each callback must implement the `after_iteration(self, info)` method. The `info` argument has the following attributes:
 
 - `iteration` — the number of completed iterations (the first call receives `1`).
-- `metrics` — a dictionary with the values of all metrics computed so far. The keys of the outer dictionary are the dataset names (`learn`, `validation`, or `validation_0`, `validation_1`, ... if several evaluation datasets are set). Each value is a dictionary that maps the metric name to the list of its values, one value per completed iteration (the same structure is returned by the [get_evals_result](../../../concepts/python-reference_catboost_get_evals_result.md) method).
+- `metrics` — a dictionary with the values of all metrics computed so far. The keys of the outer dictionary are the dataset names (`learn`, `validation`, or `validation_0`, `validation_1`, ... if several evaluation datasets are set). If no evaluation datasets are set, the dictionary contains only the `learn` key. Each value is a dictionary that maps the metric name to the list of its values, one value per completed iteration (the same structure is returned by the [get_evals_result](../../../concepts/python-reference_catboost_get_evals_result.md) method).
 
 The `after_iteration` method must return a boolean value:
 

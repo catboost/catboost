@@ -2955,6 +2955,9 @@ class CatBoost(_CatBoostBase):
                 metrics : dict
                     Metric values for all completed iterations, in the same format as `get_evals_result()`:
                     {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
             The method must return True to continue training or False to stop it.
             Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
             Supported only for training on CPU.
@@ -5613,6 +5616,9 @@ class CatBoostClassifier(CatBoost):
                 metrics : dict
                     Metric values for all completed iterations, in the same format as `get_evals_result()`:
                     {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
             The method must return True to continue training or False to stop it.
             Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
             Supported only for training on CPU.
@@ -6256,6 +6262,9 @@ class CatBoostRegressor(CatBoost):
                 metrics : dict
                     Metric values for all completed iterations, in the same format as `get_evals_result()`:
                     {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
             The method must return True to continue training or False to stop it.
             Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
             Supported only for training on CPU.
@@ -6675,6 +6684,9 @@ class CatBoostRanker(CatBoost):
                 metrics : dict
                     Metric values for all completed iterations, in the same format as `get_evals_result()`:
                     {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
             The method must return True to continue training or False to stop it.
             Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
             Supported only for training on CPU.

@@ -1250,6 +1250,8 @@ class UserDefinedCallback(object):
         # info.iteration is the number of completed iterations (starts from 1).
         # info.metrics is a dictionary of metric values for all completed iterations:
         # {'learn': {'Logloss': [...]}, 'validation': {'Logloss': [...], 'AUC': [...]}}
+        # With several evaluation datasets the keys are 'validation_0', 'validation_1', ...
+        # and without evaluation datasets there is only the 'learn' key.
         # Return True to continue training and False to stop it.
         pass
 ```
@@ -1281,13 +1283,15 @@ class MetricsLogger(object):
         return True
 
 
-class EarlyStopper(object):
+class LossThresholdStopper(object):
+    # Intended for metrics where lower values are better (for example, Logloss or RMSE).
     def __init__(self, metric_name, threshold):
         self._metric_name = metric_name
         self._threshold = threshold
 
     def after_iteration(self, info):
-        # stop training as soon as the metric on the evaluation dataset reaches the threshold
+        # continue training while the metric value on the evaluation dataset is greater than the threshold,
+        # stop as soon as it becomes less than or equal to the threshold
         last_value = info.metrics['validation'][self._metric_name][-1]
         return last_value > self._threshold
 
@@ -1300,7 +1304,7 @@ model = CatBoostClassifier(iterations=100,
 model.fit(train_data,
           train_labels,
           eval_set=(eval_data, eval_labels),
-          callbacks=[MetricsLogger(), EarlyStopper('Logloss', 0.6)])
+          callbacks=[MetricsLogger(), LossThresholdStopper('Logloss', 0.6)])
 
 # the number of trees in the model equals the number of completed iterations
 print(model.tree_count_)
