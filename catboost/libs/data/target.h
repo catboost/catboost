@@ -202,6 +202,22 @@ namespace NCB {
             Data.Pairs = TFlatPairsInfo(pairs.begin(), pairs.end());
         }
 
+        // Low-level multi-target setter. Caller owns the invariant that each element's
+        // length matches GetObjectCount() and that Data.TargetType stays consistent.
+        void SetTarget(TVector<TRawTarget> target) {
+            CB_ENSURE(
+                target.size() == Data.Target.size(),
+                "Target dimension mismatch: expected " << Data.Target.size()
+                    << ", got " << target.size()
+            );
+            Data.Target = std::move(target);
+        }
+
+        // Single numeric target, 1-D. Copying and moving overloads; moving avoids
+        // a ~4 bytes x objectCount copy at large scale.
+        void SetNumericTarget(TConstArrayRef<float> target); // [objectIdx]
+        void SetNumericTarget(TVector<float>&& target);      // [objectIdx]
+
         TRawTargetDataProvider GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             NPar::ILocalExecutor* localExecutor
