@@ -287,7 +287,7 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
 
-          python -m pip install pytest numpy pandas ipywidgets scikit-learn polars
+          python -m pip install pytest numpy pandas ipywidgets scikit-learn "polars<2.0"
           python -m pip uninstall -y catboost
 
           $WheelPath = (Get-ChildItem -Path ${{ github.workspace }}/catboost_python_package_dist/ -Filter "*.whl" | Select-Object -First 1).FullName
