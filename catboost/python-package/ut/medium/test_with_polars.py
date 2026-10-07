@@ -1047,6 +1047,28 @@ def test_features_mixed_types():
     assert _have_equal_features(dataset_from_files, dataset_from_pl, ignore_cat_features_hash_to_string=True)
 
 
+def test_auto_cat_features():
+    df = pl.DataFrame({
+        'num_feat_0': [0, 1, 0, 2, 3, 1, 2],
+        'cat_feat_1': pl.Series(['A', 'B', 'A', 'C', 'A', 'A', 'A'], dtype=pl.Categorical),
+        'cat_feat_2': pl.Series(
+            ['large', 'small', 'medium', 'large', 'small', 'small', 'medium'],
+            dtype=pl.Enum(['small', 'medium', 'large'])
+        ),
+    })
+    labels = [0, 1, 1, 0, 1, 0, 1]
+
+    auto_pool = Pool(df, labels, cat_features='auto')
+    assert auto_pool.get_cat_feature_indices() == [1, 2]
+    assert _have_equal_features(auto_pool, Pool(df, labels, cat_features=[1, 2]))
+
+    model = CatBoostClassifier(iterations=2, cat_features='auto')
+    model.fit(df, labels)
+    assert model.get_cat_feature_indices() == [1, 2]
+
+    assert Pool(df.select('num_feat_0'), labels, cat_features='auto').get_cat_feature_indices() == []
+
+
 @pytest.mark.parametrize(
     'data_type_spec',
     common_data_types_specs,

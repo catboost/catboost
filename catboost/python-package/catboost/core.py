@@ -345,10 +345,11 @@ def _resolve_auto_features(features, data, param_name):
         Resolve the 'auto' value of a '*_features' parameter into a list of feature indices.
         'features' is returned unchanged if it is not 'auto'.
 
-        Only 'cat_features' supports 'auto': it is resolved to the pandas categorical columns of
-        'data'. Ordered categoricals are included as well: unlike in other GBDT libraries, a
-        'category' column that is not in 'cat_features' is an error in CatBoost, not a numerical
-        feature, so excluding them would just make 'auto' fail on such datasets.
+        Only 'cat_features' supports 'auto': it is resolved to the categorical columns of 'data'
+        (pandas 'category' columns or polars Categorical and Enum columns). Ordered categoricals are
+        included as well: unlike in other GBDT libraries, a categorical column that is not in
+        'cat_features' is an error in CatBoost, not a numerical feature, so excluding them would just
+        make 'auto' fail on such datasets.
 
         Parameters
         ----------
@@ -356,7 +357,8 @@ def _resolve_auto_features(features, data, param_name):
             the value of the '*_features' parameter
 
         data :
-            the dataset the features belong to, must be a pandas.DataFrame to resolve 'auto'
+            the dataset the features belong to, must be a pandas.DataFrame or polars.DataFrame
+            to resolve 'auto'
 
         param_name :
             name of the parameter, used for error messages
@@ -367,16 +369,22 @@ def _resolve_auto_features(features, data, param_name):
         raise CatBoostError(
             "'auto' value is supported only for 'cat_features', but it is specified for '{}'".format(param_name)
         )
-    if not isinstance(data, pd.DataFrame):
-        raise CatBoostError(
-            "cat_features='auto' requires the dataset to be a pandas.DataFrame, but got {}. Specify "
-            "categorical features explicitly.".format(type(data))
-        )
-    return [
-        feature_idx
-        for feature_idx, dtype in enumerate(data.dtypes)
-        if isinstance(dtype, pd.CategoricalDtype)
-    ]
+    if isinstance(data, pd.DataFrame):
+        return [
+            feature_idx
+            for feature_idx, dtype in enumerate(data.dtypes)
+            if isinstance(dtype, pd.CategoricalDtype)
+        ]
+    if isinstance(data, pl.DataFrame):
+        return [
+            feature_idx
+            for feature_idx, dtype in enumerate(data.dtypes)
+            if (dtype == pl.Categorical) or isinstance(dtype, pl.Enum)
+        ]
+    raise CatBoostError(
+        "cat_features='auto' requires the dataset to be a pandas.DataFrame or polars.DataFrame, but got {}. "
+        "Specify categorical features explicitly.".format(type(data))
+    )
 
 
 def _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
@@ -703,8 +711,8 @@ class Pool(_PoolBase):
             If not None, giving the list of Categ features indices or names.
             If it contains feature names, Pool's feature names must be defined: either by passing 'feature_names'
               parameter or if data is pandas.DataFrame (feature names are initialized from it's column names)
-            If 'auto', Categ features are detected as the pandas categorical columns of 'data'.
-              'data' must be a pandas.DataFrame in this case.
+            If 'auto', Categ features are detected as the categorical columns of 'data'.
+              'data' must be a pandas.DataFrame or polars.DataFrame in this case.
             Must be None if 'data' parameter has FeaturesData type
 
         text_features : list or numpy.ndarray, optional (default=None)
@@ -2872,8 +2880,8 @@ class CatBoost(_CatBoostBase):
 
         cat_features : list or numpy.ndarray or string, optional (default=None)
             If not None, giving the list of Categ columns indices.
-            If 'auto', Categ columns are detected as the pandas categorical columns of X,
-              which must be a pandas.DataFrame in this case.
+            If 'auto', Categ columns are detected as the categorical columns of X,
+              which must be a pandas.DataFrame or polars.DataFrame in this case.
             Use only if X is not catboost.Pool and not catboost.FeaturesData
 
         text_features: list or numpy.ndarray, optional (default=None)
@@ -5291,8 +5299,8 @@ class CatBoostClassifier(CatBoost):
     cat_features : list or numpy.ndarray or string, [default=None]
         If not None, giving the list of Categ features indices or names (names are represented as strings).
         If it contains feature names, feature names must be defined for the training dataset passed to 'fit'.
-        If 'auto', Categ features are detected as the pandas categorical columns of the training
-        dataset, which must be a pandas.DataFrame in this case. Detection is performed on every 'fit' call,
+        If 'auto', Categ features are detected as the categorical columns of the training dataset,
+        which must be a pandas.DataFrame or polars.DataFrame in this case. Detection is performed on every 'fit' call,
         so the parameter is preserved as 'auto' by 'get_params' and can be used in sklearn pipelines.
 
     text_features : list or numpy.ndarray, [default=None]
@@ -5551,8 +5559,8 @@ class CatBoostClassifier(CatBoost):
 
         cat_features : list or numpy.ndarray or string, optional (default=None)
             If not None, giving the list of Categ columns indices.
-            If 'auto', Categ columns are detected as the pandas categorical columns of X,
-              which must be a pandas.DataFrame in this case.
+            If 'auto', Categ columns are detected as the categorical columns of X,
+              which must be a pandas.DataFrame or polars.DataFrame in this case.
             Use only if X is not catboost.Pool.
 
         text_features : list or numpy.ndarray, optional (default=None)
@@ -6187,8 +6195,8 @@ class CatBoostRegressor(CatBoost):
 
         cat_features : list or numpy.ndarray or string, optional (default=None)
             If not None, giving the list of Categ columns indices.
-            If 'auto', Categ columns are detected as the pandas categorical columns of X,
-              which must be a pandas.DataFrame in this case.
+            If 'auto', Categ columns are detected as the categorical columns of X,
+              which must be a pandas.DataFrame or polars.DataFrame in this case.
             Use only if X is not catboost.Pool.
 
         text_features : list or numpy.ndarray, optional (default=None)
@@ -6601,8 +6609,8 @@ class CatBoostRanker(CatBoost):
             Use only if X is not catboost.Pool.
         cat_features : list or numpy.ndarray or string, optional (default=None)
             If not None, giving the list of Categ columns indices.
-            If 'auto', Categ columns are detected as the pandas categorical columns of X,
-              which must be a pandas.DataFrame in this case.
+            If 'auto', Categ columns are detected as the categorical columns of X,
+              which must be a pandas.DataFrame or polars.DataFrame in this case.
             Use only if X is not catboost.Pool.
         text_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Text columns indices.
