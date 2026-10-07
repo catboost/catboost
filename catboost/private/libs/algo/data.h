@@ -30,6 +30,12 @@ namespace NCB {
     TVector<NCatboostOptions::TLossDescription> GetMetricDescriptions(
         const NCatboostOptions::TCatBoostOptions& params);
 
+    void InitializeLabelConverterFromRawData(
+        const TDataProvider& srcData,
+        const NCatboostOptions::TCatBoostOptions& params,
+        NPar::ILocalExecutor* localExecutor,
+        TLabelConverter* labelConverter);
+
 
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,
