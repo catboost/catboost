@@ -2958,7 +2958,19 @@ class CatBoost(_CatBoostBase):
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -5607,7 +5619,19 @@ class CatBoostClassifier(CatBoost):
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -6241,7 +6265,19 @@ class CatBoostRegressor(CatBoost):
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -6651,7 +6687,19 @@ class CatBoostRanker(CatBoost):
             Continue training starting from the existing model.
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
