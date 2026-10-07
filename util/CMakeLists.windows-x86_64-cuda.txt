@@ -114,6 +114,7 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/overloaded.h
   ${PROJECT_SOURCE_DIR}/util/generic/ptr.h
   ${PROJECT_SOURCE_DIR}/util/generic/queue.h
+  ${PROJECT_SOURCE_DIR}/util/generic/ranges.h
   ${PROJECT_SOURCE_DIR}/util/generic/refcount.h
   ${PROJECT_SOURCE_DIR}/util/generic/reserve.h
   ${PROJECT_SOURCE_DIR}/util/generic/scope.h
@@ -394,6 +395,7 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/generic/overloaded.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/ptr.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/queue.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/ranges.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/refcount.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/scope.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/serialized_enum.cpp

@@ -80,6 +80,7 @@ target_sources(util-generic-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/overloaded_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/ptr_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/queue_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/ranges_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/scope_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/serialized_enum_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/set_ut.cpp
