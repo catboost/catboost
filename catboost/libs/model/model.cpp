@@ -1376,7 +1376,12 @@ static TMaybe<NCatboostOptions::TLossDescription> GetLossDescription(const TFull
     TMaybe<NCatboostOptions::TLossDescription> lossDescription;
     if (model.ModelInfo.contains("loss_function")) {
         lossDescription.ConstructInPlace();
-        lossDescription->Load(ReadTJsonValue(model.ModelInfo.at("loss_function")));
+        auto lossJson = ReadTJsonValue(model.ModelInfo.at("loss_function"));
+        if (lossJson.GetType() != NJson::JSON_NULL && lossJson.GetType() != NJson::JSON_UNDEFINED) {
+            lossDescription->Load(lossJson);
+        } else {
+            *lossDescription = NCatboostOptions::ParseLossDescription(model.ModelInfo.at("loss_function"));
+        }
     }
     if (model.ModelInfo.contains("params")) {
         const auto& params = ReadTJsonValue(model.ModelInfo.at("params"));
