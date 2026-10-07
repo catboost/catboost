@@ -3,13 +3,14 @@
 
 #include <library/cpp/yt/assert/assert.h>
 
+#include <library/cpp/yt/misc/immortal.h>
+
 #ifdef _unix_
     #include <pthread.h>
 #endif
 
 #include <atomic>
 #include <array>
-#include <new>
 
 namespace NYT {
 
@@ -20,10 +21,14 @@ class TAtForkManager
 public:
     static TAtForkManager* Get()
     {
-        // Intentionally leaked.
-        alignas(TAtForkManager) static std::byte Storage[sizeof(TAtForkManager)];
-        static auto* Instance = new (Storage) TAtForkManager();
-        return Instance;
+        struct TInstance
+            : public TAtForkManager
+        {
+            TInstance() = default;
+        };
+
+        static TImmortal<TInstance> Instance;
+        return Instance.Get();
     }
 
     void RegisterAtForkHandlers(
@@ -45,6 +50,17 @@ public:
         return &ForkLock_;
     }
 
+protected:
+    TAtForkManager()
+    {
+#ifdef _unix_
+        pthread_atfork(
+            [] { Get()->OnPrepare(); },
+            [] { Get()->OnParent(); },
+            [] { Get()->OnChild(); });
+#endif
+    }
+
 private:
     YT_DECLARE_SPIN_LOCK(TWriterStarvingRWSpinLock, ForkLock_);
 
@@ -59,16 +75,6 @@ private:
     static constexpr int MaxAtForkHandlerSets = 8;
     std::array<TAtForkHandlerSet, MaxAtForkHandlerSets> AtForkHandlerSets_;
     std::atomic<int> AtForkHandlerCount_ = 0;
-
-    TAtForkManager()
-    {
-#ifdef _unix_
-        pthread_atfork(
-            [] { Get()->OnPrepare(); },
-            [] { Get()->OnParent(); },
-            [] { Get()->OnChild(); });
-#endif
-    }
 
     void OnPrepare()
     {

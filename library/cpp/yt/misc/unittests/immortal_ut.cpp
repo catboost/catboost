@@ -1,6 +1,6 @@
 #include <library/cpp/testing/gtest/gtest.h>
 
-#include <library/cpp/yt/memory/immortal.h>
+#include <library/cpp/yt/misc/immortal.h>
 
 #include <string>
 #include <type_traits>

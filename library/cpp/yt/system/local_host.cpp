@@ -2,6 +2,8 @@
 #include "exit.h"
 #include "fork_aware_spin_lock.h"
 
+#include <library/cpp/yt/misc/immortal.h>
+
 #include <util/generic/hash_set.h>
 
 #include <atomic>
@@ -118,7 +120,7 @@ std::optional<TStringBuf> InferYPClusterFromHostNameRaw(TStringBuf hostName)
 TStringBuf InternHostName(TStringBuf hostName)
 {
     static YT_DECLARE_SPIN_LOCK(TForkAwareSpinLock, Lock);
-    static auto* HostNames = new THashSet<TStringBuf>();
+    static TImmortal<THashSet<TStringBuf>> HostNames;
 
     auto guard = Guard(Lock);
 
