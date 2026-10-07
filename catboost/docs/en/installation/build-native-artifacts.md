@@ -77,6 +77,16 @@ The required options are:
 
 Importantly, `build_native.py` has `--dry-run` and `--verbose` options so you can examine the commands it is going to run without actually running them.
 
+### Sanitizers
+
+For CPU builds, `build_native.py` provides flags for the most common Clang sanitizers:
+
+- `--with-asan` enables AddressSanitizer, which detects memory-safety errors such as out-of-bounds accesses and use-after-free.
+- `--with-ubsan` enables UndefinedBehaviorSanitizer, which detects many forms of undefined behavior.
+- `--with-tsan` enables ThreadSanitizer, which detects data races.
+
+`--with-asan` and `--with-ubsan` can be used together. ThreadSanitizer cannot be combined with either of them and is not supported on Windows. Sanitizer builds disable CatBoost's custom allocators so that the sanitizer can instrument allocations. They are not supported together with `--have-cuda`; use a separate build directory for each sanitizer configuration.
+
 ### Examples
 
 - Build `catboost` CLI app for the current platform without CUDA:
@@ -95,6 +105,18 @@ Importantly, `build_native.py` has `--dry-run` and `--verbose` options so you ca
 
   ```
   python $CATBOOST_SRC_ROOT/build/build_native.py --targets catboost --build-root-dir=./build_with_cuda_11 --have-cuda --cuda-root-dir=/usr/local/cuda-11/
+  ```
+
+- Build `catboost` CLI app with AddressSanitizer and UndefinedBehaviorSanitizer. `RelWithDebInfo` retains useful stack traces while still optimizing the binary:
+
+  ```
+  python $CATBOOST_SRC_ROOT/build/build_native.py --build-root-dir=./build_asan_ubsan --build-type=RelWithDebInfo --targets catboost --with-asan --with-ubsan
+  ```
+
+- Build `catboost` CLI app with ThreadSanitizer:
+
+  ```
+  python $CATBOOST_SRC_ROOT/build/build_native.py --build-root-dir=./build_tsan --build-type=RelWithDebInfo --targets catboost --with-tsan
   ```
 
 - Build C/C++ applier shared library as a macOS universal binary with macOS minimal version set to 11.0:
