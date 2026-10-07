@@ -70,10 +70,12 @@ namespace NCatboostCuda {
 
         template <class TTarget,
                   class TDataSet>
-        TGreedyTreeLikeStructureSearcher<TTreeModel> CreateStructureSearcher(double randomStrengthMult, const TAdditiveModel<TResultModel>& /*result*/) {
+        TGreedyTreeLikeStructureSearcher<TTreeModel> CreateStructureSearcher(double randomStrengthMult, const TAdditiveModel<TResultModel>& result) {
             TTreeStructureSearcherOptions options = StructureSearcherOptions;
-            Y_ASSERT(options.BootstrapOptions.GetBootstrapType() != EBootstrapType::MVS);
             options.RandomStrength *= randomStrengthMult;
+            if (options.BootstrapOptions.GetBootstrapType() == EBootstrapType::MVS) {
+                options.MvsLambda = result.GetL1LeavesSum();
+            }
             return TGreedyTreeLikeStructureSearcher<TTreeModel>(FeaturesManager, options);
         }
 
