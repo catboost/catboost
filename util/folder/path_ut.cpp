@@ -705,11 +705,12 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
             // Broken since f8699c0a71a528d287b84cd0bc5b5bb7cec924f0 (5.11 wine-version)
             return;
         }
-        Chmod(testSubdir.c_str(), 0);
-        Y_DEFER {
-            Chmod(testSubdir.c_str(), MODE0777);
-        };
-        TWinFileDenyAccessScope dirAcl(testDir, FILE_WRITE_DATA);
+        // Windows removes a directory for whoever holds DELETE on it or
+        // FILE_DELETE_CHILD on its parent, so both have to be taken away. The
+        // read-only attribute is not one of the ways to stop it: NFs::Remove
+        // drops that attribute first, on purpose, to match unix.
+        TWinFileDenyAccessScope subdirAcl(testSubdir, DELETE);
+        TWinFileDenyAccessScope dirAcl(testDir, FILE_DELETE_CHILD);
 #else
         Chmod(testDir.c_str(), S_IRUSR | S_IXUSR);
         Y_DEFER {

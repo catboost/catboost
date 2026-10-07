@@ -393,9 +393,9 @@ public:
     }
 
 private:
-    HashFcn hash_;
-    ExtractKey extract_;
-    EqualKey equals_;
+    Y_NO_UNIQUE_ADDRESS HashFcn hash_;
+    Y_NO_UNIQUE_ADDRESS ExtractKey extract_;
+    Y_NO_UNIQUE_ADDRESS EqualKey equals_;
 };
 
 template <class HashFcn, class ExtractKey, class EqualKey, class Alloc>

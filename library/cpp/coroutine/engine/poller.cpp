@@ -173,7 +173,7 @@ namespace {
         }
 
         void Erase(size_t i) noexcept {
-            V_.Get(i).Destroy();
+            V_.Get(i).reset();
         }
 
         size_t Size() const noexcept {

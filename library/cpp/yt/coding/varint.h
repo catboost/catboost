@@ -1,5 +1,7 @@
 #pragma once
 
+#include <library/cpp/yt/mpl/concepts.h>
+
 #include <util/system/defaults.h>
 
 #include <util/stream/input.h>
@@ -47,6 +49,16 @@ int ReadVarUint64(const char* input, const char* end, ui64* value);
 int ReadVarUint32(const char* input, const char* end, ui32* value);
 int ReadVarInt32(const char* input, const char* end, i32* value);
 int ReadVarInt64(const char* input, const char* end, i64* value);
+
+// #readNextByte must throw when there are no bytes left.
+template <NMpl::CInvocable<char()> TInvocable>
+int ReadVarUint64(TInvocable&& readNextByte, ui64* value);
+template <NMpl::CInvocable<char()> TInvocable>
+int ReadVarUint32(TInvocable&& readNextByte, ui32* value);
+template <NMpl::CInvocable<char()> TInvocable>
+int ReadVarInt32(TInvocable&& readNextByte, i32* value);
+template <NMpl::CInvocable<char()> TInvocable>
+int ReadVarInt64(TInvocable&& readNextByte, i64* value);
 
 ////////////////////////////////////////////////////////////////////////////////
 

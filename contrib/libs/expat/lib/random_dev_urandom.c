@@ -28,6 +28,8 @@
    DAMAGES OR  OTHER LIABILITY, WHETHER  IN AN  ACTION OF CONTRACT,  TORT OR
    OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
    USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   SPDX-License-Identifier: MIT
 */
 
 #include "random_dev_urandom.h"
@@ -49,11 +51,11 @@ writeRandomBytes_dev_urandom(void *target, size_t count) {
 
   const int fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
   if (fd < 0) {
-    return 0;
+    return false;
   }
 
   do {
-    void *const currentTarget = (void *)((char *)target + bytesWrittenTotal);
+    void *const currentTarget = (char *)target + bytesWrittenTotal;
     const size_t bytesToWrite = count - bytesWrittenTotal;
 
     errno = 0;

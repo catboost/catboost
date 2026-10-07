@@ -1,27 +1,20 @@
 /*******************************************************************************
-* Copyright 2004-2017 Intel Corporation All Rights Reserved.
+* Copyright 2004-2022 Intel Corporation.
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+* This software and the related documents are Intel copyrighted  materials,  and
+* your use of  them is  governed by the  express license  under which  they were
+* provided to you (License).  Unless the License provides otherwise, you may not
+* use, modify, copy, publish, distribute,  disclose or transmit this software or
+* the related documents without Intel's prior written permission.
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
+* This software and the related documents  are provided as  is,  with no express
+* or implied  warranties,  other  than those  that are  expressly stated  in the
+* License.
 *******************************************************************************/
 
 /*
 *   Content: 
-*           Intel(R) Math Kernel Library (Intel(R) MKL) PARDISO C header file
+*           Intel(R) oneAPI Math Kernel Library (oneMKL) PARDISO C header file
 *
 *           Contains interface to PARDISO.
 *
@@ -32,6 +25,14 @@
 #define __MKL_PARDISO_H
 
 #include "mkl_dss.h"
+
+#ifdef __GNUC__
+#define MKL_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define MKL_DEPRECATED __declspec(deprecated)
+#else
+#define MKL_DEPRECATED
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,24 +85,13 @@ void PARDISO_HANDLE_RESTORE_64( _MKL_DSS_HANDLE_t, const char*, _INTEGER_t *);
 void pardiso_handle_delete_64( const char*, _INTEGER_t *);
 void PARDISO_HANDLE_DELETE_64( const char*, _INTEGER_t *);
 
-enum PARDISO_ENV_PARAM {
-       PARDISO_OOC_FILE_NAME = 1
-};
-
 /* Error classes */
 #define PARDISO_NO_ERROR                 0
 #define PARDISO_UNIMPLEMENTED         -101
 #define PARDISO_NULL_HANDLE           -102
 #define PARDISO_MEMORY_ERROR          -103
 
-MKL_INT pardiso_getenv ( const _MKL_DSS_HANDLE_t, const enum PARDISO_ENV_PARAM*, char* );
-MKL_INT PARDISO_GETENV ( const _MKL_DSS_HANDLE_t, const enum PARDISO_ENV_PARAM*, char* );
-
-MKL_INT pardiso_setenv ( _MKL_DSS_HANDLE_t, const enum PARDISO_ENV_PARAM*, const char* );
-MKL_INT PARDISO_SETENV ( _MKL_DSS_HANDLE_t, const enum PARDISO_ENV_PARAM*, const char* );
-
-
-/* Intel(R) MKL Progress routine */
+/* oneMKL Progress routine */
 #ifndef _MKL_PARDISO_PIVOT_H_
 #define _MKL_PARDISO_PIVOT_H_
 int MKL_PARDISO_PIVOT ( const double* aii, double* bii, const double* eps );
@@ -111,6 +101,10 @@ int mkl_pardiso_pivot_( const double* aii, double* bii, const double* eps );
 #endif /* _MKL_PARDISO_PIVOT_H_ */
 
 void pardiso_getdiag( const _MKL_DSS_HANDLE_t, void *,       void *, const MKL_INT *, MKL_INT *  );
+void PARDISO_GETDIAG( const _MKL_DSS_HANDLE_t, void *,       void *, const MKL_INT *, MKL_INT *  );
+
+void pardiso_export( void *pt, void* values, MKL_INT* ia, MKL_INT *ja, const MKL_INT *step, const MKL_INT *iparm, MKL_INT *error );
+void PARDISO_EXPORT( void *pt, void* values, MKL_INT* ia, MKL_INT *ja, const MKL_INT *step, const MKL_INT *iparm, MKL_INT *error );
 
 #ifdef __cplusplus
 }

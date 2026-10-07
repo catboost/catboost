@@ -316,7 +316,7 @@ namespace NCB {
         }
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
-            CB_ENSURE(PrinterPtr, "It is imposible to output column without Pool.");
+            CB_ENSURE(PrinterPtr, "It is imposible to output column without the specified dataset.");
             PrinterPtr->OutputColumnByType(outStream, DocIdOffset + docIndex, ColumnType);
         }
 

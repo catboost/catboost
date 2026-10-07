@@ -41,7 +41,7 @@ The path to the input file{% if audience == "internal" %} or table{% endif %} th
 
 **Default value**
 
-{{ loss-functions__params__q__default }}
+{{ python--required }}
 
 ### column_description
 

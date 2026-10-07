@@ -34,10 +34,10 @@ void TLogElementTest::TestMoveCtor() {
 
     THolder<TLogElement> dst = MakeHolder<TLogElement>(std::move(*src));
 
-    src.Destroy();
+    src.reset();
     UNIT_ASSERT(output.Str() == "");
 
-    dst.Destroy();
+    dst.reset();
     UNIT_ASSERT(output.Str() == message);
 }
 
@@ -50,6 +50,6 @@ void TLogElementTest::TestWith() {
     TString message = "Hello, World!";
     (*src).With("Foo", "Bar").With("Foo", "Baz") << message;
 
-    src.Destroy();
+    src.reset();
     UNIT_ASSERT(output.Str() == "Hello, World!; Foo=Bar; Foo=Baz; ");
 }

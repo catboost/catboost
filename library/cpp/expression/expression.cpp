@@ -11,207 +11,428 @@
 #include <array>
 #include <limits>
 
+namespace {
 
-static inline bool FastHasPrefix(const TStringBuf& suffix, const TStringBuf& prefix) {
-    if (suffix.size() < prefix.size()) {
-        return false;
+    inline bool FastHasPrefix(const TStringBuf& suffix, const TStringBuf& prefix) {
+        if (suffix.size() < prefix.size()) {
+            return false;
+        }
+
+        switch (prefix.size()) {
+            case 1:
+                return suffix[0] == prefix[0];
+            case 2:
+                return ReadUnaligned<ui16>(suffix.data()) == ReadUnaligned<ui16>(prefix.data());
+        }
+        return suffix.StartsWith(prefix);
     }
 
-    switch (prefix.size()) {
-        case 1:
-            return suffix[0] == prefix[0];
-        case 2:
-            return ReadUnaligned<ui16>(suffix.data()) == ReadUnaligned<ui16>(prefix.data());
-    }
-    return suffix.StartsWith(prefix);
-}
+    enum TExpressionOperation {
+        EO_BEGIN,
+        EO_OR = EO_BEGIN, // ||
+        EO_AND,           // &&
+        EO_LE,            // <=
+        EO_L,             // <
+        EO_GE,            // >=
+        EO_G,             // >
+        EO_E,             // ==
+        EO_NE,            // !=
+        EO_BITS_OR,       // |
+        EO_BITS_AND,      // &
+        EO_ADD,           // "+"
+        EO_SUBSTRACT,     // "-"
+        EO_MULTIPLY,      // "*"
+        EO_DIVIDE,        // "/"
+        EO_END
+    };
 
-enum TExpressionOperation {
-    EO_BEGIN,
-    EO_OR = EO_BEGIN, // ||
-    EO_AND,           // &&
-    EO_LE,            // <=
-    EO_L,             // <
-    EO_GE,            // >=
-    EO_G,             // >
-    EO_E,             // ==
-    EO_NE,            // !=
-    EO_BITS_OR,       // |
-    EO_BITS_AND,      // &
-    EO_ADD,           // "+"
-    EO_SUBSTRACT,     // "-"
-    EO_MULTIPLY,      // "*"
-    EO_DIVIDE,        // "/"
-    EO_END
-};
+    const TStringBuf OperationsStrings[] = {
+        TStringBuf("||"),
+        TStringBuf("&&"),
+        TStringBuf("<="),
+        TStringBuf("<"),
+        TStringBuf(">="),
+        TStringBuf(">"),
+        TStringBuf("=="),
+        TStringBuf("!="),
+        TStringBuf("|"),
+        TStringBuf("&"),
+        TStringBuf("+"),
+        TStringBuf("-"),
+        TStringBuf("*"),
+        TStringBuf("/")};
 
-const TStringBuf OperationsStrings[] = {
-    TStringBuf("||"),
-    TStringBuf("&&"),
-    TStringBuf("<="),
-    TStringBuf("<"),
-    TStringBuf(">="),
-    TStringBuf(">"),
-    TStringBuf("=="),
-    TStringBuf("!="),
-    TStringBuf("|"),
-    TStringBuf("&"),
-    TStringBuf("+"),
-    TStringBuf("-"),
-    TStringBuf("*"),
-    TStringBuf("/")};
+    const int OperationsPriority[] = {
+        0, // "||"
+        0, // "&&"
+        1, // "<="
+        1, // "<"
+        1, // ">="
+        1, // ">"
+        1, // "=="
+        1, // "!=
+        2, // "|"
+        2, // "&"
+        3, // "+"
+        3, // "-"
+        4, // "*"
+        4, // "/"
+        std::numeric_limits<int>::max()};
 
-const int OperationsPriority[] = {
-    0, // "||"
-    0, // "&&"
-    1, // "<="
-    1, // "<"
-    1, // ">="
-    1, // ">"
-    1, // "=="
-    1, // "!=
-    2, // "|"
-    2, // "&"
-    3, // "+"
-    3, // "-"
-    4, // "*"
-    4, // "/"
-    std::numeric_limits<int>::max()};
-
-static bool FindOperation(const char* expr, size_t a, size_t b, size_t& oa, size_t& ob, TExpressionOperation& oper) {
-    size_t balance = 0;
-    bool found = false;
-    oper = EO_END;
-    for (size_t i = b; i > a; --i) {
-        if (expr[i - 1] == '"') {
-            for (--i; i > a; --i) {
-                if (expr[i - 1] == '"') {
-                    break;
+    bool FindOperation(const char* expr, size_t a, size_t b, size_t& oa, size_t& ob, TExpressionOperation& oper) {
+        size_t balance = 0;
+        bool found = false;
+        oper = EO_END;
+        for (size_t i = b; i > a; --i) {
+            if (expr[i - 1] == '"') {
+                for (--i; i > a; --i) {
+                    if (expr[i - 1] == '"') {
+                        break;
+                    }
+                }
+            } else if (expr[i - 1] == ')') {
+                ++balance;
+            } else if (expr[i - 1] == '(') {
+                if (balance == 0) {
+                    ythrow yexception() << "CalcExpression error: bad brackets balance";
+                }
+                --balance;
+            } else if (balance == 0) {
+                for (TExpressionOperation o = EO_BEGIN; OperationsPriority[o] < OperationsPriority[oper]; o = static_cast<TExpressionOperation>(o + 1)) {
+                    TStringBuf suffix(&expr[i - 1], b - i + 1);
+                    if (FastHasPrefix(suffix, OperationsStrings[o])) {
+                        ob = i + OperationsStrings[o].size() - 1;
+                        oper = o;
+                        found = true;
+                        oa = i - 1;
+                        break;
+                    }
                 }
             }
-        } else if (expr[i - 1] == ')') {
-            ++balance;
-        } else if (expr[i - 1] == '(') {
-            if (balance == 0) {
-                ythrow yexception() << "CalcExpression error: bad brackets balance";
-            }
-            --balance;
-        } else if (balance == 0) {
-            for (TExpressionOperation o = EO_BEGIN; OperationsPriority[o] < OperationsPriority[oper]; o = static_cast<TExpressionOperation>(o + 1)) {
-                TStringBuf suffix(&expr[i - 1], b - i + 1);
-                if (FastHasPrefix(suffix, OperationsStrings[o])) {
-                    ob = i + OperationsStrings[o].size() - 1;
-                    oper = o;
-                    found = true;
-                    oa = i - 1;
-                    break;
-                }
+            if (found && OperationsPriority[oper] == OperationsPriority[EO_BEGIN]) {
+                break;
             }
         }
-        if (found && OperationsPriority[oper] == OperationsPriority[EO_BEGIN]) {
-            break;
+        return found;
+    }
+
+    template <typename T>
+    T ToNumeric(const TString& str) {
+        T value = T();
+        TryFromString<T>(str, value);
+        return value;
+    }
+
+    bool IsEmpty(const TString& str) {
+        return ToNumeric<double>(str) == 0.0;
+    }
+
+    bool IsEqual(const TString& a, const TString& b, const double eps) {
+        double aVal = 0.0;
+        double bVal = 0.0;
+        if (TryFromString<double>(a, aVal) && TryFromString<double>(b, bVal)) {
+            return fabs(aVal - bVal) < eps;
+        }
+        // okay, compare as strings
+        return a == b;
+    }
+
+    TString CalcExpression(const char* expr, size_t a, size_t b, const IExpressionAdaptor& data) {
+        // Cannot compare values less than 1e-5
+        static const double EPS = 1e-5;
+        for (; a < b && expr[a] == ' '; ++a) {
+        }
+        for (; a < b && expr[b - 1] == ' '; --b) {
+        }
+        if (a >= b) {
+            return TString();
+        }
+        size_t oa = 0;
+        size_t ob = 0;
+        TExpressionOperation op;
+        if (FindOperation(expr, a, b, oa, ob, op)) {
+            TString vl = CalcExpression(expr, a, oa, data);
+            TString vr = CalcExpression(expr, ob, b, data);
+            switch (op) {
+                case EO_OR:
+                    return (!IsEmpty(vl) || !IsEmpty(vr)) ? "1.0" : "0.0";
+                case EO_AND:
+                    return (!IsEmpty(vl) && !IsEmpty(vr)) ? "1.0" : "0.0";
+                case EO_LE:
+                    return (ToNumeric<double>(vl) <= ToNumeric<double>(vr) + EPS) ? "1.0" : "0.0";
+                case EO_L:
+                    return (ToNumeric<double>(vl) < ToNumeric<double>(vr) - EPS) ? "1.0" : "0.0";
+                case EO_GE:
+                    return (ToNumeric<double>(vl) >= ToNumeric<double>(vr) - EPS) ? "1.0" : "0.0";
+                case EO_G:
+                    return (ToNumeric<double>(vl) > ToNumeric<double>(vr) + EPS) ? "1.0" : "0.0";
+                case EO_E:
+                    return IsEqual(vl, vr, EPS) ? "1.0" : "0.0";
+                case EO_NE:
+                    return !IsEqual(vl, vr, EPS) ? "1.0" : "0.0";
+                case EO_BITS_OR:
+                    return ToString(static_cast<size_t>(ToNumeric<double>(vl)) | static_cast<size_t>(ToNumeric<double>(vr)));
+                case EO_BITS_AND:
+                    return ToString(static_cast<size_t>(ToNumeric<double>(vl)) & static_cast<size_t>(ToNumeric<double>(vr)));
+                case EO_ADD:
+                    return ToString(ToNumeric<double>(vl) + ToNumeric<double>(vr));
+                case EO_SUBSTRACT:
+                    return ToString(ToNumeric<double>(vl) - ToNumeric<double>(vr));
+                case EO_MULTIPLY:
+                    return ToString(ToNumeric<double>(vl) * ToNumeric<double>(vr));
+                case EO_DIVIDE:
+                    return ToString(ToNumeric<double>(vl) / ToNumeric<double>(vr));
+
+                default:
+                    ythrow yexception() << "CalcExpression error: can't parse expression";
+            }
+        } else if (expr[a] == '(') {
+            if (expr[b - 1] != ')') {
+                ythrow yexception() << "CalcExpression error: extra symbols";
+            }
+            return CalcExpression(expr, a + 1, b - 1, data);
+        } else if (expr[a] == '"') {
+            if (expr[b - 1] != '"') {
+                ythrow yexception() << "CalcExpression error: extra symbols";
+            }
+            return TString(&expr[a + 1], &expr[b - 1]);
+        } else if (expr[a] == '-') {
+            return ToString(-FromString<double>(CalcExpression(expr, a + 1, b, data)));
+        } else if (expr[a] == '!') {
+            return IsEmpty(CalcExpression(expr, a + 1, b, data)) ? "1.0" : "0.0";
+        } else {
+            bool isCheckVal = false;
+            if (expr[a] == '~') {
+                isCheckVal = true;
+                ++a;
+            }
+            TString token(&expr[a], &expr[b]);
+            TExpressionVariable val;
+            bool found = data.FindValue(token, val);
+            if (isCheckVal) {
+                return found ? "1.0" : "0.0";
+            }
+            return found ? val.ToStr() : token;
         }
     }
-    return found;
-}
 
-template <typename T>
-T ToNumeric(const TString& str) {
-    T value = T();
-    TryFromString<T>(str, value);
-    return value;
-}
+    enum EOperation {
+        O_CONST,                // const
+        O_TOKEN,                // token
+        O_NOT,                  // !
+        O_IS_TOKEN,             // ~
+        O_MINUS,                // - / unary
+        O_EXP,                  // #EXP#
+        O_LOG,                  // #LOG#
+        O_SQR,                  // #SQR#
+        O_SQRT,                 // #SQRT#
+        O_SIGMOID,              // #SIGMOID#
+        O_HISTOGRAM_PERCENTILE, // #HISTOGRAM_PERCENTILE#
+        O_STR_COND,             // ?@ / ternary operator for strings
+        O_COND,                 // ?
+        O_BINARY_BEGIN,         // binary operator
+        O_MIN = O_BINARY_BEGIN, // #MIN#
+        O_MAX,                  // #MAX#
+        O_OR,                   // ||
+        O_AND,                  // &&
+        O_STARTS_WITH,          // >? start with
+        O_STR_LE,               // <=@ / for string comparsion (alphabetical)
+        O_STR_L,                // <@  / for string comparsion (alphabetical)
+        O_STR_GE,               // >=@ / for string comparsion (alphabetical)
+        O_STR_G,                // >@  / for string comparsion (alphabetical)
+        O_VERSION_LE,           // <=# / for version comparsion
+        O_VERSION_L,            // <#  / for version comparsion
+        O_VERSION_GE,           // >=# / for version comparsion
+        O_VERSION_G,            // >#  / for version comparsion
+        O_VERSION_E,            // ==# / for version comparsion
+        O_VERSION_NE,           // !=# / for version comparsion
+        O_LE,                   // <=
+        O_L,                    // <
+        O_GE,                   // >=
+        O_G,                    // >
+        O_E,                    // ==
+        O_NE,                   // !=
+        O_MATCH,                // =~
+        O_BITS_OR,              // |
+        O_BITS_AND,             // &
+        O_ADD,                  // "+"
+        O_SUBSTRACT,            // "-"  / binary
+        O_MULTIPLY,             // "*"
+        O_DIVIDE,               // "/"
+        O_POW,                  // "^"
+        O_END
+    };
 
-static bool IsEmpty(const TString& str) {
-    return ToNumeric<double>(str) == 0.0;
-}
+    const TStringBuf EOperationsStrings[] = {
+        TStringBuf("const"),
+        TStringBuf("token"),
+        TStringBuf("!"),
+        TStringBuf("~"),
+        TStringBuf("-"),
+        TStringBuf("#EXP#"),
+        TStringBuf("#LOG#"),
+        TStringBuf("#SQR#"),
+        TStringBuf("#SQRT#"),
+        TStringBuf("#SIGMOID#"),
+        TStringBuf("#HISTOGRAM_PERCENTILE#"),
+        TStringBuf("?@"),
+        TStringBuf("?"),
+        TStringBuf("#MIN#"),
+        TStringBuf("#MAX#"),
+        TStringBuf("||"),
+        TStringBuf("&&"),
+        TStringBuf(">?"),
+        TStringBuf("<=@"),
+        TStringBuf("<@"),
+        TStringBuf(">=@"),
+        TStringBuf(">@"),
+        TStringBuf("<=#"),
+        TStringBuf("<#"),
+        TStringBuf(">=#"),
+        TStringBuf(">#"),
+        TStringBuf("==#"),
+        TStringBuf("!=#"),
+        TStringBuf("<="),
+        TStringBuf("<"),
+        TStringBuf(">="),
+        TStringBuf(">"),
+        TStringBuf("=="),
+        TStringBuf("!="),
+        TStringBuf("=~"),
+        TStringBuf("|"),
+        TStringBuf("&"),
+        TStringBuf("+"),
+        TStringBuf("-"),
+        TStringBuf("*"),
+        TStringBuf("/"),
+        TStringBuf("^")};
 
-static bool IsEqual(const TString& a, const TString& b, const double eps) {
-    double aVal = 0.0;
-    double bVal = 0.0;
-    if (TryFromString<double>(a, aVal) && TryFromString<double>(b, bVal)) {
-        return fabs(aVal - bVal) < eps;
+    const int EOperationsPriority[] = {
+        0, // "const"
+        0, // "token"
+        0, // "!"
+        0, // "~"
+        0, // "-"
+        0, // "#EXP#"
+        0, // "#LOG#"
+        0, // "#SQR#"
+        0, // "#SQRT#"
+        0, // "#SIGMOID#"
+        0, // "#HISTOGRAM_PERCENTILE#"
+        0, // "?@"
+        0, // "?"
+        1, // "#MIN#"
+        1, // "#MAX#"
+        2, // "||"
+        2, // "&&"
+        3, // ">?"
+        3, // ">=@"
+        3, // ">@"
+        3, // "<=@"
+        3, // "<@"
+        3, // ">=#"
+        3, // ">#"
+        3, // "<=#"
+        3, // "<#"
+        3, // "==#"
+        3, // "!=#"
+        3, // "<="
+        3, // "<"
+        3, // ">="
+        3, // ">"
+        3, // "=="
+        3, // "!="
+        3, // "=~"
+        4, // "|"
+        4, // "&"
+        5, // "+"
+        5, // "-"
+        6, // "*"
+        6, // "/"
+        7, // "^"
+        std::numeric_limits<int>::max()};
+
+    constexpr size_t MaxOperands = 3;
+
+    class TExpressionImpl: public IExpressionImpl {
+    public:
+        struct TOperator {
+            TOperator(EOperation oper = O_END)
+                : Oper(oper)
+            {
+            }
+            TVector<size_t> Input;
+            EOperation Oper;
+        };
+
+        TString CalcExpressionStr(const IExpressionAdaptor& iadapter) const override;
+        double CalcExpression(const IExpressionAdaptor& iadapter) const override;
+        TExpressionImpl(TStringBuf expr);
+        void GetTokensWithSuffix(const TString& suffix, TVector<TString>& tokens) const override;
+        void GetTokensWithPrefix(const TString& prefix, TVector<TString>& tokens) const override;
+        void SetRegexMatcher(TExpressionRegexMatcher&& matcher) override {
+            Matcher = std::move(matcher);
+        }
+
+    private:
+        TDeque<TOperator> Operations;
+        TVector<TString> Consts;
+        TVector<TString> Tokens;
+        TExpressionRegexMatcher Matcher;
+
+        size_t FindOperation(const TStringBuf& exp, std::array<TStringBuf, MaxOperands>& args, EOperation& oper);
+        size_t BuildExpression(TStringBuf str);
+        TExpressionVariable CalcVariantExpression(const IExpressionAdaptor& data) const;
+    };
+
+    inline void SkipQuoted(const char quote, const TStringBuf& exp, size_t& i) {
+        Y_ASSERT(i >= 1);
+        if (quote != exp[i - 1]) {
+            return;
+        }
+        bool quoteFound = false;
+        Y_ENSURE(i >= 1, "CalcExpression error: Opening quote not found. ");
+
+        i--;
+        for (; i > 0; --i) {
+            if (quote == exp[i - 1]) {
+                quoteFound = true;
+                break;
+            }
+        }
+        Y_ENSURE(quoteFound, "CalcExpression error: Opening quote not found. ");
     }
-    // okay, compare as strings
-    return a == b;
-}
 
-static TString CalcExpression(const char* expr, size_t a, size_t b, const IExpressionAdaptor& data) {
-    // Cannot compare values less than 1e-5
-    static const double EPS = 1e-5;
-    for (; a < b && expr[a] == ' '; ++a) {}
-    for (; a < b && expr[b - 1] == ' '; --b) {}
-    if (a >= b) {
-        return TString();
+    size_t InsertOrUpdate(TVector<TString>& values, const TString& v) {
+        for (size_t i = 0, size = values.size(); i < size; ++i) {
+            if (values[i] == v) {
+                return i;
+            }
+        }
+        values.push_back(v);
+        return values.size() - 1;
     }
-    size_t oa = 0;
-    size_t ob = 0;
-    TExpressionOperation op;
-    if (FindOperation(expr, a, b, oa, ob, op)) {
-        TString vl = CalcExpression(expr, a, oa, data);
-        TString vr = CalcExpression(expr, ob, b, data);
-        switch (op) {
-            case EO_OR:
-                return (!IsEmpty(vl) || !IsEmpty(vr)) ? "1.0" : "0.0";
-            case EO_AND:
-                return (!IsEmpty(vl) && !IsEmpty(vr)) ? "1.0" : "0.0";
-            case EO_LE:
-                return (ToNumeric<double>(vl) <= ToNumeric<double>(vr) + EPS) ? "1.0" : "0.0";
-            case EO_L:
-                return (ToNumeric<double>(vl) < ToNumeric<double>(vr) - EPS) ? "1.0" : "0.0";
-            case EO_GE:
-                return (ToNumeric<double>(vl) >= ToNumeric<double>(vr) - EPS) ? "1.0" : "0.0";
-            case EO_G:
-                return (ToNumeric<double>(vl) > ToNumeric<double>(vr) + EPS) ? "1.0" : "0.0";
-            case EO_E:
-                return IsEqual(vl, vr, EPS) ? "1.0" : "0.0";
-            case EO_NE:
-                return !IsEqual(vl, vr, EPS) ? "1.0" : "0.0";
-            case EO_BITS_OR:
-                return ToString(static_cast<size_t>(ToNumeric<double>(vl)) | static_cast<size_t>(ToNumeric<double>(vr)));
-            case EO_BITS_AND:
-                return ToString(static_cast<size_t>(ToNumeric<double>(vl)) & static_cast<size_t>(ToNumeric<double>(vr)));
-            case EO_ADD:
-                return ToString(ToNumeric<double>(vl) + ToNumeric<double>(vr));
-            case EO_SUBSTRACT:
-                return ToString(ToNumeric<double>(vl) - ToNumeric<double>(vr));
-            case EO_MULTIPLY:
-                return ToString(ToNumeric<double>(vl) * ToNumeric<double>(vr));
-            case EO_DIVIDE:
-                return ToString(ToNumeric<double>(vl) / ToNumeric<double>(vr));
 
-            default:
-                ythrow yexception() << "CalcExpression error: can't parse expression";
+    struct TFrame {
+        TFrame() = delete;
+
+        TFrame(const TStringBuf str, const size_t order)
+            : Str(str)
+            , Order(order)
+        {
         }
-    } else if (expr[a] == '(') {
-        if (expr[b - 1] != ')') {
-            ythrow yexception() << "CalcExpression error: extra symbols";
-        }
-        return CalcExpression(expr, a + 1, b - 1, data);
-    } else if (expr[a] == '"') {
-        if (expr[b - 1] != '"') {
-            ythrow yexception() << "CalcExpression error: extra symbols";
-        }
-        return TString(&expr[a + 1], &expr[b - 1]);
-    } else if (expr[a] == '-') {
-        return ToString(-FromString<double>(CalcExpression(expr, a + 1, b, data)));
-    } else if (expr[a] == '!') {
-        return IsEmpty(CalcExpression(expr, a + 1, b, data)) ? "1.0" : "0.0";
-    } else {
-        bool isCheckVal = false;
-        if (expr[a] == '~') {
-            isCheckVal = true;
-            ++a;
-        }
-        TString token(&expr[a], &expr[b]);
-        TExpressionVariable val;
-        bool found = data.FindValue(token, val);
-        if (isCheckVal) {
-            return found ? "1.0" : "0.0";
-        }
-        return found ? val.ToStr() : token;
-    }
-}
+
+        TStringBuf Str;
+        size_t Order;
+        bool Processed = false;
+        TVector<TStringBuf> Args = {};
+        EOperation Operation = EOperation();
+        size_t NumArgs = 0;
+        size_t ArgIndex = 0;
+        TVector<size_t> ArgResults = {};
+    };
+
+} // anonymous namespace
 
 TString CalcExpressionStr(const TString& expr, const IExpressionAdaptor& data) {
     return CalcExpression(expr.c_str(), 0, expr.size(), data);
@@ -225,199 +446,11 @@ IExpressionImpl::IExpressionImpl() = default;
 
 IExpressionImpl::~IExpressionImpl() = default;
 
-enum EOperation {
-    O_CONST,                // const
-    O_TOKEN,                // token
-    O_NOT,                  // !
-    O_IS_TOKEN,             // ~
-    O_MINUS,                // - / unary
-    O_EXP,                  // #EXP#
-    O_LOG,                  // #LOG#
-    O_SQR,                  // #SQR#
-    O_SQRT,                 // #SQRT#
-    O_SIGMOID,              // #SIGMOID#
-    O_HISTOGRAM_PERCENTILE, // #HISTOGRAM_PERCENTILE#
-    O_STR_COND,             // ?@ / ternary operator for strings
-    O_COND,                 // ?
-    O_BINARY_BEGIN,         // binary operator
-    O_MIN = O_BINARY_BEGIN, // #MIN#
-    O_MAX,                  // #MAX#
-    O_OR,                   // ||
-    O_AND,                  // &&
-    O_STARTS_WITH,          // >? start with
-    O_STR_LE,               // <=@ / for string comparsion (alphabetical)
-    O_STR_L,                // <@  / for string comparsion (alphabetical)
-    O_STR_GE,               // >=@ / for string comparsion (alphabetical)
-    O_STR_G,                // >@  / for string comparsion (alphabetical)
-    O_VERSION_LE,           // <=# / for version comparsion
-    O_VERSION_L,            // <#  / for version comparsion
-    O_VERSION_GE,           // >=# / for version comparsion
-    O_VERSION_G,            // >#  / for version comparsion
-    O_VERSION_E,            // ==# / for version comparsion
-    O_VERSION_NE,           // !=# / for version comparsion
-    O_LE,                   // <=
-    O_L,                    // <
-    O_GE,                   // >=
-    O_G,                    // >
-    O_E,                    // ==
-    O_NE,                   // !=
-    O_MATCH,                // =~
-    O_BITS_OR,              // |
-    O_BITS_AND,             // &
-    O_ADD,                  // "+"
-    O_SUBSTRACT,            // "-"  / binary
-    O_MULTIPLY,             // "*"
-    O_DIVIDE,               // "/"
-    O_POW,                  // "^"
-    O_END
-};
-
-const TStringBuf EOperationsStrings[] = {
-    TStringBuf("const"),
-    TStringBuf("token"),
-    TStringBuf("!"),
-    TStringBuf("~"),
-    TStringBuf("-"),
-    TStringBuf("#EXP#"),
-    TStringBuf("#LOG#"),
-    TStringBuf("#SQR#"),
-    TStringBuf("#SQRT#"),
-    TStringBuf("#SIGMOID#"),
-    TStringBuf("#HISTOGRAM_PERCENTILE#"),
-    TStringBuf("?@"),
-    TStringBuf("?"),
-    TStringBuf("#MIN#"),
-    TStringBuf("#MAX#"),
-    TStringBuf("||"),
-    TStringBuf("&&"),
-    TStringBuf(">?"),
-    TStringBuf("<=@"),
-    TStringBuf("<@"),
-    TStringBuf(">=@"),
-    TStringBuf(">@"),
-    TStringBuf("<=#"),
-    TStringBuf("<#"),
-    TStringBuf(">=#"),
-    TStringBuf(">#"),
-    TStringBuf("==#"),
-    TStringBuf("!=#"),
-    TStringBuf("<="),
-    TStringBuf("<"),
-    TStringBuf(">="),
-    TStringBuf(">"),
-    TStringBuf("=="),
-    TStringBuf("!="),
-    TStringBuf("=~"),
-    TStringBuf("|"),
-    TStringBuf("&"),
-    TStringBuf("+"),
-    TStringBuf("-"),
-    TStringBuf("*"),
-    TStringBuf("/"),
-    TStringBuf("^")
-};
-
-const int EOperationsPriority[] = {
-    0, // "const"
-    0, // "token"
-    0, // "!"
-    0, // "~"
-    0, // "-"
-    0, // "#EXP#"
-    0, // "#LOG#"
-    0, // "#SQR#"
-    0, // "#SQRT#"
-    0, // "#SIGMOID#"
-    0, // "#HISTOGRAM_PERCENTILE#"
-    0, // "?@"
-    0, // "?"
-    1, // "#MIN#"
-    1, // "#MAX#"
-    2, // "||"
-    2, // "&&"
-    3, // ">?"
-    3, // ">=@"
-    3, // ">@"
-    3, // "<=@"
-    3, // "<@"
-    3, // ">=#"
-    3, // ">#"
-    3, // "<=#"
-    3, // "<#"
-    3, // "==#"
-    3, // "!=#"
-    3, // "<="
-    3, // "<"
-    3, // ">="
-    3, // ">"
-    3, // "=="
-    3, // "!="
-    3, // "=~"
-    4, // "|"
-    4, // "&"
-    5, // "+"
-    5, // "-"
-    6, // "*"
-    6, // "/"
-    7, // "^"
-    std::numeric_limits<int>::max()
-};
-
-constexpr size_t MaxOperands = 3;
 const double TExpressionVariable::EPS = 1e-5;
-
-class TExpressionImpl: public IExpressionImpl {
-public:
-    struct TOperator {
-        TOperator(EOperation oper = O_END)
-            : Oper(oper)
-        {
-        }
-        TVector<size_t> Input;
-        EOperation Oper;
-    };
-
-    TString CalcExpressionStr(const IExpressionAdaptor& iadapter) const override;
-    double CalcExpression(const IExpressionAdaptor& iadapter) const override;
-    TExpressionImpl(TStringBuf expr);
-    void GetTokensWithSuffix(const TString& suffix, TVector<TString>& tokens) const override;
-    void GetTokensWithPrefix(const TString& prefix, TVector<TString>& tokens) const override;
-    void SetRegexMatcher(TExpressionRegexMatcher&& matcher) override {
-        Matcher = std::move(matcher);
-    }
-
-private:
-    TDeque<TOperator> Operations;
-    TVector<TString> Consts;
-    TVector<TString> Tokens;
-    TExpressionRegexMatcher Matcher;
-
-    size_t FindOperation(const TStringBuf& exp, std::array<TStringBuf, MaxOperands>& args, EOperation& oper);
-    size_t BuildExpression(TStringBuf str);
-    TExpressionVariable CalcVariantExpression(const IExpressionAdaptor& data) const;
-};
 
 TExpression::TExpression(TStringBuf expr)
     : Pimpl(new TExpressionImpl(expr))
 {
-}
-
-static inline void SkipQuoted(const char quote, const TStringBuf& exp, size_t& i) {
-    Y_ASSERT(i >= 1);
-    if (quote != exp[i - 1]) {
-        return;
-    }
-    bool quoteFound = false;
-    Y_ENSURE(i >= 1, "CalcExpression error: Opening quote not found. ");
-
-    i--;
-    for (; i > 0; --i) {
-        if (quote == exp[i - 1]) {
-            quoteFound = true;
-            break;
-        }
-    }
-    Y_ENSURE(quoteFound, "CalcExpression error: Opening quote not found. ");
 }
 
 void TExpressionImpl::GetTokensWithSuffix(const TString& suffix, TVector<TString>& tokens) const {
@@ -525,34 +558,6 @@ size_t TExpressionImpl::FindOperation(const TStringBuf& exp, std::array<TStringB
 
     return numArgs;
 }
-
-static size_t InsertOrUpdate(TVector<TString>& values, const TString& v) {
-    for (size_t i = 0, size = values.size(); i < size; ++i) {
-        if (values[i] == v) {
-            return i;
-        }
-    }
-    values.push_back(v);
-    return values.size() - 1;
-}
-
-struct TFrame {
-    TFrame() = delete;
-
-    TFrame(const TStringBuf str, const size_t order)
-        : Str(str)
-        , Order(order)
-    {}
-
-    TStringBuf Str;
-    size_t Order;
-    bool Processed = false;
-    TVector<TStringBuf> Args = {};
-    EOperation Operation = EOperation();
-    size_t NumArgs = 0;
-    size_t ArgIndex = 0;
-    TVector<size_t> ArgResults = {};
-};
 
 size_t TExpressionImpl::BuildExpression(TStringBuf str) {
     TStack<TFrame> stk;

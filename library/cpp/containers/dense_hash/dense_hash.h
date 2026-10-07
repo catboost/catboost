@@ -3,11 +3,13 @@
 #include "fwd.h"
 
 #include <util/generic/bitops.h>
+#include <util/generic/cast.h>
 #include <util/generic/utility.h>
 #include <util/generic/vector.h>
 #include <util/generic/mapfindptr.h>
 
 #include <util/str_stl.h>
+#include <util/system/types.h>
 #include <util/ysaveload.h>
 
 #include <iterator>
@@ -219,7 +221,7 @@ public:
 
     void Save(IOutputStream* s) const {
         // TODO(tender-bum): make SaveLoad great again
-        ::SaveMany(s, BucketMask, NumFilled, GrowThreshold);
+        ::SaveMany(s, SafeIntegerCast<ui64>(BucketMask), SafeIntegerCast<ui64>(NumFilled), SafeIntegerCast<ui64>(GrowThreshold));
         // We need to do so because Buckets may be serialized as a pod-array
         // that doesn't correspond to the previous behaviour
         ::SaveSize(s, Buckets.size());
@@ -233,7 +235,13 @@ public:
 
     void Load(IInputStream* s) {
         // TODO(tender-bum): make SaveLoad great again
-        ::LoadMany(s, BucketMask, NumFilled, GrowThreshold);
+        ui64 bucketMask = 0;
+        ui64 numFilled = 0;
+        ui64 growThreshold = 0;
+        ::LoadMany(s, bucketMask, numFilled, growThreshold);
+        BucketMask = SafeIntegerCast<size_type>(bucketMask);
+        NumFilled = SafeIntegerCast<size_type>(numFilled);
+        GrowThreshold = SafeIntegerCast<size_type>(growThreshold);
         // We need to do so because we can't load const fields
         struct TPairMimic {
             key_type First;

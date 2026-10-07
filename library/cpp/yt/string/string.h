@@ -205,11 +205,11 @@ std::string TruncateString(std::string string, int lengthLimit, TStringBuf trunc
 class TTruncatedStringView
 {
 public:
-    TTruncatedStringView(const std::string& value, int limit);
+    TTruncatedStringView(TStringBuf value Y_LIFETIME_BOUND, int limit);
     void WriteToBuilder(TStringBuilderBase* builder, TStringBuf spec) const;
 
 private:
-    const std::string& Value_;
+    const TStringBuf Value_;
     const int Limit_;
 };
 

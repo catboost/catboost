@@ -10,10 +10,13 @@
 
 #include <util/generic/buffer.h>
 #include <util/network/endpoint.h>
+#include <util/network/sock.h>
 #include <util/network/socket.h>
 #include <util/stream/str.h>
 #include <util/string/builder.h>
 #include <util/generic/scope.h>
+#include <util/system/event.h>
+#include <util/system/thread.h>
 
 using namespace NNeh;
 
@@ -49,6 +52,137 @@ Y_UNIT_TEST_SUITE(NehHttp) {
     struct TServ {
         IServicesRef Services;
         ui16 ServerPort;
+    };
+
+    class TIdleResponseServer {
+    public:
+        TIdleResponseServer()
+            : Thread_([this] { Run(); })
+        {
+            TSockAddrInet address("127.0.0.1", 0);
+            UNIT_ASSERT_EQUAL(ListenSocket_.Bind(&address), 0);
+            UNIT_ASSERT_EQUAL(ListenSocket_.Listen(1), 0);
+            SetNonBlock(ListenSocket_);
+            Port_ = address.GetPort();
+            Thread_.Start();
+        }
+
+        ~TIdleResponseServer() {
+            Thread_.Join();
+        }
+
+        ui16 Port() const noexcept {
+            return Port_;
+        }
+
+        void SendUnexpectedResponse() noexcept {
+            SendUnexpectedResponse_.Signal();
+        }
+
+        bool WaitUntilReadyForSecondRequest(TDuration timeout) noexcept {
+            return ReadyForSecondRequest_.WaitT(timeout);
+        }
+
+    private:
+        static bool SendAll(TStreamSocket& socket, TStringBuf data) {
+            while (data) {
+                const ssize_t written = socket.Send(data.data(), data.size());
+                if (written <= 0) {
+                    return false;
+                }
+                data.Skip(written);
+            }
+            return true;
+        }
+
+        static bool ReadRequest(TStreamSocket& socket, TDuration timeout) {
+            TString data;
+            const TInstant deadline = timeout.ToDeadLine();
+            while (!data.Contains("\r\n\r\n")) {
+                const TDuration left = deadline - TInstant::Now();
+                if (left <= TDuration::Zero()) {
+                    return false;
+                }
+                const long timeoutMs = Max<long>(1, left.MilliSeconds());
+                SetSocketTimeout(socket, timeoutMs / 1000, timeoutMs % 1000);
+
+                char buffer[1024];
+                const ssize_t size = socket.Recv(buffer, sizeof(buffer));
+                if (size <= 0) {
+                    return false;
+                }
+                data.append(buffer, size);
+            }
+            return true;
+        }
+
+        bool Accept(TInetStreamSocket& socket, TDuration timeout) {
+            const TInstant deadline = timeout.ToDeadLine();
+            while (TInstant::Now() < deadline) {
+                const int error = ListenSocket_.Accept(&socket);
+                if (error == 0) {
+                    return true;
+                }
+                if (error != -EAGAIN && error != -EWOULDBLOCK) {
+                    return false;
+                }
+                Sleep(TDuration::MilliSeconds(1));
+            }
+            return false;
+        }
+
+        void Run() {
+            static constexpr TStringBuf emptyResponse =
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Length: 0\r\n"
+                "Connection: Keep-Alive\r\n"
+                "\r\n";
+            static constexpr TStringBuf finalResponse =
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Length: 2\r\n"
+                "Connection: Close\r\n"
+                "\r\n"
+                "OK";
+
+            TInetStreamSocket oldConnection;
+            if (!Accept(oldConnection, TDuration::Seconds(3)) ||
+                !ReadRequest(oldConnection, TDuration::Seconds(3)) ||
+                !SendAll(oldConnection, emptyResponse))
+            {
+                return;
+            }
+
+            if (!SendUnexpectedResponse_.WaitT(TDuration::Seconds(3))) {
+                return;
+            }
+            if (!SendAll(oldConnection, emptyResponse)) {
+                return;
+            }
+
+            // Give NEH time to consume the unexpected response while the
+            // connection has no associated request.
+            ReadRequest(oldConnection, TDuration::MilliSeconds(200));
+            ReadyForSecondRequest_.Signal();
+
+            if (ReadRequest(oldConnection, TDuration::Seconds(3))) {
+                return;
+            }
+
+            TInetStreamSocket newConnection;
+            if (!Accept(newConnection, TDuration::Seconds(3)) ||
+                !ReadRequest(newConnection, TDuration::Seconds(3)) ||
+                !SendAll(newConnection, finalResponse))
+            {
+                return;
+            }
+        }
+
+    private:
+        TInetStreamSocket ListenSocket_;
+        ui16 Port_ = 0;
+        TThread Thread_;
+        TManualEvent SendUnexpectedResponse_;
+        TManualEvent ReadyForSecondRequest_;
     };
 
     /**
@@ -163,6 +297,32 @@ Y_UNIT_TEST_SUITE(NehHttp) {
         }
         const TStringBuf responseBuf(resp.data(), resp.size());
         UNIT_ASSERT_C(responseBuf == expectedResponses.Str(), TString("has unexpected responses: ") + responseBuf);
+    }
+
+    Y_UNIT_TEST(TUnexpectedResponseOnIdleConnectionDoesNotHangNextRequest) {
+        TResponseRef secondResponse;
+        {
+            TIdleResponseServer server;
+            const TString address = TStringBuilder() << "http2://127.0.0.1:" << server.Port() << "/ping";
+
+            TResponseRef firstResponse = NNeh::Request(address)->Wait(TDuration::Seconds(3));
+            UNIT_ASSERT_C(firstResponse && !firstResponse->IsError(), "first request failed");
+
+            server.SendUnexpectedResponse();
+            UNIT_ASSERT_C(
+                server.WaitUntilReadyForSecondRequest(TDuration::Seconds(3)),
+                "server did not send unexpected response");
+
+            THandleRef secondHandle = NNeh::Request(address);
+            secondResponse = secondHandle->Wait(TDuration::Seconds(3));
+            if (!secondResponse) {
+                secondHandle->Cancel();
+            }
+        }
+
+        UNIT_ASSERT_C(secondResponse, "second request hung after reusing an invalid idle connection");
+        UNIT_ASSERT_C(!secondResponse->IsError(), secondResponse->GetErrorText());
+        UNIT_ASSERT_VALUES_EQUAL(secondResponse->Data, "OK");
     }
 
     /**
@@ -445,5 +605,116 @@ Y_UNIT_TEST_SUITE(NehHttp) {
         }
         UNIT_ASSERT_C(serv.Services.Get(), err.data());
 
+    }
+}
+
+Y_UNIT_TEST_SUITE(NehHttpKeepAliveTimeout) {
+    // documented rule (http2.h): max, while soft limit is not reached; min, when hard limit
+    // is reached; approx. linear in between
+    static constexpr size_t Soft = 60000;
+    static constexpr size_t Hard = 120000;
+
+    static const TDuration MinTimeout = TDuration::Seconds(10);
+    static const TDuration MaxTimeout = TDuration::Seconds(120);
+
+    Y_UNIT_TEST(TestTable) {
+        struct TCase {
+            size_t ConnectionCount;
+            TDuration Expected;
+        };
+
+        const TCase cases[] = {
+            {0, MaxTimeout},
+            {Soft / 2, MaxTimeout},
+            {Soft, MaxTimeout},
+            // (120 - 10) * (120000 - 60001) / (120000 - 60000 + 1) + 10
+            {Soft + 1, TDuration::Seconds(119)},
+            // (120 - 10) * (120000 - 90000) / (120000 - 60000 + 1) + 10
+            {(Soft + Hard) / 2, TDuration::Seconds(64)},
+            {Hard - 1, MinTimeout},
+            {Hard, MinTimeout},
+            {2 * Hard, MinTimeout},
+        };
+
+        for (const auto& c : cases) {
+            UNIT_ASSERT_VALUES_EQUAL_C(
+                CalcKeepAliveTimeout(c.ConnectionCount, Soft, Hard, MinTimeout, MaxTimeout),
+                c.Expected,
+                TStringBuilder() << "connectionCount = " << c.ConnectionCount);
+        }
+    }
+
+    Y_UNIT_TEST(TestEmptyBandBetweenLimits) {
+        // soft == hard: there is no band to ramp over, so anything above the soft limit
+        // immediately gets the shortest timeout
+        constexpr size_t limit = 60000;
+
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(limit - 1, limit, limit, MinTimeout, MaxTimeout), MaxTimeout);
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(limit, limit, limit, MinTimeout, MaxTimeout), MaxTimeout);
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(limit + 1, limit, limit, MinTimeout, MaxTimeout), MinTimeout);
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(2 * limit, limit, limit, MinTimeout, MaxTimeout), MinTimeout);
+    }
+
+    Y_UNIT_TEST(TestZeroSoftLimit) {
+        // the distbuild proxy prod config before SPI-223543 P0: soft == 0, so every connection
+        // is on the ramp and the timeout starts shrinking right away
+        constexpr size_t soft = 0;
+
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(0, soft, Hard, MinTimeout, MaxTimeout), MaxTimeout);
+        // (120 - 10) * (120000 - 1) / (120000 - 0 + 1) + 10
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(1, soft, Hard, MinTimeout, MaxTimeout), TDuration::Seconds(119));
+        // (120 - 10) * (120000 - 60000) / (120000 - 0 + 1) + 10
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(Hard / 2, soft, Hard, MinTimeout, MaxTimeout), TDuration::Seconds(64));
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(Hard, soft, Hard, MinTimeout, MaxTimeout), MinTimeout);
+    }
+
+    Y_UNIT_TEST(TestHardLimitBelowSoftLimit) {
+        // pins down the behaviour of a misconfigured pair: above the soft limit the connection
+        // count is clamped to the hard limit, which zeroes the numerator, so the result is Min
+        constexpr size_t soft = 120000;
+        constexpr size_t hard = 60000;
+
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(hard, soft, hard, MinTimeout, MaxTimeout), MaxTimeout);
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(soft, soft, hard, MinTimeout, MaxTimeout), MaxTimeout);
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(soft + 1, soft, hard, MinTimeout, MaxTimeout), MinTimeout);
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(2 * soft, soft, hard, MinTimeout, MaxTimeout), MinTimeout);
+    }
+
+    Y_UNIT_TEST(TestInvertedTimeoutWindow) {
+        // maxTimeout < minTimeout is a misconfiguration, but the unsigned (max - min) must not
+        // wrap: the ramp collapses and minTimeout is used everywhere above the soft limit
+        const TDuration invertedMin = TDuration::Seconds(120);
+        const TDuration invertedMax = TDuration::Seconds(10);
+
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(Soft, Soft, Hard, invertedMin, invertedMax), invertedMax);
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(Soft + 1, Soft, Hard, invertedMin, invertedMax), invertedMin);
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout((Soft + Hard) / 2, Soft, Hard, invertedMin, invertedMax), invertedMin);
+        UNIT_ASSERT_VALUES_EQUAL(CalcKeepAliveTimeout(Hard, Soft, Hard, invertedMin, invertedMax), invertedMin);
+    }
+
+    Y_UNIT_TEST(TestMonotonicallyDecreasing) {
+        constexpr size_t soft = 1000;
+        constexpr size_t hard = 5000;
+
+        TDuration prev = CalcKeepAliveTimeout(0, soft, hard, MinTimeout, MaxTimeout);
+        UNIT_ASSERT_VALUES_EQUAL(prev, MaxTimeout);
+        for (size_t cc = 1; cc <= hard; ++cc) {
+            const TDuration current = CalcKeepAliveTimeout(cc, soft, hard, MinTimeout, MaxTimeout);
+            UNIT_ASSERT_C(current <= prev, TStringBuilder()
+                << "timeout grew at connectionCount = " << cc << ": " << current << " > " << prev);
+            UNIT_ASSERT_C(current >= MinTimeout && current <= MaxTimeout, TStringBuilder()
+                << "timeout out of range at connectionCount = " << cc << ": " << current);
+            prev = current;
+        }
+        UNIT_ASSERT_VALUES_EQUAL(prev, MinTimeout);
+    }
+
+    Y_UNIT_TEST(TestContinuousAtSoftLimit) {
+        const TDuration atSoftLimit = CalcKeepAliveTimeout(Soft, Soft, Hard, MinTimeout, MaxTimeout);
+        const TDuration aboveSoftLimit = CalcKeepAliveTimeout(Soft + 1, Soft, Hard, MinTimeout, MaxTimeout);
+
+        UNIT_ASSERT_VALUES_EQUAL(atSoftLimit, MaxTimeout);
+        UNIT_ASSERT_C(atSoftLimit - aboveSoftLimit <= TDuration::Seconds(1), TStringBuilder()
+            << "timeout jumps at the soft limit: " << atSoftLimit << " -> " << aboveSoftLimit);
     }
 }

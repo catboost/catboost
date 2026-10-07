@@ -122,7 +122,14 @@ void TModChooser::AddGroupModeDescription(const TString& description, bool hidde
 }
 
 void TModChooser::SetDefaultMode(const TString& mode) {
-    DefaultMode = mode;
+    Y_ENSURE(!std::holds_alternative<TMainClass*>(DefaultBehaviour), "Default mode and default action are mutually exclusive.");
+    DefaultBehaviour = mode.empty() ? TDefaultBehaviour{std::monostate{}} : TDefaultBehaviour{mode};
+}
+
+void TModChooser::SetDefaultAction(TMainClass* action) {
+    Y_ENSURE(action != nullptr, "Default action must not be null.");
+    Y_ENSURE(!std::holds_alternative<TString>(DefaultBehaviour), "Default mode and default action are mutually exclusive.");
+    DefaultBehaviour = action;
 }
 
 void TModChooser::AddAlias(const TString& alias, const TString& mode) {
@@ -136,6 +143,23 @@ void TModChooser::AddAlias(const TString& alias, const TString& mode) {
 
 void TModChooser::SetDescription(const TString& descr) {
     Description = descr;
+}
+
+void TModChooser::SetCmdLineDescription(const TString& description) {
+    CmdLineDescription = description;
+}
+
+void TModChooser::SetModesTitle(const TString& title) {
+    ModesTitle = title;
+}
+
+void TModChooser::SetModeName(const TString& name, const TString& usageName) {
+    ModeName = name;
+    ModeUsageName = usageName;
+}
+
+void TModChooser::SetExamples(const TString& examples) {
+    Examples = examples;
 }
 
 void TModChooser::SetModesHelpOption(const TString& helpOption) {
@@ -163,9 +187,33 @@ void TModChooser::DisableSvnRevisionOption() {
 }
 
 void TModChooser::AddCompletions(TString progName, const TString& name, bool hidden, bool noCompletion) {
+    AddCompletions(
+        NLastGetopt::TCompletionConfig{
+            .Command = std::move(progName),
+        },
+        name,
+        hidden,
+        noCompletion);
+}
+
+void TModChooser::AddCompletions(
+    NLastGetopt::TCompletionConfig config,
+    const TString& name,
+    bool hidden,
+    bool noCompletion)
+{
     if (CompletionsGenerator == nullptr) {
-        CompletionsGenerator = NLastGetopt::MakeCompletionMod(this, std::move(progName), name);
-        AddMode(name, CompletionsGenerator.Get(), "generate autocompletion files", hidden, noCompletion);
+        TString description;
+        if (config.EnableInstaller) {
+            description = "Generate and install shell completion scripts";
+        } else if (!config.CommandAliases.empty() || !config.YaToolName.empty()) {
+            description = "Generate shell completion scripts";
+        } else {
+            description = "generate autocompletion files";
+        }
+        config.ModName = name;
+        CompletionsGenerator = NLastGetopt::MakeCompletionMod(this, std::move(config));
+        AddMode(name, CompletionsGenerator.Get(), description, hidden, noCompletion);
     }
 }
 
@@ -180,15 +228,17 @@ const TVector<TString>& TModChooser::GetSubcommandPath() const {
 int TModChooser::Run(const int argc, const char** argv) const {
     Y_ENSURE(argc, "Can't run TModChooser with empty list of arguments.");
 
+    const auto* defaultMode = std::get_if<TString>(&DefaultBehaviour);
+    const auto* defaultAction = std::get_if<TMainClass*>(&DefaultBehaviour);
     bool shiftArgs = true;
     TString modeName;
     if (argc == 1) {
-        if (DefaultMode.empty()) {
+        if (defaultMode != nullptr) {
+            modeName = *defaultMode;
+            shiftArgs = false;
+        } else if (defaultAction == nullptr) {
             PrintHelp(argv[0], HelpAlwaysToStdErr);
             return 0;
-        } else {
-            modeName = DefaultMode;
-            shiftArgs = false;
         }
     } else {
         modeName = argv[1];
@@ -207,9 +257,15 @@ int TModChooser::Run(const int argc, const char** argv) const {
     }
 
     auto modeIter = Modes.find(modeName);
-    if (modeIter == Modes.end() && !DefaultMode.empty()) {
-        modeIter = Modes.find(DefaultMode);
-        shiftArgs = false;
+    if (modeIter == Modes.end()) {
+        if (defaultAction != nullptr) {
+            (*defaultAction)->SetSubcommandPath(SubcommandPath_);
+            return (**defaultAction)(argc, argv);
+        }
+        if (defaultMode != nullptr) {
+            modeIter = Modes.find(*defaultMode);
+            shiftArgs = false;
+        }
     }
 
     if (modeIter == Modes.end()) {
@@ -296,47 +352,73 @@ TString TModChooser::TMode::FormatFullName(size_t pad, const NColorizer::TColors
 }
 
 void TModChooser::PrintHelp(const TString& progName, bool toStdErr) const {
+    PrintHelpImpl(progName, toStdErr, false);
+}
+
+void TModChooser::PrintBriefHelp(const TString& progName, bool toStdErr) const {
+    PrintHelpImpl(progName, toStdErr, true);
+}
+
+void TModChooser::PrintHelpImpl(const TString& progName, bool toStdErr, bool brief) const {
     auto baseName = TFsPath(progName).Basename();
     auto& out = toStdErr ? Cerr : Cout;
     const auto& colors = toStdErr ? NColorizer::StdErr() : NColorizer::StdOut();
     out << Description << Endl << Endl;
-    out << colors.BoldColor() << "Usage" << colors.OldColor() << ": " << baseName << " MODE [MODE_OPTIONS]" << Endl;
+    out << colors.BoldColor() << "Usage" << colors.OldColor() << ": " << baseName << " "
+        << (CmdLineDescription ? CmdLineDescription : "MODE [MODE_OPTIONS]") << Endl;
     out << Endl;
-    out << colors.BoldColor() << "Modes" << colors.OldColor() << ":" << Endl;
-    size_t maxModeLen = 0;
-    for (const auto& [name, mode] : Modes) {
-        if (name != mode->Name)
-            continue;  // this is an alias
-        maxModeLen = Max(maxModeLen, mode->CalculateFullNameLen());
-    }
+    if (brief) {
+        out << "Run '" << baseName << " --help' for full help." << Endl;
+    } else {
+        out << colors.BoldColor() << (ModesTitle ? ModesTitle : "Modes") << colors.OldColor() << ":" << Endl;
+        size_t maxModeLen = 0;
+        for (const auto& [name, mode] : Modes) {
+            if (name != mode->Name) {
+                continue; // this is an alias
+            }
+            maxModeLen = Max(maxModeLen, mode->CalculateFullNameLen());
+        }
 
-    if (ShowSeparated) {
-        for (const auto& unsortedMode : UnsortedModes)
-            if (!unsortedMode->Hidden) {
-                if (unsortedMode->Name.size()) {
-                    out << "  " << unsortedMode->FormatFullName(maxModeLen + 4, colors) << unsortedMode->Description << Endl;
-                } else {
+        if (ShowSeparated) {
+            for (const auto& unsortedMode : UnsortedModes) {
+                if (unsortedMode->Hidden) {
+                    continue;
+                }
+                if (unsortedMode->Name.empty()) {
                     out << SeparationString << Endl;
                     out << unsortedMode->Description << Endl;
+                    continue;
+                }
+                out << "  " << unsortedMode->FormatFullName(maxModeLen + 4, colors)
+                    << unsortedMode->Description << Endl;
+            }
+        } else {
+            for (const auto& [name, mode] : Modes) {
+                if (name == mode->Name && !mode->Hidden) {
+                    out << "  " << mode->FormatFullName(maxModeLen + 4, colors) << mode->Description << Endl;
                 }
             }
-    } else {
-        for (const auto& mode : Modes) {
-            if (mode.first != mode.second->Name)
-                continue;  // this is an alias
+        }
 
-            if (!mode.second->Hidden) {
-                out << "  " << mode.second->FormatFullName(maxModeLen + 4, colors) << mode.second->Description << Endl;
-            }
+        out << Endl;
+        if (ModeName) {
+            out << "Run '" << baseName << " " << ModeUsageName << " " << ModesHelpOption
+                << "' for help with a specific "
+                << ModeName << "." << Endl;
+        } else {
+            out << "To get help for specific mode type '" << baseName << " MODE " << ModesHelpOption << "'" << Endl;
+        }
+        if (VersionHandler) {
+            out << "To print program version type '" << baseName << " --version'" << Endl;
+        }
+        if (!SvnRevisionOptionDisabled) {
+            out << "To print svn revision type '" << baseName << " --svnrevision'" << Endl;
         }
     }
-
-    out << Endl;
-    out << "To get help for specific mode type '" << baseName << " MODE " << ModesHelpOption << "'" << Endl;
-    if (VersionHandler)
-        out << "To print program version type '" << baseName << " --version'" << Endl;
-    if (!SvnRevisionOptionDisabled) {
-        out << "To print svn revision type '" << baseName << " --svnrevision'" << Endl;
+    if (Examples) {
+        out << Endl;
+        out << colors.BoldColor() << "Examples" << colors.OldColor() << ":" << Endl;
+        out << Examples << Endl;
     }
 }
 

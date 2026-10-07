@@ -5,6 +5,7 @@
 #include <util/str_stl.h>
 #include <util/system/platform.h>
 #include <util/system/datetime.h>
+#include <util/generic/constant_evaluation.h>
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/ylimits.h>
@@ -115,8 +116,8 @@ namespace NDateTimeHelpers {
     template <ui64 b>
     constexpr ui64 MulWithSaturation(ui64 a) {
         constexpr ui64 maxMultiplicand = Max<ui64>() / b;
-#if defined(__GNUC__) && defined(__cpp_lib_is_constant_evaluated)
-        if (!std::is_constant_evaluated()) {
+#if Y_HAS_BUILTIN(__builtin_umull_overflow) && Y_HAS_BUILTIN(__builtin_umulll_overflow)
+        if (!IsConstantEvaluated()) {
             if constexpr (std::is_same<ui64, unsigned long>::value) {
                 unsigned long r = 0;
                 return __builtin_umull_overflow(a, b, &r) ? Max<ui64>() : r;

@@ -8,4 +8,5 @@ namespace NLastGetopt {
 
     /// Create a mode that generates completion.
     THolder<TMainClassArgs> MakeCompletionMod(const TModChooser* modChooser, TString command, TString modName = "completion");
+    THolder<TMainClassArgs> MakeCompletionMod(const TModChooser* modChooser, TCompletionConfig config);
 }

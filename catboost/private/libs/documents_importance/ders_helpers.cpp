@@ -92,7 +92,7 @@ static TEvaluateDerivativesFunc GetEvaluateDerivativesFunc(ELossFunction lossFun
         case ELossFunction::Poisson:
             return EvaluateDerivativesForError<TPoissonError>;
         default:
-            CB_ENSURE(false, "Error function " + ToString(lossFunction) + " is not supported yet in ostr mode");
+            CB_ENSURE(false, "Error function " << lossFunction << " is not supported yet in ostr mode");
     }
 }
 

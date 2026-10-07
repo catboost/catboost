@@ -4,20 +4,21 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 
-/* @return Size of the buffer required to decode Base64 encoded data of size `len`.
+/**
+ * @return Size of the buffer required to decode Base64 encoded data of size `len`.
  */
 constexpr size_t Base64DecodeBufSize(const size_t len) noexcept {
     return (len + 3) / 4 * 3;
 }
 
-/* Decode Base64 encoded data. Can decode both regular Base64 and Base64URL encoded data. Can decode
+/** Decode Base64 encoded data. Can decode both regular Base64 and Base64URL encoded data. Can decode
  * only valid Base64[URL] data, behaviour for invalid data is unspecified.
  *
  * @throws Throws exception in case of incorrect padding.
  *
- * @param dst memory for writing output.
- * @param b pointer to the beginning of base64 encoded string.
- * @param a pointer to the end of base64 encoded string
+ * @param[out] dst  memory for writing output.
+ * @param b         pointer to the beginning of base64 encoded string.
+ * @param e         pointer to the end of base64 encoded string
  *
  * @return Return number of bytes decoded.
  */
@@ -32,7 +33,7 @@ inline void Base64Decode(const TStringBuf src, TString& dst) {
     dst.resize(Base64Decode(src, dst.begin()).size());
 }
 
-//WARNING: can process not whole input silently, use Base64StrictDecode instead of this function
+/// @warning: can process not whole input silently, use Base64StrictDecode instead of this function
 inline TString Base64Decode(const TStringBuf s) {
     TString ret;
     Base64Decode(s, ret);
@@ -46,20 +47,19 @@ inline TString Base64Decode(const TStringBuf s) {
 //
 /// @throws Throws exceptions on inputs which contain invalid symbols
 ///         or incorrect padding.
-/// @{
 ///
-/// @param b a pointer to the beginning of base64 encoded string.
-/// @param e a pointer to the end of base64 encoded string.
-/// @param dst memory for writing output.
+/// @param b        a pointer to the beginning of base64 encoded string.
+/// @param e        a pointer to the end of base64 encoded string.
+/// @param[out] dst memory for writing output.
 ///
 /// @return Returns number of bytes decoded.
 ///
 size_t Base64StrictDecode(void* dst, const char* b, const char* e);
 
 ///
-/// @param src a base64 encoded string.
-/// @param dst an pointer to allocated memory
-///            for writing result.
+/// @param src      a base64 encoded string.
+/// @param[out] dst an pointer to allocated memory
+///                 for writing result.
 ///
 /// @return Returns dst wrapped into TStringBuf.
 ///
@@ -68,8 +68,8 @@ inline TStringBuf Base64StrictDecode(const TStringBuf src, void* dst) {
 }
 
 ///
-/// @param src a base64 encoded string.
-/// @param dst a decoded string.
+/// @param src      a base64 encoded string.
+/// @param[out] dst a decoded string.
 ///
 inline void Base64StrictDecode(const TStringBuf src, TString& dst) {
     dst.ReserveAndResize(Base64DecodeBufSize(src.size()));
@@ -86,7 +86,6 @@ inline TString Base64StrictDecode(const TStringBuf src) {
     Base64StrictDecode(src, ret);
     return ret;
 }
-/// @}
 
 /// Works with strings which length is not divisible by 4.
 TString Base64DecodeUneven(const TStringBuf s);
@@ -103,9 +102,9 @@ char* Base64EncodeNoPadding(char* outstr, const unsigned char* instr, size_t len
 
 /// Make base64 string which stay unchaged after applying 'urlencode' function
 /// as it doesn't contain character, which cannot be used in urls
-/// @param outstr a pointer to allocated memory for writing result.
-/// @param instr a to buffer to encode
-/// @param len size of instr buffer
+/// @param[out] outstr  a pointer to allocated memory for writing result.
+/// @param instr        a to buffer to encode
+/// @param len          size of instr buffer
 ///
 /// @return Returns pointer to last symbol in outstr buffer.
 ///

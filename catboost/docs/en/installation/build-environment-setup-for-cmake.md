@@ -142,9 +142,11 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
 ### [Conan](https://conan.io/) {#conan}
 
-  Version 2.4.1+.
+  Version 2.9.2+.
 
   {% cut "Previous requirements" %}
+
+  For revisions before [a97bcec](https://github.com/catboost/catboost/commit/a97bcec7978c66e957a4232576a8963a1aa09b86) the minimal supported version is 2.4.1
 
   For revisions before [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e) versions 1.57.0 - 1.62.0 are supported and version 1.62.0 is required if you use python 3.12+.
 

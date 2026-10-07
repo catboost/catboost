@@ -29,7 +29,7 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     NPar::ILocalExecutor *localExecutor
 );
 
-inline static TVector<TMetricHolder> EvalErrorsWithCaching(
+inline TVector<TMetricHolder> EvalErrorsWithCaching(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDelta,
     bool isExpApprox,

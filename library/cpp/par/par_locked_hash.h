@@ -29,15 +29,6 @@ public:
         }
         return empty;
     }
-    bool ApproximateSize() const {
-        size_t accum = 0;
-        for (size_t i = 0; i < BinCount; ++i) {
-            with_lock (Locks[i]) {
-                accum += Storages[i].size();
-            }
-        }
-        return accum;
-    }
     bool Has(const TKeyType& key) const {
         const auto binIndex = GetBinIndexForKey(key);
         with_lock (Locks[binIndex]) {

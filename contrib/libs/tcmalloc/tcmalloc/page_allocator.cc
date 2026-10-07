@@ -14,6 +14,7 @@
 
 #include "tcmalloc/page_allocator.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <limits>
 
@@ -76,8 +77,9 @@ void PageAllocator::ShrinkToUsageLimit(Length n) {
     // TODO(ckennelly): The correction for n overestimates for many-object
     // spans from the CentralFreeList, but those are typically a single page so
     // the error in absolute terms is minimal.
-    peak_sampled_application_bytes_ =
-        tc_globals.sampled_objects_size_.value() + n.in_bytes();
+    peak_sampled_application_bytes_ = std::max<size_t>(
+        tc_globals.sampled_objects_size_.value() + n.in_bytes(),
+        peak_sampled_application_bytes_);
   }
   // TODO(ckennelly): Consider updating peak_sampled_application_bytes_ if
   // backed == peak_backed_bytes_ but application usage has gone up.  This can

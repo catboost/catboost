@@ -285,7 +285,7 @@ namespace NCudaLib {
         TVector<TMpiRequestPtr> RunningRequests;
     };
 
-    static inline TMpiManager& GetMpiManager() {
+    inline TMpiManager& GetMpiManager() {
         auto& manager = *Singleton<TMpiManager>();
         return manager;
     }

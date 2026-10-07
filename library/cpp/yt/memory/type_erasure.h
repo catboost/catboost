@@ -132,7 +132,7 @@ struct TAnyRefPublicHelper
 template <>
 struct TAnyRefPublicHelper<>
 {
-    using T = TAnyRef<false, TTagInvokeTag<NoopCpo>>;
+    using T = TAnyRef<false, NMpl::TTagInvokeTag<NoopCpo>>;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,9 +154,9 @@ struct TRebindVTable
 {
     using TVTable = TVTable<
         TStorage,
-        TTagInvokeTag<Deleter>,
-        TTagInvokeTag<Mover<TStorage>>,
-        TTagInvokeTag<Copier<TStorage>>,
+        NMpl::TTagInvokeTag<Deleter>,
+        NMpl::TTagInvokeTag<Mover<TStorage>>,
+        NMpl::TTagInvokeTag<Copier<TStorage>>,
         TCpos...>;
 };
 
@@ -165,8 +165,8 @@ struct TRebindVTable<false, TStorage, TCpos...>
 {
     using TVTable = TVTable<
         TStorage,
-        TTagInvokeTag<Deleter>,
-        TTagInvokeTag<Mover<TStorage>>,
+        NMpl::TTagInvokeTag<Deleter>,
+        NMpl::TTagInvokeTag<Mover<TStorage>>,
         TCpos...>;
 };
 

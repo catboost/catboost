@@ -35,12 +35,15 @@
 #ifndef ABSL_META_TYPE_TRAITS_H_
 #define ABSL_META_TYPE_TRAITS_H_
 
+#include <array>
 #include <cstddef>
 #include <functional>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <type_traits>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "absl/base/attributes.h"
@@ -109,7 +112,8 @@ struct is_detected : is_detected_impl<void, Op, Args...>::type {};
 // appear duplicated (and thus invalid) to the compiler prior to substitution
 // taking place. Whenever possible, use `std::void_t` instead.
 template <typename... Ts>
-using void_t = typename type_traits_internal::VoidTImpl<Ts...>::type;
+using void_t [[deprecated("Use std::void_t instead.")]] =
+    typename type_traits_internal::VoidTImpl<Ts...>::type;
 
 // Historical note: Abseil once provided implementations of these type traits
 // for platforms that lacked full support. New code should prefer to use the
@@ -150,6 +154,7 @@ using conjunction ABSL_DEPRECATE_AND_INLINE() = std::conjunction<T...>;
 template <class T>
 using decay_t ABSL_DEPRECATE_AND_INLINE() = std::decay_t<T>;
 
+// Avoid inlining since the inliner cannot handle default arguments well.
 template <bool C, class T = void>
 using enable_if_t [[deprecated("Use std::enable_if_t instead.")]] =
     std::enable_if_t<C, T>;
@@ -232,7 +237,7 @@ template <typename T>
 using remove_cvref = std::remove_cvref<T>;
 
 template <typename T>
-using remove_cvref_t = typename std::remove_cvref<T>::type;
+using remove_cvref_t = std::remove_cvref_t<T>;
 #else
 // remove_cvref()
 //
@@ -240,8 +245,7 @@ using remove_cvref_t = typename std::remove_cvref<T>::type;
 // C++20.
 template <typename T>
 struct remove_cvref {
-  using type =
-      typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+  using type = std::remove_cv_t<std::remove_reference_t<T>>;
 };
 
 template <typename T>
@@ -297,9 +301,9 @@ struct IsHashable : std::false_type {};
 template <typename Key>
 struct IsHashable<
     Key,
-    std::enable_if_t<std::is_convertible<
+    std::enable_if_t<std::is_convertible_v<
         decltype(std::declval<std::hash<Key>&>()(std::declval<Key const&>())),
-        std::size_t>::value>> : std::true_type {};
+        std::size_t>>> : std::true_type {};
 
 struct AssertHashEnabledHelper {
  private:
@@ -317,19 +321,19 @@ struct AssertHashEnabledHelper {
     static_assert(IsHashable<Key>::value,
                   "std::hash<Key> does not provide a call operator");
     static_assert(
-        std::is_default_constructible<std::hash<Key>>::value,
+        std::is_default_constructible_v<std::hash<Key>>,
         "std::hash<Key> must be default constructible when it is enabled");
     static_assert(
-        std::is_copy_constructible<std::hash<Key>>::value,
+        std::is_copy_constructible_v<std::hash<Key>>,
         "std::hash<Key> must be copy constructible when it is enabled");
-    static_assert(std::is_copy_assignable<std::hash<Key>>::value,
+    static_assert(std::is_copy_assignable_v<std::hash<Key>>,
                   "std::hash<Key> must be copy assignable when it is enabled");
     // is_destructible is unchecked as it's implied by each of the
     // is_constructible checks.
     using ReturnType = decltype(GetReturnType<Key>(0));
-    static_assert(std::is_same<ReturnType, NAT>::value ||
-                      std::is_same<ReturnType, size_t>::value,
-                  "std::hash<Key> must return size_t");
+    static_assert(
+        std::is_same_v<ReturnType, NAT> || std::is_same_v<ReturnType, size_t>,
+        "std::hash<Key> must return size_t");
     return nullptr;
   }
 
@@ -360,10 +364,9 @@ template <class T>
 using IsSwappableImpl = decltype(swap(std::declval<T&>(), std::declval<T&>()));
 
 // NOTE: This dance with the default template parameter is for MSVC.
-template <class T,
-          class IsNoexcept = std::integral_constant<
-              bool, noexcept(swap(std::declval<T&>(), std::declval<T&>()))>>
-using IsNothrowSwappableImpl = typename std::enable_if<IsNoexcept::value>::type;
+template <class T, class IsNoexcept = std::bool_constant<noexcept(
+                       swap(std::declval<T&>(), std::declval<T&>()))>>
+using IsNothrowSwappableImpl = std::enable_if_t<IsNoexcept::value>;
 
 // IsSwappable
 //
@@ -472,8 +475,7 @@ using swap_internal::Swap;
 // ABSL_HAVE_ATTRIBUTE_TRIVIAL_ABI will have no effect on this trait.
 template <class T>
 struct is_trivially_relocatable
-    : std::integral_constant<bool, __builtin_is_cpp_trivially_relocatable(T)> {
-};
+    : std::bool_constant<__builtin_is_cpp_trivially_relocatable(T)> {};
 #elif ABSL_HAVE_BUILTIN(__is_trivially_relocatable) && defined(__clang__) && \
     !(defined(_WIN32) || defined(_WIN64)) && !defined(__APPLE__) &&          \
     !defined(__NVCC__)
@@ -482,10 +484,10 @@ struct is_trivially_relocatable
 // TODO(b/325479096): Remove this case.
 template <class T>
 struct is_trivially_relocatable
-    : std::integral_constant<
-          bool, std::is_trivially_copyable<T>::value ||
-                    (__is_trivially_relocatable(T) &&
-                     std::is_trivially_move_assignable<T>::value)> {};
+    : std::integral_constant<bool,
+                             std::is_trivially_copyable_v<T> ||
+                                 (__is_trivially_relocatable(T) &&
+                                  std::is_trivially_move_assignable_v<T>)> {};
 #else
 // Otherwise we use a fallback that detects only those types we can feasibly
 // detect. Any type that is trivially copyable is by definition trivially
@@ -546,14 +548,13 @@ namespace type_traits_internal {
 // Do not specialize or use this directly. It's an implementation detail.
 template <typename T, typename = void>
 struct IsOwnerImpl : std::false_type {
-  static_assert(std::is_same<T, absl::remove_cvref_t<T>>::value,
+  static_assert(std::is_same_v<T, absl::remove_cvref_t<T>>,
                 "type must lack qualifiers");
 };
 
 template <typename T>
 struct IsOwnerImpl<
-    T,
-    std::enable_if_t<std::is_class<typename T::absl_internal_is_view>::value>>
+    T, std::enable_if_t<std::is_class_v<typename T::absl_internal_is_view>>>
     : std::negation<typename T::absl_internal_is_view> {};
 
 // A trait to determine whether a type is an owner.
@@ -566,16 +567,32 @@ struct IsOwnerImpl<
 template <typename T>
 struct IsOwner : IsOwnerImpl<T> {};
 
+template <typename T>
+struct IsOwner<T&> : std::false_type {};
+
+template <typename T>
+struct IsOwner<T&&> : std::false_type {};
+
+template <typename T>
+struct IsOwner<const T> : IsOwner<T> {};
+
+template <typename T>
+struct IsOwner<volatile T> : IsOwner<T> {};
+
+template <typename T>
+struct IsOwner<const volatile T> : IsOwner<T> {};
+
+template <typename T>
+struct IsOwner<std::reference_wrapper<T>> : std::false_type {};
+
+template <typename T, std::size_t N>
+struct IsOwner<std::array<T, N>>
+    : std::conditional_t<N != 0, IsOwner<T>, std::false_type> {};
+
 // This allows incomplete types to be used for associative containers, and also
 // expands the set of types we can handle to include std::pair.
 template <typename T1, typename T2>
-struct IsOwner<std::pair<T1, T2>>
-    : std::integral_constant<
-          bool, std::conditional_t<std::is_reference_v<T1>, std::false_type,
-                                   IsOwner<std::remove_cv_t<T1>>>::value &&
-                    std::conditional_t<std::is_reference_v<T2>, std::false_type,
-                                       IsOwner<std::remove_cv_t<T2>>>::value> {
-};
+struct IsOwner<std::pair<T1, T2>> : IsOwner<std::tuple<T1, T2>> {};
 
 template <typename T, typename Traits, typename Alloc>
 struct IsOwner<std::basic_string<T, Traits, Alloc>> : std::true_type {};
@@ -583,20 +600,30 @@ struct IsOwner<std::basic_string<T, Traits, Alloc>> : std::true_type {};
 template <typename T, typename Alloc>
 struct IsOwner<std::vector<T, Alloc>> : std::true_type {};
 
+template <typename... T>
+struct IsOwner<std::tuple<T...>>
+    : std::bool_constant<(sizeof...(T) > 0) &&
+                         // Uses a C++17 fold expression where '...' unpacks the
+                         // parameter pack T, and 'true &&' provides the base
+                         // case for the logical AND operation across all types.
+                         (true && ... && IsOwner<T>::value)> {};
+
+template <typename... T>
+struct IsOwner<std::variant<T...>> : IsOwner<std::tuple<T...>> {};
+
 // Detects if a class's definition has declared itself to be a view by declaring
 //   using absl_internal_is_view = std::true_type;
 // as a member.
 // Do not specialize or use this directly.
 template <typename T, typename = void>
 struct IsViewImpl : std::false_type {
-  static_assert(std::is_same<T, absl::remove_cvref_t<T>>::value,
+  static_assert(std::is_same_v<T, absl::remove_cvref_t<T>>,
                 "type must lack qualifiers");
 };
 
 template <typename T>
 struct IsViewImpl<
-    T,
-    std::enable_if_t<std::is_class<typename T::absl_internal_is_view>::value>>
+    T, std::enable_if_t<std::is_class_v<typename T::absl_internal_is_view>>>
     : T::absl_internal_is_view {};
 
 // A trait to determine whether a type is a view.
@@ -608,18 +635,49 @@ struct IsViewImpl<
 // If it ever becomes possible to detect [[gsl::Pointer]], we should leverage
 // it: https://wg21.link/p1179
 template <typename T>
-struct IsView : std::integral_constant<bool, std::is_pointer<T>::value ||
-                                                 IsViewImpl<T>::value> {};
+struct IsView
+    : std::bool_constant<std::is_pointer_v<T> || IsViewImpl<T>::value> {};
+
+template <typename T>
+struct IsView<T&> : std::true_type {};
+
+template <typename T>
+struct IsView<T&&> : std::true_type {};
+
+template <typename T>
+struct IsView<const T> : IsView<T> {};
+
+template <typename T>
+struct IsView<volatile T> : IsView<T> {};
+
+template <typename T>
+struct IsView<const volatile T> : IsView<T> {};
+
+template <typename T>
+struct IsView<std::reference_wrapper<T>> : std::true_type {};
+
+template <typename T, std::size_t N>
+struct IsView<std::array<T, N>>
+    : std::conditional_t<N != 0, IsView<T>, std::false_type> {};
 
 // This allows incomplete types to be used for associative containers, and also
 // expands the set of types we can handle to include std::pair.
 template <typename T1, typename T2>
-struct IsView<std::pair<T1, T2>>
-    : std::integral_constant<bool, IsView<std::remove_cv_t<T1>>::value &&
-                                       IsView<std::remove_cv_t<T2>>::value> {};
+struct IsView<std::pair<T1, T2>> : IsView<std::tuple<T1, T2>> {};
 
 template <typename Char, typename Traits>
 struct IsView<std::basic_string_view<Char, Traits>> : std::true_type {};
+
+template <typename... T>
+struct IsView<std::tuple<T...>>
+    : std::bool_constant<(sizeof...(T) > 0) &&
+                         // Uses a C++17 fold expression where '...' unpacks the
+                         // parameter pack T, and 'true &&' provides the base
+                         // case for the logical AND operation across all types.
+                         (true && ... && IsView<T>::value)> {};
+
+template <typename... T>
+struct IsView<std::variant<T...>> : IsView<std::tuple<T...>> {};
 
 #ifdef __cpp_lib_span
 template <typename T>
@@ -634,9 +692,10 @@ struct IsView<std::span<T>> : std::true_type {};
 // Until then, we consider an assignment from an "owner" (such as std::string)
 // to a "view" (such as std::string_view) to be a lifetime-bound assignment.
 template <typename T, typename U>
-using IsLifetimeBoundAssignment = std::conjunction<
-    std::integral_constant<bool, !std::is_lvalue_reference<U>::value>,
-    IsOwner<absl::remove_cvref_t<U>>, IsView<absl::remove_cvref_t<T>>>;
+using IsLifetimeBoundAssignment =
+    std::conjunction<std::bool_constant<!std::is_lvalue_reference_v<U>>,
+                     IsOwner<absl::remove_cvref_t<U>>,
+                     IsView<absl::remove_cvref_t<T>>>;
 
 }  // namespace type_traits_internal
 

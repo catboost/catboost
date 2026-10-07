@@ -39,6 +39,7 @@
 #include "mem.h"
 #include "error_private.h"
 #include "zstd_static.h"
+#include <assert.h>
 
 
 /*-*************************************
@@ -163,6 +164,8 @@ MEM_STATIC void ZSTD_wildcopy(void* dst, const void* src, size_t length)
 
 MEM_STATIC unsigned ZSTD_highbit(U32 val)
 {
+    assert(val != 0);
+    {
 #   if defined(_MSC_VER)   /* Visual */
     unsigned long r=0;
     _BitScanReverse(&r, val);
@@ -181,6 +184,7 @@ MEM_STATIC unsigned ZSTD_highbit(U32 val)
     r = DeBruijnClz[(U32)(v * 0x07C4ACDDU) >> 27];
     return r;
 #   endif
+    }
 }
 
 

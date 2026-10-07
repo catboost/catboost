@@ -273,12 +273,34 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
         const char* part1 = "1990-03-15T15:1";
         const char* part2 = "6:17+0732";
         UNIT_ASSERT(p.ParsePart(part1, strlen(part1)));
+        UNIT_ASSERT(!p.HasExplicitTimeZone());
         UNIT_ASSERT(p.ParsePart(part2, strlen(part2)));
+        UNIT_ASSERT(p.HasExplicitTimeZone());
         UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(637487057), p.GetResult(TInstant::Max()));
         p = TIso8601DateTimeParser();
         const char* part3 = "1990-03-15T15:16:18+0732";
         UNIT_ASSERT(p.ParsePart(part3, strlen(part3)));
+        UNIT_ASSERT(p.HasExplicitTimeZone());
         UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(637487058), p.GetResult(TInstant::Zero()));
+    }
+
+    Y_UNIT_TEST(TestIso8601TimeZonePresence) {
+        TIso8601DateTimeParser p;
+        static constexpr TStringBuf timestampWithoutTimeZone = "1990-03-15T15:16:17";
+        UNIT_ASSERT(p.ParsePart(timestampWithoutTimeZone.begin(), timestampWithoutTimeZone.size()));
+        UNIT_ASSERT(!p.HasExplicitTimeZone());
+
+        p = TIso8601DateTimeParser();
+        static constexpr TStringBuf timestampWithUtcTimeZone = "1990-03-15T15:16:17Z";
+        UNIT_ASSERT(p.ParsePart(timestampWithUtcTimeZone.begin(), timestampWithUtcTimeZone.size()));
+        UNIT_ASSERT(p.HasExplicitTimeZone());
+        UNIT_ASSERT_VALUES_EQUAL(p.GetDateTimeFields().ZoneOffsetMinutes, 0);
+
+        p = TIso8601DateTimeParser();
+        static constexpr TStringBuf timestampWithOffset = "1990-03-15T15:16:17-07:32";
+        UNIT_ASSERT(p.ParsePart(timestampWithOffset.begin(), timestampWithOffset.size()));
+        UNIT_ASSERT(p.HasExplicitTimeZone());
+        UNIT_ASSERT_VALUES_EQUAL(p.GetDateTimeFields().ZoneOffsetMinutes, -452);
     }
 
     Y_UNIT_TEST(TestIso8601BeforeEpoch) {

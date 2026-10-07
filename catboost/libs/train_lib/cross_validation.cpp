@@ -99,8 +99,8 @@ static void CheckCrossValidationOptions(
 
     const ui32 allDataObjectCount = data->ObjectsData->GetObjectCount();
 
-    CB_ENSURE(allDataObjectCount != 0, "Pool is empty");
-    CB_ENSURE(allDataObjectCount > cvParams.FoldCount, "Pool is too small to be split into folds");
+    CB_ENSURE(allDataObjectCount != 0, "Dataset has no samples");
+    CB_ENSURE(allDataObjectCount > cvParams.FoldCount, "Dataset is too small to be split into folds");
 
     // TODO(akhropov): implement ordered split. MLTOOLS-2486.
     CB_ENSURE(
@@ -386,7 +386,9 @@ void CrossValidate(
         catBoostOptions.MetricOptions,
         evalMetricDescriptor,
         approxDimension,
-        data->MetaInfo.HasWeights
+        data->MetaInfo.HasWeights ||
+            !catBoostOptions.DataProcessingOptions->ClassWeights.Get().empty() ||
+            catBoostOptions.DataProcessingOptions->AutoClassWeights.Get() != EAutoClassWeightsType::None
     );
 
     CheckMetrics(metrics, catBoostOptions.LossFunctionDescription.Get().GetLossFunction());

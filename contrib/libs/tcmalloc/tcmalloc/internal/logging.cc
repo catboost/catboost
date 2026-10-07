@@ -15,11 +15,16 @@
 #include "tcmalloc/internal/logging.h"
 
 #include <fcntl.h>
+#ifdef _WINDOWS
+#include <io.h>
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef __linux__
 #include <unistd.h>
+#endif  // __linux__
 
 #include <algorithm>
 #include <array>
@@ -38,6 +43,7 @@
 #include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/environment.h"
 #include "tcmalloc/internal/parameter_accessors.h"
+#include "tcmalloc/malloc_extension.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
@@ -60,7 +66,13 @@ static char stats_buffer[kStatsBufferSize] = {0};
 #endif  // __APPLE__
 
 static void WriteMessage(const char* msg, int length) {
-  (void)::write(STDERR_FILENO, msg, length);
+  const int fd =
+#ifdef _WINDOWS
+      fileno(stderr);
+#else
+      STDERR_FILENO;
+#endif
+  (void)::write(fd, msg, length);
 }
 
 void (*log_message_writer)(const char* msg, int length) = WriteMessage;
@@ -171,6 +183,12 @@ static void Crash(const char* filename, int line, const char* msg,
       (*log_message_writer)(stats_buffer, std::min(n, kStatsBufferSize));
     }
 #endif  // __APPLE__
+  }
+
+  if (oom) {
+    if (auto exit_code = MallocExtension::GetFailFastOnOomExitCode()) {
+      _exit(*exit_code);
+    }
   }
 
   abort();

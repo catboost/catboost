@@ -14,11 +14,14 @@
 #ifndef ABSL_STATUS_INTERNAL_STATUS_INTERNAL_H_
 #define ABSL_STATUS_INTERNAL_STATUS_INTERNAL_H_
 
+// IWYU pragma: private, include "absl/status/status.h"
+
 #include <atomic>
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -60,12 +63,17 @@ ABSL_NAMESPACE_BEGIN
 enum class StatusCode : int;
 enum class StatusToStringMode : int;
 
+// Forward declaration of StatusOr for Status friendship.
+template <typename T>
+class StatusOr;
+
 namespace status_internal {
 #ifndef SWIG
 class StatusPrivateAccessor;
 class StatusPrivateAccessorForStatusBuilder;
 #endif  // !SWIG
 
+#ifndef SWIG
 // Container for status payloads.
 struct Payload {
   std::string type_url;
@@ -83,6 +91,17 @@ class StatusRep {
         code_(code_arg),
         message_(message_arg),
         payloads_(std::move(payloads_arg)) {}
+
+#ifndef SWIG
+  template <typename String,
+            typename = std::enable_if_t<std::is_same_v<String, std::string>>>
+  StatusRep(absl::StatusCode code_arg, String&& message_arg,
+            std::unique_ptr<status_internal::Payloads> payloads_arg)
+      : ref_(int32_t{1}),
+        code_(code_arg),
+        message_(std::forward<String>(message_arg)),
+        payloads_(std::move(payloads_arg)) {}
+#endif  // SWIG
 
   absl::StatusCode code() const { return code_; }
   const std::string& message() const { return message_; }
@@ -134,7 +153,13 @@ class StatusRep {
   // As an internal implementation detail, we guarantee that if status.message()
   // is non-empty, then the resulting string_view is null terminated.
   // This is required to implement 'StatusMessageAsCStr(...)'
+  //
+  // NOTE: if most statuses are constructed with messages that are either empty
+  // or so long they don't fit in the std::string's local storage (small string
+  // optimization), replacing std::string with an entirely heap-allocated
+  // string might save memory at scale.
   std::string message_;
+
   absl::InlinedVector<absl::SourceLocation, 1> source_locations_;
   std::unique_ptr<status_internal::Payloads> payloads_;
 };
@@ -150,6 +175,7 @@ const char* absl_nonnull MakeCheckFailString(
     const absl::Status* absl_nonnull status, const char* absl_nonnull prefix);
 
 }  // namespace status_internal
+#endif  // SWIG
 
 ABSL_NAMESPACE_END
 }  // namespace absl

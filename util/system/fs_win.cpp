@@ -62,7 +62,7 @@ namespace NFsPrivate {
         WIN32_FILE_ATTRIBUTE_DATA fad;
         if (::GetFileAttributesExW(wname, GetFileExInfoStandard, &fad)) {
             if (fad.dwFileAttributes & FILE_ATTRIBUTE_READONLY) {
-                fad.dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
+                fad.dwFileAttributes &= ~FILE_ATTRIBUTE_READONLY;
                 ::SetFileAttributesW(wname, fad.dwFileAttributes);
             }
             if (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -105,7 +105,30 @@ namespace NFsPrivate {
                 }
             }
         }
-        return 0 != CreateSymbolicLinkW(lname, wname, attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY) ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0);
+
+        DWORD flags = 0;
+        // INVALID_FILE_ATTRIBUTES is (DWORD)-1, so every attribute bit is set in
+        // it, FILE_ATTRIBUTE_DIRECTORY included: a dangling link would otherwise
+        // come out as a directory link.
+        if (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY)) {
+            flags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
+        }
+
+        // Pass SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE to allow symlink
+        // creation when developer mode is enabled on the current machine.
+        if (CreateSymbolicLinkW(lname, wname, flags | SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE)) {
+            return true;
+        }
+        if (::GetLastError() != ERROR_INVALID_PARAMETER) {
+            return false;
+        }
+
+        // The flag exists since NTDDI_WIN10_RS2 (Windows 10 1703); earlier
+        // kernels reject the whole call with ERROR_INVALID_PARAMETER. Arcadia
+        // builds with _WIN32_WINNT=0x0601 (WINDOWS_VERSION_MIN in
+        // build/ymake_conf.py, i.e. Windows 7), so the binary has to keep
+        // working there: retry the way it was always done.
+        return 0 != CreateSymbolicLinkW(lname, wname, flags);
     }
 
     bool WinHardLink(const TString& existingPath, const TString& newPath) {
@@ -209,6 +232,14 @@ namespace NFsPrivate {
         }
     }
 
+    static TString FromNtPath(const TString& path) {
+        static constexpr TStringBuf NT_PREFIX = R"(\??\)";
+        if (path.StartsWith(NT_PREFIX)) {
+            return path.substr(NT_PREFIX.size());
+        }
+        return path;
+    }
+
     TString WinReadLink(const TString& name) {
         TFileHandle h = CreateFileWithUtf8Name(name, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING,
                                                FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, true);
@@ -223,11 +254,11 @@ namespace NFsPrivate {
         if (rdb->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
             wchar16* str = (wchar16*)&rdb->SymbolicLinkReparseBuffer.PathBuffer[rdb->SymbolicLinkReparseBuffer.SubstituteNameOffset / sizeof(wchar16)];
             size_t len = rdb->SymbolicLinkReparseBuffer.SubstituteNameLength / sizeof(wchar16);
-            return WideToUTF8(str, len);
+            return FromNtPath(WideToUTF8(str, len));
         } else if (rdb->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
             wchar16* str = (wchar16*)&rdb->MountPointReparseBuffer.PathBuffer[rdb->MountPointReparseBuffer.SubstituteNameOffset / sizeof(wchar16)];
             size_t len = rdb->MountPointReparseBuffer.SubstituteNameLength / sizeof(wchar16);
-            return WideToUTF8(str, len);
+            return FromNtPath(WideToUTF8(str, len));
         }
         // this reparse point is unsupported in arcadia
         return TString();

@@ -20,6 +20,9 @@ Usage from build scripts:
 Opt-in via environment variable (off by default):
     YA_JAVAC_DAEMON=1   enable daemon mode
     YA_JAVAC_DAEMON=0   use subprocess javac (default)
+
+Windows always uses subprocess compilation.  Distbuild does too, unless
+YA_JAVAC_DAEMON_ALLOW_DISTBUILD=1 is also set for dedicated daemon tests.
 """
 
 import hashlib
@@ -58,8 +61,16 @@ DAEMON_START_TIMEOUT = 10.0   # seconds to wait for daemon socket to appear
 
 
 def is_enabled() -> bool:
-    """Return True when daemon mode is requested via YA_JAVAC_DAEMON=1."""
-    return os.environ.get("YA_JAVAC_DAEMON", "0") == "1"
+    """Enable requested daemon mode, with an explicit opt-in for distbuild tests."""
+    # Distbuild workers set DISTBUILD_TASK_UID for every command they execute.
+    return (
+        os.environ.get("YA_JAVAC_DAEMON", "0") == "1"
+        and os.name != "nt"
+        and (
+            "DISTBUILD_TASK_UID" not in os.environ
+            or os.environ.get("YA_JAVAC_DAEMON_ALLOW_DISTBUILD", "0") == "1"
+        )
+    )
 
 
 def compile(javac_bin: str, args: list) -> int:

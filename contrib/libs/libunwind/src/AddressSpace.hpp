@@ -534,6 +534,7 @@ inline bool LocalAddressSpace::findUnwindSections(
   }
 
 #elif defined(_LIBUNWIND_SUPPORT_DWARF_UNWIND) && defined(_LIBUNWIND_IS_BAREMETAL)
+  (void)targetAddr;
   info.dso_base = 0;
   // Bare metal is statically linked, so no need to ask the dynamic loader
   info.dwarf_section_length = (size_t)(&__eh_frame_end - &__eh_frame_start);
@@ -549,6 +550,7 @@ inline bool LocalAddressSpace::findUnwindSections(
   if (info.dwarf_section_length)
     return true;
 #elif defined(_LIBUNWIND_ARM_EHABI) && defined(_LIBUNWIND_IS_BAREMETAL)
+  (void)targetAddr;
   // Bare metal is statically linked, so no need to ask the dynamic loader
   info.arm_section =        (uintptr_t)(&__exidx_start);
   info.arm_section_length = (size_t)(&__exidx_end - &__exidx_start);

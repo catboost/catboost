@@ -570,7 +570,7 @@ TShapPreparedTrees PrepareTrees(
 ) {
     CB_ENSURE(
         !model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty(),
-        "Model must have leaf weights or sample pool must be provided"
+        "Model must have leaf weights or sample dataset must be provided"
     );
     TShapPreparedTrees preparedTrees = PrepareTrees(model, nullptr, nullptr, EPreCalcShapValues::Auto, localExecutor);
     CalcShapValuesByLeaf(

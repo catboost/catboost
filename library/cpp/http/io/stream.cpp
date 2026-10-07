@@ -134,10 +134,12 @@ class THttpInput::TImpl {
     typedef THashSet<TString> TAcceptCodings;
 
 public:
-    inline TImpl(IInputStream* slave)
+    inline TImpl(IInputStream* slave, const THttpInput::TOptions& options = {})
         : Slave_(slave)
+        , Options_(options)
         , Buffered_(Slave_, SuggestBufferSize())
         , ChunkedInput_(nullptr)
+        , LengthLimitedInput_(nullptr)
         , Input_(nullptr)
         , FirstLine_(ReadFirstLine(Buffered_))
         , Headers_(&Buffered_)
@@ -208,12 +210,22 @@ public:
         return Expect100Continue_;
     }
 
+    inline ui64 ContentLengthLeft() const noexcept {
+        return LengthLimitedInput_ ? LengthLimitedInput_->Left() : 0;
+    }
+
 private:
     template <class Operation>
     inline size_t Perform(size_t len, const Operation& operation) {
         size_t processed = operation(len);
         if (processed == 0 && len > 0) {
             if (!ChunkedInput_) {
+                if (Options_.StrictContentLength) {
+                    if (const ui64 left = ContentLengthLeft()) {
+                        ythrow THttpTruncatedBodyException() << "Body ended after " << (ContentLength_ - left)
+                                                            << " of " << ContentLength_ << " byte(s) declared in Content-Length";
+                    }
+                }
                 Trailers_.ConstructInPlace();
             } else {
                 // Read the header of the trailing chunk. It remains in
@@ -345,7 +357,8 @@ private:
                 /*
                  * TODO - we have other cases
                  */
-                Input_ = Streams_.Add(new TLengthLimitedInput(Input_, ContentLength_));
+                LengthLimitedInput_ = Streams_.Add(new TLengthLimitedInput(Input_, ContentLength_));
+                Input_ = LengthLimitedInput_;
             }
         }
 
@@ -359,6 +372,7 @@ private:
 
 private:
     IInputStream* Slave_;
+    THttpInput::TOptions Options_;
 
     /*
      * input helpers
@@ -366,6 +380,7 @@ private:
     TBufferedInput Buffered_;
     TStreams<IInputStream, 8> Streams_;
     IInputStream* ChunkedInput_;
+    TLengthLimitedInput* LengthLimitedInput_;
 
     /*
      * final input stream
@@ -388,6 +403,11 @@ private:
 
 THttpInput::THttpInput(IInputStream* slave)
     : Impl_(new TImpl(slave))
+{
+}
+
+THttpInput::THttpInput(IInputStream* slave, const TOptions& options)
+    : Impl_(new TImpl(slave, options))
 {
 }
 
@@ -443,6 +463,10 @@ bool THttpInput::GetContentLength(ui64& value) const noexcept {
 
 bool THttpInput::ContentEncoded() const noexcept {
     return Impl_->ContentEncoded();
+}
+
+ui64 THttpInput::ContentLengthLeft() const noexcept {
+    return Impl_->ContentLengthLeft();
 }
 
 bool THttpInput::HasContent() const noexcept {
@@ -594,6 +618,10 @@ public:
 
     inline void EnableCompressionHeader(bool enable) {
         CompressionHeaderEnabled_ = enable;
+    }
+
+    inline void SetContentEncodingPredicate(TEncodeContentPredicate predicate) {
+        ContentEncodingPredicate_ = std::move(predicate);
     }
 
     inline bool IsCompressionEnabled() const noexcept {
@@ -769,7 +797,8 @@ private:
         }
 
         if (IsHttpResponse()) {
-            if (Request_ && IsCompressionEnabled() && HasResponseBody()) {
+            const bool contentEncodingAllowed = IsContentEncodingAllowed();
+            if (Request_ && IsCompressionEnabled() && HasResponseBody() && contentEncodingAllowed) {
                 TString scheme = Request_->BestCompressionScheme(ComprSchemas_);
                 if (scheme != "identity") {
                     AddOrReplaceHeader(THttpInputHeader("Content-Encoding", scheme));
@@ -777,7 +806,7 @@ private:
                 }
             }
 
-            RebuildStream();
+            RebuildStream(contentEncodingAllowed);
         } else {
             if (IsCompressionEnabled()) {
                 AddOrReplaceHeader(THttpInputHeader("Accept-Encoding", BuildAcceptEncoding()));
@@ -802,7 +831,16 @@ private:
         return ret;
     }
 
-    inline void RebuildStream() {
+    inline bool IsContentEncodingAllowed() const {
+        if (!ContentEncodingPredicate_) {
+            return true;
+        }
+
+        static const THttpHeaders emptyHeaders;
+        return ContentEncodingPredicate_(Request_ ? Request_->Headers() : emptyHeaders, Headers_);
+    }
+
+    inline void RebuildStream(bool contentEncodingAllowed = true) {
         bool keepAlive = false;
         const TCompressionCodecFactory::TEncoderConstructor* encoder = nullptr;
         bool chunked = false;
@@ -814,7 +852,10 @@ private:
 
             if (hl == TStringBuf("connection")) {
                 keepAlive = to_lower(header.Value()) == TStringBuf("keep-alive");
-            } else if (IsCompressionHeaderEnabled() && hl == TStringBuf("content-encoding")) {
+            } else if (contentEncodingAllowed &&
+                       IsCompressionHeaderEnabled() &&
+                       hl == TStringBuf("content-encoding"))
+            {
                 encoder = TCompressionCodecFactory::Instance().FindEncoder(to_lower(header.Value()));
             } else if (hl == TStringBuf("transfer-encoding")) {
                 chunked = to_lower(header.Value()) == TStringBuf("chunked");
@@ -863,6 +904,7 @@ private:
     size_t Version_;
 
     TArrayRef<const TStringBuf> ComprSchemas_;
+    TEncodeContentPredicate ContentEncodingPredicate_;
 
     bool KeepAliveEnabled_;
     bool BodyEncodingEnabled_;
@@ -929,6 +971,10 @@ void THttpOutput::EnableBodyEncoding(bool enable) {
 
 void THttpOutput::EnableCompressionHeader(bool enable) {
     Impl_->EnableCompressionHeader(enable);
+}
+
+void THttpOutput::SetContentEncodingPredicate(TEncodeContentPredicate predicate) {
+    Impl_->SetContentEncodingPredicate(std::move(predicate));
 }
 
 bool THttpOutput::IsKeepAliveEnabled() const noexcept {

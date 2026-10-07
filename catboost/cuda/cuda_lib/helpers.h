@@ -17,7 +17,7 @@ namespace NHelpers {
         return false;
     }
 
-    static inline TSet<ui32> ParseRangeString(const TString& str, ui32 devIdLimit) {
+    inline TSet<ui32> ParseRangeString(const TString& str, ui32 devIdLimit) {
         TSet<ui32> data;
         size_t cur = 0, prev = 0;
         while (cur != TString::npos) {

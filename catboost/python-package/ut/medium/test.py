@@ -1,5 +1,7 @@
 from collections import OrderedDict, Counter
+from copy import deepcopy
 import filecmp
+import gc
 import hashlib
 import math
 import numpy as np
@@ -601,6 +603,11 @@ def test_fit_on_ndarray(features_dtype):
     assert _have_equal_features(order_to_pool['C'], order_to_pool['F'])
 
     model = CatBoostClassifier(iterations=5)
+
+    assert not hasattr(model, 'n_features_in_')
+    with pytest.raises(AttributeError):
+        model.n_features_in_
+
     model.fit(order_to_pool['F'])  # order is irrelevant here - they are equal
 
     assert model.n_features_in_ == n_features
@@ -610,6 +617,16 @@ def test_fit_on_ndarray(features_dtype):
     preds_path = test_output_path(PREDS_TXT_PATH)
     np.savetxt(preds_path, np.array(preds))
     return local_canonical_file(preds_path)
+
+
+def test_attribute_access_on_unfitted_model():
+    # __getattr__ calls is_fitted(), which is an attribute lookup itself, so the
+    # attribute name has to be checked before is_fitted() to avoid infinite recursion
+    model = CatBoostClassifier(iterations=5)
+    for attribute in ('n_features_in_', 'feature_names_in_', 'no_such_attribute'):
+        assert not hasattr(model, attribute)
+        with pytest.raises(AttributeError):
+            getattr(model, attribute)
 
 
 @pytest.mark.parametrize(
@@ -762,6 +779,48 @@ def test_load_dumps():
     pool2 = Pool(tmp_file)
     assert _check_data(pool1.get_features(), pool2.get_features())
     assert _check_data(pool1.get_label(), [int(label) for label in pool2.get_label()])
+
+
+def test_pool_does_not_leave_numpy_ndarray_data_read_only():
+    # Only Fortran-contiguous numeric arrays take the zero-copy features-order path that
+    # locks the data read-only, so the array below is created in that order.
+    prng = np.random.RandomState(seed=20250223)
+
+    data = np.asfortranarray(prng.normal(size=(50, 10)).astype(np.float32))
+    assert data.flags.writeable
+    pool = Pool(data)
+    assert not data.flags.writeable
+    del pool
+    gc.collect()
+    assert data.flags.writeable
+
+
+def test_pool_does_not_leave_numpy_features_data_read_only():
+    prng = np.random.RandomState(seed=20250223)
+
+    num_data = np.asfortranarray(prng.normal(size=(50, 3)).astype(np.float32))
+    cat_data = np.asfortranarray(np.array([[b'a', b'b']] * 50, dtype=object))
+    fd = FeaturesData(num_feature_data=num_data, cat_feature_data=cat_data)
+    pool = Pool(fd)
+    assert not num_data.flags.writeable
+    assert not cat_data.flags.writeable
+    del pool, fd
+    gc.collect()
+    assert num_data.flags.writeable
+    assert cat_data.flags.writeable
+
+
+def test_pool_keeps_already_read_only_numpy_data_read_only():
+    prng = np.random.RandomState(seed=20250223)
+
+    # an array that was already read-only must stay read-only, not be wrongly re-enabled
+    ro_data = np.asfortranarray(prng.normal(size=(50, 10)).astype(np.float32))
+    ro_data.setflags(write=0)
+    pool = Pool(ro_data)
+    assert not ro_data.flags.writeable
+    del pool
+    gc.collect()
+    assert not ro_data.flags.writeable
 
 
 @pytest.mark.parametrize(
@@ -1460,6 +1519,42 @@ def test_save_load_equality(task_type):
         'devices': '0'
     }
     fill_check_model(params, ROTTEN_TOMATOES_TRAIN_FILE, ROTTEN_TOMATOES_TEST_FILE, ROTTEN_TOMATOES_CD_FILE)
+
+
+def test_load_model_preserves_poisson_link():
+    # Regression test for #3103: loading a Poisson model from a blob or a
+    # stream used to silently drop the default link function, so predict()
+    # returned RawFormulaVal (log-scale) instead of the exponentiated target.
+    rng = np.random.default_rng(0)
+    n_objects = 200
+    features = rng.standard_normal((n_objects, 3))
+    coef = rng.standard_normal((3,))
+    target = np.exp(features @ coef + 0.1)  # strictly positive Poisson target
+
+    model = CatBoostRegressor(loss_function='Poisson', iterations=20, verbose=False)
+    model.fit(features, target)
+
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+
+    predictions_from_path = model.predict(features)
+
+    with open(output_model_path, 'rb') as f:
+        model_blob = f.read()
+    model_from_blob = CatBoostRegressor()
+    model_from_blob.load_model(blob=model_blob)
+
+    model_from_stream = CatBoostRegressor()
+    with open(output_model_path, 'rb') as f:
+        model_from_stream.load_model(stream=f, format='cbm')
+
+    assert np.allclose(predictions_from_path, model_from_blob.predict(features))
+    assert np.allclose(predictions_from_path, model_from_stream.predict(features))
+
+    # The default prediction must be the exponentiated target, not the raw
+    # formula value (that was the bug).
+    raw_predictions = model.predict(features, prediction_type='RawFormulaVal')
+    assert not np.allclose(predictions_from_path, raw_predictions)
 
 
 def test_load_model_incorrect_argument(task_type):
@@ -2977,7 +3072,7 @@ def test_generated_regression_losses_with_default_params():
             'MAE': metrics.MAE(), 'MAPE': metrics.MAPE(), 'Poisson': metrics.Poisson(),
             'Quantile:alpha=0.5': metrics.Quantile(), 'RMSE': metrics.RMSE(),
             'RMSEWithUncertainty': metrics.RMSEWithUncertainty(), 'LogLinQuantile': metrics.LogLinQuantile(),
-            # BUG: Expectile incorrectly expects alpha in catboost.core.Catboost({'loss_function': 'Expectile'})
+            # BUG: Expectile incorrectly expects alpha in catboost.Catboost({'loss_function': 'Expectile'})
             # 'Expectile': metrics.Expectile()
         }
     )
@@ -5844,7 +5939,13 @@ def test_feature_names_from_model():
             pool = pools[i]
             model = CatBoost(dict(iterations=10))
             assert model.feature_names_ is None
+            assert not hasattr(model, 'feature_names_in_')
+            with pytest.raises(AttributeError):
+                model.feature_names_in_
             model.fit(pool)
+            assert isinstance(model.feature_names_in_, np.ndarray)
+            assert model.feature_names_in_.dtype == object
+            assert list(model.feature_names_in_) == model.feature_names_
             output.write(str(model.feature_names_) + '\n')
 
     return local_canonical_file(output_file)
@@ -5866,11 +5967,13 @@ def test_feature_names_from_loaded_model(format):
     model = CatBoostRegressor(iterations=10)
     model.fit(pool)
     assert model.feature_names_ == feature_names
+    assert list(model.feature_names_in_) == feature_names
 
     model_file = test_output_path('model')
     model.save_model(model_file, format=format, pool=pool)
     loaded_model = CatBoostRegressor().load_model(model_file, format=format)
     assert loaded_model.feature_names_ == feature_names
+    assert list(loaded_model.feature_names_in_) == feature_names
 
 
 Value_AcceptableAsEmpty = [
@@ -7690,6 +7793,7 @@ def test_set_feature_names():
     names = ["feature_{}".format(x) for x in range(train_pool.num_col())]
     model.set_feature_names(names)
     assert names == model.feature_names_
+    assert names == list(model.feature_names_in_)
 
 
 def test_bad_set_feature_names():
@@ -11179,6 +11283,188 @@ def test_pandas_integer_array():
     cb.fit(X, y)
 
 
+_PANDAS_VERSION = tuple(map(int, re.findall(r'\d+', pd.__version__)[:2]))
+
+_PANDAS_NULLABLE_INT_DTYPES = ['Int8', 'Int16', 'Int32', 'Int64', 'UInt8', 'UInt16', 'UInt32', 'UInt64']
+# nullable floating point extension dtypes are available only since pandas 1.2.0
+_PANDAS_NULLABLE_FLOAT_DTYPES = ['Float32', 'Float64'] if _PANDAS_VERSION >= (1, 2) else []
+_PANDAS_NULLABLE_NUMERIC_DTYPES = _PANDAS_NULLABLE_INT_DTYPES + _PANDAS_NULLABLE_FLOAT_DTYPES + ['boolean']
+
+requires_pandas_nullable_types = pytest.mark.skipif(
+    _PANDAS_VERSION < (1, 0),
+    reason='pandas nullable types and pandas.NA are available only since pandas 1.0.0'
+)
+
+
+def _nullable_numeric_series_values(dtype):
+    if dtype == 'boolean':
+        return [True, False, pd.NA, True, False, True, False, pd.NA]
+    return [1, 2, pd.NA, 4, 5, 6, 7, pd.NA]
+
+
+def _expected_numeric_feature_values(dtype):
+    if dtype == 'boolean':
+        return [1.0, 0.0, np.nan, 1.0, 0.0, 1.0, 0.0, np.nan]
+    return [1.0, 2.0, np.nan, 4.0, 5.0, 6.0, 7.0, np.nan]
+
+
+def _check_single_feature_values(features, expected):
+    assert features.shape == (len(expected), 1)
+    for got, want in zip(features[:, 0], expected):
+        if np.isnan(want):
+            assert np.isnan(got)
+        else:
+            assert got == want
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', _PANDAS_NULLABLE_NUMERIC_DTYPES)
+def test_pandas_nullable_numeric_feature(dtype):
+    df = pd.DataFrame({'f': pd.Series(_nullable_numeric_series_values(dtype), dtype=dtype)})
+    pool = Pool(df)
+    _check_single_feature_values(pool.get_features(), _expected_numeric_feature_values(dtype))
+
+    y = [0, 1, 0, 1, 0, 1, 0, 1]
+    model = CatBoostRegressor(iterations=2, verbose=0).fit(df, y)
+    assert model.predict(df).shape == (len(y),)
+
+
+@requires_pandas_nullable_types
+def test_pandas_nullable_features_equivalent_to_nan():
+    n_objects = 100
+    rng = np.random.RandomState(0)
+    values = rng.randint(0, 100, n_objects)
+    na_mask = rng.rand(n_objects) < 0.3
+
+    def maybe_na(value, is_na):
+        return pd.NA if is_na else value
+
+    df_nullable = pd.DataFrame({
+        'int': pd.Series([maybe_na(int(v), m) for v, m in zip(values, na_mask)], dtype='Int64'),
+        'float': pd.Series(
+            [maybe_na(float(v) + 0.5, m) for v, m in zip(values, na_mask)],
+            dtype='Float64' if _PANDAS_VERSION >= (1, 2) else 'float64'
+        ),
+        'bool': pd.Series([maybe_na(bool(v % 2), m) for v, m in zip(values, na_mask)], dtype='boolean'),
+    })
+    df_float = pd.DataFrame({
+        'int': [np.nan if m else float(v) for v, m in zip(values, na_mask)],
+        'float': [np.nan if m else float(v) + 0.5 for v, m in zip(values, na_mask)],
+        'bool': [np.nan if m else float(v % 2) for v, m in zip(values, na_mask)],
+    })
+    y = rng.rand(n_objects)
+
+    params = dict(iterations=10, verbose=0, random_seed=0)
+    pred_nullable = CatBoostRegressor(**params).fit(df_nullable, y).predict(df_nullable)
+    pred_float = CatBoostRegressor(**params).fit(df_float, y).predict(df_float)
+    np.testing.assert_allclose(pred_nullable, pred_float, rtol=1e-5, atol=1e-6)
+
+
+@requires_pandas_nullable_types
+def test_pandas_na_in_object_feature():
+    df = pd.DataFrame({'f': pd.Series([1.5, pd.NA, 3.5, 2.5], dtype=object)})
+    pool = Pool(df)
+    _check_single_feature_values(pool.get_features(), [1.5, np.nan, 3.5, 2.5])
+
+    CatBoostRegressor(iterations=2, verbose=0).fit(df, [0, 1, 0, 1])
+
+
+@requires_pandas_nullable_types
+def test_pandas_nat_in_object_feature_fails():
+    # pandas.NaT is designed for missing datetime data and is invalid in a numerical column
+    df = pd.DataFrame({'f': pd.Series([1.5, pd.NaT, 3.5, 2.5], dtype=object)})
+    with pytest.raises(CatBoostError):
+        Pool(df)
+
+
+@requires_pandas_nullable_types
+def test_pandas_na_in_list_data():
+    data = [[1.5], [pd.NA], [3.5], [2.5]]
+    pool = Pool(data)
+    _check_single_feature_values(pool.get_features(), [1.5, np.nan, 3.5, 2.5])
+
+    CatBoostRegressor(iterations=2, verbose=0).fit(data, [0, 1, 0, 1])
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', _PANDAS_NULLABLE_NUMERIC_DTYPES)
+def test_pandas_nullable_series_data(dtype):
+    data = pd.Series(_nullable_numeric_series_values(dtype), dtype=dtype)
+    pool = Pool(data)
+    _check_single_feature_values(pool.get_features(), _expected_numeric_feature_values(dtype))
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', _PANDAS_NULLABLE_NUMERIC_DTYPES)
+def test_pandas_nullable_label(dtype):
+    X = pd.DataFrame({'f': [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]})
+    if dtype == 'boolean':
+        y_values = [True, False, True, False, True, False]
+    else:
+        y_values = [1, 2, 3, 4, 5, 6]
+    y = pd.Series(y_values, dtype=dtype)
+
+    CatBoostClassifier(iterations=2, verbose=0).fit(X, y)
+    CatBoostRegressor(iterations=2, verbose=0).fit(X, y)
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', _PANDAS_NULLABLE_NUMERIC_DTYPES)
+def test_pandas_nullable_label_with_na(dtype):
+    X = pd.DataFrame({'f': [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]})
+    if dtype == 'boolean':
+        y_values = [True, False, pd.NA, False, True, False]
+    else:
+        y_values = [1, 2, pd.NA, 4, 5, 6]
+    y = pd.Series(y_values, dtype=dtype)
+
+    # missing values are not allowed in labels, but the error must be a CatBoostError
+    with pytest.raises(CatBoostError):
+        CatBoostClassifier(iterations=2, verbose=0).fit(X, y)
+    with pytest.raises(CatBoostError):
+        CatBoostRegressor(iterations=2, verbose=0).fit(X, y)
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', ['string', 'object'])
+def test_pandas_na_in_cat_feature(dtype):
+    df = pd.DataFrame({'f': pd.Series(['a', pd.NA, 'b', 'a'], dtype=dtype)})
+    with pytest.raises(TypeError):
+        Pool(df, cat_features=[0])
+
+
+@requires_pandas_nullable_types
+@pytest.mark.parametrize('dtype', ['string', 'object'])
+def test_pandas_na_in_text_feature(dtype):
+    df = pd.DataFrame({'f': pd.Series(['a', pd.NA, 'b', 'a'], dtype=dtype)})
+    with pytest.raises(CatBoostError, match='text_features'):
+        Pool(df, text_features=[0])
+
+
+@requires_pandas_nullable_types
+def test_pandas_nullable_int_as_cat_feature():
+    df_ok = pd.DataFrame({'f': pd.Series([1, 2, 3, 1], dtype='Int64')})
+    Pool(df_ok, cat_features=[0])
+
+    df_na = pd.DataFrame({'f': pd.Series([1, pd.NA, 3, 1], dtype='Int64')})
+    # pandas 2.x: to_numpy() gives an object array with pd.NA -> TypeError on conversion to int;
+    # pandas 3.x: to_numpy() gives a float64 array with NaN -> CatBoostError for float values
+    with pytest.raises((TypeError, CatBoostError)):
+        Pool(df_na, cat_features=[0])
+
+
+@requires_pandas_nullable_types
+def test_pandas_nullable_predict():
+    rng = np.random.RandomState(0)
+    X_train = pd.DataFrame({'f': rng.rand(20)})
+    y = rng.rand(20)
+    model = CatBoostRegressor(iterations=2, verbose=0).fit(X_train, y)
+
+    X_nullable = pd.DataFrame({'f': pd.Series([1, pd.NA, 3], dtype='Int64')})
+    X_float = pd.DataFrame({'f': [1.0, np.nan, 3.0]})
+    np.testing.assert_allclose(model.predict(X_nullable), model.predict(X_float))
+
+
 def test_pandas_categorical_with_categories_as_string_array():
     X = pd.DataFrame({
         "ints": pd.Series([1, 9, 5]),
@@ -12037,3 +12323,52 @@ def test_repr():
     assert (CatBoostRegressor(verbose=False, random_seed=42).__repr__() == r"CatBoostRegressor(loss_function='RMSE', random_seed=42, verbose=False)")
     assert (CatBoostClassifier(verbose=False, random_seed=32).__repr__() == r"CatBoostClassifier(random_seed=32, verbose=False)")
     assert (CatBoostRanker(one_hot_max_size=10, depth=7).__repr__() == r"CatBoostRanker(depth=7, loss_function='YetiRank', one_hot_max_size=10)")
+
+
+def test_deepcopy_fit_predict_with_cat_features():
+    """
+    Regression test for https://github.com/catboost/catboost/issues/2905
+
+    deepcopy() deserializes the model with ReadZeroCopyModel, so the copied model
+    references the memory of the blob stored in it. Refitting the copy must not
+    release that blob while the previous model is still in use: _train used to
+    clear model_blob first, which led to use-after-free and hangs in predict.
+    """
+    n_samples = 5000
+    rng = np.random.RandomState(0)
+    df = pd.DataFrame({
+        'num_1': rng.randn(n_samples),
+        'num_2': rng.rand(n_samples) * 100,
+        'cat_1': rng.choice(['A', 'B', 'C'], n_samples),
+        'cat_2': rng.choice(['X', 'Y'], n_samples),
+    })
+    target = (df['num_1'] + (df['cat_1'] == 'B').astype(int) > 0).astype(int)
+    cat_features = ['cat_1', 'cat_2']
+    params = dict(
+        iterations=10,
+        learning_rate=0.25,
+        depth=4,
+        verbose=False,
+        random_seed=42,
+        thread_count=2,
+    )
+
+    model = CatBoostClassifier(**params)
+    model.fit(df, target, cat_features=cat_features)
+
+    model_copy = deepcopy(model)
+
+    # the copied model must stay valid on its own
+    assert np.array_equal(model_copy.predict(df), model.predict(df))
+
+    # refitting the copy must not corrupt it, the result must be the same as
+    # training a new model from scratch with the same parameters
+    model_copy.fit(df, target, cat_features=cat_features)
+    model_from_scratch = CatBoostClassifier(**params)
+    model_from_scratch.fit(df, target, cat_features=cat_features)
+
+    assert np.array_equal(model_copy.predict(df), model_from_scratch.predict(df))
+    assert np.allclose(
+        model_copy.predict(df, prediction_type='Probability'),
+        model_from_scratch.predict(df, prediction_type='Probability')
+    )

@@ -4,7 +4,7 @@
 
 #include <library/cpp/yt/memory/type_erasure.h>
 
-#include <library/cpp/yt/misc/tag_invoke_cpo.h>
+#include <library/cpp/yt/mpl/tag_invoke_cpo.h>
 
 #include <ranges>
 
@@ -15,7 +15,7 @@ namespace NYT {
 namespace NMergeableRangeImpl {
 
 struct TFn
-    : public TTagInvokeCpoBase<TFn>
+    : public NMpl::TTagInvokeCpoBase<TFn>
 { };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -32,8 +32,8 @@ inline constexpr NMergeableRangeImpl::TFn AsMergeableRange = {};
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
-concept CMergeableDictionary = CTagInvocableS<
-    TTagInvokeTag<AsMergeableRange>,
+concept CMergeableDictionary = NMpl::CTagInvocableS<
+    NMpl::TTagInvokeTag<AsMergeableRange>,
     NMergeableRangeImpl::TMergeableRange(const T&)>;
 
 ////////////////////////////////////////////////////////////////////////////////

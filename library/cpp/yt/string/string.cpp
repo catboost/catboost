@@ -382,12 +382,12 @@ std::string TruncateString(std::string string, int lengthLimit, TStringBuf trunc
     return string;
 }
 
-TTruncatedStringView::TTruncatedStringView(const std::string& value, int limit)
+TTruncatedStringView::TTruncatedStringView(TStringBuf value Y_LIFETIME_BOUND, int limit)
     : Value_(value)
     , Limit_(std::max(limit, 0))
 { }
 
-void TTruncatedStringView::WriteToBuilder(TStringBuilderBase* builder, TStringBuf /* spec */) const
+void TTruncatedStringView::WriteToBuilder(TStringBuilderBase* builder, TStringBuf /*spec*/) const
 {
     i64 valueSize = std::ssize(Value_);
     i64 maxSize = Limit_ + std::ssize(DefaultTruncatedMessage);

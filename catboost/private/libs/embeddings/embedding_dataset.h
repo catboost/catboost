@@ -25,7 +25,7 @@ namespace NCB {
 
         const TEmbeddingsArray& GetVector(ui64 idx) const {
             const ui64 samplesCount = SamplesCount();
-            CB_ENSURE(idx < samplesCount, "Error: text line " << idx << " is out of bound (" << samplesCount << ")");
+            CB_ENSURE(idx < samplesCount, "Error: embedding line " << idx << " is out of bound (" << samplesCount << ")");
             return Embedding[idx];
         }
 

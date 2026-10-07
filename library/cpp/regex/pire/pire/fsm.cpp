@@ -247,6 +247,8 @@ TSet<Char> Fsm::OutgoingLetters(size_t state) const
 size_t Fsm::Resize(size_t newSize)
 {
     size_t ret = Size();
+    if (newSize > ret)
+        Impl::ChargeOperations(newSize - ret);
     m_transitions.resize(newSize);
     return ret;
 }
@@ -337,6 +339,7 @@ Fsm& Fsm::AppendStrings(const TVector<ystring>& strings)
     TSet<char> usedFirsts;
 
     for (const auto& str : strings) {
+        Impl::ChargeOperations(str.size());
         if (str.size() > 1) {
 
             // First letter: all previously final states are connected to the new state
@@ -382,6 +385,7 @@ void Fsm::Import(const Fsm& rhs)
 //     PIRE_IFDEBUG(LOG_DEBUG("fsm") << "=== Left-hand side ===\n" << *this);
 //     PIRE_IFDEBUG(LOG_DEBUG("fsm") << "=== Right-hand side ===\n" << rhs);
 
+    Impl::ChargeOperations(Size() + rhs.Size(), ymax(size_t(1), letters.Size()));
     size_t oldsize = Resize(Size() + rhs.Size());
 
     for (auto&& outer : m_transitions) {
@@ -389,6 +393,7 @@ void Fsm::Import(const Fsm& rhs)
             auto targets = outer.find(letter.first);
             if (targets == outer.end())
                 continue;
+            Impl::ChargeOperations(targets->second.size(), letter.second.second.size());
             for (auto&& character : letter.second.second)
                 if (character != letter.first)
                     outer.insert(ymake_pair(character, targets->second));
@@ -397,7 +402,9 @@ void Fsm::Import(const Fsm& rhs)
 
     auto dest = m_transitions.begin() + oldsize;
     for (auto outer = rhs.m_transitions.begin(), outerEnd = rhs.m_transitions.end(); outer != outerEnd; ++outer, ++dest) {
+        Impl::ChargeOperations(outer->size() + rhs.letters.Size());
         for (auto&& inner : *outer) {
+            Impl::ChargeOperations(inner.second.size());
             TSet<size_t> targets;
             std::transform(inner.second.begin(), inner.second.end(), std::inserter(targets, targets.begin()),
                 std::bind2nd(std::plus<size_t>(), oldsize));
@@ -408,6 +415,7 @@ void Fsm::Import(const Fsm& rhs)
             auto targets = dest->find(letter.first);
             if (targets == dest->end())
                 continue;
+            Impl::ChargeOperations(targets->second.size(), letter.second.second.size());
             for (auto&& character : letter.second.second)
                 if (character != letter.first)
                     dest->insert(ymake_pair(character, targets->second));
@@ -430,14 +438,16 @@ void Fsm::Import(const Fsm& rhs)
 
 void Fsm::Connect(size_t from, size_t to, Char c /* = Epsilon */)
 {
+    Impl::ChargeOperations(1);
     m_transitions[from][c].insert(to);
     ClearHints();
 }
 
 void Fsm::ConnectFinal(size_t to, Char c /* = Epsilon */)
 {
+    Impl::ChargeOperations(m_final.size());
     for (auto&& final : m_final)
-        Connect(final, to, c);
+        m_transitions[final][c].insert(to);
     ClearHints();
 }
 
@@ -576,6 +586,7 @@ Fsm& Fsm::Complement()
 
 Fsm Fsm::operator *(size_t count) const
 {
+    Impl::ChargeOperations(Size(), count);
     Fsm ret;
     while (count--)
         ret += *this;
@@ -699,6 +710,7 @@ void Fsm::RemoveDeadEnds()
 
     TSet<size_t> dead = DeadStates();
     // Erase all useless states
+    Impl::ChargeOperations(Size(), dead.size());
     for (auto&& i : dead) {
         PIRE_IFDEBUG(Cdbg << "Removing useless state " << i << Endl);
         m_transitions[i].clear();
@@ -725,7 +737,9 @@ void Fsm::MergeEpsilonConnection(size_t from, size_t to)
     }
 
     // Merge transitions from 'to' state into transitions from 'from' state
+    Impl::ChargeOperations(m_transitions[to].size());
     for (auto&& transition : m_transitions[to]) {
+        Impl::ChargeOperations(transition.second.size());
         TSet<size_t> connStates;
         std::copy(transition.second.begin(), transition.second.end(),
             std::inserter(m_transitions[from][transition.first], m_transitions[from][transition.first].end()));
@@ -769,6 +783,7 @@ void Fsm::MergeEpsilonConnection(size_t from, size_t to)
 void Fsm::ShortCutEpsilon(size_t from, size_t thru, TVector< TSet<size_t> >& inveps)
 {
     PIRE_IFDEBUG(Cdbg << "In Fsm::ShortCutEpsilon(" << from << ", " << thru << ")\n");
+    Impl::ChargeOperations(1);
     const StatesSet& to = Destinations(thru, Epsilon);
     Outputs::iterator outIt = outputs.find(from);
     unsigned long fromThruOut = Output(from, thru);
@@ -788,9 +803,11 @@ void Fsm::RemoveEpsilons()
     Unsparse();
 
     // Build inverse map of epsilon transitions
+    Impl::ChargeOperations(Size());
     TVector< TSet<size_t> > inveps(Size()); // We have to use TSet<> here since we want it sorted
     for (size_t from = 0; from != Size(); ++from) {
         const StatesSet& tos = Destinations(from, Epsilon);
+        Impl::ChargeOperations(tos.size());
         for (auto&& to : tos)
             inveps[to].insert(from);
     }
@@ -826,8 +843,11 @@ void Fsm::RemoveEpsilons()
 bool Fsm::LettersEquality::operator()(Char a, Char b) const
 {
     for (auto&& outer : *m_tbl) {
+        Impl::ChargeOperations(1);
         auto ia = outer.find(a);
         auto ib = outer.find(b);
+        if (ia != outer.end() && ib != outer.end())
+            Impl::ChargeOperations(ymin(ia->second.size(), ib->second.size()));
         if (ia == outer.end() && ib == outer.end())
             continue;
         else if (ia == outer.end() || ib == outer.end() || ia->second != ib->second) {
@@ -850,10 +870,13 @@ void Fsm::Sparse(bool needEpsilons /* = false */)
 
 void Fsm::Unsparse()
 {
+    Impl::ChargeOperations(Size(), letters.Size());
     for (auto&& letter : letters)
-        for (auto&& i : m_transitions)
+        for (auto&& i : m_transitions) {
+            Impl::ChargeOperations(i[letter.first].size() + 1, letter.second.second.size());
             for (auto&& j : letter.second.second)
                 i[j] = i[letter.first];
+        }
     m_sparsed = false;
 }
 
@@ -901,9 +924,11 @@ public:
     State Next(const State& state, Char letter) const
     {
         State next;
+        Impl::ChargeOperations(state.size());
         next.reserve(20);
         for (auto&& from : state) {
             const auto& part = mFsm.Destinations(from, letter);
+            Impl::ChargeOperations(part.size());
             std::copy(part.begin(), part.end(), std::back_inserter(next));
         }
 
@@ -965,6 +990,7 @@ public:
                 auto from = old2new.find(i.first);
                 auto to = old2new.find(j.first);
                 if (from != old2new.end() && to != old2new.end()) {
+                    Impl::ChargeOperations(from->second.size(), to->second.size());
                     for (auto&& k : from->second)
                         for (auto&& l : to->second)
                             mNewFsm.outputs[k][l] |= j.second;
@@ -1153,6 +1179,7 @@ void Fsm::Minimize()
     // Minimization algorithm is only applicable to a determined FSM.
     Y_ASSERT(determined);
 
+    Impl::ChargeOperations(Size(), Letters().Size() + 1);
     Impl::FsmMinimizeTask task{*this};
     if (Pire::Impl::Minimize(task)) {
         task.Output().Swap(*this);

@@ -51,6 +51,10 @@ namespace snappy {
   class Source;
   class Sink;
 
+namespace internal {
+class WorkingMemory;
+}  // end namespace internal
+
   struct CompressionOptions {
     // Compression level.
     // Level 1 is the fastest
@@ -65,12 +69,60 @@ namespace snappy {
     // faster decompression speeds than snappy:1 and zstd:-3.
     int level = DefaultCompressionLevel();
 
-    constexpr CompressionOptions() = default;
-    constexpr CompressionOptions(int compression_level)
-        : level(compression_level) {}
+      constexpr CompressionOptions() = default;
+      constexpr explicit CompressionOptions(int compression_level)
+          : level(compression_level) {}
+
     static constexpr int MinCompressionLevel() { return 1; }
     static constexpr int MaxCompressionLevel() { return 2; }
     static constexpr int DefaultCompressionLevel() { return 1; }
+  };
+
+  // Scratch memory for compression, reusable across compressions. Callers that
+  // compress frequently, or that need to avoid large heap allocations can
+  // allocate a CompressionContext once and pass it to Compress()/RawCompress()
+  // to reuse the working memory across calls.
+  //
+  // The context is sized for the largest block and works for inputs of any
+  // size. A context may be used by any number of sequential compressions, but
+  // must not be used from multiple threads concurrently. A moved-from context
+  // may only be destroyed or assigned to.
+  class CompressionContext {
+   public:
+    // Allocates the working memory on the heap.
+    CompressionContext();
+
+    // Constructs a context whose working memory is placed in the
+    // caller-provided "workspace" instead of being heap-allocated; the
+    // library performs no allocation at all.
+    //
+    // REQUIRES: "workspace" points to at least "workspace_size" bytes with
+    // "workspace_size >= WorkspaceSize()", is suitably aligned for any
+    // object type (as if returned by malloc), and outlives "*this".
+    CompressionContext(void* workspace, size_t workspace_size);
+
+    ~CompressionContext();
+
+    CompressionContext(CompressionContext&& other) noexcept;
+    CompressionContext& operator=(CompressionContext&& other) noexcept;
+
+    CompressionContext(const CompressionContext&) = delete;
+    CompressionContext& operator=(const CompressionContext&) = delete;
+
+    // The workspace size required by the non-allocating constructor above.
+    static size_t WorkspaceSize();
+
+   private:
+    friend size_t Compress(Source* reader, Sink* writer,
+                           CompressionOptions options, CompressionContext* ctx);
+
+    // Destroys the working memory as appropriate for how it was created
+    // (delete if heap-allocated, in-place destruction if placement-constructed
+    // in a caller-provided workspace).
+    void Reset();
+
+    internal::WorkingMemory* working_memory_;
+    bool owns_working_memory_;
   };
 
   // ------------------------------------------------------------------------
@@ -78,11 +130,16 @@ namespace snappy {
   // ------------------------------------------------------------------------
 
   // Compress the bytes read from "*reader" and append to "*writer". Return the
-  // number of bytes written.
+  // number of bytes written, or zero if "*reader" has 2^32 or more bytes.
   // First version is to preserve ABI.
   size_t Compress(Source* reader, Sink* writer);
   size_t Compress(Source* reader, Sink* writer,
                   CompressionOptions options);
+
+  // Same as the above, but uses the working memory of "*ctx" instead of
+  // allocating it internally. See CompressionContext.
+  size_t Compress(Source* reader, Sink* writer, CompressionOptions options,
+                  CompressionContext* ctx);
 
   // Find the uncompressed length of the given stream, as given by the header.
   // Note that the true length could deviate from this; the stream could e.g.
@@ -98,7 +155,8 @@ namespace snappy {
   // ------------------------------------------------------------------------
 
   // Sets "*compressed" to the compressed version of "input[0..input_length-1]".
-  // Original contents of *compressed are lost.
+  // Original contents of *compressed are lost. Returns zero and writes nothing
+  // if "input_length" is 2^32 or more.
   //
   // REQUIRES: "input[]" is not an alias of "*compressed".
   // First version is to preserve ABI.
@@ -112,7 +170,8 @@ namespace snappy {
   // Same as `Compress` above but taking an `iovec` array as input. Note that
   // this function preprocesses the inputs to compute the sum of
   // `iov[0..iov_cnt-1].iov_len` before reading. To avoid this, use
-  // `RawCompressFromIOVec` below.
+  // `RawCompressFromIOVec` below. Returns zero and writes nothing if that sum
+  // is 2^32 or more.
   // First version is to preserve ABI.
   size_t CompressFromIOVec(const struct iovec* iov, size_t iov_cnt,
                            std::string* compressed);
@@ -155,6 +214,9 @@ namespace snappy {
   // Takes the data stored in "input[0..input_length]" and stores
   // it in the array pointed to by "compressed".
   //
+  // "*compressed_length" is set to the length of the compressed output, or to
+  // zero, with nothing written, if "input_length" is 2^32 or more.
+  //
   // "*compressed_length" is set to the length of the compressed output.
   //
   // Example:
@@ -163,14 +225,23 @@ namespace snappy {
   //    RawCompress(input, input_length, output, &output_length);
   //    ... Process(output, output_length) ...
   //    delete [] output;
+  // First version is to preserve ABI.
   void RawCompress(const char* input, size_t input_length, char* compressed,
                    size_t* compressed_length);
   void RawCompress(const char* input, size_t input_length, char* compressed,
                    size_t* compressed_length, CompressionOptions options);
+  // Same as the above, but uses the working memory of "*ctx" instead of
+  // allocating it internally. See CompressionContext.
+  void RawCompress(const char* input, size_t input_length, char* compressed,
+                   size_t* compressed_length, CompressionOptions options,
+                   CompressionContext* ctx);
 
   // Same as `RawCompress` above but taking an `iovec` array as input. Note that
   // `uncompressed_length` is the total number of bytes to be read from the
-  // elements of `iov` (_not_ the number of elements in `iov`).
+  // elements of `iov` (_not_ the number of elements in `iov`). Sets
+  // "*compressed_length" to zero and writes nothing if `uncompressed_length`
+  // is 2^32 or more.
+  // First version is to preserve ABI.
   void RawCompressFromIOVec(const struct iovec* iov, size_t uncompressed_length,
                             char* compressed, size_t* compressed_length);
   void RawCompressFromIOVec(const struct iovec* iov, size_t uncompressed_length,

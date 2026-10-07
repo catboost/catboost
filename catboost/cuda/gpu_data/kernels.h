@@ -13,7 +13,7 @@
 #include <library/cpp/grid_creator/binarization.h>
 #include <util/ysaveload.h>
 
-inline static ui8 ClipWideHistValue(ui16 wideValue, ui16 baseValue) {
+inline ui8 ClipWideHistValue(ui16 wideValue, ui16 baseValue) {
     return Min(Max(wideValue - baseValue, 0), 255);
 }
 

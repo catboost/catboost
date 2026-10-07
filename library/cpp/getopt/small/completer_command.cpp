@@ -6,9 +6,36 @@
 
 #include <library/cpp/colorizer/colors.h>
 
+#include <util/folder/dirut.h>
+#include <util/folder/path.h>
+
+#include <util/stream/file.h>
+#include <util/stream/str.h>
+
 #include <util/string/subst.h>
 
+#include <util/system/env.h>
+
 namespace NLastGetopt {
+    namespace {
+
+        enum class EShell {
+            Bash,
+            Zsh,
+        };
+
+        std::optional<EShell> ParseShell(TStringBuf value) {
+            if (value == "bash") {
+                return EShell::Bash;
+            }
+            if (value == "zsh") {
+                return EShell::Zsh;
+            }
+            return std::nullopt;
+        }
+
+    } // namespace
+
     TString MakeInfo(TStringBuf command, TStringBuf flag) {
         TString info = (
             "This command generates shell script with completion function and prints it to `stdout`, "
@@ -87,6 +114,81 @@ namespace NLastGetopt {
         return NComp::Choice({{"zsh"}, {"bash"}});
     }
 
+    TString MakeModeInfo(const TCompletionConfig& config) {
+        TStringBuilder info;
+        info << "Generate shell completion for `" << config.Command << "`";
+        for (const auto& alias : config.CommandAliases) {
+            info << ", `" << alias << "`";
+        }
+        if (!config.YaToolName.empty()) {
+            info << ", and `ya tool " << config.YaToolName << "`";
+        }
+        if (config.EnableInstaller) {
+            info << ". Without `--install`, print the script to stdout.";
+            info << " With `--install`, write the standalone completion";
+            if (!config.YaToolName.empty()) {
+                info << " and the `ya tool` completion shard";
+            }
+            info << " to the user data directory.";
+            if (!config.YaToolName.empty()) {
+                info << " Run `ya completion --install --bash` or `ya completion --install --zsh` once to enable "
+                        "completion for the `ya` command itself.";
+            }
+        } else {
+            info << ". Print the script to stdout.";
+        }
+        return info;
+    }
+
+    TString GenerateCompletion(
+        const TModChooser* modChooser,
+        const TCompletionConfig& config,
+        EShell shell)
+    {
+        TStringStream output;
+        switch (shell) {
+            case EShell::Bash:
+                TBashCompletionGenerator(modChooser).Generate(config, output);
+                break;
+            case EShell::Zsh:
+                TZshCompletionGenerator(modChooser).Generate(config, output);
+                break;
+        }
+        return std::move(output).Str();
+    }
+
+    TVector<TFsPath> GetCompletionPaths(const TCompletionConfig& config, EShell shell) {
+        auto dataHome = GetEnv("XDG_DATA_HOME");
+        if (dataHome.empty()) {
+            dataHome = (TFsPath(GetHomeDir()) / ".local" / "share").GetPath();
+        }
+
+        TFsPath directory;
+        TString fileName;
+        switch (shell) {
+            case EShell::Bash:
+                directory = TFsPath(dataHome) / "bash-completion" / "completions";
+                fileName = config.Command;
+                break;
+            case EShell::Zsh:
+                directory = TFsPath(dataHome) / "zsh" / "site-functions";
+                fileName = "_" + config.Command;
+                break;
+        }
+
+        TVector<TFsPath> paths = {directory / fileName};
+        if (!config.YaToolName.empty()) {
+            paths.push_back(directory / "ya-tool.d" / config.YaToolName);
+        }
+        return paths;
+    }
+
+    void WriteCompletion(const TFsPath& path, TStringBuf completion) {
+        path.Parent().MkDirs(MODE0755);
+        TFileOutput output(path.GetPath());
+        output.Write(completion.data(), completion.size());
+    }
+
     TOpt MakeCompletionOpt(const TOpts* opts, TString command, TString name) {
         return TOpt()
             .AddLongName(name)
@@ -113,53 +215,112 @@ namespace NLastGetopt {
 
     class TCompleterMode: public TMainClassArgs {
     public:
-        TCompleterMode(const TModChooser* modChooser, TString command, TString modName)
-            : Command_(std::move(command))
+        TCompleterMode(const TModChooser* modChooser, TCompletionConfig config)
+            : Config_(std::move(config))
             , Modes_(modChooser)
-            , ModName_(std::move(modName))
         {
         }
 
     protected:
         void RegisterOptions(NLastGetopt::TOpts& opts) override {
             TMainClassArgs::RegisterOptions(opts);
+            if (Config_.EnableUserFriendlyUsage) {
+                opts.EnableUserFriendlyUsage();
+                if (Modes_->IsSvnRevisionOptionDisabled()) {
+                    if (auto* svnRevisionOption = opts.FindLongOption("svnrevision")) {
+                        svnRevisionOption->Hidden();
+                    }
+                }
+            }
 
             opts.SetTitle("Generate tab completion scripts for zsh or bash");
 
-            opts.AddSection("Description", MakeInfo(Command_, ModName_));
+            if (Config_.EnableInstaller) {
+                auto installHelp = TString("Install completion for direct invocations");
+                if (!Config_.YaToolName.empty()) {
+                    installHelp += " and ya tool " + Config_.YaToolName;
+                }
+                opts.AddLongOption("install", installHelp)
+                    .NoArgument()
+                    .SetFlag(&Install_);
+            }
+
+            if (Config_.EnableUserFriendlyUsage) {
+                opts.AddSection("Description", MakeModeInfo(Config_));
+            } else {
+                opts.AddSection("Description", MakeInfo(Config_.Command, Config_.ModName));
+            }
+
+            if (Config_.EnableInstaller) {
+                TStringBuilder examples;
+                examples << Config_.Command << " " << Config_.ModName << " bash --install";
+                if (!Config_.YaToolName.empty()) {
+                    examples << "\nya tool " << Config_.YaToolName << " " << Config_.ModName << " zsh --install";
+                }
+                opts.SetExamples(examples);
+            }
 
             opts.SetFreeArgsNum(1);
-            opts.GetFreeArgSpec(0)
-                .Title("<shell-syntax>")
-                .Help("shell syntax  for completion script (bash or zsh)")
-                .CompletionArgHelp("shell syntax for completion script")
-                .Completer(ShellChoiceCompleter());
+            auto& shellArg = opts.GetFreeArgSpec(0);
+            if (Config_.EnableUserFriendlyUsage) {
+                shellArg
+                    .Title("SHELL")
+                    .Help("Shell whose completion script should be generated: bash or zsh")
+                    .CompletionArgHelp("shell");
+            } else {
+                shellArg
+                    .Title("<shell-syntax>")
+                    .Help("shell syntax  for completion script (bash or zsh)")
+                    .CompletionArgHelp("shell syntax for completion script");
+            }
+            shellArg.Completer(ShellChoiceCompleter());
         }
 
         int DoRun(NLastGetopt::TOptsParseResult&& parsedOptions) override {
             auto arg = parsedOptions.GetFreeArgs()[0];
             arg.to_lower();
 
-            if (arg == "bash") {
-                TBashCompletionGenerator(Modes_).Generate(Command_, Cout);
-            } else if (arg == "zsh") {
-                TZshCompletionGenerator(Modes_).Generate(Command_, Cout);
-            } else {
+            const auto shell = ParseShell(arg);
+            if (!shell) {
                 Cerr << "Unknown shell name " << arg.Quote() << Endl;
                 parsedOptions.PrintUsage();
                 return 1;
             }
 
+            auto completion = GenerateCompletion(Modes_, Config_, *shell);
+            if (!Install_) {
+                Cout << completion;
+                return 0;
+            }
+
+            auto paths = GetCompletionPaths(Config_, *shell);
+            for (const auto& path : paths) {
+                WriteCompletion(path, completion);
+            }
+            Cout << "Installed " << arg << " completion:" << Endl;
+            for (const auto& path : paths) {
+                Cout << "  " << path.GetPath() << Endl;
+            }
+            Cout << "Restart the shell to load the updated completion." << Endl;
             return 0;
         }
 
     private:
-        TString Command_;
+        TCompletionConfig Config_;
         const TModChooser* Modes_;
-        TString ModName_;
+        bool Install_ = false;
     };
 
     THolder<TMainClassArgs> MakeCompletionMod(const TModChooser* modChooser, TString command, TString modName) {
-        return MakeHolder<TCompleterMode>(modChooser, std::move(command), std::move(modName));
+        return MakeCompletionMod(
+            modChooser,
+            TCompletionConfig{
+                .ModName = std::move(modName),
+                .Command = std::move(command),
+            });
+    }
+
+    THolder<TMainClassArgs> MakeCompletionMod(const TModChooser* modChooser, TCompletionConfig config) {
+        return MakeHolder<TCompleterMode>(modChooser, std::move(config));
     }
 }

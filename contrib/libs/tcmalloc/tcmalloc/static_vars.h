@@ -37,8 +37,8 @@
 #include "tcmalloc/internal/atomic_stats_counter.h"
 #include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/explicitly_constructed.h"
+#include "tcmalloc/internal/gwp_asan_state.h"
 #include "tcmalloc/internal/logging.h"
-#include "tcmalloc/internal/mismatched_delete_state.h"
 #include "tcmalloc/internal/numa.h"
 #include "tcmalloc/internal/sampled_allocation.h"
 #include "tcmalloc/internal/sampled_allocation_recorder.h"
@@ -203,9 +203,7 @@ class Static final {
   // structure, so figure out how much of it is actually resident.
   static size_t pagemap_residence();
 
-  static MismatchedDeleteState& mismatched_delete_state() {
-    return mismatched_delete_state_;
-  }
+  static GwpAsanState& gwp_asan_state() { return gwp_asan_state_; }
 
   static SizeClassConfiguration size_class_configuration();
 
@@ -240,7 +238,7 @@ class Static final {
   ABSL_CONST_INIT static PeakHeapTracker peak_heap_tracker_;
   ABSL_CONST_INIT static NumaTopology<kNumaPartitions, kNumBaseClasses>
       numa_topology_;
-  ABSL_CONST_INIT static MismatchedDeleteState mismatched_delete_state_;
+  ABSL_CONST_INIT static GwpAsanState gwp_asan_state_;
 
   // PageHeap uses a constructor for initialization.  Like the members above,
   // we can't depend on initialization order, so pageheap is new'd

@@ -10,6 +10,8 @@
 
 #include <library/cpp/yt/malloc/malloc.h>
 
+#include <library/cpp/yt/mpl/type_traits.h>
+
 #include <util/system/align.h>
 
 namespace NYT {
@@ -72,7 +74,7 @@ inline TChunkedMemoryPool::TChunkedMemoryPool(
         GetRefCountedTypeCookie<TTag>(),
         startChunkSize)
 {
-    static_assert(IsEmptyClass<TTag>());
+    static_assert(NMpl::IsEmptyClass<TTag>());
 }
 
 inline char* TChunkedMemoryPool::AllocateUnaligned(size_t size)

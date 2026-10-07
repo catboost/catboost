@@ -1,18 +1,10 @@
 #pragma once
 
-#include <cstddef>
+#include <library/cpp/yt/system/public.h>
 
 namespace NYT::NThreading {
 
 ////////////////////////////////////////////////////////////////////////////////
-
-#define YT_DECLARE_SPIN_LOCK(type, name) \
-    type name{__LOCATION__}
-
-////////////////////////////////////////////////////////////////////////////////
-
-using TThreadId = size_t;
-constexpr size_t InvalidThreadId = 0;
 
 class TExecutionStack;
 

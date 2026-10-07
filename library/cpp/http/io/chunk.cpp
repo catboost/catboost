@@ -241,6 +241,6 @@ void TChunkedOutput::DoFlush() {
 void TChunkedOutput::DoFinish() {
     if (Impl_.Get()) {
         Impl_->Finish();
-        Impl_.Destroy();
+        Impl_.reset();
     }
 }

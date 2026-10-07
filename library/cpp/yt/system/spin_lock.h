@@ -1,0 +1,80 @@
+#pragma once
+
+#include "cache_line_size.h"
+#include "spin_lock_base.h"
+#include "spin_lock_count.h"
+#include "thread_id.h"
+
+#include <library/cpp/yt/misc/port.h>
+
+#include <util/system/src_location.h>
+#include <util/system/types.h>
+
+#include <atomic>
+
+namespace NYT {
+
+////////////////////////////////////////////////////////////////////////////////
+
+//! A slightly modified version of TAdaptiveLock.
+/*!
+ *  The lock is unfair.
+ */
+class TSpinLock
+    : public TSpinLockBase
+{
+public:
+    static constexpr bool Traced = true;
+
+    using TSpinLockBase::TSpinLockBase;
+
+    //! Acquires the lock.
+    void Acquire() noexcept;
+
+    //! Tries acquiring the lock.
+    //! Returns |true| on success.
+    bool TryAcquire() noexcept;
+
+    //! Releases the lock.
+    void Release() noexcept;
+
+    //! Returns true if the lock is taken.
+    /*!
+     *  This is inherently racy.
+     *  Only use for debugging and diagnostic purposes.
+     */
+    bool IsLocked() const noexcept;
+
+private:
+#ifdef YT_ENABLE_SPIN_LOCK_OWNERSHIP_TRACKING
+    using TValue = TSequentialThreadId;
+    static constexpr TValue UnlockedValue = InvalidSequentialThreadId;
+#else
+    using TValue = ui32;
+    static constexpr TValue UnlockedValue = 0;
+    static constexpr TValue LockedValue = 1;
+#endif
+
+    std::atomic<TValue> Value_ = UnlockedValue;
+
+    bool TryAndTryAcquire() noexcept;
+
+    void AcquireSlow() noexcept;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+//! A variant of TSpinLock occupying the whole cache line.
+class alignas(CacheLineSize) TPaddedSpinLock
+    : public TSpinLock
+{
+    using TSpinLock::TSpinLock;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+} // namespace NYT
+
+#define SPIN_LOCK_INL_H_
+#include "spin_lock-inl.h"
+#undef SPIN_LOCK_INL_H_

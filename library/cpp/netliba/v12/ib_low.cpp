@@ -33,7 +33,7 @@ namespace NNetliba_v12 {
 
         TIntrusivePtr<TIBContext> ctx;
         TIntrusivePtr<TIBPort> resPort;
-        int numDevices;
+        int numDevices{0};
         ibv_device** deviceList = ibv_get_device_list(&numDevices);
         //for (int i = 0; i < numDevices; ++i) {
         //    ibv_device *dev = deviceList[i];
@@ -50,8 +50,13 @@ namespace NNetliba_v12 {
         //    printf("node type: %s\n", ibv_node_type_str(dev->node_type));
         //    printf("\n");
         //}
-        if (numDevices == 1) {
+        if (numDevices == 1 && deviceList != nullptr) {
             ctx = new TIBContext(deviceList[0]);
+        }
+
+        // ibv_open_device() may fail in sandboxes without IB access;
+        // calling ibv_query_device() with a null context segfaults inside libibverbs
+        if (ctx.Get() != nullptr && ctx->IsValid()) {
             TIBContext::TLock ibContext(ctx);
             ibv_device_attr devAttrs;
             CHECK_Z(ibv_query_device(ibContext.GetContext(), &devAttrs));

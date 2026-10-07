@@ -1725,7 +1725,7 @@ More details and examples will be published in documentation soon.
 - Fix `_catboost` reinitialization issues #268 and #269.
 - Python module `catboost.util` extended with `create_cd`. It creates column description file.
 - Now it's possible to load titanic and amazon (Kaggle Amazon Employee Access Challenge) datasets from Python code. Use `catboost.datasets`.
-- GPU parameter `use_cpu_ram_for_cat_features` renamed to `gpu_cat_features_storage` with posible values `CpuPinnedMemory` and `GpuRam`. Default is `GpuRam`.
+- GPU parameter `use_cpu_ram_for_cat_features` renamed to `gpu_cat_features_storage` with possible values `CpuPinnedMemory` and `GpuRam`. Default is `GpuRam`.
 
 ## Thanks to our Contributors
 This release contains contributions from CatBoost team.

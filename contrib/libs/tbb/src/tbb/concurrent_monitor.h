@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2005-2025 Intel Corporation
+    Copyright (c) 2026 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -186,6 +187,10 @@ private:
     tbb::detail::aligned_space<binary_semaphore> sema;
 };
 
+// GCC 12.x-16.x issues a warning that to_wait_node(n)->my_is_in_list might have size 0, since n is
+// a base_node pointer. (This cannot happen, because only wait_node pointers are added to my_waitset.)
+#define CONCURRENT_MONITOR_MY_IS_IN_LIST_STORE_BROKEN (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 170000 ) && !__clang__ && !__INTEL_COMPILER
+
 //! concurrent_monitor
 /** fine-grained concurrent_monitor implementation */
 template <typename Context>
@@ -291,14 +296,12 @@ public:
             if (n != end) {
                 my_waitset.remove(*n);
 
-// GCC 12.x-14.x issues a warning here that to_wait_node(n)->my_is_in_list might have size 0, since n is
-// a base_node pointer. (This cannot happen, because only wait_node pointers are added to my_waitset.)
-#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
+#if CONCURRENT_MONITOR_MY_IS_IN_LIST_STORE_BROKEN
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-overflow"
 #endif
                 to_wait_node(n)->my_is_in_list.store(false, std::memory_order_relaxed);
-#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
+#if CONCURRENT_MONITOR_MY_IS_IN_LIST_STORE_BROKEN
 #pragma GCC diagnostic pop
 #endif
             }
@@ -437,14 +440,12 @@ public:
             my_waitset.flush_to(temp);
             end = temp.end();
             for (base_node* n = temp.front(); n != end; n = n->next) {
-// GCC 12.x-14.x issues a warning here that to_wait_node(n)->my_is_in_list might have size 0, since n is
-// a base_node pointer. (This cannot happen, because only wait_node pointers are added to my_waitset.)
-#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
+#if CONCURRENT_MONITOR_MY_IS_IN_LIST_STORE_BROKEN
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-overflow"
 #endif
                 to_wait_node(n)->my_is_in_list.store(false, std::memory_order_relaxed);
-#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
+#if CONCURRENT_MONITOR_MY_IS_IN_LIST_STORE_BROKEN
 #pragma GCC diagnostic pop
 #endif
             }

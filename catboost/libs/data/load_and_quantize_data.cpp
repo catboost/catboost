@@ -102,7 +102,7 @@ namespace {
             IsStarted = true;
 
             ObjectCount = objectCount;
-            CB_ENSURE(ObjectCount > 0, "pool is empty");
+            CB_ENSURE(ObjectCount > 0, "Dataset has no samples");
 
             PrepareQuantizationParameters(
                 PlainJsonParams,

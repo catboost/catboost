@@ -111,12 +111,12 @@ void RethrowExceptionFromJavaToCpp() {
         env->ExceptionClear();
         auto excClass = TLocalClassRef(env->GetObjectClass(exc.Get()));
         jmethodID getMessage = env->GetMethodID(excClass.Get(), "getMessage", "()Ljava/lang/String;");
-        auto message = static_cast<jstring>(env->CallObjectMethod(exc.Get(), getMessage));
+        auto message = TLocalStringRef(static_cast<jstring>(env->CallObjectMethod(exc.Get(), getMessage)));
         std::string exceptionMsg = "<no message>";
         if (message) {
-            char const* msg = env->GetStringUTFChars(message, nullptr);
+            char const* msg = env->GetStringUTFChars(message.Get(), nullptr);
             exceptionMsg = msg;
-            env->ReleaseStringUTFChars(message, msg);
+            env->ReleaseStringUTFChars(message.Get(), msg);
         }
         THROW(TJniException().append(exceptionMsg));
     }

@@ -37,7 +37,7 @@ The column indexed 4 contains arbitrary data.
 
 {% include [reusage-file-with-column-descs](../_includes/work_src/reusage/file-with-column-descs.md) %}
 
-The feature indexed 3 is categorical, so the value in the second column of the description file is set to . The name of this feature is set to <q>wind direction</q> in the third column of the description file.
+The feature indexed 3 is categorical, so the value in the second column of the description file is set to {{ cd-file__col-type__Categ }}. The name of this feature is set to <q>wind direction</q> in the third column of the description file.
 
 Other features are numerical and are omitted from the columns description file.
 

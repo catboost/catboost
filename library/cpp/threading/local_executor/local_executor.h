@@ -13,17 +13,17 @@
 
 namespace NPar {
     struct ILocallyExecutable : virtual public TThrRefBase {
-        // Must be implemented by the end user to define job that will be processed by one of
-        // executor threads.
-        //
-        // @param id        Job parameter, typically an index pointing somewhere in array, or just
-        //                  some dummy value, e.g. `0`.
+        /// Must be implemented by the end user to define job that will be processed by one of
+        /// executor threads.
+        ///
+        /// @param id        Job parameter, typically an index pointing somewhere in array, or just
+        ///                  some dummy value, e.g. `0`.
         virtual void LocalExec(int id) = 0;
     };
 
-    // Alternative and simpler way of describing a job for executor. Function argument has the
-    // same meaning as `id` in `ILocallyExecutable::LocalExec`.
-    //
+    /// Alternative and simpler way of describing a job for executor. Function argument has the
+    /// same meaning as `id` in ILocallyExecutable::LocalExec.
+    ///
     using TLocallyExecutableFunction = std::function<void(int)>;
 
     class ILocalExecutor: public TNonCopyable {
@@ -39,31 +39,31 @@ namespace NPar {
             WAIT_COMPLETE = 4
         };
 
-        // Add task for further execution.
-        //
-        // @param exec          Task description.
-        // @param id            Task argument.
-        // @param flags         Bitmask composed by `HIGH_PRIORITY`, `MED_PRIORITY`, `LOW_PRIORITY`
-        //                      and `WAIT_COMPLETE`.
+        /// Add task for further execution.
+        ///
+        /// @param exec          Task description.
+        /// @param id            Task argument.
+        /// @param flags         Bitmask composed by #HIGH_PRIORITY, #MED_PRIORITY, #LOW_PRIORITY
+        ///                      and #WAIT_COMPLETE.
         virtual void Exec(TIntrusivePtr<ILocallyExecutable> exec, int id, int flags) = 0;
 
-        // Add tasks range for further execution.
-        //
-        // @param exec                      Task description.
-        // @param firstId, lastId           Task arguments [firstId, lastId)
-        // @param flags                     Same as for `Exec`.
+        /// Add tasks range for further execution.
+        ///
+        /// @param exec                      Task description.
+        /// @param firstId, lastId           Task arguments [firstId, lastId)
+        /// @param flags                     Same as for Exec().
         virtual void ExecRange(TIntrusivePtr<ILocallyExecutable> exec, int firstId, int lastId, int flags) = 0;
 
-        // returns:
-        //   0 for for a thread outside the internal pool
-        //      (because ILocalExecutor is allowed to use a calling thread to execute tasks as well),
-        //   1 ... GetThreadCount() for a thread inside the internal pool
+        /// @return
+        ///   0 for for a thread outside the internal pool
+        ///      (because ILocalExecutor is allowed to use a calling thread to execute tasks as well),
+        ///   1 ... GetThreadCount() for a thread inside the internal pool
         virtual int GetWorkerThreadId() const noexcept = 0;
 
         virtual int GetThreadCount() const noexcept = 0;
 
-        // Describes a range of tasks with parameters from integer range [FirstId, LastId).
-        //
+        /// Describes a range of tasks with parameters from integer range [#FirstId, #LastId).
+        ///
         class TExecRangeParams {
         public:
             template <typename TFirst, typename TLast>
@@ -74,9 +74,9 @@ namespace NPar {
                 Y_ASSERT(LastId >= FirstId);
                 SetBlockSize(1);
             }
-            // Partition tasks into `blockCount` blocks of approximately equal size, each of which
-            // will be executed as a separate bigger task.
-            //
+            /// Partition tasks into \p blockCount blocks of approximately equal size, each of which
+            /// will be executed as a separate bigger task.
+            ///
             template <typename TBlockCount>
             TExecRangeParams& SetBlockCount(TBlockCount blockCount) {
                 Y_ASSERT(SafeIntegerCast<int>(blockCount) > 0 || FirstId == LastId);
@@ -85,9 +85,9 @@ namespace NPar {
                 BlockEqualToThreads = false;
                 return *this;
             }
-            // Partition tasks into blocks of approximately `blockSize` size, each of which will
-            // be executed as a separate bigger task.
-            //
+            /// Partition tasks into blocks of approximately \p blockSize size, each of which will
+            /// be executed as a separate bigger task.
+            ///
             template <typename TBlockSize>
             TExecRangeParams& SetBlockSize(TBlockSize blockSize) {
                 Y_ASSERT(SafeIntegerCast<int>(blockSize) > 0 || FirstId == LastId);
@@ -96,9 +96,9 @@ namespace NPar {
                 BlockEqualToThreads = false;
                 return *this;
             }
-            // Partition tasks into thread count blocks of approximately equal size, each of which
-            // will be executed as a separate bigger task.
-            //
+            /// Partition tasks into thread count blocks of approximately equal size, each of which
+            /// will be executed as a separate bigger task.
+            ///
             TExecRangeParams& SetBlockCountToThreadCount() {
                 BlockEqualToThreads = true;
                 return *this;
@@ -124,19 +124,20 @@ namespace NPar {
             bool BlockEqualToThreads;
         };
 
-        // `Exec` and `ExecRange` versions that accept functions.
-        //
+        /// `Exec` and `ExecRange` versions that accept functions.
+        ///@{
         void Exec(TLocallyExecutableFunction exec, int id, int flags);
         void ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
+        ///@}
 
-        // Version of `ExecRange` that throws exception from task with minimal id if at least one of
-        // task threw an exception.
-        //
+        /// Version of `ExecRange` that throws exception from task with minimal id if at least one of
+        /// task threw an exception.
+        ///
         void ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
 
-        // Version of `ExecRange` that returns vector of futures, thus allowing to retry any task if
-        // it fails.
-        //
+        /// Version of `ExecRange` that returns vector of futures, thus allowing to retry any task if
+        /// it fails.
+        ///
         TVector<NThreading::TFuture<void>> ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
 
         template <typename TBody>
@@ -202,37 +203,39 @@ namespace NPar {
         }
     };
 
-    // `TLocalExecutor` provides facilities for easy parallelization of existing code and cycles.
-    //
-    // Examples:
-    // Execute one task with medium priority and wait for it completion.
-    // ```
-    // LocalExecutor().Run(4);
-    // TEvent event;
-    // LocalExecutor().Exec([](int) {
-    //     SomeFunc();
-    //     event.Signal();
-    // }, 0, TLocalExecutor::MED_PRIORITY);
-    //
-    // SomeOtherCode();
-    // event.WaitI();
-    // ```
-    //
-    // Execute range of tasks with medium priority.
-    // ```
-    // LocalExecutor().Run(4);
-    // LocalExecutor().ExecRange([](int id) {
-    //     SomeFunc(id);
-    // }, TExecRangeParams(0, 10), TLocalExecutor::WAIT_COMPLETE | TLocalExecutor::MED_PRIORITY);
-    // ```
-    //
+    /// TLocalExecutor provides facilities for easy parallelization of existing code and cycles.
+    /**
+     * Examples:
+     * Execute one task with medium priority and wait for it completion.
+     *
+     * @code
+     * LocalExecutor().Run(4);
+     * TEvent event;
+     * LocalExecutor().Exec([](int) {
+     *     SomeFunc();
+     *     event.Signal();
+     * }, 0, TLocalExecutor::MED_PRIORITY);
+     *
+     * SomeOtherCode();
+     * event.WaitI();
+     * @endcode
+     *
+     * Execute range of tasks with medium priority.
+     *
+     * @code
+     * LocalExecutor().Run(4);
+     * LocalExecutor().ExecRange([](int id) {
+     *     SomeFunc(id);
+     * }, TExecRangeParams(0, 10), TLocalExecutor::WAIT_COMPLETE | TLocalExecutor::MED_PRIORITY);
+     * @endcode
+     */
     class TLocalExecutor final: public ILocalExecutor {
     public:
         using EFlags = ILocalExecutor::EFlags;
 
-        // Creates executor without threads. You'll need to explicitly call `RunAdditionalThreads`
-        // to add threads to underlying thread pool.
-        //
+        /// Creates executor without threads. You'll need to explicitly call RunAdditionalThreads()
+        /// to add threads to underlying thread pool.
+        ///
         TLocalExecutor();
         ~TLocalExecutor();
 
@@ -244,24 +247,13 @@ namespace NPar {
         int GetWorkerThreadId() const noexcept override;
         int GetThreadCount() const noexcept override;
 
-        // **Add** threads to underlying thread pool.
-        //
-        // @param threadCount       Number of threads to add.
+        /// **Add** threads to underlying thread pool.
+        ///
+        /// @param threadCount       Number of threads to add.
         void RunAdditionalThreads(int threadCount);
 
-        // Add task for further execution.
-        //
-        // @param exec          Task description.
-        // @param id            Task argument.
-        // @param flags         Bitmask composed by `HIGH_PRIORITY`, `MED_PRIORITY`, `LOW_PRIORITY`
-        //                      and `WAIT_COMPLETE`.
         void Exec(TIntrusivePtr<ILocallyExecutable> exec, int id, int flags) override;
 
-        // Add tasks range for further execution.
-        //
-        // @param exec                      Task description.
-        // @param firstId, lastId           Task arguments [firstId, lastId)
-        // @param flags                     Same as for `Exec`.
         void ExecRange(TIntrusivePtr<ILocallyExecutable> exec, int firstId, int lastId, int flags) override;
 
         using ILocalExecutor::Exec;

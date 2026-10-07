@@ -96,7 +96,9 @@ struct TStripImpl {
             return true;
         }
 
-        to = from;
+        if (&to != &from) {
+            to = from;
+        }
 
         return false;
     }

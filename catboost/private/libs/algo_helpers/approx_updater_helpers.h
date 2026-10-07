@@ -19,20 +19,20 @@
 
 
 template <bool StoreExpApprox>
-static inline double UpdateApprox(double approx, double approxDelta) {
+inline double UpdateApprox(double approx, double approxDelta) {
     return StoreExpApprox ? approx * approxDelta : approx + approxDelta;
 }
 
-static inline double UpdateApprox(bool storeExpApprox, double approx, double approxDelta) {
+inline double UpdateApprox(bool storeExpApprox, double approx, double approxDelta) {
     return storeExpApprox ? approx * approxDelta : approx + approxDelta;
 }
 
 template <bool StoreExpApprox>
-static inline double ApplyLearningRate(double approxDelta, double learningRate) {
+inline double ApplyLearningRate(double approxDelta, double learningRate) {
     return StoreExpApprox ? fast_exp(FastLogf(approxDelta) * learningRate) : approxDelta * learningRate;
 }
 
-static inline double GetNeutralApprox(bool storeExpApproxes) {
+inline double GetNeutralApprox(bool storeExpApproxes) {
     if (storeExpApproxes) {
         return 1.0;
     } else {
@@ -40,24 +40,24 @@ static inline double GetNeutralApprox(bool storeExpApproxes) {
     }
 }
 
-static inline double ExpApproxIf(bool storeExpApproxes, double approx) {
+inline double ExpApproxIf(bool storeExpApproxes, double approx) {
     return storeExpApproxes ? fast_exp(approx) : approx;
 }
 
-static inline void ExpApproxIf(bool storeExpApproxes, TArrayRef<double> approx) {
+inline void ExpApproxIf(bool storeExpApproxes, TArrayRef<double> approx) {
     if (storeExpApproxes) {
         NCB::FastExpWithInfInplace(approx.data(), approx.size());
     }
 }
 
-static inline void ExpApproxIf(bool storeExpApproxes, TVector<TVector<double>>* approxMulti) {
+inline void ExpApproxIf(bool storeExpApproxes, TVector<TVector<double>>* approxMulti) {
     for (auto& approx : *approxMulti) {
         ExpApproxIf(storeExpApproxes, approx);
     }
 }
 
 
-static inline bool IsStoreExpApprox(ELossFunction lossFunction) {
+inline bool IsStoreExpApprox(ELossFunction lossFunction) {
     return EqualToOneOf(
         lossFunction,
         ELossFunction::Logloss,

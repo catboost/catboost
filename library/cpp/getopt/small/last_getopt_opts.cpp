@@ -445,7 +445,9 @@ namespace NLastGetopt {
                     os << "(values: " << choicesHelp << ")";
                 }
 
-                if (opt->HasDefaultValue()) {
+                if (opt->HasDefaultValue() &&
+                    (ShowDefaultValuesForNoArgumentOptions_ || opt->GetHasArg() != NO_ARGUMENT))
+                {
                     auto quotedDef = QuoteForHelp(opt->GetDefaultValue());
                     if (helpHasParagraphs) {
                         os << Endl << Endl << SPad << leftPadding << " ";

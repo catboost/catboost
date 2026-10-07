@@ -86,7 +86,7 @@ void TErrorAttributes::MergeFrom(const TDictionary& dict)
 
 namespace NMergeableRangeImpl {
 
-inline TMergeableRange TagInvoke(TTagInvokeTag<AsMergeableRange>, const TErrorAttributes& attributes)
+inline TMergeableRange TagInvoke(NMpl::TTagInvokeTag<AsMergeableRange>, const TErrorAttributes& attributes)
 {
     return attributes.ListPairs();
 }

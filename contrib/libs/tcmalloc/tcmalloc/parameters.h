@@ -53,9 +53,7 @@ class Parameters {
 
   static absl::Duration huge_cache_release_time();
 
-  static int64_t guarded_sampling_interval() {
-    return guarded_sampling_interval_.load(std::memory_order_relaxed);
-  }
+  static int64_t guarded_sampling_interval();
 
   static void set_guarded_sampling_interval(int64_t value) {
     TCMalloc_Internal_SetGuardedSamplingInterval(value);
@@ -99,9 +97,7 @@ class Parameters {
     return huge_region_demand_based_release_.load(std::memory_order_relaxed);
   }
 
-  static bool huge_cache_demand_based_release() {
-    return huge_cache_demand_based_release_.load(std::memory_order_relaxed);
-  }
+  static bool huge_cache_demand_based_release();
 
   static void set_huge_cache_demand_based_release(bool value) {
     TCMalloc_Internal_SetHugeCacheDemandBasedRelease(value);
@@ -156,8 +152,14 @@ class Parameters {
     TCMalloc_Internal_SetProfileSamplingInterval(value);
   }
 
+  static void set_filler_skip_subrelease_interval(absl::Duration value) {
+    TCMalloc_Internal_SetHugePageFillerSkipSubreleaseInterval(value);
+  }
+
   static bool background_process_actions_enabled();
   static absl::Duration background_process_sleep_interval();
+
+  static absl::Duration filler_skip_subrelease_interval();
 
   static void set_filler_skip_subrelease_short_interval(absl::Duration value) {
     TCMalloc_Internal_SetHugePageFillerSkipSubreleaseShortInterval(value);
@@ -205,6 +207,7 @@ class Parameters {
   static void set_per_cpu_caches_dynamic_slab_shrink_threshold(double value) {
     TCMalloc_Internal_SetPerCpuCachesDynamicSlabShrinkThreshold(value);
   }
+
   static bool dense_trackers_sorted_on_spans_allocated();
 
  private:
@@ -223,6 +226,8 @@ class Parameters {
       bool v);
   friend void ::TCMalloc_Internal_SetProfileSamplingInterval(int64_t v);
 
+  friend void ::TCMalloc_Internal_SetHugePageFillerSkipSubreleaseInterval(
+      absl::Duration v);
   friend void ::TCMalloc_Internal_SetHugePageFillerSkipSubreleaseShortInterval(
       absl::Duration v);
   friend void ::TCMalloc_Internal_SetHugePageFillerSkipSubreleaseLongInterval(
@@ -244,7 +249,6 @@ class Parameters {
   friend void ::TCMalloc_Internal_SetMinHotAccessHint(uint8_t v);
 
   static std::atomic<MallocExtension::BytesPerSecond> background_release_rate_;
-  static std::atomic<int64_t> guarded_sampling_interval_;
   static std::atomic<uint32_t> max_span_cache_size_;
   static std::atomic<uint32_t> max_span_cache_array_size_;
   static std::atomic<int32_t> max_per_cpu_cache_size_;

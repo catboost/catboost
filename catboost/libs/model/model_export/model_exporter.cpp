@@ -14,19 +14,16 @@
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
 
-#include <util/string/builder.h>
 
 namespace NCB {
-    ICatboostModelExporter* CreateCatboostModelExporter(const TString& modelFile, const EModelType format, const TString& userParametersJson, bool addFileFormatExtension) {
+    TIntrusivePtr<NCB::ICatboostModelExporter> CreateCatboostModelExporter(const TString& modelFile, const EModelType format, const TString& userParametersJson, bool addFileFormatExtension) {
         switch (format) {
             case EModelType::Cpp:
-                return new TCatboostModelToCppConverter(modelFile, addFileFormatExtension, userParametersJson);
+                return MakeIntrusive<TCatboostModelToCppConverter>(modelFile, addFileFormatExtension, userParametersJson);
             case EModelType::Python:
-                return new TCatboostModelToPythonConverter(modelFile, addFileFormatExtension, userParametersJson);
+                return MakeIntrusive<TCatboostModelToPythonConverter>(modelFile, addFileFormatExtension, userParametersJson);
             default:
-                TStringBuilder err;
-                err << "CreateCatboostModelExporter doesn't support " << format << ".";
-                CB_ENSURE(false, err);
+                CB_ENSURE(false, "CatBoost ModelExporter doesn't support " << format << ".");
         }
     }
 
@@ -212,11 +209,6 @@ namespace NCB {
                         userParametersJson,
                         addFileFormatExtension
                     );
-                if (!modelExporter) {
-                    TStringBuilder err;
-                    err << "Export to " << format << " format is not supported";
-                    CB_ENSURE(false, err.c_str());
-                }
                 modelExporter->Write(model, catFeaturesHashToString);
                 break;
         }

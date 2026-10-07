@@ -103,6 +103,14 @@ FLOAT_TYPES = (float, np.floating)
 STRING_TYPES = (string_types,)
 ARRAY_TYPES = (list, np.ndarray, pd.DataFrame, pd.Series, pl.DataFrame, pl.Series)
 
+# names of pandas nullable extension dtypes for numeric and boolean data
+_PANDAS_NULLABLE_NUMERIC_DTYPE_NAMES = frozenset([
+    'Int8', 'Int16', 'Int32', 'Int64',
+    'UInt8', 'UInt16', 'UInt32', 'UInt64',
+    'Float32', 'Float64',
+    'boolean'
+])
+
 if sys.version_info >= (3, 6):
     PATH_TYPES = STRING_TYPES + (os.PathLike,)
 elif sys.version_info >= (3, 4):
@@ -385,6 +393,27 @@ def _resolve_auto_features(features, data, param_name):
         "cat_features='auto' requires the dataset to be a pandas.DataFrame or polars.DataFrame, but got {}. "
         "Specify categorical features explicitly.".format(type(data))
     )
+
+
+def _check_polars_categorical_features_have_no_nulls(data, cat_features):
+    """Raise an informative error for null values in polars Categorical/Enum cat_features.
+
+        Null values in categorical columns are not supported. For a polars.String column
+        (or for pandas) this is reported with a clear message, but for a polars.Enum or
+        polars.Categorical column the nulls used to reach the compiled layer and surface
+        as an opaque ``TypeError: No matching signature found`` (see issue #3106). Detect
+        the nulls here and report them the same way as the other backends.
+    """
+    if (not isinstance(data, pl.DataFrame)) or (not cat_features):
+        return
+    for feature_idx in cat_features:
+        dtype = data.dtypes[feature_idx]
+        if (dtype == pl.Categorical) or isinstance(dtype, pl.Enum):
+            if data.to_series(feature_idx).null_count() > 0:
+                raise CatBoostError(
+                    "Data with nulls is not supported for categorical columns, but categorical "
+                    "column '{}' contains null values".format(data.columns[feature_idx])
+                )
 
 
 def _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
@@ -1385,7 +1414,12 @@ class Pool(_PoolBase):
 
     def _label_if_pandas_to_numpy(self, label):
         if isinstance(label, pd.Series):
-            label = label.values
+            if label.dtype.name in _PANDAS_NULLABLE_NUMERIC_DTYPE_NAMES:
+                # pandas nullable numeric/boolean extension dtypes:
+                # convert to float64 with missing values (pandas.NA) represented as NaN
+                label = label.to_numpy(dtype=np.float64, na_value=np.nan)
+            else:
+                label = label.values
         if isinstance(label, pd.DataFrame):
             label = label.values
         return label
@@ -1528,6 +1562,7 @@ class Pool(_PoolBase):
             cat_features = _get_features_indices(cat_features, feature_names)
             self._check_string_feature_type(cat_features, 'cat_features')
             self._check_string_feature_value(cat_features, features_count, 'cat_features')
+            _check_polars_categorical_features_have_no_nulls(data, cat_features)
         if text_features is not None:
             text_features = _get_features_indices(text_features, feature_names)
             self._check_string_feature_type(text_features, 'text_features')
@@ -1829,6 +1864,14 @@ class _CatBoostBase(object):
         params_str = ", ".join(f"{key}={val!r}" for key, val in sorted(self._init_params.items()))
         return f"{self.__class__.__name__}({params_str})"
 
+    def __getattr__(self, name: str):
+        # the name check must precede is_fitted(), which itself goes through __getattr__
+        if name in ('n_features_in_', 'feature_names_in_') and self.is_fitted():
+            if name == 'n_features_in_':
+                return getattr(self, '_n_features_in')
+            return np.array(self._object._get_feature_names(), dtype=object)
+        raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, name))
+
     def __getstate__(self):
         params = self._init_params.copy()
         test_evals = self._object._get_test_evals()
@@ -1849,6 +1892,11 @@ class _CatBoostBase(object):
         if '__model' in state:
             self._load_from_blob(state['__model'])
             del state['__model']
+            # `_load_from_blob` now refreshes `_init_params` from the model, but
+            # pickle round-trips must restore the exact init params captured by
+            # `__getstate__` (which are still in `state` below) — not the
+            # model-derived defaults.
+            self._init_params = {}
         if '_test_eval' in state:
             self._set_test_evals([state['_test_eval']])
             del state['_test_eval']
@@ -2028,12 +2076,9 @@ class _CatBoostBase(object):
     def _load_model(self, model_file, format):
         if not isinstance(model_file, PATH_TYPES):
             raise CatBoostError("Invalid fname type={}: must be str or os.PathLike.".format(type(model_file)))
-        self._init_params = {}
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
-        for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
-            self._init_params[key] = value
-        self._canonized_params = None
+        self._refresh_params_from_model()
 
     def _serialize_model(self):
         return self._object._serialize_model()
@@ -2045,10 +2090,18 @@ class _CatBoostBase(object):
     def _load_from_blob(self, blob):
         self._deserialize_model(blob)
         self._set_trained_model_attributes()
+        self._refresh_params_from_model()
 
     def _load_from_stream(self, stream):
         self._object._load_from_stream(stream)
         self._set_trained_model_attributes()
+        self._refresh_params_from_model()
+
+    def _refresh_params_from_model(self):
+        self._init_params = {}
+        for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
+            self._init_params[key] = value
+        self._canonized_params = None
 
     def _sum_models(self, models_base, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
         if weights is None:
@@ -2158,10 +2211,6 @@ class _CatBoostBase(object):
     @property
     def learning_rate_(self):
         return getattr(self, '_learning_rate') if self.is_fitted() else None
-
-    @property
-    def n_features_in_(self):
-        return getattr(self, '_n_features_in') if self.is_fitted() else None
 
     @property
     def feature_names_(self):
@@ -2291,9 +2340,6 @@ class _CatBoostBase(object):
             'check_fit2d_predict1d':
                 'TODO: CatBoost API allows to pass 1d array for prediction for a single sample,'
                 ' maybe this behavior should be tunable in the future',
-            'check_n_features_in':
-                'TODO: n_features_in_ must not be defined until fit is called. '
-                'https://github.com/catboost/catboost/issues/3004',
             'check_n_features_in_after_fitting':
                 'TODO: 1) raise ValueError instead of generic CatBoostError.'
                 ' https://github.com/catboost/catboost/issues/2996; '
@@ -2980,7 +3026,19 @@ class CatBoost(_CatBoostBase):
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -3735,7 +3793,7 @@ class CatBoost(_CatBoostBase):
         update_method : string, optional (default='SinglePoint')
             Possible values:
                 - SinglePoint
-                - TopKLeaves (It is posible to set top size : TopKLeaves:top=2)
+                - TopKLeaves (It is possible to set top size : TopKLeaves:top=2)
                 - AllPoints
             Description of the update set methods are given in section 3.1.3 of the paper.
 
@@ -5002,7 +5060,7 @@ class CatBoostClassifier(CatBoost):
         Number of iterations which overfitting detector will wait after new best error.
     od_type : string, [default=None]
         Type of overfitting detector which will be used in program.
-        Posible values:
+        Possible values:
             - 'IncToDec'
             - 'Iter'
         For 'Iter' type od_pval must not be set.
@@ -5634,7 +5692,19 @@ class CatBoostClassifier(CatBoost):
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -6270,7 +6340,19 @@ class CatBoostRegressor(CatBoost):
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -6682,7 +6764,19 @@ class CatBoostRanker(CatBoost):
             Continue training starting from the existing model.
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -7060,79 +7154,82 @@ def sample_gaussian_process(X, y, eval_set=None,
     model_shrink_rate = (random_strength / sigma) ** 2 / N
 
     output_models = []
-    tmp_file = tempfile.NamedTemporaryFile()
-    prior_model_tmp_file = tmp_file.name
+    try:
+        tmp_file = tempfile.NamedTemporaryFile(delete=False)
+        prior_model_tmp_file = tmp_file.name
+        tmp_file.close()
+        for sample in range(samples):
+            prior_y = random_generator.normal(scale=eps, size=N)
+            prior = CatBoostRegressor(
+                random_seed=prior_seeds[sample],
+                iterations=prior_iterations,
+                learning_rate=eps,
+                loss_function='RMSE',
+                bootstrap_type='No',
+                depth=depth,
+                verbose=False,
+                leaf_estimation_backtracking="No",
+                boost_from_average=False,
+                random_strength=1/eps,
+                random_score_type=random_score_type,
+                l2_leaf_reg=0,
+                score_function="L2",
+                boosting_type='Plain'
+            )
+            prior.fit(
+                X,
+                prior_y,
+                cat_features=cat_features,
+                text_features=text_features,
+                embedding_features=embedding_features,
+                use_best_model=False
+            )
 
-    for sample in range(samples):
-        prior_y = random_generator.normal(scale=eps, size=N)
-        prior = CatBoostRegressor(
-            random_seed=prior_seeds[sample],
-            iterations=prior_iterations,
-            learning_rate=eps,
-            loss_function='RMSE',
-            bootstrap_type='No',
-            depth=depth,
-            verbose=False,
-            leaf_estimation_backtracking="No",
-            boost_from_average=False,
-            random_strength=1/eps,
-            random_score_type=random_score_type,
-            l2_leaf_reg=0,
-            score_function="L2",
-            boosting_type='Plain'
-        )
-        prior.fit(
-            X,
-            prior_y,
-            cat_features=cat_features,
-            text_features=text_features,
-            embedding_features=embedding_features,
-            use_best_model=False
-        )
+            prior.save_model(prior_model_tmp_file, format="json", pool=X)
+            with open(prior_model_tmp_file, "r", encoding='utf-8') as prior_file:
+                prior_json = json.load(prior_file)
+            for tree in prior_json["oblivious_trees"]:
+                for ind, (val, weight) in enumerate(zip(tree["leaf_values"], tree["leaf_weights"])):
+                    tree["leaf_values"][ind] = random_generator.normal(scale=np.sqrt(N / np.sqrt(max(1, weight))))
+            with open(prior_model_tmp_file, "w") as prior_file:
+                json.dump(prior_json, prior_file)
+            prior.load_model(prior_model_tmp_file, format="json")
 
-        prior.save_model(prior_model_tmp_file, format="json", pool=X)
-        with open(prior_model_tmp_file, "r", encoding='utf-8') as prior_file:
-            prior_json = json.load(prior_file)
-        for tree in prior_json["oblivious_trees"]:
-            for ind, (val, weight) in enumerate(zip(tree["leaf_values"], tree["leaf_weights"])):
-                tree["leaf_values"][ind] = random_generator.normal(scale=np.sqrt(N / np.sqrt(max(1, weight))))
-        with open(prior_model_tmp_file, "w") as prior_file:
-            json.dump(prior_json, prior_file)
-        prior.load_model(prior_model_tmp_file, format="json")
+            scale, bias = prior.get_scale_and_bias()
+            prior.set_scale_and_bias(scale * sigma / np.sqrt(prior_iterations),  bias * sigma / np.sqrt(prior_iterations))
 
-        scale, bias = prior.get_scale_and_bias()
-        prior.set_scale_and_bias(scale * sigma / np.sqrt(prior_iterations),  bias * sigma / np.sqrt(prior_iterations))
+            posterior_y = y - prior.predict(X) + random_generator.normal(scale=delta, size=N)
+            posterior = CatBoostRegressor(
+                random_seed=posterior_seeds[sample],
+                iterations=posterior_iterations,
+                learning_rate=learning_rate,
+                model_shrink_rate=model_shrink_rate,
+                loss_function='RMSE',
+                bootstrap_type='No',
+                depth=depth,
+                verbose=verbose,
+                leaf_estimation_backtracking="No",
+                boost_from_average=False,
+                random_strength=random_strength,
+                random_score_type=random_score_type,
+                l2_leaf_reg=0,
+                score_function="L2",
+                boosting_type='Plain'
+            )
+            posterior.fit(
+                X,
+                posterior_y,
+                eval_set=eval_set,
+                cat_features=cat_features,
+                text_features=text_features,
+                embedding_features=embedding_features,
+                use_best_model=False
+            )
 
-        posterior_y = y - prior.predict(X) + random_generator.normal(scale=delta, size=N)
-        posterior = CatBoostRegressor(
-            random_seed=posterior_seeds[sample],
-            iterations=posterior_iterations,
-            learning_rate=learning_rate,
-            model_shrink_rate=model_shrink_rate,
-            loss_function='RMSE',
-            bootstrap_type='No',
-            depth=depth,
-            verbose=verbose,
-            leaf_estimation_backtracking="No",
-            boost_from_average=False,
-            random_strength=random_strength,
-            random_score_type=random_score_type,
-            l2_leaf_reg=0,
-            score_function="L2",
-            boosting_type='Plain'
-        )
-        posterior.fit(
-            X,
-            posterior_y,
-            eval_set=eval_set,
-            cat_features=cat_features,
-            text_features=text_features,
-            embedding_features=embedding_features,
-            use_best_model=False
-        )
-
-        output_models.append(sum_models([prior, posterior], weights=[1, 1]))
-
+            output_models.append(sum_models([prior, posterior], weights=[1, 1]))
+    finally:
+        if os.path.exists(prior_model_tmp_file):
+            os.remove(prior_model_tmp_file)
     return output_models
 
 

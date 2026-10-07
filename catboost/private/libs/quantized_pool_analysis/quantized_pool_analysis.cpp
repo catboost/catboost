@@ -361,7 +361,6 @@ namespace NCB {
             if (numObjs == 0) {
                 continue;
             }
-            countObjectsPerBin[binNum] = countObjectsPerBin[binNum];
             meanTarget[binNum] /= static_cast<float>(numObjs);
             meanPrediction[binNum] /= static_cast<float>(numObjs);
 

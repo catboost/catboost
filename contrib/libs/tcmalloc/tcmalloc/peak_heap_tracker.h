@@ -73,15 +73,15 @@ class PeakHeapTracker {
   // Guards the peak heap samples stored in `peak_heap_recorder_`.
   absl::base_internal::SpinLock recorder_lock_;
 
-  // Linked list that stores the stack traces of the sampled allocation saved
-  // when we allocate memory from the system.
-  PeakHeapRecorder peak_heap_recorder_ ABSL_GUARDED_BY(recorder_lock_);
-
   absl::Time last_peak_ ABSL_GUARDED_BY(recorder_lock_);
 
   // Sampled heap size last time peak_heap_recorder_ was saved. Only written
   // under `recorder_lock_`; may be read without it.
   std::atomic<int64_t> do_not_access_directly_peak_sampled_heap_size_{0};
+
+  // Linked list that stores the stack traces of the sampled allocation saved
+  // when we allocate memory from the system.
+  PeakHeapRecorder peak_heap_recorder_ ABSL_GUARDED_BY(recorder_lock_);
 
   bool IsNewPeak();
 };

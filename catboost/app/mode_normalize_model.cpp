@@ -74,7 +74,7 @@ namespace {
                 ;
             parser.AddLongOption('i', "input-path").RequiredArgument("PATH...")
                 .Handler1T<TStringBuf>([this](auto path){ PoolPaths.push_back(TPathWithScheme{path, "dsv"}); })
-                .Help("Pool path (repeat the option for multiple pools)")
+                .Help("Dataset path (repeat the option for multiple datasets)")
                 ;
             parser.AddLongOption("output-model").RequiredArgument("PATH")
                 .StoreResult(&OutputModelFileName)

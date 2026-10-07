@@ -41,7 +41,7 @@ namespace NThreading {
         inline void Join() {
             if (Thread_) {
                 Thread_->Join();
-                Thread_.Destroy();
+                Thread_.reset();
             }
         }
 

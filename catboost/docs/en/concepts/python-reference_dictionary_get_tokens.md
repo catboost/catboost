@@ -23,7 +23,7 @@ A list of token identifiers that should be returned.
 
 **Default value**
 
-{{ loss-functions__params__q__default }}
+{{ python--required }}
 
 ## {{ dl--output-format }} {#return-value}
 

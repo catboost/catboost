@@ -26,6 +26,7 @@ public:
     TDynamicLibrary(const TString& path, int flags = DEFAULT_DLLOPEN_FLAGS);
     ~TDynamicLibrary();
 
+    bool TryOpen(const char* path, int flags = DEFAULT_DLLOPEN_FLAGS, TString* errorMessage = nullptr);
     void Open(const char* path, int flags = DEFAULT_DLLOPEN_FLAGS);
     void Close() noexcept;
     void* SymOptional(const char* name) noexcept;

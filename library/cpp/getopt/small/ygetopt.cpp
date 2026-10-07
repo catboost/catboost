@@ -5,6 +5,8 @@
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 
+#include <memory>
+
 class TGetOpt::TImpl: public TSimpleRefCount<TImpl> {
 public:
     inline TImpl(int argc, const char* const* argv, const TString& fmt)
@@ -36,7 +38,7 @@ public:
         }
 
         ArgsPtrs_.Get()[Args_.size()] = nullptr;
-        Opt_.Reset(new Opt((int)Args_.size(), ArgsPtrs_.Get(), Format_.data()));
+        Opt_.reset(new Opt((int)Args_.size(), ArgsPtrs_.Get(), Format_.data()));
     }
 
     inline ~TIterImpl() = default;
@@ -62,7 +64,7 @@ private:
     TVector<TString> Args_;
     TArrayHolder<char*> ArgsPtrs_;
     const TString Format_;
-    THolder<Opt> Opt_;
+    std::unique_ptr<Opt> Opt_;
     int OptLet_;
     const char* Arg_;
 };

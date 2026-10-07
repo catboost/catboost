@@ -22,7 +22,7 @@ The path to the input file{% if audience == "internal" %} or table{% endif %} th
 
 #### Description
 
-A comma-separated list of input files that contain the validation dataset (the format must be the same as used in the training dataset).
+A comma-separated list of input files that contain the validation datasets (the format must be the same as used in the training dataset).
 
 {% if audience == "internal" %}
 

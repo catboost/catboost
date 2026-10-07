@@ -40,7 +40,6 @@ private:
     ISimpleMemoryUsageTrackerPtr Tracker_;
     i64 AcquiredSize_ = 0;
     void MoveFrom(TSimpleMemoryUsageTrackerGuard&& other) noexcept;
-
 };
 
 ////////////////////////////////////////////////////////////////////////////////

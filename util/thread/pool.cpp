@@ -187,6 +187,10 @@ private:
 
         if (!NeedRestart()) {
             WaitForComplete();
+            // Use explicit join over implicit detach as a workaround for https://sourceware.org/bugzilla/show_bug.cgi?id=19951
+            for (auto& thread : Tharr) {
+                thread->Join();
+            }
         }
 
         Tharr.clear();

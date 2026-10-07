@@ -131,6 +131,8 @@ class RangeTracker {
 
   void Clear();
 
+  Bitmap<N> bits() const;
+
  private:
   Bitmap<N> bits_;
 
@@ -277,6 +279,11 @@ inline void RangeTracker<N>::Unmark(size_t index, size_t n) {
   if (n > longest_free()) {
     longest_free_ = n;
   }
+}
+
+template <size_t N>
+inline Bitmap<N> RangeTracker<N>::bits() const {
+  return bits_;
 }
 
 // If there is at least one free range at or after <start>,

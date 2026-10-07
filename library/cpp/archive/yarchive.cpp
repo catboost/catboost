@@ -210,7 +210,7 @@ void TArchiveWriter::Flush() {
 void TArchiveWriter::Finish() {
     if (Impl_.Get()) {
         Impl_->Finish();
-        Impl_.Destroy();
+        Impl_.reset();
     }
 }
 

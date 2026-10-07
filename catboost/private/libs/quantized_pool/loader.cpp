@@ -56,7 +56,7 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
     , ObjectsOrder(args.CommonArgs.ObjectsOrder)
     , DatasetSubset(args.CommonArgs.DatasetSubset)
 {
-    CB_ENSURE(QuantizedPool.DocumentCount > 0, "Pool is empty");
+    CB_ENSURE(QuantizedPool.DocumentCount > 0, "Dataset has no samples");
     CB_ENSURE(
         QuantizedPool.DocumentCount <= (size_t)Max<ui32>(),
         "CatBoost does not support datasets with more than " << Max<ui32>() << " objects"
@@ -109,7 +109,7 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
         args.CommonArgs.FeatureNamesPath,
         PoolMetaInfoPath);
 
-    CB_ENSURE(DataMetaInfo.GetFeatureCount() > 0, "Pool should have at least one factor");
+    CB_ENSURE(DataMetaInfo.GetFeatureCount() > 0, "Dataset should have at least one factor");
 
     TVector<ui32> allIgnoredFeatures = args.CommonArgs.IgnoredFeatures;
     CATBOOST_DEBUG_LOG << "allIgnoredFeatures.size() " << allIgnoredFeatures.size() << Endl;

@@ -41,7 +41,29 @@ Y_UNIT_TEST_SUITE(ScopeToolsTest) {
                 i = 20;
             };
         }
-
         UNIT_ASSERT_VALUES_EQUAL(i, 20);
+    }
+
+    Y_UNIT_TEST(TestDeferred) {
+        int i = 0;
+
+        {
+            TDeferredOnceFunction writeI([&]() noexcept { i = 1; });
+            {
+                auto doWriteI = std::move(writeI);
+                UNIT_ASSERT_VALUES_EQUAL(i, 0);
+            } // doWriteI called
+            UNIT_ASSERT_VALUES_EQUAL(i, 1);
+
+            TDeferredOnceFunction updateI([&]() noexcept { i = 2; });
+            UNIT_ASSERT_VALUES_EQUAL(i, 1);
+            std::move(updateI).CallNow();
+            UNIT_ASSERT_VALUES_EQUAL(i, 2);
+        } // moved-from writeI is no-op
+        UNIT_ASSERT_VALUES_EQUAL(i, 2);
+
+        TDeferredOnceFunction droppedUpdateI([&]() noexcept { i = 3; });
+        std::move(droppedUpdateI).Drop();
+        UNIT_ASSERT_VALUES_EQUAL(i, 2);
     }
 } // Y_UNIT_TEST_SUITE(ScopeToolsTest)

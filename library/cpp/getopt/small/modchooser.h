@@ -7,6 +7,23 @@
 #include <util/generic/vector.h>
 
 #include <functional>
+#include <optional>
+#include <variant>
+
+namespace NLastGetopt {
+
+struct TCompletionConfig
+{
+    TString ModName = "completion";
+    TString Command;
+    TVector<TString> CommandAliases;
+    TString YaToolName;
+    bool EnableInstaller = false;
+    bool EnableUserFriendlyUsage = false;
+    std::optional<TOpts> OptionsBeforeMode;
+};
+
+} // namespace NLastGetopt
 
 //! Mode function with vector of cli arguments.
 using TMainFunctionPtrV = std::function<int(const TVector<TString>&)> ;
@@ -67,10 +84,28 @@ public:
     //! Set default mode (if not specified explicitly)
     void SetDefaultMode(const TString& mode);
 
+    //! Set an unnamed action for invocations that don't select a mode.
+    //!
+    //! Unlike a default mode, the action is not addressable by a user-facing
+    //! name and does not add a synthetic component to the subcommand path.
+    void SetDefaultAction(TMainClass* action);
+
     void AddAlias(const TString& alias, const TString& mode);
 
     //! Set main program description.
     void SetDescription(const TString& descr);
+
+    //! Replace the command-line description in the usage block.
+    void SetCmdLineDescription(const TString& description);
+
+    //! Set the title above the mode list.
+    void SetModesTitle(const TString& title);
+
+    //! Set the singular mode name and its usage placeholder.
+    void SetModeName(const TString& name, const TString& usageName);
+
+    //! Set examples shown at the bottom of help output.
+    void SetExamples(const TString& examples);
 
     //! Set modes help option name (-? is by default)
     void SetModesHelpOption(const TString& helpOption);
@@ -95,6 +130,11 @@ public:
     void DisableSvnRevisionOption();
 
     void AddCompletions(TString progName, const TString& name = "completion", bool hidden = false, bool noCompletion = false);
+    void AddCompletions(
+        NLastGetopt::TCompletionConfig config,
+        const TString& name = "completion",
+        bool hidden = false,
+        bool noCompletion = false);
 
     void SetSubcommandPath(const TVector<TString>& subcommandPath) const;
     const TVector<TString>& GetSubcommandPath() const;
@@ -108,7 +148,9 @@ public:
      *      then call it and exit with zero code.
      *   3) Find mode with the same name as first argument. If it's found then
      *      call it and return its return code.
-     *   4) If appropriate mode is not found - return non-zero code.
+     *   4) If no named mode matches, run the default action or default mode,
+     *      when configured.
+     *   5) If no fallback is configured, return non-zero code.
      */
     int Run(int argc, const char** argv) const;
 
@@ -116,6 +158,9 @@ public:
     int Run(const TVector<TString>& argv) const;
 
     void PrintHelp(const TString& progName, bool toStdErr = false) const;
+
+    //! Print description, usage, and examples without the mode list.
+    void PrintBriefHelp(const TString& progName, bool toStdErr = false) const;
 
     struct TMode {
         TString Name;
@@ -150,8 +195,25 @@ public:
     bool IsSvnRevisionOptionDisabled() const;
 
 private:
+    void PrintHelpImpl(const TString& progName, bool toStdErr, bool brief) const;
+
     //! Main program description.
     TString Description;
+
+    //! Command-line description shown after the program name.
+    TString CmdLineDescription;
+
+    //! Title shown above the mode list.
+    TString ModesTitle;
+
+    //! Singular mode name used in help text.
+    TString ModeName;
+
+    //! Mode placeholder used in help commands.
+    TString ModeUsageName;
+
+    //! Examples shown at the bottom of help output.
+    TString Examples;
 
     //! Help option for modes.
     TString ModesHelpOption;
@@ -162,7 +224,8 @@ private:
     //! Modes
     TMap<TString, TMode*> Modes;
 
-    TString DefaultMode;
+    using TDefaultBehaviour = std::variant<std::monostate, TString, TMainClass*>;
+    TDefaultBehaviour DefaultBehaviour;
 
     //! Handler for '--version' parameter
     TVersionHandlerPtr VersionHandler;

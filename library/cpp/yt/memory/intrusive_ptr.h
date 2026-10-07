@@ -320,10 +320,10 @@ bool operator==(const TIntrusivePtr<T>& lhs, std::nullptr_t)
 ////////////////////////////////////////////////////////////////////////////////
 
 //! Abseil hash support for TIntrusivePtr.
-template <class THash, class T>
-THash AbslHashValue(THash hash, const TIntrusivePtr<T>& ptr)
+template <class THashState, class T>
+THashState AbslHashValue(THashState hash, const TIntrusivePtr<T>& ptr)
 {
-    return THash::combine(std::move(hash), ptr.Get());
+    return THashState::combine(std::move(hash), ptr.Get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

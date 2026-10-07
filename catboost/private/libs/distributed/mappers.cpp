@@ -61,14 +61,14 @@ namespace NCatboostDistributed {
         const ui32 objectCount = objectsGrouping.GetObjectCount();
         TVector<NCB::TIndexRange<ui32>> result;
         if (groupCount == objectCount) {
-            CB_ENSURE(objectCount >= workerCount, "Pool must contain at least " << workerCount << " objects");
+            CB_ENSURE(objectCount >= workerCount, "Dataset must contain at least " << workerCount << " objects");
             for (ui32 workerIdx : xrange(workerCount)) {
                 const ui32 workerStart = CeilDiv(objectCount, workerCount) * workerIdx;
                 const ui32 workerEnd = Min(workerStart + CeilDiv(objectCount, workerCount), objectCount);
                 result.emplace_back(workerStart, workerEnd);
             }
         } else {
-            CB_ENSURE(groupCount >= workerCount, "Pool must contain at least " << workerCount << " groups");
+            CB_ENSURE(groupCount >= workerCount, "Dataset must contain at least " << workerCount << " groups");
             ui32 previousGroupEnd = 0;
             for (const auto& groupIdx : xrange(groupCount)) {
                 CB_ENSURE(objectsGrouping.GetGroup(groupIdx).Begin == previousGroupEnd, "Groups must follow each other without gaps");

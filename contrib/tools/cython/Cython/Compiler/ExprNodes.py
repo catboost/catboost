@@ -640,15 +640,16 @@ class ExprNode(Node):
             # If it's a refcounted variable, we hold a reference to it. Therefore, if
             # the reference count is 1, we trust that we're the unique owner.
             return "__Pyx_ReferenceSharing_OwnStrongReference"
-        if not hasattr(self, "entry") or self.entry is None:
+        entry = getattr(self, "entry", None)
+        if entry is None:
             return "__Pyx_ReferenceSharing_SharedReference"  # Not sure if we can reason about it
-        if self.entry.is_arg:
+        if entry.is_arg:
             # Arguments are a little hard to reason about so need an extra level of check
             return "__Pyx_ReferenceSharing_FunctionArgument"
-        if (self.entry.scope.is_local_scope and
+        if (entry.scope.is_local_scope and
                 # TODO - in principle a generator closure should be "non shared" because
                 # only one thread can run the generator at once.
-                not self.entry.in_closure and not self.entry.from_closure):
+                not entry.in_closure and not entry.from_closure):
             return "__Pyx_ReferenceSharing_OwnStrongReference"
         # Most likely a global, or a class attribute
         return "__Pyx_ReferenceSharing_SharedReference"
@@ -1804,7 +1805,7 @@ class BytesNode(ConstNode):
 
         node = BytesNode(self.pos, value=self.value, constant_result=self.constant_result)
         if dst_type.is_pyobject:
-            if dst_type in (py_object_type, Builtin.bytes_type):
+            if dst_type.resolve() in (py_object_type, Builtin.bytes_type):
                 node.type = Builtin.bytes_type
             else:
                 self.check_for_coercion_error(dst_type, env, fail=True)
@@ -1918,7 +1919,7 @@ class UnicodeNode(ConstNode):
                   "Unicode literals do not support coercion to C types other "
                   "than Py_UCS4/Py_UNICODE (for characters), Py_UNICODE* "
                   "(for strings) or char*/void* (for auto-encoded strings).")
-        elif dst_type is not py_object_type:
+        elif dst_type.resolve() is not py_object_type:
             self.check_for_coercion_error(dst_type, env, fail=True)
         return self
 
@@ -3249,7 +3250,7 @@ class IteratorNode(ScopedExprNode):
 
         if test_name == 'List':
             code.putln(
-                f"{result_name} = __Pyx_PyList_GetItemRefFast("
+                f"{result_name} = __Pyx_PyList_GET_ITEM_REF("
                 f"{self.py_result()}, {self.counter_cname}, {self.may_be_unsafe_shared()});")
         else:  # Tuple
             code.putln("#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS")
@@ -8719,10 +8720,10 @@ class SequenceNode(ExprNode):
         # unpack items from list/tuple in unrolled loop (can't fail)
         if len(sequence_types) == 2:
             code.putln("if (likely(Py%s_CheckExact(sequence))) {" % sequence_types[0])
+        sequence_sharing_status = self.may_be_unsafe_shared() if 'List' in sequence_types else 'UNUSED'
         for i, item in enumerate(self.unpacked_items):
             if sequence_types[0] == "List":
-                code.putln(f"{item.result()} = __Pyx_PyList_GetItemRefFast"
-                           f"(sequence, {i}, {self.may_be_unsafe_shared()});")
+                code.putln(f"{item.result()} = __Pyx_PyList_GET_ITEM_REF(sequence, {i}, {sequence_sharing_status});")
                 code.putln(code.error_goto_if_null(item.result(), self.pos))
                 code.put_xgotref(item.result(), item.ctype())
             else:  # Tuple
@@ -8730,14 +8731,11 @@ class SequenceNode(ExprNode):
                 code.put_incref(item.result(), item.ctype())
         if len(sequence_types) == 2:
             code.putln("} else {")
+            assert sequence_types[1] == 'List', sequence_types
             for i, item in enumerate(self.unpacked_items):
-                if sequence_types[1] == "List":
-                    code.putln(f"{item.result()} = __Pyx_PyList_GetItemRefFast(sequence, {i}, {self.may_be_unsafe_shared()});")
-                    code.putln(code.error_goto_if_null(item.result(), self.pos))
-                    code.put_xgotref(item.result(), item.ctype())
-                else:  # Tuple
-                    code.putln(f"{item.result()} = PyTuple_GET_ITEM(sequence, {i});")
-                    code.put_incref(item.result(), item.ctype())
+                code.putln(f"{item.result()} = __Pyx_PyList_GET_ITEM_REF(sequence, {i}, {sequence_sharing_status});")
+                code.putln(code.error_goto_if_null(item.result(), self.pos))
+                code.put_xgotref(item.result(), item.ctype())
             code.putln("}")
 
         code.putln("#else")
@@ -12667,7 +12665,7 @@ class AddNode(NumBinopNode):
                 if self.inplace or self.operand1.result_in_temp():
                     code.globalstate.use_utility_code(
                         UtilityCode.load_cached("UnicodeConcatInPlace", "ObjectHandling.c"))
-                    func += self.may_be_unsafe_shared()
+                    func += self.operand1.may_be_unsafe_shared()
 
         if func:
             # any necessary utility code will be got by "NumberAdd" in generate_evaluation_code

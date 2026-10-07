@@ -243,6 +243,20 @@ constexpr bool is_aligned(T* pointer, std::uintptr_t alignment) {
     return 0 == (reinterpret_cast<std::uintptr_t>(pointer) & (alignment - 1));
 }
 
+// A function to return the aligned value greater than or equal to arg
+template<typename T>
+inline T align_to_greater_or_equal(T arg, std::uintptr_t alignment) {
+    __TBB_ASSERT(alignment != 0 && is_power_of_two(alignment), "Alignment should be a non-zero power of two");
+    return T( ((std::uintptr_t)arg + (alignment - 1)) & ~(alignment - 1) );
+}
+
+// A function to return the next aligned value after arg
+template<typename T>
+inline T align_to_greater(T arg, std::uintptr_t alignment) {
+    __TBB_ASSERT(alignment != 0 && is_power_of_two(alignment), "Alignment should be a non-zero power of two");
+    return T( ((std::uintptr_t)arg + (alignment)) & ~(alignment - 1) );
+}
+
 #if TBB_USE_ASSERT
 __TBB_GLOBAL_VAR void* const poisoned_ptr = reinterpret_cast<void*>(-1);
 
@@ -312,6 +326,13 @@ enum class do_once_state {
     initialized = executed  ///< Convenience alias
 };
 
+// Run the initializer which can not fail
+template<typename Functor>
+void run_initializer(const Functor& f, std::atomic<do_once_state>& state ) {
+    f();
+    state.store(do_once_state::executed, std::memory_order_release);
+}
+
 //! One-time initialization function
 /** /param initializer Pointer to function without arguments
            The variant that returns bool is used for cases when initialization can fail
@@ -343,13 +364,6 @@ void atomic_do_once( const F& initializer, std::atomic<do_once_state>& state ) {
         }
         spin_wait_while_eq( state, do_once_state::pending );
     }
-}
-
-// Run the initializer which can not fail
-template<typename Functor>
-void run_initializer(const Functor& f, std::atomic<do_once_state>& state ) {
-    f();
-    state.store(do_once_state::executed, std::memory_order_release);
 }
 
 #if __TBB_CPP20_CONCEPTS_PRESENT

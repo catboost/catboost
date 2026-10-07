@@ -24,6 +24,21 @@
 using namespace NAddr;
 
 namespace {
+    class THttpAcceptError: public yexception {
+    public:
+        explicit THttpAcceptError(int errorCode)
+            : ErrorCode_(errorCode)
+        {
+        }
+
+        int ErrorCode() const noexcept {
+            return ErrorCode_;
+        }
+
+    private:
+        int ErrorCode_;
+    };
+
     class IPollAble {
     public:
         inline IPollAble() noexcept {
@@ -278,8 +293,8 @@ public:
             Connections->Clear();
         }
 
-        Connections.Destroy();
-        Poller.Destroy();
+        Connections.reset();
+        Poller.reset();
     }
 
     void Shutdown() {
@@ -347,13 +362,14 @@ public:
 
         void OnPollEvent(TInstant) override {
             SOCKET s = ::accept(S_, nullptr, nullptr);
+            const int errorCode = s == INVALID_SOCKET ? WSAGetLastError() : 0;
 
             if (Server_->Options_.OneShotPoll) {
                 Server_->Poller->WaitReadOneShot(S_, this);
             }
 
             if (s == INVALID_SOCKET) {
-                ythrow yexception() << "accept: " << LastSystemErrorText();
+                ythrow THttpAcceptError(errorCode) << "accept: " << LastSystemErrorText(errorCode);
             }
 
             Server_->AddRequestFromSocket(s, TInstant::Now(), SockAddrRef_);
@@ -403,6 +419,8 @@ public:
                 }
             } catch (const TShouldStop&) {
                 break;
+            } catch (const THttpAcceptError& error) {
+                Cb_->OnAcceptException(error.ErrorCode());
             } catch (...) {
                 Cb_->OnException();
             }
@@ -721,7 +739,7 @@ void TClientRequest::ResetConnection() {
     if (HttpConn_) {
         // send RST packet to client
         HttpConn_->Reset();
-        HttpConn_.Destroy();
+        HttpConn_.reset();
     }
 }
 
@@ -742,6 +760,7 @@ void TClientRequest::Process(void* ThreadSpecificResource) {
             auto maxRequestsPerConnection = HttpServ()->Options().MaxRequestsPerConnection;
             HttpConn_->Output()->EnableKeepAlive(HttpServ()->Options().KeepAliveEnabled && (!maxRequestsPerConnection || Conn_->ReceivedRequests < maxRequestsPerConnection));
             HttpConn_->Output()->EnableCompression(HttpServ()->Options().CompressionEnabled);
+            HttpConn_->Output()->SetContentEncodingPredicate(HttpServ()->Options().ContentEncodingPredicate);
         }
 
         if (!BeforeParseRequestOk(ThreadSpecificResource)) {

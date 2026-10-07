@@ -695,6 +695,18 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 #endif
 
 /**
+ * @def Y_HAS_BUILTIN
+ *
+ * A wrapper around `__has_builtin` that evaluates to zero when the compiler
+ * does not provide the feature-checking macro.
+ */
+#ifdef __has_builtin
+    #define Y_HAS_BUILTIN(x) __has_builtin(x)
+#else
+    #define Y_HAS_BUILTIN(x) 0
+#endif
+
+/**
  * @def Y_HAS_ATTRIBUTE
  *
  * A function-like feature checking macro that is a wrapper around

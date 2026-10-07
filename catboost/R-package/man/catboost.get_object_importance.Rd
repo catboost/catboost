@@ -51,7 +51,7 @@ Possible values:
 \itemize{
   \item 'SinglePoint'
   \item 'TopKLeaves'
-    It is posible to set top size : TopKLeaves:top=2.
+    It is possible to set top size : TopKLeaves:top=2.
   \item 'AllPoints'
 }
 

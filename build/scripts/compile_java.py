@@ -14,6 +14,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import process_command_files as pcf  # noqa: E402
 import java_command_file as jcf  # noqa: E402
 import javac_daemon_client as jdc  # noqa: E402
+from canonicalize_java_abi_jar import canonicalize  # noqa: E402
 
 
 def parse_args(args):
@@ -44,6 +45,14 @@ def split_cmd_by_delim(cmd, delim='DELIM'):
         else:
             result[-1].append(arg)
     return result
+
+
+def canonicalize_outputs(opts):
+    # Generated/external compiler outputs include genuine source JARs. Only
+    # normalize their ZIP envelopes, retaining manifests and all entry payloads.
+    canonicalize(opts.jar_output, ijar=False, preserve_member_attributes=True)
+    if opts.srcs_jar_output:
+        canonicalize(opts.srcs_jar_output, ijar=False, preserve_member_attributes=True)
 
 
 def main():
@@ -185,6 +194,7 @@ def main():
         if rc != 0:
             raise sp.CalledProcessError(rc, opts.javac_bin)
         # jar packaging done in-process — skip the subprocess jar calls below.
+        canonicalize_outputs(opts)
         return
 
     # ---- original flow (subprocess javac + subprocess jar) ----
@@ -238,6 +248,8 @@ def main():
             sp.check_call([opts.jar_bin, 'cfm', opts.srcs_jar_output, opts.vcs_mf, os.curdir], cwd=sources_dir)
         else:
             sp.check_call([opts.jar_bin, 'cfM', opts.srcs_jar_output, os.curdir], cwd=sources_dir)
+
+    canonicalize_outputs(opts)
 
 
 if __name__ == '__main__':

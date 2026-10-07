@@ -30,11 +30,13 @@
    DAMAGES OR  OTHER LIABILITY, WHETHER  IN AN  ACTION OF CONTRACT,  TORT OR
    OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
    USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   SPDX-License-Identifier: MIT
 */
 
-#include "random_getrandom.h"
-
 #include "expat_config.h" // for HAVE_GETRANDOM, HAVE_SYSCALL_GETRANDOM
+
+#include "random_getrandom.h"
 
 #if defined(HAVE_GETRANDOM)
 #  include <sys/random.h> /* getrandom */
@@ -52,6 +54,7 @@
 #  define GRND_NONBLOCK 0x0001
 #endif /* defined(GRND_NONBLOCK) */
 
+#include "memory_sanitizer.h"
 #include <assert.h>
 #include <errno.h>
 #include <limits.h> // for INT_MAX
@@ -64,7 +67,7 @@ writeRandomBytes_getrandom_nonblock(void *target, size_t count) {
   const unsigned int getrandomFlags = GRND_NONBLOCK;
 
   do {
-    void *const currentTarget = (void *)((char *)target + bytesWrittenTotal);
+    void *const currentTarget = (char *)target + bytesWrittenTotal;
     const size_t bytesToWrite = count - bytesWrittenTotal;
 
     assert(bytesToWrite <= INT_MAX);
@@ -74,9 +77,13 @@ writeRandomBytes_getrandom_nonblock(void *target, size_t count) {
     const int bytesWrittenMore =
 #if defined(HAVE_GETRANDOM)
         (int)getrandom(currentTarget, bytesToWrite, getrandomFlags);
+    // MSan understands `getrandom`, so does not need extra guidance
 #else
         (int)syscall(SYS_getrandom, currentTarget, bytesToWrite,
                      getrandomFlags);
+    // MSan does not understand `syscall`, so explain its effects
+    if (bytesWrittenMore > 0)
+      MSAN_UNPOISON(currentTarget, bytesWrittenMore);
 #endif
 
     if (bytesWrittenMore > 0) {

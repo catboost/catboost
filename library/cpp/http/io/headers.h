@@ -6,6 +6,8 @@
 #include <util/generic/strbuf.h>
 #include <util/string/cast.h>
 
+#include <functional>
+
 class IInputStream;
 class IOutputStream;
 
@@ -135,5 +137,7 @@ public:
 private:
     THeaders Headers_;
 };
+
+using TEncodeContentPredicate = std::function<bool(const THttpHeaders& requestHeaders, const THttpHeaders& responseHeaders)>;
 
 /// @}

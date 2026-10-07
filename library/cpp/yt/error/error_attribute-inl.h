@@ -13,7 +13,7 @@ namespace NYT {
 namespace NAttributeValueConversionImpl {
 
 template <CPrimitiveConvertible T>
-std::string TagInvoke(TTagInvokeTag<ToErrorAttributeValue>, const T& value)
+std::string TagInvoke(NMpl::TTagInvokeTag<ToErrorAttributeValue>, const T& value)
 {
     if constexpr (std::constructible_from<TStringBuf, const T&>) {
         return NDetail::ConvertToTextYsonString(TStringBuf(value));

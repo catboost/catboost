@@ -29,6 +29,7 @@
 
 #include "partition.h"
 #include "defs.h"
+#include "operation_budget.h"
 
 namespace Pire {
 

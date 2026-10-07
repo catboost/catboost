@@ -260,6 +260,13 @@ public:
             fsm.RemoveEpsilons();
         fsm.Sparse(!removeEpsilons);
 
+        Impl::ChargeOperations(fsm.Size(), fsm.Letters().Size() + 1);
+        // An NFA may have many targets per cell. Charge before owning malloc blocks.
+        if (Impl::OperationBudget) {
+            for (size_t state = 0; state < fsm.Size(); ++state)
+                for (const auto& letter : fsm.Letters())
+                    Impl::ChargeOperations(fsm.Destinations(state, letter.first).size());
+        }
         m.statesCount = fsm.Size();
         m.lettersCount = fsm.Letters().Size();
 
@@ -423,7 +430,10 @@ inline SlowScanner Fsm::Compile(size_t distance) {
 
 inline const SlowScanner& SlowScanner::Null()
 {
-    static const SlowScanner n = Fsm::MakeFalse().Compile<SlowScanner>();
+    static const SlowScanner n = [] {
+        Impl::ScopedOperationBudgetPause pause;
+        return Fsm::MakeFalse().Compile<SlowScanner>();
+    }();
     return n;
 }
 

@@ -1,27 +1,20 @@
 /*******************************************************************************
-* Copyright 2002-2017 Intel Corporation All Rights Reserved.
+* Copyright 2002-2022 Intel Corporation.
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+* This software and the related documents are Intel copyrighted  materials,  and
+* your use of  them is  governed by the  express license  under which  they were
+* provided to you (License).  Unless the License provides otherwise, you may not
+* use, modify, copy, publish, distribute,  disclose or transmit this software or
+* the related documents without Intel's prior written permission.
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
+* This software and the related documents  are provided as  is,  with no express
+* or implied  warranties,  other  than those  that are  expressly stated  in the
+* License.
 *******************************************************************************/
 
 /*
 ! Content:
-!    Intel(R) Math Kernel Library (Intel(R) MKL)
+!    Intel(R) oneAPI Math Kernel Library (oneMKL)
 !    Discrete Fourier Transform Interface (DFTI)
 !****************************************************************************/
 
@@ -62,10 +55,13 @@ struct DFTI_DESCRIPTOR{};
 #define DFTI_MKL_INTERNAL_ERROR          7
 #define DFTI_NUMBER_OF_THREADS_ERROR     8
 #define DFTI_1D_LENGTH_EXCEEDS_INT32     9
+#define DFTI_1D_MEMORY_EXCEEDS_INT32     9
+#define DFTI_NO_WORKSPACE                11
+
 
 #define DFTI_MAX_MESSAGE_LENGTH 80 /* Maximum length of error string */
 #define DFTI_MAX_NAME_LENGTH 10 /* DEPRECATED */
-#define DFTI_VERSION_LENGTH 198 /* Maximum length of Intel(R) MKL version string */
+#define DFTI_VERSION_LENGTH 198 /* Maximum length of oneMKL version string */
 
 /* Descriptor configuration parameters [default values in brackets] */
 enum DFTI_CONFIG_PARAM
@@ -163,7 +159,15 @@ enum DFTI_CONFIG_PARAM
     DFTI_THREAD_LIMIT = 27,
 
     /* Possible input data destruction [DFTI_AVOID = prevent input data]*/
-    DFTI_DESTROY_INPUT = 28
+    DFTI_DESTROY_INPUT = 28,
+
+    /* Distance between first input elements for multiple transforms
+       [0] */
+    DFTI_FWD_DISTANCE = 58,
+
+    /* Distance between first input elements for multiple transforms
+       [0] */
+    DFTI_BWD_DISTANCE = 59
 };
 
 /* Values of the descriptor configuration parameters */
@@ -243,7 +247,7 @@ DFTI_EXTERN char* DftiErrorMessage(MKL_LONG);
 DFTI_EXTERN MKL_LONG DftiErrorClass(MKL_LONG, MKL_LONG);
 /**********************************************************************
  * INTERNAL INTERFACES. These internal interfaces are not intended to
- * be called directly by Intel(R) MKL users and may change in future releases.
+ * be called directly by oneMKL users and may change in future releases.
  */
 DFTI_EXTERN MKL_LONG DftiCreateDescriptor_s_1d(DFTI_DESCRIPTOR_HANDLE *,
                                    enum DFTI_CONFIG_VALUE domain,

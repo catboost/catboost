@@ -38,7 +38,7 @@
 
 #elif _WIN32 || _WIN64
 #include <windows.h>
-#else
+#else // __TBB_RESUMABLE_TASKS_USE_THREADS
 // ucontext.h API is deprecated since macOS 10.6
 #if __APPLE__
     #if __INTEL_COMPILER
@@ -64,7 +64,7 @@
 // macOS* defines MAP_ANON, which is deprecated in Linux*.
 #define MAP_ANONYMOUS MAP_ANON
 #endif
-#endif // _WIN32 || _WIN64
+#endif // __TBB_RESUMABLE_TASKS_USE_THREADS
 
 namespace tbb {
 namespace detail {
@@ -304,11 +304,11 @@ inline void destroy_coroutine(coroutine_type& c) {
     __TBB_ASSERT(c, nullptr);
     DeleteFiber(c);
 }
-#else // !(_WIN32 || _WIN64)
+#else // !__TBB_RESUMABLE_TASKS_USE_THREADS
 
 inline void create_coroutine(coroutine_type& c, std::size_t stack_size, void* arg) {
     const std::size_t REG_PAGE_SIZE = governor::default_page_size();
-    const std::size_t page_aligned_stack_size = (stack_size + (REG_PAGE_SIZE - 1)) & ~(REG_PAGE_SIZE - 1);
+    const std::size_t page_aligned_stack_size = align_to_greater_or_equal(stack_size, REG_PAGE_SIZE);
     const std::size_t protected_stack_size = page_aligned_stack_size + 2 * REG_PAGE_SIZE;
 
     // Allocate the stack with protection property
@@ -375,7 +375,7 @@ inline void destroy_coroutine(coroutine_type& c) {
     #endif
 #endif
 
-#endif // _WIN32 || _WIN64
+#endif // __TBB_RESUMABLE_TASKS_USE_THREADS
 
 } // namespace r1
 } // namespace detail

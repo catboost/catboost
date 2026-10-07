@@ -127,7 +127,7 @@ void FormatEnum(TStringBuilderBase* builder, T value, bool lowerCase)
         TDelimitedStringBuilderWrapper delimitedBuilder(builder, " | ");
 
         T printedValue{};
-        for (auto currentValue : TEnumTraits<T>::GetDomainValues()) {
+        for (auto currentValue : TEnumTraits<T>::template GetDomainValues</*AllowAmbiguousValues*/ true>()) {
             // Check if currentValue is viable and non-redunant.
             if ((value & currentValue) == currentValue && (printedValue | currentValue) != printedValue) {
                 formatLiteral(&delimitedBuilder, *TEnumTraits<T>::FindLiteralByValue(currentValue));

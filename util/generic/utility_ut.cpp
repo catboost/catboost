@@ -1,3 +1,4 @@
+#include "constant_evaluation.h"
 #include "utility.h"
 #include "ymath.h"
 
@@ -14,13 +15,29 @@ public:
 
     inline void Swap(TTest& t) {
         DoSwap(Val, t.Val);
+        SwapCalled = true;
     }
 
     int Val;
+    bool SwapCalled = false;
 
 private:
     TTest(const TTest&);
     TTest& operator=(const TTest&);
+};
+
+struct TFinal final {
+    int Val;
+};
+
+class TPrivateSwap {
+public:
+    int Val;
+
+private:
+    inline void Swap(TPrivateSwap&) {
+        Y_ABORT("Should not be called");
+    }
 };
 
 struct TUnorderedTag {
@@ -35,6 +52,15 @@ static bool operator>(const TUnorderedTag, const TUnorderedTag) = delete;
 
 Y_UNIT_TEST_SUITE(TUtilityTest) {
 
+    Y_UNIT_TEST(TestIsConstantEvaluated) {
+        static_assert(IsConstantEvaluated());
+#if defined(__cpp_lib_is_constant_evaluated) || Y_HAS_BUILTIN(__builtin_is_constant_evaluated)
+        UNIT_ASSERT(!IsConstantEvaluated());
+#else
+        UNIT_ASSERT(IsConstantEvaluated());
+#endif
+    }
+
     Y_UNIT_TEST(TestSwapPrimitive) {
         int i = 0;
         int j = 1;
@@ -48,6 +74,27 @@ Y_UNIT_TEST_SUITE(TUtilityTest) {
     Y_UNIT_TEST(TestSwapClass) {
         TTest i(0);
         TTest j(1);
+
+        DoSwap(i, j);
+
+        UNIT_ASSERT_EQUAL(i.Val, 1);
+        UNIT_ASSERT_EQUAL(j.Val, 0);
+        UNIT_ASSERT(i.SwapCalled ^ j.SwapCalled);  // exactly one Swap() call
+    }
+
+    Y_UNIT_TEST(TestSwapPrivateMethod) {
+        TPrivateSwap i(0);
+        TPrivateSwap j(1);
+
+        DoSwap(i, j);
+
+        UNIT_ASSERT_EQUAL(i.Val, 1);
+        UNIT_ASSERT_EQUAL(j.Val, 0);
+    }
+
+    Y_UNIT_TEST(TestSwapFinalClass) {
+        TFinal i(0);
+        TFinal j(1);
 
         DoSwap(i, j);
 

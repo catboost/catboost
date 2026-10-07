@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# For conan >= 2.4.1
+# For conan >= 2.9.2
 # For CatBoost Linux CI Docker container only
 
 set -e

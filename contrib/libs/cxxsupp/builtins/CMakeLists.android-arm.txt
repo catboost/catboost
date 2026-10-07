@@ -24,12 +24,12 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvti2.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/adddf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addtf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addvdi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addvsi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addvti3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/apple_versioning.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/adddf3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/adddf3vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/addsf3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/addsf3vfp.S
@@ -50,33 +50,61 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/aeabi_memset.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/aeabi_uidivmod.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/aeabi_uldivmod.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/aeabi_uread4.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/aeabi_uread8.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/aeabi_uwrite4.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/aeabi_uwrite8.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/bswapdi2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/bswapsi2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/chkstk.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/clzdi2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/clzsi2.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/cmpdf2.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/cmpsf2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/comparesf2.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divdf3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divdf3vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divmodsi4.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divsf3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divsf3vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divsi3.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/dnan2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/dnorm2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/dunder.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/eqdf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/eqsf2vfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/extendsfdf2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/extendsfdf2vfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixdfdi.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixdfsi.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixdfsivfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixsfdi.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixsfsi.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixsfsivfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixunsdfdi.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixunsdfsi.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixunsdfsivfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixunssfdi.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixunssfsi.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fixunssfsivfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatdidf.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatdisf.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatsidf.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatsidfvfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatsisf.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatsisfvfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatundidf.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatunsidf.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatunsisf.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatunssidfvfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatunssisfvfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fnan2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fnorm2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fp_mode.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/funder.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/gedf2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/gedf2vfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/gesf2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/gesf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/gtdf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/gtsf2vfp.S
@@ -85,6 +113,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/ltdf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/ltsf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/modsi3.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/muldf3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/muldf3vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/mulsf3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/mulsf3vfp.S
@@ -121,11 +150,14 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/sync_fetch_and_xor_4.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/sync_fetch_and_xor_8.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/sync_synchronize.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/truncdfsf2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/truncdfsf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/udivmodsi4.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/udivsi3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/umodsi3.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/unorddf2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/unorddf2vfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/unordsf2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/unordsf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ashldi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ashlti3.c
@@ -142,7 +174,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ctzsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ctzti2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divdc3.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divdf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divdi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divmoddi4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divmodti4.c
@@ -157,43 +188,27 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhfdf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhfsf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhftf2.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendsfdf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendsftf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ffsdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ffssi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ffsti2.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixdfdi.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixdfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixdfti.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixsfdi.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixsfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixsfti.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixtfdi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixtfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixtfti.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsdfdi.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsdfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsdfti.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunssfdi.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunssfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunssfti.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunstfdi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunstfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunstfti.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdidf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatditf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsidf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsitf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattitf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunditf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsidf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsitf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntisf.c
@@ -205,7 +220,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/moddi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/modti3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/muldc3.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/muldf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/muldi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulodi4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulosi4.c
@@ -242,7 +256,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subvti3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trampoline_setup.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfhf2.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfsf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncsfhf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfdf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfhf2.c
@@ -284,14 +297,6 @@ set_property(
 
 set_property(
   SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/adddf3.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addtf3.c
   APPEND
   PROPERTY
@@ -365,6 +370,30 @@ set_property(
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/aeabi_frsub.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/dnan2.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/dnorm2.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/dunder.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -524,14 +553,6 @@ set_property(
 
 set_property(
   SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divdf3.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divdi3.c
   APPEND
   PROPERTY
@@ -644,14 +665,6 @@ set_property(
 
 set_property(
   SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendsfdf2.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendsftf2.c
   APPEND
   PROPERTY
@@ -684,39 +697,7 @@ set_property(
 
 set_property(
   SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixdfdi.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixdfsi.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixdfti.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixsfdi.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixsfsi.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -756,39 +737,7 @@ set_property(
 
 set_property(
   SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsdfdi.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsdfsi.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsdfti.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunssfdi.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunssfsi.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -828,39 +777,7 @@ set_property(
 
 set_property(
   SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdidf.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdisf.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatditf.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsidf.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsisf.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -900,14 +817,6 @@ set_property(
 
 set_property(
   SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundidf.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundisf.c
   APPEND
   PROPERTY
@@ -917,22 +826,6 @@ set_property(
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunditf.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsidf.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsisf.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -1021,14 +914,6 @@ set_property(
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/muldc3.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/muldf3.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -1317,14 +1202,6 @@ set_property(
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfhf2.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfsf2.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS

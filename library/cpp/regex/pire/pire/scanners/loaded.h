@@ -160,6 +160,7 @@ public:
         template<class Eq>
     void Init(size_t states, const Partition<Char, Eq>& letters, size_t startState, size_t regexpsCount = 1)
     {
+        Impl::ChargeOperations(states, letters.Size() + 1);
         m.statesCount = states;
         m.lettersCount = letters.Size();
         m.regexpsCount = regexpsCount;
@@ -257,7 +258,10 @@ private:
 
     inline static const LoadedScanner& Null()
     {
-        static const LoadedScanner n = Fsm::MakeFalse().Compile<LoadedScanner>();
+        static const LoadedScanner n = [] {
+            Impl::ScopedOperationBudgetPause pause;
+            return Fsm::MakeFalse().Compile<LoadedScanner>();
+        }();
         return n;
     }
 

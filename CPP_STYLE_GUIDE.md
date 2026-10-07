@@ -10,9 +10,9 @@ Please be aware that use of imperative, object-oriented C++ is assumed.
 CUDA-compatible code must compile under C++17 or C++20, whereas all other code must compile under C++20.
 
 This means:
-- Don't use plain C. Use the new operator, not malloc. Assume that the new operator can throw an exception and doesn't return "0" for unsuccessful memory allocation.
-- Use C++ as an imperative language, not as a functional language. You can use templates, but not for things like compile-time calculations. Use range-based for, not for_each.
-- Don't use boost, and limit use of STL (Use optimized counterparts available in /util instead of some of the parts that are poorly implemented in STL, such as std::streams -> TInputStream, TOutputStream). We don't encourage reinventing the wheel (we've already invented everything and just check the /util).
+- Don't use plain C. Use the `new` operator, not `malloc`. Assume that the `new` operator can throw an exception and doesn't return "0" for unsuccessful memory allocation.
+- Use C++ as an imperative language, not as a functional language. You can use templates, but not for things like compile-time calculations. Use range-based for, not `for_each`.
+- Don't use boost, and limit use of STL (Use optimized counterparts available in `/util` instead of some of the parts that are poorly implemented in STL, such as `std::streams` -> `TInputStream`, `TOutputStream`). We don't encourage reinventing the wheel (we've already invented everything and just check the `/util`).
 - [Guide for modern C++ features](#modern-cpp-features)
 
 Currently, there is a small subset of code in the source tree that doesn't conform to the standards outlined below (partly because some of these code blocks were written about 15+ years ago). Nevertheless, this standard must be followed when writing new code.
@@ -31,7 +31,7 @@ Currently, there is a small subset of code in the source tree that doesn't confo
 
 ## Names
 
-A name should reflect the essence of the data, the type, or the action that it names. Only commonly-used abbreviations are allowed in names. Conventional single-letter names (i, j, k) are only allowed for counters and iterators. Structures are also classes, and everything related to classes also applies to structures (unless explicitly stated otherwise).
+A name should reflect the essence of the data, the type, or the action that it names. Only commonly-used abbreviations are allowed in names. Conventional single-letter names (`i`, `j`, `k`) are only allowed for counters and iterators. Structures are also classes, and everything related to classes also applies to structures (unless explicitly stated otherwise).
 
 ### Variables
 
@@ -45,11 +45,13 @@ A name should reflect the essence of the data, the type, or the action that it n
 
 - Function arguments begin with a lowercase letter.
 
-- Class members begin with an uppercase letter.
+- Variables in a lambda capture list begin with a lowercase letter.
 
-- Class methods begin with an uppercase letter.
+- Class data members begin with an uppercase letter. `private` and `protected` data members must end with an underscore, whereas `public` data members must not.
 
-- Class names and type definitions (typedefs) are preceded by the prefix T, followed by the name of the class beginning with an uppercase letter. The names of virtual interfaces start with 'I'.
+- Class function members begin with an uppercase letter and must not end with an underscore or other special suffix regardless of their access specifier.
+
+- Class names and type definitions (typedefs) are preceded by the prefix '`T`', followed by the name of the class beginning with an uppercase letter. The names of virtual interfaces start with '`I`'. Virtual interface is a class that contains at least one pure virtual method (including inherited) and does not contain any data members (including inherited).
 
 - All global constants and defines are fully capitalized.
 
@@ -72,15 +74,18 @@ int GetValue();
 void SetValue(int val);
 ```
 
-*Exception:* The names of functions, classes, and so on that mimic or extend functions of standard libraries (libc, stl, etc.) should follow the library's naming convention. Examples are TVector, fget, autoarray, sprintf, equivalents of the main function. These classes and functions are usually located in /util.
+*Exception:* For interoperability with external code, identifiers may follow the naming conventions required by that code. For example:
+  - `.begin()` and `.end()` methods for containers to use STL iterator conventions.
+  - `.data()` and `.size()` methods for internal buffer access.
+  - `swap` function
 
 #### Macros
 
-If you do have to use a macro, you need to make sure that it is unique (for example, it should match the hierarchy of directories in the path to this file). If the macro is intended to be used as part of your library's API, then the macro must have the Y_ prefix (for example, see the macros in util/system/compiler.h).
+If you do have to use a macro, you need to make sure that it is unique (for example, it should match the hierarchy of directories in the path to this file). If the macro is intended to be used as part of your library's API, then the macro must have the `Y_` prefix (for example, see the macros in `util/system/compiler.h`).
 
 #### Enumerations
 
-Global enums should be named using the same rules as for classes, but with a capital letter E. The members of these enums should be named using all capital letters, just as for global constants, which is what they actually are. Names must have a prefix formed by the first letters of the enum.
+Global enums should be named using the same rules as for classes, but with a capital letter '`E`'. The members of these enums should be named using all capital letters, just as for global constants, which is what they actually are. Names must have a prefix formed by the first letters of the enum.
 
 ```cpp
 enum EFetchType {
@@ -132,7 +137,7 @@ enum class EStatus {
 };
 ```
 
-Do not create your own constructions for converting enums to TString and back. Use GENERATE_ENUM_SERIALIZATION.
+Do not create your own constructions for converting enums to `TString` and back. Use `GENERATE_ENUM_SERIALIZATION`.
 
 Instead of the last field with the number of fields in the enum, you can use `GENERATE_ENUM_SERIALIZATION_WITH_HEADER`.
 
@@ -155,9 +160,9 @@ Don't use tabs in a text editor. The reason is because this is the only way to e
 
 Our standard indent is 4 spaces.  The indent should be filled with spaces, even if you use the Tab button.
 
-### Block style
+### <a id="formatting-block-style"></a> Block style
 
-For block operators, use the 1TBS style:
+For block operators, use [the 1TBS style](https://en.wikipedia.org/wiki/Indentation_style#One_True_Brace):
 
 ```cpp
 if (something) { // K&R style
@@ -198,16 +203,26 @@ The style of the curly brackets must be consistent within the same file.
 
 **Short blocks**
 
-Single-line bodies of operators and inline functions must begin with a new line. Bodies of operators and functions declared in the same line make debugging difficult.
+Single-line bodies of operators and inline functions must begin with a new line and be enclosed in curly brackets.
+
+Reason: Bodies of operators and functions defined in the same line make debugging difficult.
 ```cpp
-if (something)
+if (something) {
     A();
+}
 ```
 
 The subordinate operator must not be empty. Not allowed:
 ```cpp
 for (int i = 0; i < 100; i++);
 ```
+
+or
+```cpp
+for (int i = 0; i < 100; i++)
+   ;
+```
+
 The reason is this text looks like a typo that wasn't caught at the compilation stage.
 
 **Operators**
@@ -219,6 +234,8 @@ Don't use more than one operator per line.
 We recommended leaving blank lines between separate logical blocks of code. This greatly improves readability.
 
 ### Spaces
+
+For blocks see [Block style section](#formatting-block-style).
 
 #### Operator symbols
 
@@ -234,13 +251,21 @@ This includes the assignment operator. In other words, write:
 if (!x.a || ~(b->c - e::d) == 0)
     z = 0;
 
-void F() throw () {
+void F() noexcept {
 }
 
 struct T {
-    void F() const throw () {
+    void F() const noexcept {
     }
 };
+```
+
+#### Pointers and references
+
+For reference and pointer types, the ampersand (`&`) and asterisk (`*`) symbols must immediately follow the base type, with no space in between.
+```cpp
+const T& value = Foo();
+void Bar(int* p);
 ```
 
 #### Brackets
@@ -281,9 +306,7 @@ vector<vector<int>> matrix;
 
 There shouldn't be any spaces at the end of a line. Use the options in your text editor to control this.
 
-Settings in text editors
-
-- TextPad: "Strip trailing spaces from lines when saving".
+Settings in text editors:
 
 - Vim
 ```vim
@@ -300,6 +323,15 @@ augroup END
           (lambda () (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
 ```
 
+- VSCode:
+
+Press `cmd+shift+p` on macOS or `ctrl+shift+p` for Linux/Windows, select `Preferences: Open User Settings (JSON)`, add the following:
+```json
+"files.insertFinalNewline": true,
+"files.trimFinalNewlines": true,
+"files.trimTrailingWhitespace": true,
+```
+
 ## Lambda functions
 
 Single-line lambdas are allowed only in one case: to define the function where it is used. However, the lambda function itself should not violate the other rules of the style guide:
@@ -313,7 +345,7 @@ Sort(a.begin(), a.end(), [](int x, int y) -> bool {int z = x - y; return z < 0;}
 
 In all other cases, they should be formatted as follows:
 ```cpp
-auto f = [](int x, int y) -> bool { //K&R style, the same as for for/if/while
+auto f = [](int x, int y) -> bool { // K&R style, the same as for for/if/while
     return x < y;
 };
 
@@ -339,31 +371,35 @@ int    level,
 int level, array[16], *pValue; // prohibited: mixed types
 ```
 
-### Class and structure declarations
+### Class and structure definitions
 
-- A structure can only contain open members. You don't need to specify `public` for it. If the structure contains anything other than members, a constructor, and a destructor, we recommend that you rename it to a class.
+- A structure can only contain public data members. You don't need to specify `public:` access specifier for it. If the structure contains anything other than data members, a constructor, and a destructor, we recommend that you rename it to a class.
 
-- The scope labels start from the same column where the class declaration begins. Specifying scopes is mandatory, including the first private scope.
+- The access specifier labels start from the same column where the class definition begins. Specifying access labels is mandatory, including the first private access specifier.
 
-- Members and methods can't be in the same section of scopes. They should be separated by re-specifying the scope. There should be a minimal number of scope labels, reduced to the fewest possible by changing the order of the parts of the class declaration.
+- Methods and data members must not share the same access section. Separate them by explicitly repeating the access specifier. Keep the number of access specifier sections to an absolute minimum, reordering class members where necessary to achieve this.
 
-- Within one scope:
+- Within a single access section:
    * Constructors must precede the destructor.
    * A destructor must precede redefined operators.
    * Redefined operators must precede the rest of the methods.
 
-- A public scope with methods must precede `protected` and `private` scopes with methods.
+- A `public` access section with methods must precede `protected` and `private` access sections with methods.
 
-- Class data members should be placed at the beginning or at the end of the class description. Class type descriptions can precede data descriptions.
+- Data members should be placed at the beginning or at the end of the class definition. Types defined within a class may precede data members definitions.
+
+- Prefer explicit rather then implicit values when using default member initializers. Use `= nullptr` or `= 0` instead of `= {}` whenever possible. Prefer `= {}` rather than `{}`.
 
 ```cpp
 class TClass {
-private:
-    int Member; // comments about Member
 public:
     TClass();
     TClass(const TClass& other);
     ~TClass();
+private:
+    int Member_ = 0; // comments about Member_
+    int* OtherMember_ = nullptr;
+    TString TheString_ = {};
 };
 ```
 
@@ -400,7 +436,7 @@ struct T {
     int X;
     double Y;
 
-    T() //this implementation can also be in a .cpp file
+    T() // this implementation can also be in a .cpp file
         : X(0)
         , Y(1.0)
     {
@@ -412,16 +448,19 @@ The reason is that if you mix two types of initialization, it's much easier to f
 
 ## Namespaces
 
-Namespaces should be formatted like classes, except for the name. Namespaces must begin with a capital letter N:
+Namespaces should be formatted like classes, except for the name and the comment after the closing brace.
+Namespaces names must begin with a capital letter `N`.
+The line with the closing brace must contain the comment `// namespace {name}`
+(`// namespace` or `// anonymous namespace` for anonymous namespaces).
 ```cpp
 namespace NStl {
     namespace NPrivate {
-        //the namespace nesting level is restricted to two
+        // the namespace nesting level is restricted to two
     }
 
-    class TVectorType {
+    class TVector {
     };
-}
+} // namespace NStl
 ```
 
 ## <a id="modern-cpp-features"></a> Modern C++ features
@@ -473,6 +512,21 @@ class B: public A {
 
 Comments are for explaining the code where they are located. Do not use comments to remove an unnecessary function or block, especially if this is the old version of a function you corrected. Simply delete any unnecessary parts of the code – you can always go to VCS (e.g. svn, git, hg, etc.) to retrieve the deleted section if you suddenly realize how useful it was. The main harm from commenting previous versions of the code, instead of removing them, is that VCS diff won't work correctly.
 
+Text in a single line comment should be separated from `//` using exactly one space:
+```cpp
+// Single comment
+
+void Function() { // Another single comment
+    ...
+}
+```
+When formatting multi-line comments as a series of single-line comments, preserve the relative indentation as needed. However, the absolute indentation at the beginning of each line must always be a single space.
+
+```cpp
+// List:
+//  - Foo
+//    - Bar
+
 Comments should be written in English with correct spelling and grammar.
 
 It is useful to explain the purpose of each class member in the class description. MSVC editor displays this line in the tooltip in "smart editing" mode.
@@ -516,7 +570,7 @@ With a preprocessing conditional in the middle of the file, we start in the firs
 ```cpp
 func A() {
     int x;
-#ifdef TEST_func_A // ifndef + else = schisophrenia
+#ifdef TEST_func_A // ifndef + else = schizophrenia
     x = 0;
 #else
     x = 1;
@@ -524,17 +578,21 @@ func A() {
 }
 ```
 
+Avoid using the preprocessor whenever possible. Instead, prefer templates, `if constexpr`, virtual functions, etc.
+
 ### include
 
 The include files should not be interdependent, meaning an include file must be compileable by itself as a separate compilation unit. If the include file contains references to types that are not described in it:
 
-- If this is a standard type, include the minimum standard include file, such as cstddef or cstdio.
+- If this is a standard type, include the minimum standard include file, such as `cstddef` or `cstdio`.
 - If this is the name of a class, structure, or enumeration, and it is used by a reference or pointer, write a forward declaration directly in the include file.
-- In all other cases, include a file with the declaration of the corresponding class.
+- In all other cases, include a file with the definition of the corresponding class.
 
-The using namespace declaration is not allowed inside include files.
+The `using namespace` declaration must not appear at global scope in include files unless it is used to introduce literals from the standard library.
+Note: include file `util/generic/strbuf.h` adds `operator ""sv()` to global scope.
 
-Include files should be specified in the order of less general to more general (regardless of whether it's in cpp or another include), so that a more specific file is included before a more general file. This order allows you to once again check the independence of the other included header files. For example, for the library/cpp/json/some_program/some_class.cpp file, the order of inclusion is:
+
+Include files should be specified in the order of less general to more general (regardless of whether it's in cpp or another include), so that a more specific file is included before a more general file. This order allows you to once again check the independence of the other included header files. For example, for the `library/cpp/json/some_program/some_class.cpp` file, the order of inclusion is:
 
 - The paired header file. Always in quotation marks.
 ```cpp
@@ -627,15 +685,15 @@ is prohibited everywhere except in specially stipulated cases:
 
 ### Invariant verification
 
-To test various kinds of compile-time invariants (for example, sizeof(int) == 4), use static_assert. To test run-time invariants, instead of assert(), use the Y_ASSERT() macro, since it is better integrated into Visual Studio.
+To test various kinds of compile-time invariants (for example, `sizeof(int) == 4`), use `static_assert`. To test run-time invariants, instead of `assert()`, use the `Y_ASSERT()` macro, since it is better integrated into Visual Studio.
 
 ## Cross-platform wrappers
 
-Calling platform-dependent system functions is allowed only in /util. In order to use specific system primitives, use the cross-platform wrappers from /util. If the necessary wrapper does not exist, you can write one (preferably using OOP) and add it to util (don't forget the code review).
+Calling platform-dependent system functions is allowed only in `/util`. In order to use specific system primitives, use the cross-platform wrappers from `/util`. If the necessary wrapper does not exist, you can write one (preferably using OOP) and add it to `util` (don't forget the code review).
 
 ## Exceptions to the general rules
 
 ### contrib
 
-The /contrib folder contains libraries and programs from 3rd parties. Obviously, they use their own style of writing code. If there is a need to add something to contrib that isn't there yet, create a ticket for discussion and decision making.
+The `/contrib` folder contains libraries and programs from 3rd parties. Obviously, they use their own style of writing code. If there is a need to add something to `contrib` that isn't there yet, create a ticket for discussion and decision making.
 

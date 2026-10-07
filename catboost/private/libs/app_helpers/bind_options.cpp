@@ -408,7 +408,7 @@ static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
             }
             CB_ENSURE(!(*plainJsonPtr)["prediction_type"].GetArray().empty(), "Empty prediction type list " << predictionTypes);
         });
-    parser.AddLongOption("final-ctr-computation-mode", "Should be one of: Default, Skip. Use all pools to compute final ctrs by default or skip final ctr computation. WARNING: model can't be applied if final ctrs computation is skipped!")
+    parser.AddLongOption("final-ctr-computation-mode", "Should be one of: Default, Skip. Use all datasets to compute final ctrs by default or skip final ctr computation. WARNING: model can't be applied if final ctrs computation is skipped!")
             .RequiredArgument("string")
             .Handler1T<TString>([plainJsonPtr](const TString& finalCtrComputationMode) {
                 (*plainJsonPtr)["final_ctr_computation_mode"] = finalCtrComputationMode;

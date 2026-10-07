@@ -94,7 +94,9 @@ class CUDAManager:
 
     def _arch_flag(self, arch):
         _, ver = arch.split('_', 1)
-        return 'arch=compute_{},code={}'.format(ver, arch)
+        # Vendor libraries may contain compatible baseline cubins, even for an a target.
+        code = '[{},{}]'.format(arch[:-1], arch) if arch.endswith('a') else arch
+        return 'arch=compute_{},code={}'.format(ver, code)
 
     def prune_lib(self, inp_fname, out_fname):
         if self.prune_args:

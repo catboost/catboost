@@ -39,6 +39,28 @@ snappy_status snappy_compress(const char* input,
     return SNAPPY_BUFFER_TOO_SMALL;
   }
   snappy::RawCompress(input, input_length, compressed, compressed_length);
+  if (*compressed_length == 0) {
+    return SNAPPY_INVALID_INPUT;
+  }
+  return SNAPPY_OK;
+}
+
+snappy_status snappy_compress_with_level(const char* input, size_t input_length,
+                                         int compression_level,
+                                         char* compressed,
+                                         size_t* compressed_length) {
+  if (*compressed_length < snappy_max_compressed_length(input_length)) {
+    return SNAPPY_BUFFER_TOO_SMALL;
+  }
+  if (compression_level < SNAPPY_MIN_COMPRESSION_LEVEL ||
+      compression_level > SNAPPY_MAX_COMPRESSION_LEVEL) {
+    return SNAPPY_INVALID_INPUT;
+  }
+  snappy::RawCompress(input, input_length, compressed, compressed_length,
+                      snappy::CompressionOptions{/*level=*/compression_level});
+  if (*compressed_length == 0) {
+    return SNAPPY_INVALID_INPUT;
+  }
   return SNAPPY_OK;
 }
 

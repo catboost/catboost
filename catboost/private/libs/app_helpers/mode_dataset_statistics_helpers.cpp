@@ -226,7 +226,7 @@ static void CalculateHistogram(
                         }
                     }
                 } else {
-                    CB_ENSURE(false, "Non-raw pool formats are not yet supported for dataset histograms calculation");
+                    CB_ENSURE(false, "Non-raw dataset formats are not yet supported for dataset histograms calculation");
                 }
             },
             localExecutor
@@ -274,8 +274,8 @@ void NCB::CalculateDatasetStatisticsSingleHost(const TCalculateStatisticsParams&
             TFeatureStatistics featureStatistics = visitor->GetDatasetStatistics().FeatureStatistics;
 
             // clean up resources before 2nd pass
-            visitor.Destroy();
-            datasetLoader.Destroy();
+            visitor.reset();
+            datasetLoader.reset();
 
             CalculateHistogram(
                 calculateStatisticsParams,
