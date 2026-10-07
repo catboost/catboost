@@ -178,10 +178,17 @@
            <resource>
                <directory>${src.root}/main/resources</directory>
            </resource>
+           <!-- ${src.root}/main/resources is reserved for native build artifacts -->
+           <resource>
+               <directory>${src.root}/main/static_resources</directory>
+           </resource>
         </resources>
         <testResources>
            <testResource>
                <directory>${src.root}/main/resources</directory>
+           </testResource>
+           <testResource>
+               <directory>${src.root}/main/static_resources</directory>
            </testResource>
         </testResources>
     </build>
