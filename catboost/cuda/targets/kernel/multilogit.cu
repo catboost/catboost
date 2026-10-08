@@ -794,7 +794,7 @@ namespace NKernel {
         const int numBlocks = (size + blockSize - 1) / blockSize;
         CB_ENSURE(numClasses < 65536);
         if (numBlocks) {
-            BuildConfusionMatrixBinsImpl << < numBlocks, blockSize, 0, stream >> >(targetClasses, numClasses, size, predictions, predictionsDim, predictionsAlignSize, isBinClass, binTargetProbabilityThreshold, bins);
+            BuildConfusionMatrixBinsImpl <<< numBlocks, blockSize, 0, stream >>>(targetClasses, numClasses, size, predictions, predictionsDim, predictionsAlignSize, isBinClass, binTargetProbabilityThreshold, bins);
         }
     }
 }

@@ -452,12 +452,12 @@ namespace NKernel {
         switch (scoreFunction)
         {
             case  EScoreFunction::SolarL2: {
-                FindOptimalSplitSolarImpl<blockSize> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, catFeaturesWeights, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, foldCount, scoreBeforeSplit, result);
+                FindOptimalSplitSolarImpl<blockSize> <<< resultSize, blockSize, 0, stream >>> (binaryFeatures, binaryFeatureCount, catFeaturesWeights, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, foldCount, scoreBeforeSplit, result);
                 break;
             }
             case  EScoreFunction::Cosine:
             case  EScoreFunction::NewtonCosine: {
-                FindOptimalSplitCosineImpl<blockSize> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, catFeaturesWeights, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, foldCount, scoreBeforeSplit, l2, normalize, scoreStdDev, seed, result);
+                FindOptimalSplitCosineImpl<blockSize> <<< resultSize, blockSize, 0, stream >>> (binaryFeatures, binaryFeatureCount, catFeaturesWeights, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, foldCount, scoreBeforeSplit, l2, normalize, scoreStdDev, seed, result);
                 break;
             }
             default: {
@@ -478,7 +478,7 @@ namespace NKernel {
                                TCudaStream stream) {
         const int blockSize = 128;
         #define RUN() \
-        FindOptimalSplitSingleFoldImpl<blockSize, TLoader, TScoreCalcer> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, catFeaturesWeights, binFeaturesWeights, binaryFeatureWeightsCount, scoreBeforeSplit, splits, parts, pCount, scoreCalcer, result);
+        FindOptimalSplitSingleFoldImpl<blockSize, TLoader, TScoreCalcer> <<< resultSize, blockSize, 0, stream >>> (binaryFeatures, binaryFeatureCount, catFeaturesWeights, binFeaturesWeights, binaryFeatureWeightsCount, scoreBeforeSplit, splits, parts, pCount, scoreCalcer, result);
 
 
         switch (scoreFunction)
@@ -689,7 +689,7 @@ namespace NKernel {
     {
         const int blockSize = 1024;
         if (partsCount) {
-            PartitionUpdateImpl<blockSize> << < partsCount, blockSize, 0, stream >> > (target, weights, counts, parts, partStats);
+            PartitionUpdateImpl<blockSize> <<< partsCount, blockSize, 0, stream >>> (target, weights, counts, parts, partStats);
         }
     }
 
