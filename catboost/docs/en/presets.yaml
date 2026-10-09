@@ -512,6 +512,8 @@ default:
   java__modifier-and-type__void: void
   java__modifier-and-type__int: int
   java__modifier-and-type__double: double
+  java__modifier-and-type__boolean: boolean
+  java__modifier-and-type__string: String
   java__modifier-and-type__static: static
   java__dl__throws: Throws
   java__dl__returns: Returns
