@@ -91,6 +91,11 @@ inline TString Base64StrictDecode(const TStringBuf src) {
 TString Base64DecodeUneven(const TStringBuf s);
 size_t Base64DecodeUneven(void* dst, const TStringBuf s);
 
+/// Same as Base64DecodeUneven, but with validation.
+/// Throws if the string contains invalid symbols or incorrect padding.
+TString Base64StrictDecodeUneven(const TStringBuf s);
+size_t Base64StrictDecodeUneven(char* dst, const TStringBuf s);
+
 //encode
 constexpr size_t Base64EncodeBufSize(const size_t len) noexcept {
     return (len + 2) / 3 * 4 + 1;

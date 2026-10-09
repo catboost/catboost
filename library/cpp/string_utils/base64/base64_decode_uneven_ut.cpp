@@ -2,6 +2,8 @@
 
 #include <library/cpp/string_utils/base64/base64.h>
 
+#include <util/generic/yexception.h>
+
 Y_UNIT_TEST_SUITE(TBase64DecodeUneven) {
     Y_UNIT_TEST(Base64DecodeUneven) {
         const TString wikipedia_slogan =
@@ -42,5 +44,62 @@ Y_UNIT_TEST_SUITE(TBase64DecodeUneven) {
         const TString dp = "ADP GmbH\nAnalyse Design & Programmierung\nGesellschaft mit beschränkter Haftung";
         UNIT_ASSERT_VALUES_EQUAL(dp, Base64DecodeUneven(Base64Encode(dp)));
         UNIT_ASSERT_VALUES_EQUAL(dp, Base64DecodeUneven(Base64EncodeUrl(dp)));
+    }
+}
+
+Y_UNIT_TEST_SUITE(TBase64StrictDecodeUneven) {
+    Y_UNIT_TEST(PaddedAndUnpadded) {
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven(""), "");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("QQ=="), "A");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("QQ="), "A");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("QQ"), "A");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("MTI="), "12");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("MTI"), "12");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("YWFh"), "aaa");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("YWJjZA=="), "abcd");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("YWJjZA"), "abcd");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("YWJjZGU="), "abcde");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("YWJjZGU"), "abcde");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("YWFhYWFh"), "aaaaaa");
+    }
+
+    Y_UNIT_TEST(Base64Url) {
+        const TString binary("\xfb\xfb", 2);
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("+/s="), binary);
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("+/s"), binary);
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("-_s="), binary);
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("-_s,"), binary);
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("-_s"), binary);
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("QQ,,"), "A");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("QQ,"), "A");
+    }
+
+    Y_UNIT_TEST(PaddingInside) {
+        // Preserve Base64StrictDecode's support for concatenated padded strings.
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("QQ==Qg=="), "AB");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("QQ==Qg"), "AB");
+        UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecodeUneven("QQ==Qg="), "AB");
+    }
+
+    Y_UNIT_TEST(InvalidLength) {
+        for (const TStringBuf encoded : {"A", "YWFhA", "YWFhYWFhA", "QQ==="}) {
+            UNIT_ASSERT_EXCEPTION(Base64StrictDecodeUneven(encoded), yexception);
+        }
+    }
+
+    Y_UNIT_TEST(InvalidSymbols) {
+        for (const TStringBuf encoded :
+             {"!A", "AA!", "!AAAQQ", "!AAAQQQ", "YWFh!A",
+              " Q", "QQ\n", "QQ\r", "Q\t", "\xffQ"}) {
+            UNIT_ASSERT_EXCEPTION(Base64StrictDecodeUneven(encoded), yexception);
+        }
+        UNIT_ASSERT_EXCEPTION(Base64StrictDecodeUneven("Q\0"_sb), yexception);
+    }
+
+    Y_UNIT_TEST(InvalidPadding) {
+        for (const TStringBuf encoded : {"=Q", "Q=", "=QQ", "Q=Q", "====", "=AAA", "A=AA", "AA=A",
+                                         "AA,A", "YWFh=Q", "YWFhQ=Q"}) {
+            UNIT_ASSERT_EXCEPTION(Base64StrictDecodeUneven(encoded), yexception);
+        }
     }
 }
