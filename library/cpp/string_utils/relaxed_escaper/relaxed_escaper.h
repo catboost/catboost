@@ -6,14 +6,17 @@
 #include <util/generic/strbuf.h>
 
 namespace NEscJ {
+    TString EscapeJsonStringToAscii(TStringBuf input);
+
     // almost copypaste from util/string/escape.h
     // todo: move there (note difference in IsPrintable and handling of string)
 
     inline char HexDigit(char value) {
-        if (value < 10)
+        if (value < 10) {
             return '0' + value;
-        else
+        } else {
             return 'A' + value - 10;
+        }
     }
 
     inline char OctDigit(char value) {
@@ -115,14 +118,14 @@ namespace NEscJ {
         return len * TEscapeUtil::ESCAPE_C_BUFFER_SIZE;
     }
 
-    template <bool tounicode, bool hasCustomSafeUnsafe>
+    template <bool toUnicode, bool hasCustomSafeUnsafe>
     inline size_t EscapeJImpl(const char* str, size_t len, char* out, TStringBuf safe, TStringBuf unsafe) {
         char* out0 = out;
         char buffer[TEscapeUtil::ESCAPE_C_BUFFER_SIZE];
 
         size_t i, j;
         for (i = 0, j = 0; i < len; ++i) {
-            size_t rlen = TEscapeUtil::EscapeJ<tounicode, hasCustomSafeUnsafe>(str[i], (i + 1 < len ? str[i + 1] : 0), buffer, safe, unsafe);
+            size_t rlen = TEscapeUtil::EscapeJ<toUnicode, hasCustomSafeUnsafe>(str[i], (i + 1 < len ? str[i + 1] : 0), buffer, safe, unsafe);
 
             if (rlen > 1) {
                 memcpy(out, str + j, i - j);
@@ -145,52 +148,56 @@ namespace NEscJ {
         return out - out0;
     }
 
-    template <bool tounicode>
+    template <bool toUnicode>
     inline size_t EscapeJ(const char* str, size_t len, char* out, TStringBuf safe = TStringBuf(), TStringBuf unsafe = TStringBuf()) {
         if (Y_LIKELY(safe.empty() && unsafe.empty())) {
-            return EscapeJImpl<tounicode, false>(str, len, out, safe, unsafe);
+            return EscapeJImpl<toUnicode, false>(str, len, out, safe, unsafe);
         }
-        return EscapeJImpl<tounicode, true>(str, len, out, safe, unsafe);
+        return EscapeJImpl<toUnicode, true>(str, len, out, safe, unsafe);
     }
 
-    template <bool quote, bool tounicode>
+    template <bool quote, bool toUnicode>
     inline void EscapeJ(TStringBuf in, IOutputStream& out, TStringBuf safe = TStringBuf(), TStringBuf unsafe = TStringBuf()) {
         TTempBuf b(SuggestBuffer(in.size()) + 2);
 
-        if (quote)
+        if (quote) {
             b.Append("\"", 1);
+        }
 
-        b.Proceed(EscapeJ<tounicode>(in.data(), in.size(), b.Current(), safe, unsafe));
+        b.Proceed(EscapeJ<toUnicode>(in.data(), in.size(), b.Current(), safe, unsafe));
 
-        if (quote)
+        if (quote) {
             b.Append("\"", 1);
+        }
 
         out.Write(b.Data(), b.Filled());
     }
 
-    template <bool quote, bool tounicode>
+    template <bool quote, bool toUnicode>
     inline void EscapeJ(TStringBuf in, TString& out, TStringBuf safe = TStringBuf(), TStringBuf unsafe = TStringBuf()) {
         TTempBuf b(SuggestBuffer(in.size()) + 2);
 
-        if (quote)
+        if (quote) {
             b.Append("\"", 1);
+        }
 
-        b.Proceed(EscapeJ<tounicode>(in.data(), in.size(), b.Current(), safe, unsafe));
+        b.Proceed(EscapeJ<toUnicode>(in.data(), in.size(), b.Current(), safe, unsafe));
 
-        if (quote)
+        if (quote) {
             b.Append("\"", 1);
+        }
 
         out.append(b.Data(), b.Filled());
     }
 
-    template <bool quote, bool tounicode>
+    template <bool quote, bool toUnicode>
     inline TString EscapeJ(TStringBuf in, TStringBuf safe = TStringBuf(), TStringBuf unsafe = TStringBuf()) {
         TString s;
-        EscapeJ<quote, tounicode>(in, s, safe, unsafe);
+        EscapeJ<quote, toUnicode>(in, s, safe, unsafe);
         return s;
     }
 
-    // If the template parameter "tounicode" is ommited, then use the default value false
+    // If the template parameter "toUnicode" is omitted, then use the default value false.
     inline size_t EscapeJ(const char* str, size_t len, char* out, TStringBuf safe = TStringBuf(), TStringBuf unsafe = TStringBuf()) {
         return EscapeJ<false>(str, len, out, safe, unsafe);
     }
@@ -209,4 +216,4 @@ namespace NEscJ {
     inline TString EscapeJ(TStringBuf in, TStringBuf safe = TStringBuf(), TStringBuf unsafe = TStringBuf()) {
         return EscapeJ<quote, false>(in, safe, unsafe);
     }
-}
+} // namespace NEscJ
