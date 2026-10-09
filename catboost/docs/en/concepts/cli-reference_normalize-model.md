@@ -33,7 +33,7 @@ Possible values:
 - CatboostBinary.
 - AppleCoreML (only datasets without categorical features are currently supported).
 - json (multiclassification models are not currently supported). Refer to the [CatBoost JSON model tutorial](https://github.com/catboost/tutorials/blob/master/model_analysis/model_export_as_json_tutorial.ipynb) for format details.
-- onnx — ONNX-ML format (only datasets without categorical features are currently supported). Refer to [https://onnx.ai](https://onnx.ai) for details. See the [ONNX](apply-onnx-ml.md) section for details on applying the resulting model.
+- onnx — ONNX-ML format. Refer to [https://onnx.ai](https://onnx.ai) for details. See the [ONNX](apply-onnx-ml.md) section for details on applying the resulting model.
 - pmml — [PMML version 4.3](http://dmg.org/pmml/pmml-v4-3.html) format. Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the --one-hot-max-size/one_hot_max_size parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset. See the [PMML](apply-pmml.html) section for details on applying the resulting model.
 
 **{{ cli__params-table__title__default }}**
