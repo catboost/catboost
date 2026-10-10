@@ -23,6 +23,11 @@ add_subdirectory(ut)
 
 add_library(private-libs-options)
 
+if (HAVE_METAL)
+  set_property(SOURCE ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/catboost_options.cpp
+    APPEND PROPERTY COMPILE_DEFINITIONS CATBOOST_HAVE_METAL=1)
+endif()
+
 
 target_link_libraries(private-libs-options PUBLIC
   contrib-libs-cxxsupp

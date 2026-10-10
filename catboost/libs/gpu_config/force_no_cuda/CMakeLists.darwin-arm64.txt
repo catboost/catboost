@@ -25,3 +25,7 @@ target_sources(libs-gpu_config-force_no_cuda PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/gpu_config/force_no_cuda/get_gpu_device_count_no_cuda.cpp
 )
 
+if (HAVE_METAL)
+  target_compile_definitions(libs-gpu_config-force_no_cuda PRIVATE CATBOOST_HAVE_METAL=1)
+  target_link_libraries(libs-gpu_config-force_no_cuda PUBLIC catboost-metal-native)
+endif()
