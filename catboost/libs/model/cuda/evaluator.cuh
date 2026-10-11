@@ -72,7 +72,7 @@ public:
     TCudaVec<float> ResultsFloatBuf;
     TCudaVec<double> ResultsDoubleBuf;
 public:
-    void PrepareCopyBufs(size_t bufSize, size_t objectsCount);
+    void PrepareCopyBufs(size_t bufSize, size_t resultsSize);
 };
 
 class TGPUCatboostEvaluationContext {
