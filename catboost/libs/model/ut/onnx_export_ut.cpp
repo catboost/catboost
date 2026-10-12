@@ -4,8 +4,11 @@
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/model_export/model_exporter.h>
+#include <catboost/libs/model/model_export/onnx_helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/private/libs/algo/apply.h>
+
+#include <contrib/libs/onnx/onnx/checker.h>
 
 #include <library/cpp/testing/unittest/registar.h>
 
@@ -14,6 +17,8 @@
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
+
+#include <limits>
 
 
 using namespace NCB;
@@ -114,7 +119,46 @@ static TFullModel TrainOnDataProvider(TDataProviderPtr learnData, NJson::TJsonVa
 static TFullModel ExportToOnnxAndImport(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
     const TString onnxProto = ConvertTreeToOnnxProto(model, "", catFeaturesHashToString);
     UNIT_ASSERT(!onnxProto.empty());
+    onnx::ModelProto proto;
+    UNIT_ASSERT(proto.ParseFromString(onnxProto));
+    onnx::checker::check_model(proto);
+    if (!model.ModelTrees->GetOneHotFeatures().empty() && proto.graph().output(0).name() == "predictions") {
+        const auto& outputShape = proto.graph().output(0).type().tensor_type().shape();
+        UNIT_ASSERT_VALUES_EQUAL(outputShape.dim_size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(outputShape.dim(1).dim_value(), 1);
+    }
     return ReadModel(onnxProto.data(), onnxProto.size(), EModelType::Onnx);
+}
+
+
+static onnx::ModelProto MakeCategoricalOnnxModel() {
+    const auto data = MakeDataProvider({CatColumn({"a", "a", "b", "b", "a", "b"})});
+    const auto model = TrainOnDataProvider(data);
+    UNIT_ASSERT(!model.ModelTrees->GetOneHotFeatures().empty());
+    const auto mapping = MergeCatFeaturesHashToString(*data->ObjectsData);
+    onnx::ModelProto result;
+    UNIT_ASSERT(result.ParseFromString(ConvertTreeToOnnxProto(model, "", &mapping)));
+    return result;
+}
+
+
+static onnx::NodeProto& GetNode(onnx::ModelProto& model, const TString& opType) {
+    for (auto& node : *model.mutable_graph()->mutable_node()) {
+        if (node.op_type() == opType) {
+            return node;
+        }
+    }
+    ythrow TCatBoostException() << "Missing node " << opType;
+}
+
+
+static onnx::AttributeProto& GetAttribute(onnx::NodeProto& node, const TString& name) {
+    for (auto& attribute : *node.mutable_attribute()) {
+        if (attribute.name() == name) {
+            return attribute;
+        }
+    }
+    ythrow TCatBoostException() << "Missing attribute " << name;
 }
 
 
@@ -138,6 +182,101 @@ static void CheckPredictionsEqual(
 
 
 Y_UNIT_TEST_SUITE(TestOnnxExport) {
+    Y_UNIT_TEST(TestImportInvalidLabelEncoderValues) {
+        const auto original = MakeCategoricalOnnxModel();
+        for (float value : {0.5f, std::numeric_limits<float>::infinity(),
+                           std::numeric_limits<float>::quiet_NaN(), 2147483648.0f, -2147483904.0f}) {
+            auto model = original;
+            auto& encoder = GetNode(model, "LabelEncoder");
+            GetAttribute(encoder, "values_floats").set_floats(0, value);
+            TFullModel imported;
+            UNIT_ASSERT_EXCEPTION_CONTAINS(
+                NOnnx::ConvertOnnxToCatboostModel(model, &imported), TCatBoostException, "must be an integer"
+            );
+        }
+    }
+
+    Y_UNIT_TEST(TestImportAmbiguousLabelEncoder) {
+        const auto original = MakeCategoricalOnnxModel();
+        {
+            auto model = original;
+            auto& encoder = GetNode(model, "LabelEncoder");
+            auto& values = GetAttribute(encoder, "values_floats");
+            auto& keys = GetAttribute(encoder, "keys_strings");
+            keys.add_strings("another_category");
+            values.add_floats(values.floats(0));
+            TFullModel imported;
+            UNIT_ASSERT_EXCEPTION_CONTAINS(
+                NOnnx::ConvertOnnxToCatboostModel(model, &imported), TCatBoostException, "values_floats must be unique"
+            );
+        }
+        {
+            auto model = original;
+            auto& encoder = GetNode(model, "LabelEncoder");
+            auto& values = GetAttribute(encoder, "values_floats");
+            auto& keys = GetAttribute(encoder, "keys_strings");
+            keys.add_strings(keys.strings(0));
+            values.add_floats(100.0f);
+            TFullModel imported;
+            UNIT_ASSERT_EXCEPTION_CONTAINS(
+                NOnnx::ConvertOnnxToCatboostModel(model, &imported), TCatBoostException, "keys_strings must be unique"
+            );
+        }
+        {
+            auto model = original;
+            auto& encoder = GetNode(model, "LabelEncoder");
+            GetAttribute(encoder, "default_float").set_f(GetAttribute(encoder, "values_floats").floats(0));
+            TFullModel imported;
+            UNIT_ASSERT_EXCEPTION_CONTAINS(
+                NOnnx::ConvertOnnxToCatboostModel(model, &imported), TCatBoostException, "default_float must differ"
+            );
+        }
+        {
+            auto model = original;
+            auto& encoder = GetNode(model, "LabelEncoder");
+            GetAttribute(encoder, "default_float").set_f(std::numeric_limits<float>::quiet_NaN());
+            TFullModel imported;
+            UNIT_ASSERT_EXCEPTION_CONTAINS(
+                NOnnx::ConvertOnnxToCatboostModel(model, &imported), TCatBoostException, "default_float must not be NaN"
+            );
+        }
+    }
+
+    Y_UNIT_TEST(TestImportConcatAxis) {
+        auto model = MakeCategoricalOnnxModel();
+        auto& axis = GetAttribute(GetNode(model, "Concat"), "axis");
+        axis.set_i(0);
+        TFullModel imported;
+        UNIT_ASSERT_EXCEPTION_CONTAINS(
+            NOnnx::ConvertOnnxToCatboostModel(model, &imported), TCatBoostException, "axis 1 or -1"
+        );
+        axis.set_i(-1);
+        NOnnx::ConvertOnnxToCatboostModel(model, &imported);
+        UNIT_ASSERT_VALUES_EQUAL(imported.GetNumCatFeatures(), 1);
+    }
+
+    Y_UNIT_TEST(TestImportNumericalSplitOnEncodedCategory) {
+        auto model = MakeCategoricalOnnxModel();
+        GetAttribute(GetNode(model, "TreeEnsembleRegressor"), "nodes_modes").set_strings(0, "BRANCH_GT");
+        TFullModel imported;
+        UNIT_ASSERT_EXCEPTION_CONTAINS(
+            NOnnx::ConvertOnnxToCatboostModel(model, &imported),
+            TCatBoostException, "both categorical and numerical splits"
+        );
+    }
+
+    Y_UNIT_TEST(TestImportFeatureIndexOutOfRange) {
+        const auto original = MakeCategoricalOnnxModel();
+        for (i64 featureIdx : {-1LL, 1LL, 4294967296LL}) {
+            auto model = original;
+            GetAttribute(GetNode(model, "TreeEnsembleRegressor"), "nodes_featureids").set_ints(0, featureIdx);
+            TFullModel imported;
+            UNIT_ASSERT_EXCEPTION_CONTAINS(
+                NOnnx::ConvertOnnxToCatboostModel(model, &imported), TCatBoostException, "outside the input tensor"
+            );
+        }
+    }
+
     Y_UNIT_TEST(TestFloatOnlyModelExportImport) {
         const TVector<TTestColumn> columns = {
             FloatColumn({0.1f, 0.5f, 0.3f, 0.9f, 0.2f, 0.7f}),
@@ -230,6 +369,27 @@ Y_UNIT_TEST_SUITE(TestOnnxExport) {
         CheckPredictionsEqual(model, *data->ObjectsData, importedModel, *importedModelData->ObjectsData);
     }
 
+    Y_UNIT_TEST(TestExportAfterDroppingUnusedFeatures) {
+        const TVector<TTestColumn> columns = {
+            CatColumn({"ignored", "ignored", "ignored", "ignored", "ignored", "ignored"}),
+            FloatColumn({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}),
+            CatColumn({"a", "a", "b", "b", "a", "b"}),
+            FloatColumn({0.1f, 0.5f, 0.3f, 0.9f, 0.2f, 0.7f})
+        };
+        const auto data = MakeDataProvider(columns);
+        auto model = TrainOnDataProvider(data);
+        model.ModelTrees.GetMutable()->DropUnusedFeatures();
+        UNIT_ASSERT_VALUES_EQUAL(model.ModelTrees->GetCatFeatures().size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(model.ModelTrees->GetCatFeatures()[0].Position.Index, 1);
+        UNIT_ASSERT_VALUES_EQUAL(model.ModelTrees->GetFloatFeatures().size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(model.ModelTrees->GetFloatFeatures()[0].Position.Index, 1);
+
+        const auto mapping = MergeCatFeaturesHashToString(*data->ObjectsData);
+        const auto importedModel = ExportToOnnxAndImport(model, &mapping);
+        const auto importedModelData = MakeDataProvider({columns[3], columns[2]});
+        CheckPredictionsEqual(model, *data->ObjectsData, importedModel, *importedModelData->ObjectsData);
+    }
+
     Y_UNIT_TEST(TestExportWithoutCatFeaturesHashToString) {
         const auto data = MakeDataProvider({
             CatColumn({"a", "a", "b", "b", "a", "b"}),
@@ -242,6 +402,13 @@ Y_UNIT_TEST_SUITE(TestOnnxExport) {
             ConvertTreeToOnnxProto(model, "", nullptr),
             TCatBoostException,
             "hash to string mapping is required"
+        );
+
+        const THashMap<ui32, TString> emptyMapping;
+        UNIT_ASSERT_EXCEPTION_CONTAINS(
+            ConvertTreeToOnnxProto(model, "", &emptyMapping),
+            TCatBoostException,
+            "Cannot find string value"
         );
     }
 
