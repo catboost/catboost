@@ -10891,13 +10891,14 @@ def test_select_features(task_type, train_final_model):
         assert model.evals_result_ == {}
 
 
-# used to crash with std::terminate (uncaught exception in a worker thread), see #1935
+# Unsupported SHAP types must fail before entering a worker thread.
 @pytest.mark.parametrize('grow_policy', ['Depthwise', 'Lossguide'])
 def test_select_features_by_shap_values_unsupported_calc_type_nonsymmetric(task_type, grow_policy):
     learn = Pool(TRAIN_FILE, column_description=CD_FILE)
     test = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
         iterations=10,
+        thread_count=4,
         learning_rate=0.03,
         grow_policy=grow_policy,
         task_type=task_type,
@@ -10918,11 +10919,13 @@ def test_select_features_by_shap_values_unsupported_calc_type_nonsymmetric(task_
 
 
 @pytest.mark.parametrize('grow_policy', ['Depthwise', 'Lossguide'])
-def test_select_features_by_shap_values_nonsymmetric(task_type, grow_policy):
+@pytest.mark.parametrize('calc_type', ['Regular', 'Approximate'])
+def test_select_features_by_shap_values_nonsymmetric(task_type, grow_policy, calc_type):
     learn = Pool(TRAIN_FILE, column_description=CD_FILE)
     test = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
         iterations=10,
+        thread_count=4,
         learning_rate=0.03,
         grow_policy=grow_policy,
         task_type=task_type,
@@ -10934,7 +10937,7 @@ def test_select_features_by_shap_values_nonsymmetric(task_type, grow_policy):
         eval_set=test,
         steps=2,
         algorithm='RecursiveByShapValues',
-        shap_calc_type='Regular',
+        shap_calc_type=calc_type,
         train_final_model=True,
         features_for_select='0-16',
         num_features_to_select=10
@@ -10945,12 +10948,15 @@ def test_select_features_by_shap_values_nonsymmetric(task_type, grow_policy):
 
 # 'Independent' calculation type is selected by passing reference_data
 @pytest.mark.parametrize('calc_type', ['Exact', 'Independent'])
-def test_shap_values_unsupported_calc_type_nonsymmetric(task_type, calc_type):
+@pytest.mark.parametrize('grow_policy', ['Depthwise', 'Lossguide'])
+@pytest.mark.parametrize('thread_count', [1, 4])
+def test_shap_values_unsupported_calc_type_nonsymmetric(task_type, calc_type, grow_policy, thread_count):
     learn = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
         iterations=10,
+        thread_count=4,
         learning_rate=0.03,
-        grow_policy='Depthwise',
+        grow_policy=grow_policy,
         task_type=task_type,
         gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0'
@@ -10960,6 +10966,7 @@ def test_shap_values_unsupported_calc_type_nonsymmetric(task_type, calc_type):
         model.get_feature_importance(
             learn,
             type='ShapValues',
+            thread_count=thread_count,
             shap_calc_type='Exact' if calc_type == 'Exact' else 'Regular',
             reference_data=learn if calc_type == 'Independent' else None
         )
@@ -12387,3 +12394,50 @@ def test_deepcopy_fit_predict_with_cat_features():
         model_copy.predict(df, prediction_type='Probability'),
         model_from_scratch.predict(df, prediction_type='Probability')
     )
+
+
+@pytest.mark.parametrize('grow_policy', ['SymmetricTree', 'Depthwise', 'Lossguide'])
+@pytest.mark.parametrize('bundling', [False, True])
+def test_no_valid_split_with_nan_derivatives(grow_policy, bundling):
+    class NanObjective:
+        def calc_ders_range(self, approxes, targets, weights):
+            return [(float('nan'), -1.0) for _ in targets]
+
+    # Exclusive non-binary features exercise the bundle split decoder from #1935.
+    features = np.zeros((100, 8))
+    for i in range(len(features)):
+        features[i, i % 8] = i % 7 + 1
+    model = CatBoostRegressor(
+        iterations=2,
+        loss_function=NanObjective(),
+        eval_metric='RMSE',
+        grow_policy=grow_policy,
+        dev_efb_max_buckets=254 if bundling else 0,
+        bootstrap_type='No',
+        random_strength=0,
+        thread_count=4,
+        allow_writing_files=False,
+        verbose=False,
+    )
+    # Training should reach the normal degenerate-model check, not decode bin -1.
+    with pytest.raises(CatBoostError, match='Model is not trained'):
+        model.fit(features, np.arange(len(features)) % 3)
+
+
+@pytest.mark.parametrize('grow_policy', ['Depthwise', 'Lossguide'])
+@pytest.mark.parametrize('calc_type', ['Regular', 'Approximate'])
+@pytest.mark.parametrize('thread_count', [1, 4])
+def test_shap_values_nonsymmetric_additivity(grow_policy, calc_type, thread_count):
+    random = np.random.RandomState(42)
+    features = random.normal(size=(128, 4))
+    target = (features[:, 0] > 0).astype(int) + (features[:, 1] > 0).astype(int)
+    pool = Pool(features, target)
+    model = CatBoostClassifier(
+        iterations=5, depth=3, grow_policy=grow_policy, thread_count=4,
+        allow_writing_files=False, verbose=False,
+    ).fit(pool)
+    shap_values = model.get_feature_importance(
+        pool, type='ShapValues', shap_calc_type=calc_type, thread_count=thread_count,
+    )
+    assert np.all(np.isfinite(shap_values))
+    np.testing.assert_allclose(shap_values.sum(axis=-1), model.predict(pool, prediction_type='RawFormulaVal'), atol=1e-8)

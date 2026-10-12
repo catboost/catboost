@@ -3486,8 +3486,8 @@ def test_mvs_bootstrap(boosting_type, loss_function):
     return [local_canonical_file(ref_eval_path)]
 
 
-# MVS bootstrap with non-symmetric trees used to crash (memory corruption) on GPU, see #1935
-@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+# MVS needs derivatives before sampling non-symmetric trees.
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC + ['Region'])
 @pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE'])
 @pytest.mark.parametrize('score_function', ['Cosine', 'NewtonL2'])
 def test_mvs_bootstrap_nonsymmetric(grow_policy, loss_function, score_function):
@@ -3534,11 +3534,40 @@ def test_mvs_bootstrap_nonsymmetric(grow_policy, loss_function, score_function):
     ref_eval = read_eval(ref_eval_path)
     assert np.all(np.isfinite(ref_eval))
 
-    for sample_rate in ('0.1', '0.9'):
+    for sample_rate in ('0.1', '0.9', '1.0'):
         eval_path = yatest.common.test_output_path('test_{}.eval'.format(sample_rate))
         run_catboost(eval_path, sample_rate)
-        assert not np.array_equal(ref_eval, read_eval(eval_path))
+        predictions = read_eval(eval_path)
+        assert np.all(np.isfinite(predictions))
+        assert not np.array_equal(ref_eval, predictions)
 
-    eval_path = yatest.common.test_output_path('test_mvs_reg.eval')
-    run_catboost(eval_path, '0.5', mvs_reg='0.1')
-    assert np.all(np.isfinite(read_eval(eval_path)))
+    for mvs_reg in ('0', '0.1'):
+        eval_path = yatest.common.test_output_path('test_mvs_reg_{}.eval'.format(mvs_reg))
+        run_catboost(eval_path, '0.5', mvs_reg=mvs_reg)
+        assert np.all(np.isfinite(read_eval(eval_path)))
+
+
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC + ['Region'])
+@pytest.mark.parametrize('score_function', ['Cosine', 'NewtonL2'])
+@pytest.mark.parametrize('constant_target', [False, True])
+def test_mvs_bootstrap_nonsymmetric_full_sample(grow_policy, score_function, constant_target):
+    random = np.random.RandomState(42)
+    features = random.normal(size=(128, 4))
+    target = np.full(len(features), 3.0) if constant_target else 2 * features[:, 0] - features[:, 1]
+    pool = catboost.Pool(features, target, weight=random.uniform(0.1, 2, len(target)))
+    params = dict(
+        iterations=5,
+        depth=3,
+        task_type='GPU',
+        devices='0',
+        grow_policy=grow_policy,
+        score_function=score_function,
+        random_strength=0,
+        random_seed=0,
+        allow_const_label=True,
+        allow_writing_files=False,
+        verbose=False,
+    )
+    reference = catboost.CatBoostRegressor(bootstrap_type='No', **params).fit(pool)
+    model = catboost.CatBoostRegressor(bootstrap_type='MVS', subsample=1, mvs_reg=0, **params).fit(pool)
+    np.testing.assert_allclose(model.predict(pool), reference.predict(pool), rtol=1e-6, atol=1e-6, equal_nan=False)

@@ -57,6 +57,7 @@ namespace NCatboostCuda {
                     break;
                 }
                 case EBootstrapType::MVS: {
+                    CB_ENSURE(derPtr, "MVS bootstrap requires derivatives");
                     const ui32 size = derPtr->GetObjectsSlice().Size();
 
                     if (!mvsLambda.Defined()) {
