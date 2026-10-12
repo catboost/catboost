@@ -77,9 +77,22 @@ public:
 
 class TGPUCatboostEvaluationContext {
 public:
+    TGPUCatboostEvaluationContext() = default;
+
+    TGPUCatboostEvaluationContext(const TGPUCatboostEvaluationContext& other)
+        : GPUModelData(other.GPUModelData)
+        , Stream(other.Stream)
+    {
+        // Model buffers are immutable; mutable workspaces must not be shared by clones.
+    }
+
+    TGPUCatboostEvaluationContext& operator=(const TGPUCatboostEvaluationContext&) = delete;
+
+public:
     TGPUModelData GPUModelData;
     TCudaStream Stream = TCudaStream::ZeroStream();
     mutable TEvaluationDataCache EvalDataCache;
+    mutable TCudaQuantizedData QuantizedDataCache;
 public:
     void QuantizeData(const TGPUDataInput& dataInput, TCudaQuantizedData* quantizedData) const;
     void EvalQuantizedData(
