@@ -90,25 +90,15 @@ namespace NCatboostCuda {
             // column 0 is weights (or second derivatives), other columns are derivatives
             CB_ENSURE(statsCount == 2, "MVS bootstrap is not supported for multidimensional targets on GPU");
 
-            TStripeBuffer<float> ders;
-            ders.Reset(stats.GetMapping());
-            {
-                auto dersView = stats.ColumnView(1);
-                ders.Copy(dersView);
+            // Full sampling must retain even zero-gradient observations with mvs_reg=0.
+            if (bootstrapConfig.GetTakenFraction() == 1.0f) {
+                targetDer->IsContinuousIndices = true;
+                return;
             }
 
-            TMaybe<float> lambda = bootstrapConfig.GetMvsReg();
-            if (!lambda.Defined()) {
-                lambda = mvsLambda;
-            }
-
-            TStripeBuffer<float> bootstrappedWeights;
-            bootstrappedWeights.Reset(stats.GetMapping());
-            TBootstrap<NCudaLib::TStripeMapping>::Bootstrap(bootstrapConfig,
-                                                            random,
-                                                            bootstrappedWeights,
-                                                            lambda,
-                                                            &ders);
+            auto ders = stats.ColumnView(1);
+            TBootstrap<NCudaLib::TStripeMapping> bootstrap(bootstrapConfig, mvsLambda);
+            auto bootstrappedWeights = bootstrap.BootstrappedWeights(random, &ders);
 
             for (auto column : xrange(statsCount)) {
                 auto columnView = stats.ColumnView(column);
