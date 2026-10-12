@@ -21,7 +21,11 @@ class App(ConanFile):
 
     def generate(self):
         CMakeDeps(self).generate()
-        CMakeToolchain(self).generate()
+        toolchain = CMakeToolchain(self)
+        # CUDA and non-CUDA builds run concurrently from the same source directory.
+        # Avoid racing on the shared CMakeUserPresets.json in that directory.
+        toolchain.user_presets_path = False
+        toolchain.generate()
 
         for dep in self.dependencies.values():
             for bindir in dep.cpp_info.bindirs:
