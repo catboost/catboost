@@ -13,7 +13,7 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 - Numerical and categorical features are supported. Text and embedding features will likely never be supported.
 - Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset.
 - Exporting a model with categorical features requires the training dataset (the `pool` parameter of `save_model` in the {{ python-package }}, the `--input-path` dataset for the command-line training with `--model-format ONNX`) to restore string values of categorical features from their hashes stored in the model.
-- Exported ONNX-ML models cannot be currently loaded and applied by {{ product }} libraries/executable. This export format is suitable only for external Machine Learning libraries.
+- The {{ python-package }} supports ONNX-ML import with `load_model(..., format="onnx")`. For models with categorical features, see the input layout described below.
 - {% include [reusage-common-phrases-native-catboost-format-is-faster](../_includes/work_src/reusage-common-phrases/native-catboost-format-is-faster.md) %}
 
 - The model's metadata is stored in the `metadata_props` component of the [ONNX Model](https://github.com/onnx/onnx/blob/master/docs/IR.md#models).
@@ -28,9 +28,11 @@ The numerical input features.
 
 Possible types: Tensor of shape [N_examples, number_of_numerical_features] and type {{ python-type--float }}
 
-If the model does not use categorical features, the tensor must contain all features of the training dataset (in the order of the training dataset columns), so `number_of_numerical_features` is equal to the number of features in the training dataset.
+If the model does not use categorical features, columns use their original training feature indices. Use the input tensor's declared width; unused columns, including unused categorical features, can be filled with zeros.
 
-If the model uses categorical features, the tensor must contain only the numerical features of the training dataset (in the order of the training dataset columns). Categorical features are passed as separate inputs.
+If the model uses categorical features, the tensor must contain only the numerical features retained in the model (in the order of the training dataset columns). This includes unused numerical features unless `drop_unused_features()` was called. Categorical features are passed as separate inputs.
+
+If the model uses categorical features and retains no numerical features, pass an empty numerical tensor of shape `[N_examples, 0]`.
 
 #### Categorical features
 
@@ -40,11 +42,19 @@ Each categorical feature used by the model is exported as a separate input with 
 
 Categorical features that are not used by the model do not have corresponding inputs. Use the ONNX model's inputs list to get the actual set of inputs.
 
+Input names must be unique and must not conflict with another feature's encoded name (`<input_name>_encoded`) or the reserved graph names `features`, `all_features`, `label`, `probability_tensor`, `probabilities`, and `predictions`.
+
 Possible types: Tensor of shape [N_examples, 1] and type {{ python-type--string }}
 
 Values are converted to strings exactly as in {{ product }} (for example, integer values must be passed as their decimal string representations). Values not present in the training dataset are treated as unseen categories, the same way as in {{ product }}.
 
 The exported graph maps string values to numbers with [LabelEncoder](https://onnx.ai/onnx/operators/onnx_aionnxml_LabelEncoder.html) operators and concatenates them with the numerical features before the tree ensemble operator.
+
+#### Importing a model with categorical features
+
+When loading the exported model back into {{ product }}, its feature order follows the tree ensemble input: numerical features first, followed by the exported categorical features in their ONNX input order. Categorical features unused by the original model are omitted. Reorder prediction data accordingly and obtain categorical column indices with `get_cat_feature_indices()`.
+
+Import supports string-to-float `LabelEncoder` mappings with unique 32-bit integer encoded values and a non-NaN default value different from every encoded value. A feature cannot participate in both categorical equality comparisons and numerical ordered comparisons.
 
 
 
@@ -81,7 +91,7 @@ Possible types: tensor of shape [N_examples] and one of the following types:
 
 The target value predicted by the model.
 
-Possible types: tensor of shape [N_examples] and type float
+Possible types: tensor of shape [N_examples, 1] and type float
 
 
 
