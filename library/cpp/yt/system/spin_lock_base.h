@@ -2,6 +2,8 @@
 
 #include "public.h"
 
+#include <library/cpp/yt/misc/source_location.h>
+
 #include <util/system/src_location.h>
 
 namespace NYT {
@@ -25,7 +27,7 @@ class TSpinLockInplace
     : public TLock
 {
 public:
-    TSpinLockInplace();
+    constexpr TSpinLockInplace();
 };
 
 #define YT_SPIN_LOCK_INPLACE_TYPE(type) \

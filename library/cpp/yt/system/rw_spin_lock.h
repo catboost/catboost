@@ -180,6 +180,7 @@ using TReaderWriterSpinLock = NDetail::TUncheckedReaderWriterSpinLock;
 class alignas(CacheLineSize) TPaddedReaderWriterSpinLock
     : public TReaderWriterSpinLock
 {
+public:
     using TReaderWriterSpinLock::TReaderWriterSpinLock;
 };
 

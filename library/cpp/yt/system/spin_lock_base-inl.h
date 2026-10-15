@@ -5,8 +5,6 @@
 #include "spin_lock_base.h"
 #endif
 
-#include <library/cpp/yt/misc/source_location.h>
-
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -22,7 +20,7 @@ inline constexpr TSpinLockBase::TSpinLockBase(const ::TSourceLocation& location)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class TLock, auto LocationLite>
-TSpinLockInplace<TLock, LocationLite>::TSpinLockInplace()
+constexpr TSpinLockInplace<TLock, LocationLite>::TSpinLockInplace()
     : TLock(::TSourceLocation{LocationLite.FileName, LocationLite.Line})
 { }
 

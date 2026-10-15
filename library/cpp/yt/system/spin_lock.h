@@ -68,6 +68,7 @@ private:
 class alignas(CacheLineSize) TPaddedSpinLock
     : public TSpinLock
 {
+public:
     using TSpinLock::TSpinLock;
 };
 
