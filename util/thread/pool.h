@@ -199,7 +199,11 @@ public:
         {
         }
 
+#if defined(_MSC_VER) && defined(_M_ARM64)
+        Y_NO_INLINE ~TTsr() {
+#else
         inline ~TTsr() {
+#endif
             try {
                 Q_->DestroyThreadSpecificResource(Data_);
             } catch (...) {
