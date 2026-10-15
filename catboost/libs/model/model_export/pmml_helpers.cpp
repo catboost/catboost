@@ -12,6 +12,7 @@
 #include <util/datetime/base.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
+#include <util/generic/hash_set.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
@@ -129,27 +130,40 @@ static void OutputMiningSchemaWithModelFeatures(
     const TFullModel& model,
     bool mappedCategoricalFeatures,
     TMaybe<TStringBuf> targetName, // if nothing - don't output it
-    TXmlOutputContext* xmlOut) {
+    TXmlOutputContext* xmlOut,
+    const THashSet<int>* usedFloatFeatures = nullptr,
+    const THashSet<int>* usedCatFeatures = nullptr) {
 
     TXmlElementOutputContext miningSchema(xmlOut, "MiningSchema");
 
-    for (const auto& floatFeature : model.ModelTrees->GetFloatFeatures()) {
+    const auto& floatFeatures = model.ModelTrees->GetFloatFeatures();
+    for (auto floatFeatureIdx : xrange(floatFeatures.size())) {
+        if (usedFloatFeatures && !usedFloatFeatures->contains(SafeIntegerCast<int>(floatFeatureIdx))) {
+            continue;
+        }
         TXmlElementOutputContext miningField(xmlOut, "MiningField");
-        xmlOut->AddAttr("name", CreateFeatureName(floatFeature)).AddAttr("usageType", "active");
+        xmlOut->AddAttr("name", CreateFeatureName(floatFeatures[floatFeatureIdx])).AddAttr("usageType", "active");
     }
 
     const auto& modelTrees = model.ModelTrees;
 
     if (mappedCategoricalFeatures) {
         for (const auto& oneHotFeature : modelTrees->GetOneHotFeatures()) {
+            if (usedCatFeatures && !usedCatFeatures->contains(oneHotFeature.CatFeatureIndex)) {
+                continue;
+            }
             TXmlElementOutputContext miningField(xmlOut, "MiningField");
             xmlOut->AddAttr("name", CreateFeatureName(modelTrees->GetCatFeatures()[oneHotFeature.CatFeatureIndex]) + "_mapped")
                 .AddAttr("usageType", "active");
         }
     } else {
-        for (const auto& catFeature : modelTrees->GetCatFeatures()) {
+        const auto& catFeatures = modelTrees->GetCatFeatures();
+        for (auto catFeatureIdx : xrange(catFeatures.size())) {
+            if (usedCatFeatures && !usedCatFeatures->contains(SafeIntegerCast<int>(catFeatureIdx))) {
+                continue;
+            }
             TXmlElementOutputContext miningField(xmlOut, "MiningField");
-            xmlOut->AddAttr("name", CreateFeatureName(catFeature))
+            xmlOut->AddAttr("name", CreateFeatureName(catFeatures[catFeatureIdx]))
                 .AddAttr("usageType", "active");
         }
     }
@@ -157,6 +171,33 @@ static void OutputMiningSchemaWithModelFeatures(
     if (targetName) {
         TXmlElementOutputContext miningField(xmlOut, "MiningField");
         xmlOut->AddAttr("name", *targetName).AddAttr("usageType", "target");
+    }
+}
+
+static void CollectUsedFeatures(
+    const TModelTrees& modelTrees,
+    size_t treeIdx,
+    THashSet<int>* usedFloatFeatures,
+    THashSet<int>* usedCatFeatures) {
+
+    const auto& treeData = *modelTrees.GetModelTreeData();
+    const auto treeStartOffset = treeData.GetTreeStartOffsets()[treeIdx];
+    const auto treeSize = treeData.GetTreeSizes()[treeIdx];
+
+    for (auto nodeIdx : xrange(treeStartOffset, treeStartOffset + treeSize)) {
+        if (!modelTrees.IsOblivious()) {
+            const auto& stepNode = treeData.GetNonSymmetricStepNodes()[nodeIdx];
+            if ((stepNode.LeftSubtreeDiff == 0) && (stepNode.RightSubtreeDiff == 0)) {
+                continue;
+            }
+        }
+        const auto& binFeature = modelTrees.GetBinFeatures()[treeData.GetTreeSplits()[nodeIdx]];
+        if (binFeature.Type == ESplitType::FloatFeature) {
+            usedFloatFeatures->insert(binFeature.FloatFeature.FloatFeature);
+        } else {
+            Y_ASSERT(binFeature.Type == ESplitType::OneHotFeature);
+            usedCatFeatures->insert(binFeature.OneHotFeature.CatFeatureIdx);
+        }
     }
 }
 
@@ -494,7 +535,17 @@ static void OutputTree(
         .AddAttr("missingValueStrategy", "defaultChild")
         .AddAttr("splitCharacteristic", "binarySplit");
 
-    OutputMiningSchemaWithModelFeatures(model, /*mappedCategoricalFeatures*/ true, targetName, xmlOut);
+    THashSet<int> usedFloatFeatures;
+    THashSet<int> usedCatFeatures;
+    CollectUsedFeatures(*model.ModelTrees, treeIdx, &usedFloatFeatures, &usedCatFeatures);
+
+    OutputMiningSchemaWithModelFeatures(
+        model,
+        /*mappedCategoricalFeatures*/ true,
+        targetName,
+        xmlOut,
+        &usedFloatFeatures,
+        &usedCatFeatures);
 
     {
         TXmlElementOutputContext output(xmlOut, "Output");
