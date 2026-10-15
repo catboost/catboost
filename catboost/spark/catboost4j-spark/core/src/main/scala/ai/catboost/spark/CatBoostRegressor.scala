@@ -78,6 +78,9 @@ class CatBoostRegressionModel (
     nativeDimension = 1 // always for regression
   )
 
+  // for ML on Spark Connect only
+  private[spark] def this() = this(Identifiable.randomUID("CatBoostRegressionModel"), null, 1)
+
   override def copy(extra: ParamMap): CatBoostRegressionModel = {
     val that = new CatBoostRegressionModel(this.uid, this.nativeModel, this.nativeDimension)
     this.copyValues(that, extra).asInstanceOf[CatBoostRegressionModel]
