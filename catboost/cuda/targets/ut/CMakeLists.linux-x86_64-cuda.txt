@@ -54,6 +54,7 @@ target_link_options(catboost-cuda-targets-ut PRIVATE
 target_sources(catboost-cuda-targets-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_auc.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_multi_logit.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_multi_rmse_with_missing_values.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_query_cross_entropy.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_combination.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_tweedie.cpp
