@@ -1,3 +1,4 @@
+#include <contrib/libs/llvm/flang-rt/flang-rt/lib/runtime/stl-overrides.h>
 //===-- lib/runtime/derived-api.cpp -----------------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.

@@ -1,4 +1,4 @@
-//===-- lib/runtime/matmul-transpose.cpp ------------------------*- C++ -*-===//
+//===-- lib/runtime/matmul-transpose.h --------------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -20,13 +20,16 @@
 // The usefulness of this optimization should be reviewed once Matmul is swapped
 // to use the faster BLAS routines.
 
-#include "flang/Runtime/matmul-transpose.h"
+#ifndef FLANG_RT_RUNTIME_MATMUL_TRANSPOSE_H_
+#define FLANG_RT_RUNTIME_MATMUL_TRANSPOSE_H_
+
 #include "flang-rt/runtime/descriptor.h"
 #include "flang-rt/runtime/terminator.h"
 #include "flang-rt/runtime/tools.h"
 #include "flang/Common/optional.h"
 #include "flang/Runtime/c-or-cpp.h"
 #include "flang/Runtime/cpp-type.h"
+#include "flang/Runtime/entry-names.h"
 #include <cstring>
 
 namespace {
@@ -163,11 +166,10 @@ inline static RT_API_ATTRS void MatrixTransposedTimesVectorHelper(
 }
 
 // Implements an instance of MATMUL for given argument types.
-template <bool IS_ALLOCATING, TypeCategory RCAT, int RKIND, typename XT,
-    typename YT>
-inline static RT_API_ATTRS void DoMatmulTranspose(
-    std::conditional_t<IS_ALLOCATING, Descriptor, const Descriptor> &result,
-    const Descriptor &x, const Descriptor &y, Terminator &terminator) {
+template <TypeCategory RCAT, int RKIND, typename XT, typename YT>
+inline static RT_API_ATTRS void DoMatmulTranspose(Descriptor &result,
+    const Descriptor &x, const Descriptor &y, Terminator &terminator,
+    bool isAllocating) {
   int xRank{x.rank()};
   int yRank{y.rank()};
   int resRank{xRank + yRank - 2};
@@ -177,7 +179,7 @@ inline static RT_API_ATTRS void DoMatmulTranspose(
   }
   SubscriptValue extent[2]{x.GetDimension(1).Extent(),
       resRank == 2 ? y.GetDimension(1).Extent() : 0};
-  if constexpr (IS_ALLOCATING) {
+  if (isAllocating) {
     result.Establish(
         RCAT, RKIND, nullptr, resRank, extent, CFI_attribute_allocatable);
     for (int j{0}; j < resRank; ++j) {
@@ -212,7 +214,7 @@ inline static RT_API_ATTRS void DoMatmulTranspose(
   const SubscriptValue cols{extent[1]};
   if constexpr (RCAT != TypeCategory::Logical) {
     if (x.IsContiguous(1) && y.IsContiguous(1) &&
-        (IS_ALLOCATING || result.IsContiguous())) {
+        (isAllocating || result.IsContiguous())) {
       // Contiguous numeric matrices (maybe with columns
       // separated by a stride).
       Fortran::common::optional<std::size_t> xColumnByteStride;
@@ -246,7 +248,7 @@ inline static RT_API_ATTRS void DoMatmulTranspose(
             x.OffsetElement<XT>(), y.OffsetElement<YT>(), xColumnByteStride);
         return;
       }
-      // else V*M -> V (not allowed because TRANSPOSE() is only defined for rank
+      // V*M -> V (not allowed because TRANSPOSE() is only defined for rank
       // 1 matrices
       terminator.Crash(
           "MATMUL-TRANSPOSE: unacceptable operand shapes (%jdx%jd, %jdx%jd)",
@@ -326,14 +328,12 @@ inline static RT_API_ATTRS void DoMatmulTranspose(
   }
 }
 
-template <bool IS_ALLOCATING, TypeCategory XCAT, int XKIND, TypeCategory YCAT,
-    int YKIND>
+template <TypeCategory XCAT, int XKIND, TypeCategory YCAT, int YKIND>
 struct MatmulTransposeHelper {
-  using ResultDescriptor =
-      std::conditional_t<IS_ALLOCATING, Descriptor, const Descriptor>;
   using ResultTy = Fortran::common::optional<std::pair<TypeCategory, int>>;
-  RT_API_ATTRS void operator()(ResultDescriptor &result, const Descriptor &x,
-      const Descriptor &y, const char *sourceFile, int line) const {
+  RT_API_ATTRS void operator()(Descriptor &result, const Descriptor &x,
+      const Descriptor &y, const char *sourceFile, int line,
+      bool isAllocating) const {
     Terminator terminator{sourceFile, line};
     auto xCatKind{x.type().GetCategoryAndKind()};
     auto yCatKind{y.type().GetCategoryAndKind()};
@@ -342,9 +342,9 @@ struct MatmulTransposeHelper {
     RUNTIME_CHECK(terminator, yCatKind->first == YCAT);
     if constexpr (constexpr ResultTy resultType{
                       GetResultType(XCAT, XKIND, YCAT, YKIND)}) {
-      return DoMatmulTranspose<IS_ALLOCATING, resultType->first,
-          resultType->second, CppTypeFor<XCAT, XKIND>, CppTypeFor<YCAT, YKIND>>(
-          result, x, y, terminator);
+      return DoMatmulTranspose<resultType->first, resultType->second,
+          CppTypeFor<XCAT, XKIND>, CppTypeFor<YCAT, YKIND>>(
+          result, x, y, terminator, isAllocating);
     }
     terminator.Crash("MATMUL-TRANSPOSE: bad operand types (%d(%d), %d(%d))",
         static_cast<int>(XCAT), XKIND, static_cast<int>(YCAT), YKIND);
@@ -352,30 +352,20 @@ struct MatmulTransposeHelper {
 };
 } // namespace
 
-namespace Fortran::runtime {
-extern "C" {
-RT_EXT_API_GROUP_BEGIN
-
 #define MATMUL_INSTANCE(XCAT, XKIND, YCAT, YKIND) \
   void RTDEF(MatmulTranspose##XCAT##XKIND##YCAT##YKIND)(Descriptor & result, \
       const Descriptor &x, const Descriptor &y, const char *sourceFile, \
       int line) { \
-    MatmulTransposeHelper<true, TypeCategory::XCAT, XKIND, TypeCategory::YCAT, \
-        YKIND>{}(result, x, y, sourceFile, line); \
+    MatmulTransposeHelper<TypeCategory::XCAT, XKIND, TypeCategory::YCAT, \
+        YKIND>{}(result, x, y, sourceFile, line, true); \
   }
 
 #define MATMUL_DIRECT_INSTANCE(XCAT, XKIND, YCAT, YKIND) \
   void RTDEF(MatmulTransposeDirect##XCAT##XKIND##YCAT##YKIND)( \
       Descriptor & result, const Descriptor &x, const Descriptor &y, \
       const char *sourceFile, int line) { \
-    MatmulTransposeHelper<false, TypeCategory::XCAT, XKIND, \
-        TypeCategory::YCAT, YKIND>{}(result, x, y, sourceFile, line); \
+    MatmulTransposeHelper<TypeCategory::XCAT, XKIND, TypeCategory::YCAT, \
+        YKIND>{}(result, x, y, sourceFile, line, false); \
   }
 
-#define MATMUL_FORCE_ALL_TYPES 0
-
-#include "flang/Runtime/matmul-instances.inc"
-
-RT_EXT_API_GROUP_END
-} // extern "C"
-} // namespace Fortran::runtime
+#endif // FLANG_RT_RUNTIME_MATMUL_TRANSPOSE_H_

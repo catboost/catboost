@@ -1,3 +1,4 @@
+#include <contrib/libs/llvm/flang-rt/flang-rt/lib/runtime/stl-overrides.h>
 //===-- lib/Decimal/decimal-to-binary.cpp ---------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -7,7 +8,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "big-radix-floating-point.h"
-#include "flang/Common/bit-population-count.h"
 #include "flang/Common/leading-zero-bit-count.h"
 #include "flang/Decimal/binary-floating-point.h"
 #include "flang/Decimal/decimal.h"

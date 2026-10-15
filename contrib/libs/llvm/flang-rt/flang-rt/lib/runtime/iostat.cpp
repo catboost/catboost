@@ -1,3 +1,4 @@
+#include <contrib/libs/llvm/flang-rt/flang-rt/lib/runtime/stl-overrides.h>
 //===-- lib/runtime/iostat.cpp ----------------------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -119,6 +120,12 @@ const char *IostatErrorString(int iostat) {
     return "List-directed input value has trailing unused characters";
   case IostatNonExternalDefinedUnformattedIo:
     return "Defined unformatted I/O without an external unit";
+  case IostatOpenNewExtant:
+    return "OPEN(STATUS='NEW') on existing file";
+  case IostatParentAsynchronous:
+    return "ASYNCHRONOUS='YES' on a parent data transfer statement";
+  case IostatChildAsynchronous:
+    return "ASYNCHRONOUS='YES' on a child data transfer statement";
   default:
     return nullptr;
   }

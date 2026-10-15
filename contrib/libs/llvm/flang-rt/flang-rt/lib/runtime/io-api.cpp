@@ -1,3 +1,4 @@
+#include <contrib/libs/llvm/flang-rt/flang-rt/lib/runtime/stl-overrides.h>
 //===-- lib/runtime/io-api.cpp ----------------------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -244,6 +245,11 @@ RT_API_ATTRS Cookie BeginUnformattedIO(
       iostat = unit->SetDirection(DIR);
     }
     if (iostat == IostatOk) {
+      if (unit->IsAfterEndfile() && DIR == Direction::Output) {
+        iostat = IostatWriteAfterEndfile;
+      }
+    }
+    if (iostat == IostatOk) {
       IoStatementState &io{
           unit->BeginIoStatement<ExternalUnformattedIoStatementState<DIR>>(
               terminator, *unit, sourceFile, sourceLine)};
@@ -308,7 +314,8 @@ Cookie IODEF(BeginOpenNewUnit)( // OPEN(NEWUNIT=j)
 Cookie IODEF(BeginWait)(ExternalUnit unitNumber, AsynchronousId id,
     const char *sourceFile, int sourceLine) {
   Terminator terminator{sourceFile, sourceLine};
-  if (ExternalFileUnit * unit{ExternalFileUnit::LookUp(unitNumber)}) {
+  if (ExternalFileUnit *
+      unit{ExternalFileUnit::LookUp(unitNumber, terminator)}) {
     if (unit->Wait(id)) {
       return &unit->BeginIoStatement<ExternalMiscIoStatementState>(terminator,
           *unit, ExternalMiscIoStatementState::Wait, sourceFile, sourceLine);
@@ -329,14 +336,16 @@ Cookie IODEF(BeginWaitAll)(
 Cookie IODEF(BeginClose)(
     ExternalUnit unitNumber, const char *sourceFile, int sourceLine) {
   Terminator terminator{sourceFile, sourceLine};
-  if (ExternalFileUnit * unit{ExternalFileUnit::LookUp(unitNumber)}) {
+  if (ExternalFileUnit *
+      unit{ExternalFileUnit::LookUp(unitNumber, terminator)}) {
     if (ChildIo * child{unit->GetChildIo()}) {
       return &child->BeginIoStatement<ErroneousIoStatementState>(
           IostatBadOpOnChildUnit, nullptr /* no unit */, sourceFile,
           sourceLine);
     }
   }
-  if (ExternalFileUnit * unit{ExternalFileUnit::LookUpForClose(unitNumber)}) {
+  if (ExternalFileUnit *
+      unit{ExternalFileUnit::LookUpForClose(unitNumber, terminator)}) {
     return &unit->BeginIoStatement<CloseStatementState>(
         terminator, *unit, sourceFile, sourceLine);
   } else {
@@ -348,7 +357,8 @@ Cookie IODEF(BeginClose)(
 Cookie IODEF(BeginFlush)(
     ExternalUnit unitNumber, const char *sourceFile, int sourceLine) {
   Terminator terminator{sourceFile, sourceLine};
-  if (ExternalFileUnit * unit{ExternalFileUnit::LookUp(unitNumber)}) {
+  if (ExternalFileUnit *
+      unit{ExternalFileUnit::LookUp(unitNumber, terminator)}) {
     if (ChildIo * child{unit->GetChildIo()}) {
       return &child->BeginIoStatement<ExternalMiscIoStatementState>(
           *unit, ExternalMiscIoStatementState::Flush, sourceFile, sourceLine);
@@ -366,7 +376,8 @@ Cookie IODEF(BeginFlush)(
 Cookie IODEF(BeginBackspace)(
     ExternalUnit unitNumber, const char *sourceFile, int sourceLine) {
   Terminator terminator{sourceFile, sourceLine};
-  if (ExternalFileUnit * unit{ExternalFileUnit::LookUp(unitNumber)}) {
+  if (ExternalFileUnit *
+      unit{ExternalFileUnit::LookUp(unitNumber, terminator)}) {
     if (ChildIo * child{unit->GetChildIo()}) {
       return &child->BeginIoStatement<ErroneousIoStatementState>(
           IostatBadOpOnChildUnit, nullptr /* no unit */, sourceFile,
@@ -424,7 +435,8 @@ Cookie IODEF(BeginRewind)(
 Cookie IODEF(BeginInquireUnit)(
     ExternalUnit unitNumber, const char *sourceFile, int sourceLine) {
   Terminator terminator{sourceFile, sourceLine};
-  if (ExternalFileUnit * unit{ExternalFileUnit::LookUp(unitNumber)}) {
+  if (ExternalFileUnit *
+      unit{ExternalFileUnit::LookUp(unitNumber, terminator)}) {
     if (ChildIo * child{unit->GetChildIo()}) {
       return &child->BeginIoStatement<InquireUnitState>(
           *unit, sourceFile, sourceLine);
@@ -447,8 +459,8 @@ Cookie IODEF(BeginInquireFile)(const char *path, std::size_t pathLength,
   auto trimmed{SaveDefaultCharacter(
       path, TrimTrailingSpaces(path, pathLength), terminator)};
   if (ExternalFileUnit *
-      unit{ExternalFileUnit::LookUp(
-          trimmed.get(), Fortran::runtime::strlen(trimmed.get()))}) {
+      unit{ExternalFileUnit::LookUp(trimmed.get(),
+          Fortran::runtime::strlen(trimmed.get()), terminator)}) {
     // INQUIRE(FILE=) to a connected unit
     if (ChildIo * child{unit->GetChildIo()}) {
       return &child->BeginIoStatement<InquireUnitState>(
@@ -682,6 +694,29 @@ bool IODEF(SetSign)(Cookie cookie, const char *keyword, std::size_t length) {
   }
 }
 
+bool IODEF(SetLeadingZero)(
+    Cookie cookie, const char *keyword, std::size_t length) {
+  IoStatementState &io{*cookie};
+  if (auto *open{io.get_if<OpenStatementState>()}) {
+    open->set_mustBeFormatted();
+  }
+  static const char *keywords[]{
+      "PRINT", "PROCESSOR_DEFINED", "SUPPRESS", nullptr};
+  switch (IdentifyValue(keyword, length, keywords)) {
+  case 0: // LZP, print leading zero, if the field has room for it
+  case 1: // LZ, processor default, treated as LZP
+    io.mutableModes().editingFlags &= ~leadingZeroSuppress;
+    return true;
+  case 2:
+    io.mutableModes().editingFlags |= leadingZeroSuppress;
+    return true;
+  default:
+    io.GetIoErrorHandler().SignalError(IostatErrorInKeyword,
+        "Invalid LEADING_ZERO='%.*s'", static_cast<int>(length), keyword);
+    return false;
+  }
+}
+
 bool IODEF(SetAccess)(Cookie cookie, const char *keyword, std::size_t length) {
   IoStatementState &io{*cookie};
   auto *open{io.get_if<OpenStatementState>()};
@@ -779,8 +814,13 @@ bool IODEF(SetAsynchronous)(
     } else {
       handler.SignalError(IostatBadAsynchronous);
     }
-  } else if (!io.get_if<NoopStatementState>() &&
-      !io.get_if<ErroneousIoStatementState>()) {
+  } else if (io.get_if<NoopStatementState>() ||
+      io.get_if<ErroneousIoStatementState>()) {
+    // no error
+  } else if (io.get_if<ChildIoStatementState<Direction::Output>>() ||
+      io.get_if<ChildIoStatementState<Direction::Input>>()) {
+    io.GetIoErrorHandler().SignalError(IostatChildAsynchronous);
+  } else {
     handler.Crash("SetAsynchronous('YES') called when not in an OPEN or "
                   "external I/O statement");
   }
