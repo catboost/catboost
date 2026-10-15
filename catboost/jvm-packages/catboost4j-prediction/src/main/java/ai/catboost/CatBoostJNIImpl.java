@@ -127,6 +127,11 @@ class CatBoostJNIImpl {
             @NotNull int[] treeCount);
 
     @Nullable
+    final static native String catBoostModelGetLossFunctionName(
+            long handle,
+            @NotNull String[] lossFunctionName);
+
+    @Nullable
     final static native String catBoostModelPredict(
             long handle,
             @Nullable float[] numericFeatures,
