@@ -94,7 +94,7 @@ bool THttpParser::HeadersParser() {
                 }
 
                 if (ContentLength_ < 1000000) {
-                    Content_.reserve(ContentLength_ + 1);
+                    Content_.reserve(Min<ui64>(ContentLength_, ContentLengthReserveLimit_) + 1);
                 }
             }
 

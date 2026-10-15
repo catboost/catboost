@@ -4,6 +4,7 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/yexception.h>
 #include <util/generic/hash_set.h>
+#include <util/generic/ylimits.h>
 #include <util/string/cast.h>
 #include <library/cpp/http/io/stream.h>
 
@@ -34,6 +35,12 @@ public:
 
     inline void SetGzipAllowMultipleStreams(bool allow) noexcept {
         GzipAllowMultipleStreams_ = allow;
+    }
+
+    // Limit preallocation based on Content-Length, not the amount of content accepted.
+    // The content buffer may still grow beyond this hint while parsing.
+    inline void SetContentLengthReserveLimit(size_t limit) noexcept {
+        ContentLengthReserveLimit_ = limit;
     }
 
     inline void DisableDecodeContent() noexcept {
@@ -172,6 +179,7 @@ private:
     TString ContentEncoding_;
     bool HasContentLength_ = false;
     ui64 ContentLength_ = 0;
+    size_t ContentLengthReserveLimit_ = Max<size_t>();
 
     struct TChunkInputState {
         size_t LeftBytes_ = 0;
