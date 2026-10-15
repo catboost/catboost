@@ -770,6 +770,7 @@ if __name__ == '__main__':
         description='CatBoost Python Package',
         long_description='CatBoost is a fast, scalable, high performance gradient boosting on decision trees library. Used for ranking, classification, regression and other ML tasks.',
         license='Apache License, Version 2.0',
+        license_files=[os.path.relpath(os.path.join(get_topsrc_dir(), 'LICENSE'), SETUP_DIR)],
         url='https://catboost.ai',
         project_urls={
             'GitHub': 'https://github.com/catboost/catboost',
