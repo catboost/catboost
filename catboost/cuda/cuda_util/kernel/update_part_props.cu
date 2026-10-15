@@ -74,7 +74,7 @@ namespace NKernel {
                     stat += stripeSize;
                 }
                 accumResult += (double)sum.x + (double)sum.y + (double)sum.z + (double)sum.w;
-                sum = {0};
+                sum = make_float4(0, 0, 0, 0);
             }
             #pragma unroll N
             for (; i < iterCount; ++i) {
