@@ -13,11 +13,16 @@ fn main() {
 
     let mut build_native_args = vec![
         "../../../build/build_native.py",
-        "--targets",
-        "catboostmodel",
         "--build-root-dir",
         out_dir.to_str().unwrap(),
     ];
+
+    #[cfg(feature = "static-link")]
+    build_native_args.push("--targets=catboostmodel_static");
+
+    #[cfg(not(feature = "static-link"))]
+    build_native_args.push("--targets=catboostmodel");
+
     if debug == "true" {
         build_native_args.push("--build-type=Debug");
     } else {
@@ -50,10 +55,16 @@ fn main() {
         .write_to_file(out_dir.join("bindings.rs"))
         .expect("Couldn't write bindings.");
 
-    println!(
-        "cargo:rustc-link-search={}",
-        out_dir.join("catboost/libs/model_interface").display()
-    );
+    #[cfg(feature = "static-link")]
+    {
+        println!("cargo:rustc-link-search={}", out_dir.join("catboost/libs/model_interface/static").display());
+        println!("cargo:rustc-link-lib=static=catboostmodel_static");
+        println!("cargo:rustc-link-lib=static=catboostmodel_static.global");
+    }
 
-    println!("cargo:rustc-link-lib=dylib=catboostmodel");
+    #[cfg(not(feature = "static-link"))]
+    {
+        println!("cargo:rustc-link-search={}", out_dir.join("catboost/libs/model_interface").display());
+        println!("cargo:rustc-link-lib=dylib=catboostmodel");
+    }
 }
