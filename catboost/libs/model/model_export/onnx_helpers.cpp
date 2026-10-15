@@ -89,10 +89,6 @@ void NCB::NOnnx::InitMetadata(
 
 
 static bool IsClassifierModel(const TFullModel& model) {
-    if (model.ModelTrees->GetDimensionsCount() > 1) { // multiclass
-        return true;
-    }
-
     if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
         NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
 
@@ -100,13 +96,12 @@ static bool IsClassifierModel(const TFullModel& model) {
             NCatboostOptions::TLossDescription modelLossDescription;
             modelLossDescription.Load(paramsJson["loss_function"]);
 
-            if (IsClassificationObjective(modelLossDescription.LossFunction)) {
-                return true;
-            }
+            return IsClassificationObjective(modelLossDescription.LossFunction);
         }
     }
 
-    return false;
+    // loss function is unknown, fall back to treating multi-dimensional models as multiclass
+    return model.ModelTrees->GetDimensionsCount() > 1;
 }
 
 
@@ -467,14 +462,14 @@ static void AddTree(
                 ++leafValue;
             }
         } else {
-            Y_ASSERT(trees.GetDimensionsCount() == 1);
+            for (auto targetIdx : xrange(trees.GetDimensionsCount())) {
+                treesAttributes->target_treeids->add_ints(treeIdx);
+                treesAttributes->target_nodeids->add_ints(nodeIdx);
 
-            treesAttributes->target_treeids->add_ints(treeIdx);
-            treesAttributes->target_nodeids->add_ints(nodeIdx);
-
-            treesAttributes->target_ids->add_ints(0);
-            treesAttributes->target_weights->add_floats((float)*leafValue);
-            ++leafValue;
+                treesAttributes->target_ids->add_ints(targetIdx);
+                treesAttributes->target_weights->add_floats((float)*leafValue);
+                ++leafValue;
+            }
         }
     }
 }
@@ -550,12 +545,16 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         treesNode->set_op_type("TreeEnsembleRegressor");
 
         AddAttribute("post_transform", "NONE", treesNode);
-        AddAttribute("n_targets", i64(1), treesNode);
+        AddAttribute("n_targets", i64(trees.GetDimensionsCount()), treesNode);
 
+        TMaybe<google::protobuf::int64> predictionsSecondDim;
+        if (trees.GetDimensionsCount() > 1) {
+            predictionsSecondDim = trees.GetDimensionsCount();
+        }
         InitValueInfo(
             "predictions",
             onnx::TensorProto_DataType_FLOAT,
-            /*secondDim*/ Nothing(),
+            predictionsSecondDim,
             onnxGraph->add_output()
         );
         treesNode->add_output("predictions");
@@ -682,6 +681,9 @@ static void PrepareTrees(
         *approxDimension = static_cast<int>((*trees)[0][anyIdxNodeIdLeaf].Values.size());
     } else {
         treatLeafNode(treesAttributes.target_treeids, treesAttributes.target_nodeids, treesAttributes.target_weights);
+        //setup approxDimension
+        const auto anyIdxNodeIdLeaf = treesAttributes.target_nodeids->ints(0);
+        *approxDimension = static_cast<int>((*trees)[0][anyIdxNodeIdLeaf].Values.size());
     }
 }
 
