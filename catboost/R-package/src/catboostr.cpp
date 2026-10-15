@@ -17,6 +17,7 @@
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/mvs.h>
 #include <catboost/private/libs/algo/plot.h>
+#include <catboost/private/libs/algo/tree_print.h>
 #include <catboost/private/libs/documents_importance/docs_importance.h>
 #include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
@@ -945,6 +946,94 @@ EXPORT_FUNCTION CatBoostDropUnusedFeaturesFromModel_R(SEXP modelParam) {
     model->ModelTrees.GetMutable()->DropUnusedFeatures();
     R_API_END();
     return ScalarLogical(1);
+}
+
+EXPORT_FUNCTION CatBoostGetTreeInfo_R(SEXP modelParam, SEXP treeIdxParam, SEXP poolParam) {
+    SEXP result = nullptr;
+    SEXP names = nullptr;
+    SEXP splitsParam = nullptr;
+    SEXP leafValuesParam = nullptr;
+    SEXP isObliviousParam = nullptr;
+    SEXP stepNodesParam = nullptr;
+    SEXP stepNodesDim = nullptr;
+    SEXP nodeToLeafParam = nullptr;
+    int protectCount = 0;
+
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    const int treeIdx = asInteger(treeIdxParam);
+    CB_ENSURE(treeIdx >= 0, "tree_idx should be greater or equal zero.");
+
+    TDataProviderPtr pool = Rf_isNull(poolParam) ? nullptr :
+                            static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    if (pool) {
+        pool->Ref();
+    }
+
+    TVector<TString> splits = GetTreeSplitsDescriptions(*model, static_cast<size_t>(treeIdx), pool);
+    TVector<TString> leafValues = GetTreeLeafValuesDescriptions(*model, static_cast<size_t>(treeIdx));
+    const bool isOblivious = model->IsOblivious();
+    const size_t resultSize = isOblivious ? 3 : 5;
+
+    result = PROTECT(allocVector(VECSXP, resultSize));
+    ++protectCount;
+    names = PROTECT(allocVector(STRSXP, resultSize));
+    ++protectCount;
+
+    SET_STRING_ELT(names, 0, mkChar("splits"));
+    SET_STRING_ELT(names, 1, mkChar("leaf_values"));
+    SET_STRING_ELT(names, 2, mkChar("is_oblivious"));
+
+    splitsParam = PROTECT(allocVector(STRSXP, splits.size()));
+    ++protectCount;
+    for (size_t idx = 0; idx < splits.size(); ++idx) {
+        SET_STRING_ELT(splitsParam, idx, mkChar(splits[idx].c_str()));
+    }
+    SET_VECTOR_ELT(result, 0, splitsParam);
+
+    leafValuesParam = PROTECT(allocVector(STRSXP, leafValues.size()));
+    ++protectCount;
+    for (size_t idx = 0; idx < leafValues.size(); ++idx) {
+        SET_STRING_ELT(leafValuesParam, idx, mkChar(leafValues[idx].c_str()));
+    }
+    SET_VECTOR_ELT(result, 1, leafValuesParam);
+
+    isObliviousParam = PROTECT(ScalarLogical(isOblivious));
+    ++protectCount;
+    SET_VECTOR_ELT(result, 2, isObliviousParam);
+
+    if (!isOblivious) {
+        const auto stepNodes = GetTreeStepNodes(*model, static_cast<size_t>(treeIdx));
+        TVector<ui32> nodeToLeaf = GetTreeNodeToLeaf(*model, static_cast<size_t>(treeIdx));
+
+        SET_STRING_ELT(names, 3, mkChar("step_nodes"));
+        SET_STRING_ELT(names, 4, mkChar("node_to_leaf"));
+
+        stepNodesParam = PROTECT(allocVector(INTSXP, stepNodes.size() * 2));
+        ++protectCount;
+        for (size_t idx = 0; idx < stepNodes.size(); ++idx) {
+            INTEGER(stepNodesParam)[idx] = static_cast<int>(stepNodes[idx].LeftSubtreeDiff);
+            INTEGER(stepNodesParam)[idx + stepNodes.size()] = static_cast<int>(stepNodes[idx].RightSubtreeDiff);
+        }
+        stepNodesDim = PROTECT(allocVector(INTSXP, 2));
+        ++protectCount;
+        INTEGER(stepNodesDim)[0] = static_cast<int>(stepNodes.size());
+        INTEGER(stepNodesDim)[1] = 2;
+        setAttrib(stepNodesParam, R_DimSymbol, stepNodesDim);
+        SET_VECTOR_ELT(result, 3, stepNodesParam);
+
+        nodeToLeafParam = PROTECT(allocVector(INTSXP, nodeToLeaf.size()));
+        ++protectCount;
+        for (size_t idx = 0; idx < nodeToLeaf.size(); ++idx) {
+            INTEGER(nodeToLeafParam)[idx] = static_cast<int>(nodeToLeaf[idx]);
+        }
+        SET_VECTOR_ELT(result, 4, nodeToLeafParam);
+    }
+
+    setAttrib(result, R_NamesSymbol, names);
+    R_API_END();
+    UNPROTECT(protectCount);
+    return result;
 }
 
 EXPORT_FUNCTION CatBoostGetModelParams_R(SEXP modelParam) {
