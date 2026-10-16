@@ -752,6 +752,32 @@ def test_pool_cat_features_as_strings():
         Pool(data, cat_features=['col2', 'col3'])
 
 
+def test_pool_float_numpy_cat_features_cast_to_int():
+    # Regression for #3064: an ordinal-encoded float numpy array (single dtype float64)
+    # should accept cat_features and cast those columns to integer internally.
+    X = np.array([[1.0, 0.0], [2.0, 1.0], [3.0, 0.0]], dtype=np.float64)
+    y = np.array([10.0, 20.0, 15.0])
+
+    pool = Pool(X, y, cat_features=[1])
+    assert np.all(pool.get_cat_feature_indices() == [1])
+
+    model = CatBoostRegressor(verbose=0, iterations=10)
+    model.fit(X, y, cat_features=[1])
+    assert len(model.predict(X)) == 3
+
+
+def test_pool_float_numpy_cat_features_reject_non_integer():
+    X = np.array([[1.5], [2.0]], dtype=np.float64)
+    with pytest.raises(CatBoostError):
+        Pool(X, [0, 1], cat_features=[0])
+
+
+def test_pool_float_numpy_cat_features_reject_nan():
+    X = np.array([[1.0, np.nan], [2.0, 1.0]], dtype=np.float64)
+    with pytest.raises(CatBoostError):
+        Pool(X, [0, 1], cat_features=[1])
+
+
 def test_load_generated():
     pool_size = (100, 10)
     prng = np.random.RandomState(seed=20181219)
