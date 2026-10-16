@@ -1876,10 +1876,21 @@ namespace {
                 TEndpoint ep(new NAddr::TAddrInfo(&*it));
                 TTcpAcceptorPtr a(new TTcpAcceptor(AcceptExecutor_.GetIOService()));
                 DBGOUT("bind:" << ep.IpToString() << ":" << ep.Port());
-                a->Bind(ep);
+                TErrorCode ec;
+                a->Bind(ep, ec);
+                if (ec.Value() == EAFNOSUPPORT) {
+                    //address family not supported (ipv6 disabled on host), skip this addr
+                    Cdbg << "bind: " << NAddr::PrintHostAndPort(*ep.Addr()) << ": " << ec.Text() << Endl;
+                    continue;
+                }
+                ec.Check();
                 a->Listen(THttp2Options::Backlog);
                 StartAccept(a.Get());
                 A_.push_back(a);
+            }
+
+            if (A_.empty()) {
+                ythrow TSystemError(EAFNOSUPPORT) << "can not bind " << addr;
             }
         }
 
