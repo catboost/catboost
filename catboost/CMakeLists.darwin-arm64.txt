@@ -21,3 +21,7 @@ add_subdirectory(jvm-packages)
 add_subdirectory(python-package)
 add_subdirectory(spark)
 add_subdirectory(tools)
+
+if (HAVE_METAL)
+  add_subdirectory(metal)
+endif()

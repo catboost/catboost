@@ -3,10 +3,13 @@
 namespace NCB {
 
     /*
-     * will always return 0 if CUDA support in not enabled in the build config (-DHAVE_CUDA=no) or
-     * source code is linked with catboost/libs/gpu_config/force_no_cuda library
-     *  (see catboost/libs/gpu_config/README.md)
+     * Returns the number of usable devices for the configured GPU backend.
+     * Darwin ARM64 builds with HAVE_METAL report the default Metal device.
+     * Otherwise, builds without CUDA (including force_no_cuda) return zero.
      */
     int GetGpuDeviceCount();
+
+    // Compile-time backend selection; availability is checked separately.
+    bool IsMetalBackend();
 
 }

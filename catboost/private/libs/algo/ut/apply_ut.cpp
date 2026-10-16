@@ -147,3 +147,82 @@ Y_UNIT_TEST_SUITE(TLeafIndexCalcerOnPool) {
         CheckLeafIndexCalcer(model, DEFAULT_FEATURES, expectedLeafIndexes);
     }
 }
+
+Y_UNIT_TEST_SUITE(TQuantizedCategoricalApply) {
+    template <class TStorage>
+    void CheckCategoricalStorage(ui32 lastBin) {
+        const TVector<TStorage> bins = {
+            0, static_cast<TStorage>(lastBin), 1, static_cast<TStorage>(lastBin),
+            0, 1, static_cast<TStorage>(lastBin), 0
+        };
+        const auto hashForBin = [](ui32 bin) -> ui32 {
+            return 1000003 + 17 * bin;
+        };
+
+        auto data = CreateDataProvider<IQuantizedFeaturesDataVisitor>(
+            [&](IQuantizedFeaturesDataVisitor* visitor) {
+                TDataMetaInfo metaInfo;
+                metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+                    1, TVector<ui32>{0}, TVector<TString>{});
+                TPoolQuantizationSchema schema;
+                schema.CatFeatureIndices = {0};
+                schema.FeaturesPerfectHash.resize(1);
+                for (ui32 bin : xrange(lastBin + 1)) {
+                    schema.FeaturesPerfectHash[0][hashForBin(bin)] = {bin, 1};
+                }
+                visitor->Start(
+                    metaInfo, bins.size(), EObjectsOrder::Undefined, {}, schema,
+                    /*wholeColumns*/ true);
+                auto values = TMaybeOwningConstArrayHolder<TStorage>::CreateOwning(TVector<TStorage>(bins));
+                visitor->AddCatFeaturePart(
+                    0, 0, sizeof(TStorage) * 8,
+                    TMaybeOwningConstArrayHolder<ui8>::CreateOwningReinterpretCast(values));
+                visitor->Finish();
+            });
+
+        const auto* objects = dynamic_cast<const TQuantizedObjectsDataProvider*>(data->ObjectsData.Get());
+        UNIT_ASSERT(objects);
+        auto storedIterator = (*objects->GetCatFeature(0))->GetBlockIterator();
+        UNIT_ASSERT(dynamic_cast<IDynamicBlockIterator<TStorage>*>(storedIterator.Get()));
+
+        TFullModel model;
+        auto* trees = model.ModelTrees.GetMutable();
+        trees->AddCatFeature(TCatFeature(true, 0, 0, ""));
+        trees->AddOneHotFeature(TOneHotFeature{0, {static_cast<int>(hashForBin(lastBin))}, {}});
+        trees->AddBinTree({0});
+        trees->AddLeafValue(-2.0);
+        trees->AddLeafValue(5.0);
+        model.UpdateDynamicData();
+
+        TQuantizedFeaturesBlockIterator iterator(model, *objects, {{0, 0}}, /*objectOffset*/ 1);
+        const auto accessor = iterator.GetAccessor();
+        const auto catAccessor = accessor.GetCatAccessor();
+        ui32 offset = 1;
+        for (ui32 blockSize : {2, 1, 3, 1}) {
+            iterator.NextBlock(blockSize);
+            UNIT_ASSERT_VALUES_EQUAL(iterator.GetCatValues()[0].size(), blockSize);
+            for (ui32 i : xrange(blockSize)) {
+                UNIT_ASSERT_VALUES_EQUAL(iterator.GetCatValues()[0][i], bins[offset + i]);
+                UNIT_ASSERT_VALUES_EQUAL(catAccessor(TFeaturePosition(0, 0), i), hashForBin(bins[offset + i]));
+            }
+            offset += blockSize;
+        }
+        iterator.NextBlock(2);
+        UNIT_ASSERT(iterator.GetCatValues()[0].empty());
+
+        const TVector<TVector<double>> expected = {{-2.0, 5.0, -2.0, 5.0, -2.0, -2.0, 5.0, -2.0}};
+        UNIT_ASSERT_VALUES_EQUAL(ApplyModelMulti(model, *objects), expected);
+    }
+
+    Y_UNIT_TEST(Compressed8Bit) {
+        CheckCategoricalStorage<ui8>(2);
+    }
+
+    Y_UNIT_TEST(Compressed16Bit) {
+        CheckCategoricalStorage<ui16>(257);
+    }
+
+    Y_UNIT_TEST(Compressed32Bit) {
+        CheckCategoricalStorage<ui32>(65537);
+    }
+}

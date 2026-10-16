@@ -56,7 +56,29 @@
 #include <library/cpp/threading/local_executor/tbb_local_executor.h>
 #include <functional>
 
+#if defined(CATBOOST_HAVE_METAL)
+#include <catboost/metal/train_lib/learn_cursor.h>
+#endif
+
 using namespace NCB;
+
+static bool SupportsMultipleEvalSets(ETaskType taskType) {
+#if defined(CATBOOST_HAVE_METAL)
+    Y_UNUSED(taskType);
+    return true;
+#else
+    return taskType == ETaskType::CPU;
+#endif
+}
+
+static TString GetTrainingSnapshotLabel(ETaskType taskType) {
+#if defined(CATBOOST_HAVE_METAL)
+    if (taskType == ETaskType::GPU) {
+        return "CatBoost Metal snapshot v6";
+    }
+#endif
+    return ToString(taskType);
+}
 
 static THolder<NPar::ILocalExecutor> CreateLocalExecutor(const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
     const bool isGpuDeviceType = catBoostOptions.GetTaskType() == ETaskType::GPU;
@@ -976,7 +998,7 @@ static void TrainModel(
     const ETaskType taskType = NCatboostOptions::GetTaskType(trainOptionsJson);
 
     CB_ENSURE(
-        (taskType == ETaskType::CPU) || (pools.Test.size() <= 1),
+        SupportsMultipleEvalSets(taskType) || (pools.Test.size() <= 1),
         "Multiple eval sets not supported for GPU"
     );
 
@@ -998,7 +1020,7 @@ static void TrainModel(
     if (outputOptions.SaveSnapshot()) {
         UpdateUndefinedRandomSeed(taskType, updatedOutputOptions, &updatedTrainOptionsJson, [&](IInputStream* in, TString& params) {
             ::Load(in, params);
-        });
+        }, GetTrainingSnapshotLabel(taskType));
     }
 
     const auto learnFeaturesLayout = pools.Learn->MetaInfo.FeaturesLayout;
@@ -1051,11 +1073,22 @@ static void TrainModel(
         catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
     }
 
-    pools.Learn = ReorderByTimestampLearnDataIfNeeded(catBoostOptions, pools.Learn, executor);
+    THolder<TArraySubsetIndexing<ui32>> metalLearnObjectOrder;
+#if defined(CATBOOST_HAVE_METAL)
+    if (taskType == ETaskType::GPU && metricsAndTimeHistory) {
+        // Capture each actual preprocessing permutation before quantization can
+        // materialize feature arrays and discard their source indexing.
+        metalLearnObjectOrder = MakeHolder<TArraySubsetIndexing<ui32>>(
+            TFullSubset<ui32>(pools.Learn->GetObjectCount()));
+    }
+#endif
+    pools.Learn = ReorderByTimestampLearnDataIfNeeded(
+        catBoostOptions, pools.Learn, executor, metalLearnObjectOrder.Get());
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
-    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
+    pools.Learn = ShuffleLearnDataIfNeeded(
+        catBoostOptions, pools.Learn, executor, &rand, metalLearnObjectOrder.Get());
 
     const ui64 cpuUsedRamLimit = ParseMemorySizeDescription(
         catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()
@@ -1094,7 +1127,8 @@ static void TrainModel(
         &labelConverter,
         executor,
         &rand,
-        initModel);
+        initModel,
+        metalLearnObjectOrder.Get());
 
     THolder<TMasterContext> masterContext;
 
@@ -1175,6 +1209,11 @@ static void TrainModel(
         evalResultPtrs,
         metricsAndTimeHistory,
         dstLearnProgress);
+#if defined(CATBOOST_HAVE_METAL)
+    if (metalLearnObjectOrder) {
+        RestoreMetalLearnCursorOrder(*metalLearnObjectOrder, &metricsAndTimeHistory->MetalLearnCursor);
+    }
+#endif
 }
 
 
@@ -1197,7 +1236,7 @@ void TrainModel(
     TProfileInfo profile;
 
     CB_ENSURE(
-        (catBoostOptions.GetTaskType() == ETaskType::CPU) || (loadOptions.TestSetPaths.size() <= 1),
+        SupportsMultipleEvalSets(catBoostOptions.GetTaskType()) || (loadOptions.TestSetPaths.size() <= 1),
         "Multiple eval sets not supported for GPU"
     );
 
