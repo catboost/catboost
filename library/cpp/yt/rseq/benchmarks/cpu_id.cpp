@@ -1,10 +1,10 @@
-#include <library/cpp/yt/system/cpu_id.h>
+#include <library/cpp/yt/rseq/cpu_id.h>
 
 #include <benchmark/benchmark.h>
 
 #include <sched.h>
 
-namespace NYT {
+namespace NYT::NRseq {
 namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,4 +30,4 @@ BENCHMARK(BM_SchedGetCpu);
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
-} // namespace NYT
+} // namespace NYT::NRseq

@@ -4,13 +4,11 @@
 #include "cpu_id.h"
 #endif
 
-#ifdef __linux__
-#include <library/cpp/yt/rseq/rseq.h>
-#endif
+#include "rseq_area.h"
 
 #include <util/system/compiler.h>
 
-namespace NYT {
+namespace NYT::NRseq {
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -22,20 +20,16 @@ int GetCurrentCpuIdSlow();
 
 Y_FORCE_INLINE int GetCurrentCpuId()
 {
-#ifdef YT_RSEQ_AVAILABLE
     // Branch-free read of the rseq cpu_id: the offset always points at a readable
     // field. A data-dependent branch on the offset here would defeat load pipelining.
-    auto cpuId = NRseq::ReadField<int>(NRseq::CpuIdFieldOffset);
+    auto cpuId = NDetail::ReadRseqAreaField<int>(offsetof(NDetail::TRseqArea, CpuId));
     // Negative means this thread is not registered yet or rseq is unavailable.
     if (cpuId < 0) [[unlikely]] {
         return NDetail::GetCurrentCpuIdSlow();
     }
     return cpuId;
-#else
-    return NDetail::GetCurrentCpuIdSlow();
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYT
+} // namespace NYT::NRseq

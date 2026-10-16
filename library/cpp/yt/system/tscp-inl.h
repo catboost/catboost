@@ -4,7 +4,9 @@
 #include "tscp.h"
 #endif
 
-#include "cpu_id.h"
+#if defined(__linux__) && (defined(__x86_64__) || defined(__aarch64__))
+#include <library/cpp/yt/rseq/cpu_id.h>
+#endif
 
 #include <util/system/cpu_id.h>
 
@@ -60,10 +62,14 @@ inline TTscp TTscp::Get()
 
 inline TTscp TTscp::GetApproximate()
 {
+#if defined(__linux__) && (defined(__x86_64__) || defined(__aarch64__))
     return TTscp{
         .Instant = GetApproximateCpuInstant(),
-        .ProcessorId = NYT::GetCurrentCpuId() & (MaxProcessorId - 1),
+        .ProcessorId = NRseq::GetCurrentCpuId() & (MaxProcessorId - 1),
     };
+#else
+    return Get();
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////

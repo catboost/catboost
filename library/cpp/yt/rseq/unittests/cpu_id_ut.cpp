@@ -1,12 +1,12 @@
 #include <library/cpp/testing/gtest/gtest.h>
 
-#include <library/cpp/yt/system/cpu_id.h>
+#include <library/cpp/yt/rseq/cpu_id.h>
 
 #include <sched.h>
 
 #include <vector>
 
-namespace NYT {
+namespace NYT::NRseq {
 namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,4 +59,4 @@ TEST(TGetCurrentCpuIdTest, MatchesPinnedCpu)
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
-} // namespace NYT
+} // namespace NYT::NRseq

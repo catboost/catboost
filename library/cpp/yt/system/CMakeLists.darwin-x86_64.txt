@@ -37,7 +37,6 @@ target_link_libraries(cpp-yt-system PUBLIC
 target_sources(cpp-yt-system PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/at_fork.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/count_down_latch.cpp
-  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/cpu_id.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/env.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/event_count.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/exit.cpp

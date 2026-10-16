@@ -34,6 +34,7 @@ target_link_libraries(cpp-yt-rseq PUBLIC
 )
 
 target_sources(cpp-yt-rseq PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/rseq/cpu_id.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/rseq/per_cpu.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/rseq/rseq.cpp
 )

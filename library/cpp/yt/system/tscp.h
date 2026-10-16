@@ -29,6 +29,7 @@ struct TTscp
     //! A cheaper, lower-precision counterpart of #Get: the processor id comes from the
     //! rseq fast path (GetCurrentCpuId) and the instant from a non-serializing rdtsc
     //! (GetApproximateCpuInstant), instead of a single serializing rdtscp.
+    //! Without rseq (anything but Linux x86-64/aarch64), same as #Get.
     //!
     //! WARNING (fiber TLS): inlined and reads the thread pointer (via GetCurrentCpuId),
     //! so it must be reached only through a non-inlinable, fiber-switch-free frame (a
