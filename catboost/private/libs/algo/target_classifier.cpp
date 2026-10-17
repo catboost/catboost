@@ -102,6 +102,16 @@ TTargetClassifier BuildTargetClassifier(
 
         case ELossFunction::MultiClass:
         case ELossFunction::MultiClassOneVsAll:
+            /* Labels are class indices 0 .. classCount - 1.
+             * By default targetBorderCount == classCount - 1, so each class gets its own target class.
+             * If fewer borders are requested, select them over the whole range of labels
+             * (as for regression) instead of separating only the first targetBorderCount classes.
+             */
+            if (targetBorderCount < targetBounds.Max) {
+                return TTargetClassifier(
+                    SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
+                    targetId);
+            }
             return TTargetClassifier(GetMultiClassBorders(targetBorderCount), targetId);
 
         case ELossFunction::PythonUserDefinedMultiTarget:

@@ -3592,6 +3592,37 @@ def test_ctr_target_border_count(task_type):
     return compare_canonical_models(output_model_path)
 
 
+def test_multiclass_ctr_target_border_count():
+    # With fewer target borders than classes - 1 the classes must be grouped over the whole range of labels,
+    # not just split off the first ctr_target_border_count classes and lump all the others together
+    class_count = 10
+    target_border_count = 3
+    prng = np.random.RandomState(seed=20261017)
+    label = prng.randint(0, class_count, size=2000)
+    data = pd.DataFrame({'cat': label.astype(str)})
+    model = CatBoostClassifier(
+        iterations=5,
+        loss_function='MultiClass',
+        simple_ctr=['Borders'],
+        combinations_ctr=['Borders'],
+        ctr_target_border_count=target_border_count,
+        thread_count=4
+    )
+    model.fit(Pool(data, label=label, cat_features=[0]))
+
+    output_model_path = test_output_path('model.json')
+    model.save_model(output_model_path, format='json')
+    with open(output_model_path) as f:
+        ctr_data = json.load(f)['ctr_data']
+    assert ctr_data
+    for ctr_table in ctr_data.values():
+        hash_stride = ctr_table['hash_stride']
+        assert hash_stride == target_border_count + 2  # hash + counts for each group of classes
+        counts_by_group = np.array(ctr_table['hash_map'], dtype=object).reshape(-1, hash_stride)[:, 1:].astype(float).sum(axis=0)
+        group_shares = counts_by_group / counts_by_group.sum()
+        assert group_shares.max() < 0.5, group_shares
+
+
 def test_copy_model():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model1 = CatBoostRegressor(iterations=5)

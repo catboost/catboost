@@ -16,11 +16,11 @@ Components:
     - FeatureFreq
     - FloatTargetMeanValue
 
-- `{{ ctr-types__TargetBorderCount }}` — The number of borders for label value [quantization](../../../concepts/quantization.md). Only used for regression problems. Allowed values are integers from 1 to 255 inclusively. The default value is {{ fit--target_border_count }}.
+- `{{ ctr-types__TargetBorderCount }}` — The number of borders for label value [quantization](../../../concepts/quantization.md). Only used for regression and multiclassification problems. For multiclassification, if the value is less than the number of classes - 1, the classes are combined into `{{ ctr-types__TargetBorderCount }}` + 1 groups of adjacent class labels, which reduces the training time when there are many classes. Allowed values are integers from 1 to 255 inclusively. The default value is {{ fit--target_border_count }}.
 
     This option is available for training on CPU only.
 
-- `TargetBorderType` — The [quantization](../../../concepts/quantization.md) type for the label value. Only used for regression problems.
+- `TargetBorderType` — The [quantization](../../../concepts/quantization.md) type for the label value. Only used for regression problems and for multiclassification problems with `{{ ctr-types__TargetBorderCount }}` less than the number of classes - 1.
 
     Possible values:
 
