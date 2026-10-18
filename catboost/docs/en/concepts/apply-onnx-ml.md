@@ -14,6 +14,7 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 - Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset.
 - Exporting a model with categorical features requires the training dataset (the `pool` parameter of `save_model` in the {{ python-package }}, the `--input-path` dataset for the command-line training with `--model-format ONNX`) to restore string values of categorical features from their hashes stored in the model.
 - The {{ python-package }} supports ONNX-ML import with `load_model(..., format="onnx")`. For models with categorical features, see the input layout described below.
+- Models trained on either CPU or GPU can be exported. Native {{ product }} GPU inference does not support categorical features or the asymmetric trees produced by ONNX import. In ONNX Runtime 1.24.4, `LabelEncoder` and `TreeEnsemble*` have CPU kernels only; enabling the CUDA execution provider still executes these operators on CPU. See the [ONNX Runtime operator support table](https://github.com/microsoft/onnxruntime/blob/v1.24.4/docs/OperatorKernels.md).
 - {% include [reusage-common-phrases-native-catboost-format-is-faster](../_includes/work_src/reusage-common-phrases/native-catboost-format-is-faster.md) %}
 
 - The model's metadata is stored in the `metadata_props` component of the [ONNX Model](https://github.com/onnx/onnx/blob/master/docs/IR.md#models).
@@ -55,6 +56,8 @@ The exported graph maps string values to numbers with [LabelEncoder](https://onn
 When loading the exported model back into {{ product }}, its feature order follows the tree ensemble input: numerical features first, followed by the exported categorical features in their ONNX input order. Categorical features unused by the original model are omitted. Reorder prediction data accordingly and obtain categorical column indices with `get_cat_feature_indices()`.
 
 Import supports string-to-float `LabelEncoder` mappings with unique 32-bit integer encoded values and a non-NaN default value different from every encoded value. A feature cannot participate in both categorical equality comparisons and numerical ordered comparisons.
+
+The tree ensemble input must be a graph input or the output of the `Concat`/`LabelEncoder` preprocessing described above. Other preprocessing operations are rejected during import.
 
 
 
