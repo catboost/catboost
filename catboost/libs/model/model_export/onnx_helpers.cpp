@@ -561,6 +561,7 @@ static void AddTree(
     const TModelTrees& trees,
     i64 treeIdx,
     bool isClassifierModel,
+    double binaryClassifierBias,
     const TOnnxFeaturesLayout& layout,
     TTreesAttributes* treesAttributes) {
 
@@ -646,15 +647,16 @@ static void AddTree(
                     ++leafValue;
                 }
             } else {
+                const float value = (float)(*leafValue + binaryClassifierBias);
                 treesAttributes->class_treeids->add_ints(treeIdx);
                 treesAttributes->class_nodeids->add_ints(nodeIdx);
                 treesAttributes->class_ids->add_ints(0);
-                treesAttributes->class_weights->add_floats(-(float)*leafValue);
+                treesAttributes->class_weights->add_floats(-value);
 
                 treesAttributes->class_treeids->add_ints(treeIdx);
                 treesAttributes->class_nodeids->add_ints(nodeIdx);
                 treesAttributes->class_ids->add_ints(1);
-                treesAttributes->class_weights->add_floats((float)*leafValue);
+                treesAttributes->class_weights->add_floats(value);
 
                 ++leafValue;
             }
@@ -750,9 +752,13 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         treesNode->add_output("predictions");
     }
     auto scaleAndBias = model.GetScaleAndBias();
-    TTreesAttributes treesAttributes(isClassifierModel, !scaleAndBias.IsZeroBias(), treesNode->mutable_attribute());
+    // ONNX Runtime's binary classifier handling of two base_values uses the first class's
+    // score for the second class. Folding the bias into one tree avoids that ambiguity.
+    const bool foldBinaryBias = isClassifierModel && trees.GetDimensionsCount() == 1 && trees.GetTreeCount() > 0;
+    TTreesAttributes treesAttributes(
+        isClassifierModel, !scaleAndBias.IsZeroBias() && !foldBinaryBias, treesNode->mutable_attribute());
 
-    if (!scaleAndBias.IsZeroBias()) {
+    if (!scaleAndBias.IsZeroBias() && !foldBinaryBias) {
         if (isClassifierModel && (trees.GetDimensionsCount() == 1)) {
             const float bias = float(scaleAndBias.GetOneDimensionalBias());
             treesAttributes.base_values->add_floats(-bias);
@@ -769,7 +775,8 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         }
     }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
-        AddTree(trees, treeIdx, isClassifierModel, layout, &treesAttributes);
+        const double binaryClassifierBias = foldBinaryBias && treeIdx == 0 ? scaleAndBias.GetOneDimensionalBiasOrZero() : 0.0;
+        AddTree(trees, treeIdx, isClassifierModel, binaryClassifierBias, layout, &treesAttributes);
     }
 }
 
@@ -888,7 +895,6 @@ static THashMap<int, TString> GetLabelEncoderMapping(const onnx::NodeProto& labe
  *  - a graph input (float tensor with all features);
  *  - an output of a Concat node whose inputs are graph inputs or outputs of LabelEncoder nodes applied
  *    to graph inputs (this is how CatBoost exports models with categorical features);
- *  - otherwise the first graph input is assumed to contain all features.
  */
 static TOnnxTreesInputInfo GetTreesInputInfo(const onnx::GraphProto& onnxGraph, const TString& treesInputName) {
     THashMap<TString, const onnx::ValueInfoProto*> graphInputs;
@@ -910,11 +916,10 @@ static TOnnxTreesInputInfo GetTreesInputInfo(const onnx::GraphProto& onnxGraph, 
     }
 
     const onnx::NodeProto* concatNode = outputToNode.Value(treesInputName, nullptr);
-    if (!concatNode || (concatNode->op_type() != "Concat")) {
-        CB_ENSURE(onnxGraph.input_size() > 0, "ONNX graph has no inputs");
-        result.FeaturesCount = (int)GetSecondDim(onnxGraph.input(0));
-        return result;
-    }
+    CB_ENSURE(
+        concatNode && concatNode->op_type() == "Concat" && concatNode->domain().empty(),
+        "Unsupported preprocessing of TreeEnsemble input \"" << treesInputName << "\""
+    );
 
     bool concatenatesFeatures = false;
     for (const auto& attribute : concatNode->attribute()) {
@@ -1220,6 +1225,49 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
         &catFeatures
     );
 
+    TVector<double> bias;
+    if (treesAttributes.base_values != nullptr) {
+        for (const float value : treesAttributes.base_values->floats()) {
+            bias.push_back(value);
+        }
+    }
+
+    bool isBinaryLogistic = false;
+    if (isClassifierModel && approxDimension == 2) {
+        for (const auto& attribute : treesNode->attribute()) {
+            if (attribute.name() == "post_transform" && attribute.s() == "LOGISTIC") {
+                isBinaryLogistic = true;
+            }
+        }
+    }
+    if (isBinaryLogistic) {
+        // CatBoost exports a binary logit as [-logit, logit] with LOGISTIC applied
+        // to each class. Keeping two dimensions would apply softmax after import
+        // and double the logit, changing probabilities even when labels agree.
+        for (auto idx : xrange(treesAttributes.class_ids->ints_size())) {
+            CB_ENSURE(
+                treesAttributes.class_ids->ints(idx) == idx % 2,
+                "Binary LOGISTIC class weights must be ordered by class 0, then class 1"
+            );
+        }
+        for (auto& tree : trees) {
+            for (auto& [nodeId, node] : tree) {
+                if (node.Type == EType::Leaf) {
+                    CB_ENSURE(
+                        node.Values.size() == 2 && node.Values[0] == -node.Values[1],
+                        "Binary LOGISTIC class weights must be opposite"
+                    );
+                    node.Values = {node.Values[1]};
+                }
+            }
+        }
+        if (!bias.empty()) {
+            CB_ENSURE(bias.size() == 2 && bias[0] == -bias[1], "Binary LOGISTIC base values must be opposite");
+            bias = {bias[1]};
+        }
+        approxDimension = 1;
+    }
+
     TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, catFeatures, {}, {}, approxDimension);
 
     for (const auto& tree : trees) {
@@ -1227,11 +1275,7 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     }
 
     treeBuilder.Build(fullModel->ModelTrees.GetMutable());
-    if (treesAttributes.base_values != nullptr) {
-        TVector<double> bias;
-        for (size_t idx: xrange(treesAttributes.base_values->floats_size())) {
-            bias.push_back(treesAttributes.base_values->floats(idx));
-        }
+    if (!bias.empty()) {
         fullModel->SetScaleAndBias({1., bias});
     }
 

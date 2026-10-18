@@ -255,6 +255,29 @@ Y_UNIT_TEST_SUITE(TestOnnxExport) {
         UNIT_ASSERT_VALUES_EQUAL(imported.GetNumCatFeatures(), 1);
     }
 
+    Y_UNIT_TEST(TestImportUnsupportedPreprocessing) {
+        const auto data = MakeDataProvider({FloatColumn({0.1f, 0.5f, 0.3f, 0.9f, 0.2f, 0.7f})});
+        onnx::ModelProto model;
+        UNIT_ASSERT(model.ParseFromString(ConvertTreeToOnnxProto(TrainOnDataProvider(data), "")));
+        auto* graph = model.mutable_graph();
+        GetNode(model, "TreeEnsembleRegressor").set_input(0, "negated_features");
+        auto* negation = graph->add_node();
+        negation->set_op_type("Neg");
+        negation->add_input("features");
+        negation->add_output("negated_features");
+        graph->mutable_node()->SwapElements(0, 1);
+        auto* opset = model.add_opset_import();
+        opset->set_domain("");
+        opset->set_version(7);
+        onnx::checker::check_model(model);
+
+        TFullModel imported;
+        UNIT_ASSERT_EXCEPTION_CONTAINS(
+            NOnnx::ConvertOnnxToCatboostModel(model, &imported),
+            TCatBoostException, "Unsupported preprocessing of TreeEnsemble input"
+        );
+    }
+
     Y_UNIT_TEST(TestImportNumericalSplitOnEncodedCategory) {
         auto model = MakeCategoricalOnnxModel();
         GetAttribute(GetNode(model, "TreeEnsembleRegressor"), "nodes_modes").set_strings(0, "BRANCH_GT");
@@ -317,6 +340,41 @@ Y_UNIT_TEST_SUITE(TestOnnxExport) {
         // all categorical features are used in the model, so the layout is the same
         UNIT_ASSERT_VALUES_EQUAL(importedModel.GetNumCatFeatures(), columns.size());
         CheckPredictionsEqual(model, *data->ObjectsData, importedModel, *data->ObjectsData);
+    }
+
+    Y_UNIT_TEST(TestBinaryClassifierExportImport) {
+        const auto data = MakeDataProvider(
+            {CatColumn({"a", "a", "b", "b", "a", "b"})}, {0, 0, 1, 0, 0, 1});
+        const auto mapping = MergeCatFeaturesHashToString(*data->ObjectsData);
+        for (const bool boostFromAverage : {false, true}) {
+            NJson::TJsonValue params;
+            params.InsertValue("loss_function", "Logloss");
+            NJson::TJsonValue classNames(NJson::JSON_ARRAY);
+            classNames.AppendValue(0);
+            classNames.AppendValue(1);
+            params.InsertValue("class_names", classNames);
+            params.InsertValue("boost_from_average", boostFromAverage);
+            auto model = TrainOnDataProvider(data, params);
+            if (!boostFromAverage) {
+                model.SetScaleAndBias({1., {}});
+            }
+            const auto importedModel = ExportToOnnxAndImport(model, &mapping);
+            CheckPredictionsEqual(model, *data->ObjectsData, importedModel, *data->ObjectsData);
+
+            // Older exports stored the bias in base_values instead of the first tree.
+            onnx::ModelProto legacyModel;
+            UNIT_ASSERT(legacyModel.ParseFromString(ConvertTreeToOnnxProto(model, "", &mapping)));
+            auto* baseValues = GetNode(legacyModel, "TreeEnsembleClassifier").add_attribute();
+            baseValues->set_name("base_values");
+            baseValues->set_type(onnx::AttributeProto_AttributeType_FLOATS);
+            baseValues->add_floats(-0.5f);
+            baseValues->add_floats(0.5f);
+            TFullModel importedLegacy;
+            NOnnx::ConvertOnnxToCatboostModel(legacyModel, &importedLegacy);
+            auto expectedModel = model;
+            expectedModel.SetScaleAndBias({1., {model.GetScaleAndBias().GetOneDimensionalBiasOrZero() + 0.5}});
+            CheckPredictionsEqual(expectedModel, *data->ObjectsData, importedLegacy, *data->ObjectsData);
+        }
     }
 
     Y_UNIT_TEST(TestMixedFeaturesModelExportImport) {

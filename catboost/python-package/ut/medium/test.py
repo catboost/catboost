@@ -1800,9 +1800,6 @@ def test_onnx_export(problem_type, boost_from_average):
     ]
 )
 def test_onnx_import(problem_type, boost_from_average):
-    if (problem_type == 'binclass') and boost_from_average:
-        pytest.xfail('CatBoost does not support importing classification onnx models with bias')
-
     if problem_type == 'binclass':
         loss_function = 'Logloss'
         train_path = TRAIN_FILE
@@ -1875,16 +1872,20 @@ def test_onnx_import(problem_type, boost_from_average):
         )
     else:
         loaded_pred = onnx_loaded_model.predict(test_pool, prediction_type=prediction_type)
-        if problem_type == 'binclass':
-            # TODO(akhropov): remove when MLTOOLS-4924 is fixed
-            loaded_pred = np.array([value[0] for value in loaded_pred])
         assert np.all(canon_pred == loaded_pred)
+        assert np.allclose(
+            model.predict(test_pool, prediction_type='Probability'),
+            onnx_loaded_model.predict(test_pool, prediction_type='Probability'),
+            atol=1e-4,
+        )
 
 
 @pytest.mark.parametrize('with_feature_names', [False, True], ids=['with_feature_names=False', 'with_feature_names=True'])
 @pytest.mark.parametrize('with_float_features', [False, True])
-@pytest.mark.parametrize('loss_function', ['RMSE', 'Logloss', 'MultiClass'])
-def test_onnx_export_with_categorical_features(with_feature_names, with_float_features, loss_function):
+@pytest.mark.parametrize('loss_function,boost_from_average', [
+    ('RMSE', False), ('RMSE', True), ('Logloss', False), ('Logloss', True), ('MultiClass', False),
+])
+def test_onnx_export_with_categorical_features(task_type, with_feature_names, with_float_features, loss_function, boost_from_average):
     onnx = pytest.importorskip("onnx")
     onnxruntime = pytest.importorskip("onnxruntime")
     from catboost.utils import convert_to_onnx_object
@@ -1903,7 +1904,7 @@ def test_onnx_export_with_categorical_features(with_feature_names, with_float_fe
     ], dtype=object)
     y = np.array([1.0, 2.0, 1.5, 2.5, 1.2, 2.2, 1.8, 2.8])
     if loss_function == 'Logloss':
-        y = (y >= 2.0).astype(int)
+        y = (y >= 2.5).astype(int)
     elif loss_function == 'MultiClass':
         y = np.array([0, 2, 1, 2, 0, 2, 1, 2])
 
@@ -1932,7 +1933,8 @@ def test_onnx_export_with_categorical_features(with_feature_names, with_float_fe
         learning_rate=0.5,
         one_hot_max_size=255,
         verbose=False,
-        task_type='CPU'
+        task_type=task_type,
+        boost_from_average=boost_from_average
     )
     model.fit(train_pool)
 
@@ -1966,6 +1968,7 @@ def test_onnx_export_with_categorical_features(with_feature_names, with_float_fe
     assert set(input_names) <= {'features', *cat_input_names}
     assert len(input_names) > 1
 
+    imported_model = model_class().load_model(output_onnx_model_path, format='onnx')
     for pool, data in [(train_pool, X), (test_pool, X_test)]:
         feed = {'features': data[:, 2:3].astype(np.float32)}
         for cat_feature_idx, cat_input_name in zip(cat_features, cat_input_names):
@@ -1981,6 +1984,16 @@ def test_onnx_export_with_categorical_features(with_feature_names, with_float_fe
             cb_pred = model.predict_proba(pool)
         assert np.allclose(cb_pred, onnx_pred, atol=1e-4)
 
+        # Import follows the Concat input order and omits unused categorical features.
+        imported_data = np.column_stack([feed[name] for name in input_names])
+        imported_pool = Pool(imported_data, cat_features=imported_model.get_cat_feature_indices())
+        if loss_function == 'RMSE':
+            imported_pred = imported_model.predict(imported_pool)
+        else:
+            imported_pred = imported_model.predict_proba(imported_pool)
+            assert np.array_equal(model.predict(pool).flatten(), imported_model.predict(imported_pool).flatten())
+        assert np.allclose(cb_pred, imported_pred, atol=1e-4)
+
 
 @pytest.mark.parametrize('feature_name', [
     'features', 'all_features', 'label', 'probability_tensor', 'probabilities', 'predictions',
@@ -1990,6 +2003,29 @@ def test_onnx_export_reserved_categorical_feature_name(feature_name):
     model = CatBoostRegressor(iterations=2, depth=1, one_hot_max_size=10, verbose=False).fit(train_pool)
     with pytest.raises(CatBoostError, match='is not unique'):
         model.save_model(test_output_path(OUTPUT_ONNX_MODEL_PATH), format='onnx', pool=train_pool)
+
+
+@pytest.mark.parametrize('bias', [-1.5, 0.0, 1.5])
+def test_onnx_binary_probabilities_with_bias(task_type, bias):
+    onnxruntime = pytest.importorskip('onnxruntime')
+    features = np.arange(32, dtype=np.float32).reshape(-1, 1)
+    labels = np.where(features[:, 0] % 3 == 0, 'yes', 'no')
+    model = CatBoostClassifier(iterations=5, depth=2, task_type=task_type, verbose=False).fit(features, labels)
+    model.set_scale_and_bias(1.0, bias)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(path, format='onnx')
+    session = onnxruntime.InferenceSession(path, providers=['CPUExecutionProvider'])
+    probabilities = session.run(['probabilities'], {'features': features})[0]
+    assert np.allclose(
+        [[row[label] for label in model.classes_] for row in probabilities],
+        model.predict_proba(features), atol=1e-6,
+    )
+    imported = CatBoostClassifier().load_model(path, format='onnx')
+    assert np.allclose(imported.predict_proba(features), model.predict_proba(features), atol=1e-6)
+    assert np.allclose(
+        imported.predict(features, prediction_type='RawFormulaVal'),
+        model.predict(features, prediction_type='RawFormulaVal'), atol=1e-6,
+    )
 
 
 @pytest.mark.parametrize('mode', ['BRANCH_EQ', 'BRANCH_NEQ'])
