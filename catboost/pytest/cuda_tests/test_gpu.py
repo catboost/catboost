@@ -3568,6 +3568,48 @@ def test_mvs_bootstrap_nonsymmetric_full_sample(grow_policy, score_function, con
         allow_writing_files=False,
         verbose=False,
     )
+    if constant_target and grow_policy == 'Region':
+        # Fit the constant in one iteration, then exercise zero gradients. Starting
+        # at the optimum makes Region discard every tree even without bootstrap.
+        params.update(boost_from_average=False, learning_rate=1, l2_leaf_reg=0)
     reference = catboost.CatBoostRegressor(bootstrap_type='No', **params).fit(pool)
     model = catboost.CatBoostRegressor(bootstrap_type='MVS', subsample=1, mvs_reg=0, **params).fit(pool)
     np.testing.assert_allclose(model.predict(pool), reference.predict(pool), rtol=1e-6, atol=1e-6, equal_nan=False)
+
+
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC + ['Region'])
+@pytest.mark.parametrize('score_function', ['Cosine', 'NewtonL2'])
+@pytest.mark.parametrize('sample_count', [257, 8193])
+def test_mvs_bootstrap_nonsymmetric_weighted(grow_policy, score_function, sample_count):
+    # Exercise partial sampling, including a tail beyond the MVS kernel's 8192-object block.
+    random = np.random.RandomState(42)
+    features = random.normal(size=(sample_count, 5))
+    target = (2 * features[:, 0] - features[:, 1] > 0).astype(int)
+    weights = random.uniform(0.1, 2, sample_count)
+    weights[::7] = 0
+    pool = catboost.Pool(features, target, weight=weights)
+    prior = np.average(target, weights=weights)
+    baseline_loss = -np.average(target * np.log(prior) + (1 - target) * np.log1p(-prior), weights=weights)
+
+    for subsample, mvs_reg in [(0.1, None), (0.5, 0), (0.9, 0.1)]:
+        model = catboost.CatBoostClassifier(
+            iterations=10,
+            depth=3,
+            min_data_in_leaf=1,
+            learning_rate=0.1,
+            task_type='GPU',
+            devices='0',
+            grow_policy=grow_policy,
+            score_function=score_function,
+            bootstrap_type='MVS',
+            subsample=subsample,
+            mvs_reg=mvs_reg,
+            random_strength=0,
+            random_seed=42,
+            allow_writing_files=False,
+            verbose=False,
+        ).fit(pool)
+        predictions = model.predict(pool, prediction_type='RawFormulaVal')
+        assert np.all(np.isfinite(predictions))
+        loss = np.average(np.logaddexp(0, predictions) - target * predictions, weights=weights)
+        assert loss < baseline_loss, (subsample, mvs_reg, loss, baseline_loss)
