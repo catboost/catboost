@@ -33,8 +33,16 @@ Categorical features description format:
 
 #### Classification
 Only binary classification is currently supported.
+
+The predicted class:
 ```xml
 <DataField name="prediction" optype="categorical" dataType="boolean"/>
+```
+
+The class probabilities are provided as output fields of the model:
+```xml
+<OutputField name="probability(false)" optype="continuous" dataType="double" feature="probability" value="false"/>
+<OutputField name="probability(true)" optype="continuous" dataType="double" feature="probability" value="true"/>
 ```
 
 #### Regression
@@ -164,6 +172,16 @@ public class App
             Object targetValue = results.get(targetName);
             System.out.println(targetName);
             System.out.println(targetValue);
+        }
+
+        // class probabilities
+        List<? extends OutputField> outputFields = evaluator.getOutputFields();
+        for(OutputField outputField : outputFields){
+            FieldName outputName = outputField.getName();
+
+            Object outputValue = results.get(outputName);
+            System.out.println(outputName);
+            System.out.println(outputValue);
         }
 
     }
