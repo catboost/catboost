@@ -366,6 +366,9 @@ void CrossValidate(
     if (catBoostOptions.DataProcessingOptions->ClassLabels->empty()) {
         catBoostOptions.DataProcessingOptions->ClassLabels = data->MetaInfo.ClassLabels;
     }
+
+    InitializeLabelConverterFromRawData(*data, catBoostOptions, localExecutor, &labelConverter);
+
     ui32 approxDimension = GetApproxDimension(catBoostOptions,
                                               labelConverter,
                                               data->RawTargetData.GetTargetDimension());
