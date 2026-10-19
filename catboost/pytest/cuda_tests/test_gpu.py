@@ -1807,6 +1807,117 @@ def test_multirmse_with_cat_features():
     assert compare_fit_evals_with_precision(cpu_eval_path, gpu_eval_path, rtol=1e-6, atol=1e-6)
 
 
+def test_multirmse_with_missing_values():
+    fit_params = (
+        '--loss-function', 'MultiRMSEWithMissingValues',
+        '--learning-rate', '0.03',
+        '-f', data_file('multiregression_with_missing', 'train'),
+        '-t', data_file('multiregression_with_missing', 'test'),
+        '--column-description', data_file('multiregression_with_missing', 'train.cd'),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--border-count', '254',
+        '--use-best-model', 'false',
+    )
+
+    fit_params += NO_RANDOM_PARAMS
+
+    cpu_eval_path = yatest.common.test_output_path('cpu_eval.tsv')
+    gpu_eval_path = yatest.common.test_output_path('gpu_eval.tsv')
+
+    execute_catboost_fit('CPU', fit_params + ('--eval-file', cpu_eval_path))
+    fit_catboost_gpu(fit_params + ('--eval-file', gpu_eval_path))
+    assert compare_fit_evals_with_precision(cpu_eval_path, gpu_eval_path, rtol=1e-6, atol=1e-6)
+
+
+def test_multirmse_with_missing_values_with_cat_features():
+    fit_params = (
+        '--loss-function', 'MultiRMSEWithMissingValues',
+        '--learning-rate', '0.03',
+        '-f', data_file('multiregression_with_missing', 'train'),
+        '-t', data_file('multiregression_with_missing', 'test'),
+        '--column-description', data_file('multiregression_with_missing', 'train_two_targets_with_cat_features.cd'),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--border-count', '254',
+        '--use-best-model', 'false',
+        '--simple-ctr', 'Borders,Buckets',
+    )
+
+    fit_params += NO_RANDOM_PARAMS
+
+    cpu_eval_path = yatest.common.test_output_path('cpu_eval.tsv')
+    gpu_eval_path = yatest.common.test_output_path('gpu_eval.tsv')
+
+    execute_catboost_fit('CPU', fit_params + ('--eval-file', cpu_eval_path))
+    fit_catboost_gpu(fit_params + ('--eval-file', gpu_eval_path))
+    assert compare_fit_evals_with_precision(cpu_eval_path, gpu_eval_path, rtol=1e-6, atol=1e-6)
+
+
+# 'multiregression_with_missing' has only a couple of missing target values, so the missing value
+# specific code paths are barely exercised by the tests above
+def test_multirmse_with_many_missing_values():
+    object_count = 500
+    feature_count = 5
+    target_count = 3
+    missing_rate = 0.3
+
+    prng = np.random.RandomState(seed=20181219)
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[dim, 'Target'] for dim in range(target_count)], fmt='%s', delimiter='\t')
+
+    def make_dataset(path):
+        features = prng.random_sample((object_count, feature_count))
+        targets = np.dot(features, prng.random_sample((feature_count, target_count)))
+        targets += 0.1 * prng.normal(size=targets.shape)
+        targets[prng.random_sample(targets.shape) < missing_rate] = np.nan
+        np.savetxt(path, np.hstack((targets, features)), fmt='%.9g', delimiter='\t')
+
+    train_path = yatest.common.test_output_path('train.tsv')
+    test_path = yatest.common.test_output_path('test.tsv')
+    make_dataset(train_path)
+    make_dataset(test_path)
+
+    fit_params = (
+        '--loss-function', 'MultiRMSEWithMissingValues',
+        '--learning-rate', '0.03',
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--border-count', '254',
+        '--use-best-model', 'false',
+        # the labels of the eval set contain missing values, and they are not comparable
+        '--output-columns', 'RawFormulaVal',
+    )
+
+    fit_params += NO_RANDOM_PARAMS
+
+    cpu_eval_path = yatest.common.test_output_path('cpu_eval.tsv')
+    gpu_eval_path = yatest.common.test_output_path('gpu_eval.tsv')
+    cpu_test_error_path = yatest.common.test_output_path('cpu_test_error.tsv')
+    gpu_test_error_path = yatest.common.test_output_path('gpu_test_error.tsv')
+
+    execute_catboost_fit(
+        'CPU',
+        fit_params + ('--eval-file', cpu_eval_path, '--test-err-log', cpu_test_error_path))
+    fit_catboost_gpu(
+        fit_params + ('--eval-file', gpu_eval_path, '--test-err-log', gpu_test_error_path))
+
+    assert compare_fit_evals_with_precision(cpu_eval_path, gpu_eval_path, rtol=1e-6, atol=1e-6)
+
+    # the metric is normalized by the sum of weights of the non-missing target values of every
+    # dimension separately, so it also has to agree between CPU and GPU
+    cpu_test_error = np.loadtxt(cpu_test_error_path, skiprows=1)
+    gpu_test_error = np.loadtxt(gpu_test_error_path, skiprows=1)
+    assert np.allclose(cpu_test_error, gpu_test_error, rtol=1e-6, atol=1e-6)
+
+
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 def test_multiclass_baseline(loss_function):
     labels = [0, 1, 2, 3]
