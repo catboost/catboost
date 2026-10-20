@@ -4,6 +4,10 @@
 #include <util/generic/singleton.h>
 #include <util/datetime/cputimer.h>
 
+#if defined(_darwin_) && !defined(_x86_)
+    #include <mach/mach_time.h>
+#endif
+
 using namespace NHPTimer;
 
 namespace {
@@ -62,6 +66,12 @@ namespace {
         }
 
         static double InitHPTimer() {
+#if defined(_darwin_) && !defined(_x86_)
+            mach_timebase_info_data_t info;
+            if (mach_timebase_info(&info) == KERN_SUCCESS && info.numer != 0 && info.denom != 0) {
+                return static_cast<double>(info.numer) / info.denom / 1e9;
+            }
+#endif
             const size_t N_VEC = 9;
 
             double vec[N_VEC];
