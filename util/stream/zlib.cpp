@@ -100,6 +100,10 @@ public:
         AllowMultipleStreams_ = allowMultipleStreams;
     }
 
+    void SetRequireCompleteStreams(bool requireCompleteStreams) {
+        RequireCompleteStreams_ = requireCompleteStreams;
+    }
+
     inline size_t Read(void* buf, size_t size) {
         Z()->next_out = (unsigned char*)buf;
         Z()->avail_out = size;
@@ -107,10 +111,14 @@ public:
         while (true) {
             if (Z()->avail_in == 0) {
                 if (!FillInputBuffer()) {
+                    if (RequireCompleteStreams_ && !AtStreamEnd_) {
+                        ythrow TZLibDecompressorError() << "unexpected EOF inside compressed stream";
+                    }
                     return 0;
                 }
             }
 
+            AtStreamEnd_ = false;
             switch (inflate(Z(), Z_SYNC_FLUSH)) {
                 case Z_NEED_DICT: {
                     SetDict();
@@ -118,6 +126,7 @@ public:
                 }
 
                 case Z_STREAM_END: {
+                    AtStreamEnd_ = true;
                     if (AllowMultipleStreams_) {
                         if (inflateReset(Z()) != Z_OK) {
                             ythrow TZLibDecompressorError() << "inflate reset error(" << GetErrMsg() << ")";
@@ -157,6 +166,8 @@ private:
     }
 
     bool AllowMultipleStreams_ = true;
+    bool RequireCompleteStreams_ = false;
+    bool AtStreamEnd_ = false;
     TStringBuf Dict;
 };
 
@@ -329,6 +340,10 @@ TZLibDecompress::TZLibDecompress(IInputStream* input, ZLib::StreamType type, siz
 
 void TZLibDecompress::SetAllowMultipleStreams(bool allowMultipleStreams) {
     Impl_->SetAllowMultipleStreams(allowMultipleStreams);
+}
+
+void TZLibDecompress::SetRequireCompleteStreams(bool requireCompleteStreams) {
+    Impl_->SetRequireCompleteStreams(requireCompleteStreams);
 }
 
 TZLibDecompress::~TZLibDecompress() = default;

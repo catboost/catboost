@@ -54,6 +54,72 @@ Y_UNIT_TEST_SUITE(TZLibTest) {
     static const TString DATA = "8s7d5vc6s5vc67sa4c65ascx6asd4xcv76adsfxv76s";
     static const TString DATA2 = "cn8wk2bd9vb3vdfif83g1ks94bfiovtwv";
 
+    Y_UNIT_TEST(RequireCompleteStreams) {
+        for (auto type : {ZLib::GZip, ZLib::ZLib}) {
+            for (const TString& payload : {TString(), DATA}) {
+                TStringStream compressed;
+                {
+                    TZLibCompress compressor(&compressed, type);
+                    compressor.Write(payload);
+                    compressor.Finish();
+                }
+                TZLibDecompress decompressor(&compressed);
+                decompressor.SetRequireCompleteStreams(true);
+                UNIT_ASSERT_STRINGS_EQUAL(decompressor.ReadAll(), payload);
+            }
+        }
+    }
+
+    Y_UNIT_TEST(RequireCompleteStreamsRejectsTruncatedTrailer) {
+        for (auto type : {ZLib::GZip, ZLib::ZLib}) {
+            TStringStream compressed;
+            {
+                TZLibCompress compressor(&compressed, type);
+                compressor.Write(DATA);
+                compressor.Finish();
+            }
+            TString truncated = compressed.Str();
+            truncated.resize(truncated.size() - 1);
+            TStringStream input(truncated);
+            TZLibDecompress decompressor(&input);
+            decompressor.SetRequireCompleteStreams(true);
+            UNIT_ASSERT_EXCEPTION(decompressor.ReadAll(), TZLibDecompressorError);
+        }
+    }
+
+    Y_UNIT_TEST(RequireCompleteConcatenatedStreams) {
+        TStringStream compressed;
+        for (const auto& payload : {DATA, DATA2}) {
+            TZLibCompress compressor(&compressed, ZLib::GZip);
+            compressor.Write(payload);
+            compressor.Finish();
+        }
+        TStringStream valid(compressed.Str());
+        TZLibDecompress decompressor(&valid);
+        decompressor.SetRequireCompleteStreams(true);
+        UNIT_ASSERT_STRINGS_EQUAL(decompressor.ReadAll(), DATA + DATA2);
+        TString truncated = compressed.Str();
+        truncated.resize(truncated.size() - 1);
+        TStringStream invalid(truncated);
+        TZLibDecompress broken(&invalid);
+        broken.SetRequireCompleteStreams(true);
+        UNIT_ASSERT_EXCEPTION(broken.ReadAll(), TZLibDecompressorError);
+    }
+
+    Y_UNIT_TEST(TruncatedStreamRemainsAllowedByDefault) {
+        TStringStream compressed;
+        {
+            TZLibCompress compressor(&compressed, ZLib::GZip);
+            compressor.Write(DATA);
+            compressor.Finish();
+        }
+        TString truncated = compressed.Str();
+        truncated.resize(truncated.size() - 1);
+        TStringStream input(truncated);
+        TZLibDecompress decompressor(&input);
+        UNIT_ASSERT_STRINGS_EQUAL(decompressor.ReadAll(), DATA);
+    }
+
     Y_UNIT_TEST(Compress) {
         TUnbufferedFileOutput o(ZDATA);
         TZLibCompress c(&o, ZLib::ZLib);
