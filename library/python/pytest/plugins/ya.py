@@ -610,6 +610,8 @@ def pytest_collection_modifyitems(items, config):
 
 
 def pytest_collectreport(report):
+    # SIGUSR2 during import makes pytest.exit look like a collection error: stop instead of reporting it
+    _graceful_shutdown_on_log(session_should_exit)
     if report.passed:
         return
     if not hasattr(pytest_config, 'ya_trace_reporter'):
