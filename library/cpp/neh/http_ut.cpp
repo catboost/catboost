@@ -5,6 +5,7 @@
 
 #include "https.h"
 
+#include <library/cpp/streams/zstd/zstd.h>
 #include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/testing/unittest/tests_data.h>
 
@@ -255,6 +256,41 @@ Y_UNIT_TEST_SUITE(NehHttp) {
         UNIT_ASSERT(resp);
         UNIT_ASSERT(resp->IsError());
         UNIT_ASSERT_EQUAL(resp->GetErrorCode(), 523);
+    }
+
+    Y_UNIT_TEST(TDecodesZstdAndGzipResponses) {
+        const TString body = TString(4096, 'x') + TString("promo\0protobuf"sv);
+        TStringStream compressed;
+        TZstdCompress compressor(&compressed, 1);
+        compressor.Write(body);
+        compressor.Finish();
+
+        TServ serv = CreateServices([&](const IRequestRef& req) {
+            auto* httpReq = dynamic_cast<IHttpRequest*>(req.Get());
+            const auto* acceptEncoding = httpReq->Headers().FindHeader("Accept-Encoding");
+            Y_ENSURE(acceptEncoding);
+            TDataSaver data;
+            TString headers = "\r\nContent-Type: application/protobuf";
+            if (acceptEncoding->Value() == "zstd") {
+                data << compressed.Str();
+                headers += "\r\nContent-Encoding: zstd";
+            } else {
+                // The test server applies gzip based on Accept-Encoding.
+                data << body;
+            }
+            httpReq->SendReply(data, headers);
+        });
+
+        for (const auto& encoding : {"zstd", "gzip"}) {
+            TMessage msg;
+            msg.Addr = TStringBuilder() << "http2://localhost:" << serv.ServerPort << "/pipeline";
+            const TString headers = TStringBuilder() << "Accept-Encoding: " << encoding << "\r\n";
+            UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, headers, ""));
+            auto response = NNeh::Request(msg)->Wait(TDuration::Seconds(3));
+            UNIT_ASSERT_C(response, "compressed response timed out");
+            UNIT_ASSERT_C(!response->IsError(), response->GetErrorText());
+            UNIT_ASSERT_VALUES_EQUAL(response->Data, body);
+        }
     }
 
     Y_UNIT_TEST(TPipelineRequests) {

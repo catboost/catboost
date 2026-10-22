@@ -30,6 +30,7 @@ target_link_libraries(cpp-http-push_parser PUBLIC
   blockcodecs-codecs-zlib
   blockcodecs-codecs-zstd
   cpp-streams-brotli
+  cpp-streams-zstd
 )
 
 target_sources(cpp-http-push_parser PRIVATE

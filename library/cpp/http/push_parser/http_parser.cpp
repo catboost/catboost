@@ -3,6 +3,7 @@
 #include <library/cpp/blockcodecs/stream.h>
 #include <library/cpp/blockcodecs/codecs.h>
 #include <library/cpp/streams/brotli/brotli.h>
+#include <library/cpp/streams/zstd/zstd.h>
 
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
@@ -327,6 +328,9 @@ bool THttpParser::DecodeContent(TString& decodedContent) const {
     } else if (ContentEncoding_ == "lz4") {
         const auto* codec = NBlockCodecs::Codec(TStringBuf(ContentEncoding_));
         decodedContent = codec->Decode(Content_);
+    } else if (ContentEncoding_ == "zstd") {
+        TZstdDecompress decoder(&in);
+        decodedContent = decoder.ReadAll();
     } else if (ContentEncoding_ == "br") {
         TBrotliDecompress decoder(&in);
         decodedContent = decoder.ReadAll();
