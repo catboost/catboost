@@ -698,6 +698,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
 
 cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor.h":
     cdef cppclass TCustomObjectiveDescriptor:
+        TString MetalSource
         void* CustomData
 
         void (*GpuCalcDersRange)(
@@ -780,6 +781,12 @@ cdef extern from "catboost/libs/loggers/catboost_logger_helpers.h":
         TMaybe[size_t] BestIteration
         THashMap[TString, double] LearnBestError
         TVector[THashMap[TString, double]] TestBestError
+        TVector[TVector[double]] MetalLearnCursor
+        double MetalInitialLoss
+        ui32 MetalResumedIterations
+        TString MetalObjectiveMetric
+        ui64 MetalKernelDispatches
+        double MetalGpuSeconds
 
 cdef extern from "catboost/libs/train_lib/train_model.h":
     cdef void TrainModel(
@@ -944,7 +951,7 @@ cdef extern from "catboost/libs/eval_result/eval_helpers.h" namespace "NCB":
 
 cdef extern from "catboost/libs/eval_result/eval_result.h" namespace "NCB":
     cdef cppclass TEvalResult:
-        TVector[TVector[TVector[double]]] GetRawValuesRef() except +ProcessException with gil
+        TVector[TVector[TVector[double]]]& GetRawValuesRef() except +ProcessException with gil
         void ClearRawValues() except +ProcessException with gil
 
 cdef extern from "catboost/private/libs/init/init_reg.h" namespace "NCB":
@@ -1052,6 +1059,7 @@ cdef inline float _FloatOrNanFromString(const TString& s) except *:
 
 cdef extern from "catboost/libs/gpu_config/interface/get_gpu_device_count.h" namespace "NCB":
     cdef int GetGpuDeviceCount() except +ProcessException
+    cdef bool_t IsMetalBackend()
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -1150,6 +1158,10 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef cppclass TPythonStreamWrapper(IInputStream):
         ctypedef size_t (*TReadCallback)(char* target, size_t len, PyObject* stream, TString*)
         TPythonStreamWrapper(TReadCallback readCallback, PyObject* stream) except +ProcessException
+
+
+cdef extern from "catboost/python-package/catboost/pool_pairs_helpers.h" namespace "NCB":
+    cdef TVector[TPair] GetPythonPoolPairs(const TDataProvider& dataProvider) except +ProcessException
 
 
 cdef extern from "contrib/libs/apache/arrow_next/cpp/src/arrow/c/abi.h" namespace "NCB":
@@ -1953,6 +1965,20 @@ cdef TCustomObjectiveDescriptor _BuildCustomGpuObjectiveDescriptor(object object
     descriptor.GpuCalcDersRange = &_GpuObjectiveCalcDersRange
     return descriptor
 
+cdef TCustomObjectiveDescriptor _BuildCustomMetalObjectiveDescriptor(object objectiveObject) except *:
+    cdef TCustomObjectiveDescriptor descriptor
+    if isinstance(objectiveObject, MultiTargetCustomObjective):
+        raise CatBoostError("Metal custom objectives support scalar per-object training only")
+    if not callable(getattr(objectiveObject, "calc_ders_range_metal", None)):
+        raise CatBoostError("Metal custom objectives require calc_ders_range_metal() returning a Metal shader function body")
+    source = objectiveObject.calc_ders_range_metal()
+    if not isinstance(source, str) or not source.strip() or '\x00' in source:
+        raise CatBoostError("calc_ders_range_metal() must return a nonempty string without NUL characters")
+    descriptor.MetalSource = to_arcadia_string(source)
+    if descriptor.MetalSource.size() > 65536:
+        raise CatBoostError("Metal custom objective source exceeds the 64 KiB limit")
+    return descriptor
+
 cdef EPredictionType string_to_prediction_type(prediction_type_str) except *:
     cdef EPredictionType prediction_type
     if not TryFromString[EPredictionType](to_arcadia_string(prediction_type_str), prediction_type):
@@ -2034,7 +2060,7 @@ cdef class _PreprocessParams:
         params_to_json = params
 
         if is_custom_objective or is_custom_eval_metric or is_custom_callback:
-            if params.get("task_type") == "GPU" and is_custom_callback:
+            if params.get("task_type") == "GPU" and is_custom_callback and not IsMetalBackend():
                 raise CatBoostError("User defined callbacks are not supported for GPU")
             keys_to_replace = set()
             if is_custom_objective:
@@ -2059,14 +2085,17 @@ cdef class _PreprocessParams:
 
         if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
             if params.get("task_type") == "GPU":
-                self.customObjectiveDescriptor = _BuildCustomGpuObjectiveDescriptor(params["loss_function"])
+                if IsMetalBackend():
+                    self.customObjectiveDescriptor = _BuildCustomMetalObjectiveDescriptor(params["loss_function"])
+                else:
+                    self.customObjectiveDescriptor = _BuildCustomGpuObjectiveDescriptor(params["loss_function"])
             else:
                 self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
             if (issubclass(params["loss_function"].__class__, MultiTargetCustomObjective)):
                 params_to_json["loss_function"] = "PythonUserDefinedMultiTarget"
 
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
-            if params.get("task_type") == "GPU" and hasattr(params['eval_metric'], custom_gpu_metric_methods_to_optimize[0]):
+            if params.get("task_type") == "GPU" and not IsMetalBackend() and hasattr(params['eval_metric'], custom_gpu_metric_methods_to_optimize[0]):
                 self.customMetricDescriptor = _BuildCustomGpuMetricDescriptor(params['eval_metric'])
             else:
                 self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
@@ -5215,6 +5244,41 @@ cdef class _PoolBase:
         return None
 
 
+    cpdef get_subgroup_id_hash(self):
+        """Return copied uint32 subgroup hashes in current Pool row order, or None."""
+        cdef TMaybeData[TConstArrayRef[TSubgroupId]] subgroup_ids = self.__pool.Get()[0].ObjectsData.Get()[0].GetSubgroupIds()
+        cdef const TSubgroupId* subgroup_ids_ptr
+        cdef size_t i
+        if subgroup_ids.Defined():
+            result = np.empty(subgroup_ids.GetRef().size(), dtype=np.uint32)
+            subgroup_ids_ptr = subgroup_ids.GetRef().data()
+            for i in xrange(subgroup_ids.GetRef().size()):
+                result[i] = subgroup_ids_ptr[i]
+            return result
+        return None
+
+
+    cpdef _get_pairs(self):
+        cdef TVector[TPair] pairs = GetPythonPoolPairs(self.__pool.Get()[0])
+        cdef size_t index
+        return [[pairs[index].WinnerId, pairs[index].LoserId] for index in xrange(pairs.size())]
+
+
+    cpdef _get_pairs_weight(self):
+        cdef TVector[TPair] pairs = GetPythonPoolPairs(self.__pool.Get()[0])
+        cdef size_t index
+        return [pairs[index].Weight for index in xrange(pairs.size())]
+
+
+    cpdef _get_group_weight(self):
+        cdef const TWeights[float]* weights = &(self.__pool.Get()[0].RawTargetData.GetGroupWeights())
+        cdef TConstArrayRef[float] non_trivial_data
+        if weights.IsTrivial():
+            return [1.0] * weights.GetSize()
+        non_trivial_data = weights.GetNonTrivialData()
+        return [weight for weight in non_trivial_data]
+
+
     cpdef get_baseline(self):
         """
         Get baseline from Pool.
@@ -5506,7 +5570,7 @@ cdef class _CatBoost:
         task_type = params.get('task_type', 'CPU')
 
         if isinstance(test_pools, list):
-            if task_type == 'GPU' and len(test_pools) > 1:
+            if task_type == 'GPU' and len(test_pools) > 1 and not IsMetalBackend():
                 raise CatBoostError('Multiple eval sets are not supported on GPU')
             for test_pool in test_pools:
                 dataProviders.Test.push_back(test_pool.__pool)
@@ -5561,27 +5625,55 @@ cdef class _CatBoost:
         # only after that model has been destroyed
         self._replace_model(new_model, None)
 
+    cpdef _get_metal_training_cursor(self):
+        """Return the retained model's online learn cursor without serializing it."""
+        cdef size_t dimensions = self.__metrics_history.MetalLearnCursor.size()
+        cdef size_t rows, dimension, row
+        if (not self.__model.ModelInfo.contains(to_arcadia_string(b"metal_backend"))
+                or self.__model.ModelInfo[to_arcadia_string(b"metal_backend")] != to_arcadia_string(b"METAL")
+                or dimensions == 0):
+            raise CatBoostError("The native Metal online training cursor is unavailable for this fit or snapshot")
+        rows = self.__metrics_history.MetalLearnCursor[0].size()
+        result = np.empty((rows, dimensions), dtype=np.float64)
+        for dimension in xrange(dimensions):
+            if self.__metrics_history.MetalLearnCursor[dimension].size() != rows:
+                raise CatBoostError("The native Metal training cursor has inconsistent dimensions")
+            for row in xrange(rows):
+                result[row, dimension] = self.__metrics_history.MetalLearnCursor[dimension][row]
+        return result[:, 0].copy() if dimensions == 1 else result
+
+    cpdef _get_metal_training_info(self):
+        return {"initial_loss": self.__metrics_history.MetalInitialLoss,
+                "resumed_iterations": self.__metrics_history.MetalResumedIterations,
+                "objective_metric": to_str(self.__metrics_history.MetalObjectiveMetric),
+                "kernel_dispatches": self.__metrics_history.MetalKernelDispatches,
+                "gpu_seconds": self.__metrics_history.MetalGpuSeconds}
+
     cpdef _set_test_evals(self, test_evals):
         cdef TVector[double] vector
+        cdef TVector[TVector[TVector[double]]]* raw_values
         cdef size_t num_tests = len(test_evals)
         self._reserve_test_evals(num_tests)
         self._clear_test_evals()
         cdef size_t test_no
         for test_no in xrange(num_tests):
+            raw_values = &dereference(self.__test_evals[test_no]).GetRawValuesRef()
             for row in test_evals[test_no]:
                 for value in row:
                     vector.push_back(float(value))
-                dereference(self.__test_evals[test_no]).GetRawValuesRef()[0].push_back(vector)
+                dereference(raw_values)[0].push_back(vector)
                 vector.clear()
 
     cpdef _get_test_evals(self):
         test_evals = []
+        cdef TVector[TVector[TVector[double]]]* raw_values
         cdef size_t num_tests = self.__test_evals.size()
         cdef size_t test_no, i
         for test_no in xrange(num_tests):
             test_eval = []
-            for i in xrange(self.__test_evals[test_no].GetRawValuesRef()[0].size()):
-                test_eval.append([value for value in dereference(self.__test_evals[test_no]).GetRawValuesRef()[0][i]])
+            raw_values = &dereference(self.__test_evals[test_no]).GetRawValuesRef()
+            for i in xrange(dereference(raw_values)[0].size()):
+                test_eval.append([value for value in dereference(raw_values)[0][i]])
             test_evals.append(test_eval)
         return test_evals
 
@@ -6174,15 +6266,10 @@ cdef class _CatBoost:
         return _constarrayref_of_double_to_np_array(self.__model.ModelTrees.Get().GetModelTreeData().Get().GetLeafValues())
 
     cpdef _get_leaf_weights(self):
-        result = np.empty(self.__model.ModelTrees.Get().GetModelTreeData().Get().GetLeafValues().size(), dtype=_npfloat64)
-        cdef size_t curr_index = 0
         cdef TConstArrayRef[double] arrayView = self.__model.ModelTrees.Get().GetModelTreeData().Get().GetLeafWeights()
-        for val in arrayView:
-            result[curr_index] = val
-            curr_index += 1
-        assert curr_index == 0 or curr_index == self.__model.ModelTrees.Get().GetModelTreeData().Get().GetLeafValues().size(), (
-            "wrong number of leaf weights")
-        return result
+        # A multidimensional tree has several values but only one weight per
+        # leaf. Models without stored weights return an empty array.
+        return _constarrayref_of_double_to_np_array(arrayView)
 
     cpdef _get_tree_leaf_counts(self):
         cdef TVector[ui32] res = self.__model.ModelTrees.Get().GetTreeLeafCounts()
@@ -6715,9 +6802,21 @@ cdef TVector[double] to_tvector_double(np.ndarray[double, ndim=1, mode="c"] x) e
     return result
 
 
+cpdef _hash_subgroup_ids(values):
+    """Hash original subgroup tokens exactly as Pool construction does."""
+    if np.asarray(values, dtype=object).ndim != 1:
+        raise CatBoostError('subgroup_id must be one-dimensional.')
+    result = np.empty(len(values), dtype=np.uint32)
+    cdef size_t i
+    for i in xrange(len(values)):
+        result[i] = _calc_subgroup_id_for(i, values)
+    return result
+
+
 cpdef _eval_metric_util(
     label_param, approx_param, metric, weight_param, group_id_param,
-    group_weight_param, subgroup_id_param, pairs_param, int thread_count
+    group_weight_param, subgroup_id_param, pairs_param, int thread_count,
+    bool_t subgroup_id_is_hashed=False
 ):
     cdef size_t i
     cdef size_t doc_count = len(label_param) if isinstance(label_param, pl.DataFrame) else len(label_param[0]);
@@ -6770,8 +6869,15 @@ cpdef _eval_metric_util(
             raise CatBoostError('Label and subgroup_id should have same sizes.')
         subgroup_id.resize(doc_count)
         for i in xrange(doc_count):
-            get_id_object_bytes_string_representation(subgroup_id_param[i], &subgroup_id_strbuf)
-            subgroup_id[i] = CalcSubgroupIdFor(<TStringBuf>subgroup_id_strbuf)
+            if subgroup_id_is_hashed:
+                if (not isinstance(subgroup_id_param[i], (int, np.integer))
+                        or isinstance(subgroup_id_param[i], (bool, np.bool_))
+                        or subgroup_id_param[i] < 0 or subgroup_id_param[i] > 0xffffffff):
+                    raise CatBoostError('Stored subgroup hashes must be uint32 integers.')
+                subgroup_id[i] = subgroup_id_param[i]
+            else:
+                get_id_object_bytes_string_representation(subgroup_id_param[i], &subgroup_id_strbuf)
+                subgroup_id[i] = CalcSubgroupIdFor(<TStringBuf>subgroup_id_strbuf)
 
     cdef TVector[TPair] pairs;
     if pairs_param is not None:

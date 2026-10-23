@@ -6,6 +6,10 @@
 
 namespace NCB {
 
+    bool IsMetalBackend() {
+        return false;
+    }
+
     int GetGpuDeviceCount() {
         int deviceCount = 0;
 

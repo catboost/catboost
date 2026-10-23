@@ -560,7 +560,7 @@ static TCtrData CtrDataFromJson(const TJsonValue& jsonValue) {
             auto index = indexHashBuilder.AddIndex(hashValue);
 
             if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
-                ctrMean[index].Sum = hashPtr->GetInteger();
+                ctrMean[index].Sum = hashPtr->GetDouble();
                 hashPtr++;
                 ctrMean[index].Count = hashPtr->GetInteger();
                 hashPtr++;

@@ -803,7 +803,14 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         && !EqualToOneOf(lossFunction, ELossFunction::RMSEWithUncertainty, ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)
         && TaskType == ETaskType::GPU && !boostingType.IsSet()
     ) {
+#if defined(CATBOOST_HAVE_METAL)
+        // Preserve Metal's published Plain default, including its Exact leaf
+        // defaults and snapshot parameters. Ordered is available explicitly;
+        // changing the implicit algorithm would alter existing callers' models.
+        boostingType.SetDefault(EBoostingType::Plain);
+#else
         boostingType.SetDefault(EBoostingType::Ordered);
+#endif
     }
 
     if (IsPlainOnlyModeLoss(lossFunction)) {
@@ -990,7 +997,21 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             }
         }
     }
-    if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
+    if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Region) {
+        const ui32 depth = ObliviousTreeOptions->MaxDepth.Get();
+        CB_ENSURE(depth < Max<ui32>(), "Region depth is too large to represent depth + 1 leaves");
+        const ui32 maxLeaves = depth + 1;
+        auto& configuredLeaves = ObliviousTreeOptions->MaxLeaves;
+        // Region adds one leaf per level. Older model metadata used the full
+        // binary-tree capacity; accept that spelling only when its shift is
+        // defined, then normalize it to the actual Region capacity.
+        const bool legacyCapacity = depth < 32 && configuredLeaves.Get() == (1u << depth);
+        CB_ENSURE(configuredLeaves.NotSet() || configuredLeaves.IsDefault() ||
+                  configuredLeaves.Get() == maxLeaves || legacyCapacity,
+                  "Region max_leaves must equal depth + 1; custom max_leaves requires Lossguide");
+        if (configuredLeaves.IsSet()) configuredLeaves.Set(maxLeaves);
+        else configuredLeaves.SetDefault(maxLeaves);
+    } else if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
         const ui32 maxLeaves = 1u << ObliviousTreeOptions->MaxDepth.Get();
         if (ObliviousTreeOptions->MaxLeaves.IsDefault()) {
             ObliviousTreeOptions->MaxLeaves.SetDefault(maxLeaves);

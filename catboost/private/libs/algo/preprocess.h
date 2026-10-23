@@ -4,6 +4,7 @@
 #include <catboost/private/libs/options/enums.h>
 
 #include <util/generic/string.h>
+#include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
 
@@ -32,7 +33,8 @@ void UpdateUndefinedRandomSeed(
     ETaskType taskType,
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
     NJson::TJsonValue* updatedJsonParams,
-    std::function<void(TIFStream*, TString&)> paramsLoader
+    std::function<void(TIFStream*, TString&)> paramsLoader,
+    TStringBuf snapshotLabel = {}
 );
 
 void UpdateUndefinedClassLabels(
@@ -44,12 +46,14 @@ void UpdateUndefinedClassLabels(
 NCB::TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     NCB::TDataProviderPtr learnData,
-    NPar::ILocalExecutor* localExecutor
+    NPar::ILocalExecutor* localExecutor,
+    NCB::TArraySubsetIndexing<ui32>* learnObjectOrder = nullptr
 );
 
 NCB::TDataProviderPtr ShuffleLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     NCB::TDataProviderPtr learnData,
     NPar::ILocalExecutor* localExecutor,
-    TRestorableFastRng64* rand
+    TRestorableFastRng64* rand,
+    NCB::TArraySubsetIndexing<ui32>* learnObjectOrder = nullptr
 );

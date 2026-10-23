@@ -528,6 +528,26 @@ namespace NCB::NModelEvaluation {
         }
     }
 
+    // A model bucket carries at most MAX_VALUES_PER_BIN borders (254).
+    // Quantized pool values index the complete model grid, so even a ui8
+    // feature with 255 borders needs two evaluator buckets.
+    template <typename TFloatFeatureAccessor>
+    inline void BinarizeQuantizedFloatFeature(
+        const TFloatFeature& feature,
+        TFloatFeatureAccessor floatAccessor,
+        size_t start,
+        size_t end,
+        ui8*& result
+    ) {
+        for (size_t offset = 0; offset < feature.Borders.size(); offset += MAX_VALUES_PER_BIN) {
+            const ui32 borderCount = Min<size_t>(MAX_VALUES_PER_BIN, feature.Borders.size() - offset);
+            for (size_t row = start; row < end; ++row) {
+                const ui32 bin = floatAccessor(feature.Position, row);
+                *result++ = bin > offset ? Min<ui32>(bin - offset, borderCount) : 0;
+            }
+        }
+    }
+
 /**
 * This function is for quantized pool
 */
@@ -562,10 +582,7 @@ namespace NCB::NModelEvaluation {
                 if (!floatFeature.UsedInModel()) {
                     continue;
                 }
-                for (ui32 docId = start; docId < blockEnd; ++docId) {
-                    *resultPtr = floatAccessor(floatFeature.Position, docId);
-                    resultPtr++;
-                }
+                BinarizeQuantizedFloatFeature(floatFeature, floatAccessor, start, blockEnd, resultPtr);
             }
 
             ComputeOneHotAndCtrFeaturesForBlock(
