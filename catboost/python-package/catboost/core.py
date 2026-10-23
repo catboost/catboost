@@ -7114,7 +7114,7 @@ def sample_gaussian_process(X, y, eval_set=None,
             for tree in prior_json["oblivious_trees"]:
                 for ind, (val, weight) in enumerate(zip(tree["leaf_values"], tree["leaf_weights"])):
                     tree["leaf_values"][ind] = random_generator.normal(scale=np.sqrt(N / np.sqrt(max(1, weight))))
-            with open(prior_model_tmp_file, "w") as prior_file:
+            with open(prior_model_tmp_file, "w", encoding='utf-8') as prior_file:
                 json.dump(prior_json, prior_file)
             prior.load_model(prior_model_tmp_file, format="json")
 

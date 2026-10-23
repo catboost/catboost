@@ -9049,7 +9049,7 @@ def test_different_formats_of_monotone_constraints():
 
     params_file = yatest.common.test_output_path("params.json")
     for constraints in ['3:1,5:-1', 'F0:1,F1:-1', [0, 0, 0, 1, 0, -1], {3: 1, 5: -1}, {'F0': 1, 'F1': -1}]:
-        json.dump({'monotone_constraints': constraints}, open(params_file, 'w'))
+        json.dump({'monotone_constraints': constraints}, open(params_file, 'w', encoding='utf-8'))
         execute_catboost_fit('CPU', cmd + ['--eval-file', eval_path_with_monotone2, '--params-file', params_file])
         assert filecmp.cmp(eval_path_with_monotone1, eval_path_with_monotone2)
 
@@ -9087,12 +9087,12 @@ class TestModelWithoutParams(object):
         execute_catboost_fit('CPU', cmd)
         shutil.rmtree(train_dir)
 
-        model = json.load(open(model_json))
+        model = json.load(open(model_json, encoding='utf-8'))
         if cut == 'cut-info':
             model.pop('model_info')
         if cut == 'cut-params':
             model['model_info'].pop('params')
-        json.dump(model, open(model_json, 'wt'))
+        json.dump(model, open(model_json, 'wt', encoding='utf-8'))
         return model_json, learn_set, test_set, cd
 
     def test_ostr(self, model_etc):
@@ -9374,7 +9374,7 @@ def test_eval_feature_snapshot(eval_mode, features_to_eval, offset, fstr_mode):
                 model = catboost.CatBoost()
                 model.load_model(model_path)
                 model.save_model(model_path + '.json', format='json')
-                with open(model_path + '.json') as json_model_file:
+                with open(model_path + '.json', encoding='utf-8') as json_model_file:
                     json_model = json.load(json_model_file)
                 json_model["model_info"]["output_options"] = ""
                 json_model["model_info"]["train_finish_time"] = ""
@@ -10540,7 +10540,7 @@ def test_dump_options():
         '--output', options_path
     )
     yatest.common.execute(dump_options_cmd)
-    with open(options_path) as options:
+    with open(options_path, encoding='utf-8') as options:
         options_json = json.load(options)
         assert options_json['metadata'][key] == value
 
@@ -10560,7 +10560,7 @@ def prepare_pool_metainfo_with_feature_tags():
         }
     }
     pool_metainfo_path = yatest.common.test_output_path('pool_metainfo.json')
-    with open(pool_metainfo_path, 'w') as f:
+    with open(pool_metainfo_path, 'w', encoding='utf-8') as f:
         json.dump(pool_metainfo, f)
 
     return pool_metainfo, pool_metainfo_path
@@ -10698,7 +10698,7 @@ def test_feature_tags_in_options_file():
     )
     yatest.common.execute(cmd)
 
-    with open(training_options_path) as f:
+    with open(training_options_path, encoding='utf-8') as f:
         options = json.load(f)
         assert options['pool_metainfo_options'] == pool_metainfo
 

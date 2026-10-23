@@ -50,14 +50,14 @@ from yatest.common import binary_path, test_output_path  # noqa: E402
 
 
 def remove_time_from_json(filename):
-    with open(filename) as f:
+    with open(filename, encoding='utf-8') as f:
         log = json.load(f)
     iterations = log['iterations']
     for i, iter_info in enumerate(iterations):
         for key in ['remaining_time', 'passed_time']:
             if key in iter_info.keys():
                 del iter_info[key]
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding='utf-8') as f:
         json.dump(log, f, sort_keys=True)
     return filename
 

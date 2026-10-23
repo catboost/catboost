@@ -47,7 +47,7 @@ def simple1():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'regression_simple1.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'regression_simple1.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -89,7 +89,7 @@ def simple_on_dataframe():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'regression_simple_on_dataframe.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'regression_simple_on_dataframe.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -147,7 +147,7 @@ def with_eval_set():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'regression_with_eval_set.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'regression_with_eval_set.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -216,7 +216,7 @@ def with_eval_sets():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'regression_with_eval_sets.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'regression_with_eval_sets.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -258,7 +258,7 @@ def overfitting_detector():
 
     json.dump(
         result,
-        fp=open(os.path.join(OUTPUT_DIR, 'regression_overfitting_detector.json'), 'w'),
+        fp=open(os.path.join(OUTPUT_DIR, 'regression_overfitting_detector.json'), 'w', encoding='utf-8'),
         allow_nan=True,
         indent=2
     )
@@ -308,7 +308,7 @@ def params():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'regression_params.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'regression_params.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -363,7 +363,7 @@ def one_hot_cat_features():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'regression_one_hot_cat_features.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'regression_one_hot_cat_features.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -422,7 +422,7 @@ def num_and_one_hot_cat_features():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'regression_num_and_one_hot_cat_features.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'regression_num_and_one_hot_cat_features.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -502,7 +502,11 @@ def num_and_one_hot_cat_features_with_eval_sets():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'regression_num_and_one_hot_cat_features_with_eval_sets.json'), 'w'),
+            fp=open(
+                os.path.join(OUTPUT_DIR, 'regression_num_and_one_hot_cat_features_with_eval_sets.json'),
+                'w',
+                encoding='utf-8',
+            ),
             allow_nan=True,
             indent=2
         )
@@ -572,7 +576,7 @@ def one_hot_and_ctr_cat_features():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'regression_one_hot_and_ctr_cat_features.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'regression_one_hot_and_ctr_cat_features.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -667,7 +671,8 @@ def num_and_one_hot_and_ctr_cat_features_with_eval_sets():
                     OUTPUT_DIR,
                     'regression_num_and_one_hot_and_ctr_cat_features_with_eval_sets.json'
                 ),
-                'w'
+                'w',
+                encoding='utf-8',
             ),
             allow_nan=True,
             indent=2
@@ -729,7 +734,7 @@ def constant_and_ctr_cat_features():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'regression_constant_and_ctr_cat_features.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'regression_constant_and_ctr_cat_features.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -773,7 +778,7 @@ def with_pairs():
 
     json.dump(
         result,
-        fp=open(os.path.join(OUTPUT_DIR, 'regression_with_pairs.json'), 'w'),
+        fp=open(os.path.join(OUTPUT_DIR, 'regression_with_pairs.json'), 'w', encoding='utf-8'),
         allow_nan=True,
         indent=2
     )
@@ -823,7 +828,7 @@ def with_pairs_with_eval_set():
 
     json.dump(
         result,
-        fp=open(os.path.join(OUTPUT_DIR, 'regression_with_pairs_with_eval_set.json'), 'w'),
+        fp=open(os.path.join(OUTPUT_DIR, 'regression_with_pairs_with_eval_set.json'), 'w', encoding='utf-8'),
         allow_nan=True,
         indent=2
     )

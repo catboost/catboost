@@ -52,7 +52,7 @@ if __name__ == '__main__':
     }
 
     if args.params_grid:
-        with open(args.params_grid) as f:
+        with open(args.params_grid, encoding='utf-8') as f:
             grid = json.load(f)
         params_grid.update(grid)
 

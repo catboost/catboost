@@ -36,7 +36,7 @@ def _params_to_str(params):
 
 def eval_params(ranker_name, RankerType, data, static_params, param_space, log_file, out_file):
     if not os.path.exists(log_file):
-        with open(log_file, 'w') as f:
+        with open(log_file, 'w', encoding='utf-8') as f:
             json.dump({}, f)
 
     def objective(params):
@@ -44,7 +44,7 @@ def eval_params(ranker_name, RankerType, data, static_params, param_space, log_f
         ranker_params.update(params)
         print('Fit with params: ' + _params_to_str(ranker_params))
 
-        with open(log_file, 'r') as f:
+        with open(log_file, 'r', encoding='utf-8') as f:
             log = json.load(f)
             if ranker_name not in log:
                 log[ranker_name] = {}
@@ -70,7 +70,7 @@ def eval_params(ranker_name, RankerType, data, static_params, param_space, log_f
         }
         dump = log_file + '.dmp'
 
-        with open(dump, 'w') as f:
+        with open(dump, 'w', encoding='utf-8') as f:
             json.dump(log, f, indent=4, sort_keys=True)
 
         os.rename(dump, log_file)
@@ -81,7 +81,7 @@ def eval_params(ranker_name, RankerType, data, static_params, param_space, log_f
 
     print('Best params:' + str(best_params))
 
-    with open(out_file, 'w') as f:
+    with open(out_file, 'w', encoding='utf-8') as f:
         json.dump(best_params, f, indent=4, sort_keys=True)
 
     return best_params
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
     static_params['iterations'] = args.iterations
 
-    with open(args.param_space) as f:
+    with open(args.param_space, encoding='utf-8') as f:
         param_space = json.load(f)
 
     train = read_dataset(args.train)

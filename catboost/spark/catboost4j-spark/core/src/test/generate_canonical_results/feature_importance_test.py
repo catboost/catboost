@@ -45,7 +45,7 @@ def prediction_values_change():
 
     json.dump(
         result,
-        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_prediction_values_change.json'), 'w'),
+        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_prediction_values_change.json'), 'w', encoding='utf-8'),
         allow_nan=True,
         indent=2
     )
@@ -94,7 +94,7 @@ def loss_function_change():
 
     json.dump(
         result,
-        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_loss_function_change.json'), 'w'),
+        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_loss_function_change.json'), 'w', encoding='utf-8'),
         allow_nan=True,
         indent=2
     )
@@ -127,7 +127,7 @@ def interaction():
 
     json.dump(
         result,
-        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_interaction.json'), 'w'),
+        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_interaction.json'), 'w', encoding='utf-8'),
         allow_nan=True,
         indent=2
     )
@@ -188,7 +188,7 @@ def shap_values():
 
     json.dump(
         result,
-        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_shap_values.json'), 'w'),
+        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_shap_values.json'), 'w', encoding='utf-8'),
         allow_nan=True,
         indent=2
     )
@@ -235,7 +235,7 @@ def prediction_diff():
 
     json.dump(
         result,
-        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_prediction_diff.json'), 'w'),
+        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_prediction_diff.json'), 'w', encoding='utf-8'),
         allow_nan=True,
         indent=2
     )
@@ -296,7 +296,7 @@ def shap_interaction_values():
 
     json.dump(
         result,
-        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_shap_interaction_values.json'), 'w'),
+        fp=open(os.path.join(OUTPUT_DIR, 'feature_importance_shap_interaction_values.json'), 'w', encoding='utf-8'),
         allow_nan=True,
         indent=2
     )

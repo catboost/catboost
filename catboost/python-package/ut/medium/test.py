@@ -4525,10 +4525,10 @@ def test_shap_feature_importance_with_user_metrics_and_no_target(task_type):
 
     model_path = test_output_path('model.json')
     model.save_model(model_path, format='json')
-    json_model = json.load(open(model_path))
+    json_model = json.load(open(model_path, encoding='utf-8'))
     for tree in json_model['oblivious_trees']:
         del tree['leaf_weights']
-    json.dump(json_model, open(model_path, 'wt'))
+    json.dump(json_model, open(model_path, 'wt', encoding='utf-8'))
     model = model.load_model(model_path, format='json')
     model.get_feature_importance(type=EFstrType.ShapValues, data=test_pool)
 
@@ -8074,7 +8074,7 @@ def test_compute_options():
     )
 
     options_file_name = test_output_path('options.json')
-    with open(options_file_name, 'w') as f:
+    with open(options_file_name, 'w', encoding='utf-8') as f:
         json.dump(options, f, indent=4, sort_keys=True)
 
     return local_canonical_file(options_file_name)
@@ -8176,7 +8176,7 @@ def test_prediction_plot():
     model.fit(X, y, silent=True)
 
     res, _ = model.plot_predictions(data=X[:2, ], features_to_change=[0, 1], plot=False)
-    json.dump(res, open(preds_path, 'w'))
+    json.dump(res, open(preds_path, 'w', encoding='utf-8'))
     return local_canonical_file(preds_path)
 
 
@@ -8187,11 +8187,11 @@ def test_binclass_with_nontrivial_classes():
     X = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     y = [1, 2, 1]
     model.fit(X, y)
-    json_log = json.load(open(remove_time_from_json(catboost_training_path)))
+    json_log = json.load(open(remove_time_from_json(catboost_training_path), encoding='utf-8'))
     json_log['iterations'] = [
         dict({'iteration': row['iteration'], 'learn': [np.round(row['learn'][0], decimals=4)]})
         for row in json_log['iterations']]
-    json.dump(json_log, open(catboost_training_path, 'w'))
+    json.dump(json_log, open(catboost_training_path, 'w', encoding='utf-8'))
     return local_canonical_file(catboost_training_path)
 
 
@@ -8514,12 +8514,12 @@ class TestModelWithoutParams(object):
         model = CatBoost(dict(iterations=16, loss_function=loss))
         model.fit(train_pool, verbose=True)
         model.save_model(model_json, format='json')
-        data = json.load(open(model_json))
+        data = json.load(open(model_json, encoding='utf-8'))
         if cut == 'cut-info':
             data.pop('model_info')
         if cut == 'cut-params':
             data['model_info'].pop('params')
-        json.dump(data, open(model_json, 'wt'))
+        json.dump(data, open(model_json, 'wt', encoding='utf-8'))
         model.load_model(model_json, format='json')
         return model, train_pool, test_pool
 
@@ -8588,7 +8588,7 @@ def test_get_all_params():
     assert all(model.predict(pool) == model2.predict(pool))
 
     options_file = test_output_path('options.json')
-    with open(options_file, 'w') as f:
+    with open(options_file, 'w', encoding='utf-8') as f:
         json.dump(options, f, indent=4, sort_keys=True)
 
     return local_canonical_file(options_file)
@@ -9935,9 +9935,9 @@ def test_shap_assert():
     model = train(pool, {'iterations': 1, 'task_type': 'CPU', 'devices': '0'})
     model.save_model(model_path, format='json')
 
-    json_model = json.load(open(model_path))
+    json_model = json.load(open(model_path, encoding='utf-8'))
     json_model['scale_and_bias'] = [1, [1]]
-    json.dump(json_model, open(model_path, 'w'))
+    json.dump(json_model, open(model_path, 'w', encoding='utf-8'))
     model = CatBoost().load_model(model_path, format='json')
     shap_values = model.get_feature_importance(type='ShapValues', data=pool)
     predictions = model.predict(pool)
@@ -9954,7 +9954,7 @@ def test_shap_assert():
         'float_features': [{'borders': [0.5], 'feature_index': 0, 'flat_feature_index': 0, 'has_nans': False, 'nan_value_treatment': 'AsIs'}]
     }
 
-    json.dump(json_model, open(model_path, 'w'))
+    json.dump(json_model, open(model_path, 'w', encoding='utf-8'))
     model = CatBoost().load_model(model_path, format='json')
     model.get_feature_importance(type='ShapValues', data=pool)
 
@@ -11081,7 +11081,7 @@ def test_select_features_by_multi_feature_tags(task_type, train_final_model, alg
     )
 
     summary_file_name = test_output_path('summary.json')
-    with open(summary_file_name, 'w') as f:
+    with open(summary_file_name, 'w', encoding='utf-8') as f:
         json.dump(summary, f, indent=4, sort_keys=True)
 
     return local_canonical_file(summary_file_name, diff_tool=get_limited_precision_json_diff_tool(1.e-6))

@@ -71,7 +71,7 @@ class OfflineMetricVisualizer(object):
 
         if os.path.isfile(training_json):
             try:
-                with open(training_json, 'r') as json_data:
+                with open(training_json, 'r', encoding='utf-8') as json_data:
                     training_data = json.load(json_data)
                     data['meta'] = training_data['meta']
                     data['iterations'] = training_data['iterations']
