@@ -163,6 +163,8 @@ def get_host_platform() -> str:
     arch = platform.machine()
     if arch == 'AMD64':
         arch = 'x86_64'
+    elif arch == 'ARM64':
+        arch = 'arm64'
     return f'{platform.system().lower()}-{arch}'
 
 class CmdRunner(object):
@@ -420,7 +422,11 @@ def get_msvc_environ(
     # can't use NamedTemporaryFile or mkstemp because of child proces access issues
     with tempfile.TemporaryDirectory() as tmp_dir:
         env_vars_file_path = os.path.join(tmp_dir, 'env_vars')
-        cmd = f'"{msvs_dir}\\VC\\Auxiliary\\Build\\vcvars64.bat" -vcvars_ver={msvc_toolset} && set > {env_vars_file_path}'
+        if platform.machine() == 'ARM64':
+            vcvars_script = 'vcvarsarm64.bat'
+        else:
+            vcvars_script = 'vcvars64.bat'
+        cmd = f'"{msvs_dir}\\VC\\Auxiliary\\Build\\{vcvars_script}" -vcvars_ver={msvc_toolset} && set > {env_vars_file_path}'
         cmd_runner.run(cmd, run_even_with_dry_run=True, shell=True)
         with open(env_vars_file_path) as env_vars_file:
             for l in env_vars_file:
@@ -599,10 +605,14 @@ def build(
 
             # Use clang-cl for the build without CUDA and standard Microsoft toolchain for the build with CUDA
             # (as clang-cl is not supported by CUDA yet)
+            if target_platform == 'windows-arm64':
+                llvm_arch = 'ARM64'
+            else:
+                llvm_arch = 'x64'
             cmake_cmd += [
-                f'-DCMAKE_CXX_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
-                f'-DCMAKE_C_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
-                f'-DCMAKE_RC_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\llvm-rc.exe'
+                f'-DCMAKE_CXX_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\{llvm_arch}\\bin\\clang-cl.exe',
+                f'-DCMAKE_C_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\{llvm_arch}\\bin\\clang-cl.exe',
+                f'-DCMAKE_RC_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\{llvm_arch}\\bin\\llvm-rc.exe'
             ]
 
     if opts.conan_build_profile:
