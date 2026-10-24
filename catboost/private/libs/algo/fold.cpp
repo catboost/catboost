@@ -92,6 +92,8 @@ static void InitPermutationData(
         fold->LearnPermutationFeaturesSubset = TFeaturesArraySubsetIndexing(
             std::move(learnPermutationFeaturesSubset)
         );
+        fold->IsLearnPermutationFeaturesSubsetIdentity
+            = std::holds_alternative<TFullSubset<ui32>>(featuresArraySubsetIndexing);
     }
 }
 
