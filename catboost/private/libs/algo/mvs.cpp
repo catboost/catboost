@@ -78,17 +78,58 @@ double TMvsSampler::GetLambda(
     return mean * mean;
 }
 
+// Gives the same result as std::partition, including the order of elements (the threshold depends on it
+// through the pivot choice and the summation order), but has no data-dependent branches,
+// which are mispredicted for random candidates.
+// std::partition swaps the k-th element of [begin, middle) not satisfying the predicate with the k-th
+// element from the end of [middle, end) satisfying it, where middle = begin + (count satisfying the predicate).
+// buffer must have room for (end - begin) elements.
+template <typename TPredicate>
+static TVector<double>::iterator PartitionBranchless(
+    TVector<double>::iterator begin,
+    TVector<double>::iterator end,
+    TPredicate predicate,
+    ui32* buffer) {
+
+    const ui32 size = end - begin;
+    ui32 middle = 0;
+    for (ui32 idx : xrange(size)) {
+        middle += predicate(begin[idx]);
+    }
+    ui32 leftCount = 0;
+    for (ui32 idx : xrange(middle)) {
+        buffer[leftCount] = idx;
+        leftCount += !predicate(begin[idx]);
+    }
+    ui32* right = buffer + leftCount;
+    ui32 rightCount = 0;
+    for (ui32 idx = size; idx > middle; --idx) {
+        right[rightCount] = idx - 1;
+        rightCount += predicate(begin[idx - 1]);
+    }
+    Y_ASSERT(leftCount == rightCount);
+    for (ui32 pairIdx : xrange(leftCount)) {
+        std::swap(begin[buffer[pairIdx]], begin[right[pairIdx]]);
+    }
+    return begin + middle;
+}
+
 double TMvsSampler::CalculateThreshold(
     TVector<double>::iterator candidatesBegin,
     TVector<double>::iterator candidatesEnd,
     double sumOfSmallCurrent,
     ui32 numberOfLargeCurrent,
-    double sampleSize) const {
+    double sampleSize,
+    ui32* partitionBuffer) const {
 
     double threshold = *candidatesBegin;
-    auto middleBegin = std::partition(candidatesBegin, candidatesEnd, [threshold](double candidate) {
-        return candidate < threshold;
-    });
+    auto middleBegin = PartitionBranchless(
+        candidatesBegin,
+        candidatesEnd,
+        [threshold](double candidate) {
+            return candidate < threshold;
+        },
+        partitionBuffer);
     auto middleEnd = std::partition(middleBegin, candidatesEnd, [threshold](double candidate) {
         return candidate <= threshold;
     });
@@ -103,14 +144,14 @@ double TMvsSampler::CalculateThreshold(
     if (estimatedSampleSize > sampleSize) {
         if (middleEnd != candidatesEnd) {
             sumOfSmallCurrent += sumOfMiddle + sumOfSmallUpdate;
-            return CalculateThreshold(middleEnd, candidatesEnd, sumOfSmallCurrent, numberOfLargeCurrent, sampleSize);
+            return CalculateThreshold(middleEnd, candidatesEnd, sumOfSmallCurrent, numberOfLargeCurrent, sampleSize, partitionBuffer);
         } else {
             return (sumOfSmallCurrent + sumOfSmallUpdate + sumOfMiddle) / (sampleSize - numberOfLargeCurrent);
         }
     } else {
         if (middleBegin != candidatesBegin) {
             numberOfLargeCurrent += numberOfLargeUpdate + numberOfMiddle;
-            return CalculateThreshold(candidatesBegin, middleBegin, sumOfSmallCurrent, numberOfLargeCurrent, sampleSize);
+            return CalculateThreshold(candidatesBegin, middleBegin, sumOfSmallCurrent, numberOfLargeCurrent, sampleSize, partitionBuffer);
         } else {
             return sumOfSmallCurrent / (sampleSize - numberOfLargeCurrent - numberOfMiddle - numberOfLargeUpdate);
         }
@@ -194,12 +235,15 @@ void TMvsSampler::GenSampleWeights(
                 for (auto& value : thresholdCandidates) {
                     value = sqrt(value);
                 }
+                TVector<ui32> partitionBuffer;
+                partitionBuffer.yresize(blockSize);
                 double threshold = CalculateThreshold(
                     thresholdCandidates.begin(),
                     thresholdCandidates.end(),
                     0,
                     0,
-                    SampleRate * blockSize);
+                    SampleRate * blockSize,
+                    partitionBuffer.data());
                 for (ui32 i = blockOffset; i < blockFinish; ++i) {
                     double grad2 = 0;
                     for (auto dim : xrange(approxDimension)) {

@@ -40,7 +40,8 @@ private:
         TVector<double>::iterator candidatesEnd,
         double sumSmall,
         ui32 nLarge,
-        double sampleSize) const;
+        double sampleSize,
+        ui32* partitionBuffer) const;
 
 private:
     ui32 SampleCount;
