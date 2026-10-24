@@ -1,3 +1,50 @@
+#include "context_config.h"
+
+#if defined(__APPLE__)
+    #define CNAME(name) _ ## name
+#else
+    #define CNAME(name) name
+#endif
+
+.text
+
+#if defined(USE_JUMP_CONT)
+.p2align 2
+.global CNAME(ContextTrampoLine)
+#if defined(__ELF__)
+    .type CNAME(ContextTrampoLine), %function
+#endif
+CNAME(ContextTrampoLine):
+    .cfi_startproc
+    .cfi_def_cfa sp, 0
+    // Mark x30 undefined to stop unwinding (DWARF 6.4.4).
+    .cfi_undefined x30
+#if defined(__ARM_FEATURE_BTI_DEFAULT) && (__ARM_FEATURE_BTI_DEFAULT == 1)
+    hint #38 // bti jc
+#endif
+    ldr x0, [sp]
+#if !defined(NDEBUG)
+    ldr x1, [sp, #8]
+    cmp x0, x1
+    b.ne 1f
+#endif
+    // Provide a return address for unwinding.
+    bl CNAME(ContextTrampoLineRun)
+    // ContextTrampoLineRun should never return, if it did, we have a problem.
+    bl CNAME(abort)
+    brk #0
+
+#if !defined(NDEBUG)
+1:
+    bl CNAME(ContextTrampoLineAbort)
+    brk #0
+#endif
+    .cfi_endproc
+#if defined(__ELF__)
+    .size CNAME(ContextTrampoLine), .-CNAME(ContextTrampoLine)
+#endif
+#endif
+
 .p2align 2
 #if !(defined __darwin__) && !(defined __arm64__)
 .global __mysetjmp
@@ -50,3 +97,7 @@ ___mylongjmp:
     cbnz x1, 1f
     mov x0, #1
 1:    br x30
+
+#if defined(__ELF__)
+    .section .note.GNU-stack,"",%progbits
+#endif
