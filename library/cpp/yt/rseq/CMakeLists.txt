@@ -29,7 +29,6 @@ target_link_libraries(cpp-yt-rseq PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-yt-assert
   cpp-yt-misc
 )
 

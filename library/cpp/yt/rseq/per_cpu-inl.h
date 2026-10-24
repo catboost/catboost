@@ -6,8 +6,6 @@
 
 #include "cpu_id.h"
 
-#include <library/cpp/yt/assert/assert.h>
-
 #include <util/system/compiler.h>
 
 #if defined(__x86_64__)
