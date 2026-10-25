@@ -1,0 +1,18 @@
+# Changelog generation for release-plz / git-cliff.
+# CI-only commits are excluded from the user-facing changelog.
+
+[changelog]
+# Custom parsers replace release-plz defaults; keep Keep a Changelog groups.
+# Skip CI, chore, and refactor conventional subjects.
+commit_parsers = [
+    { message = "^ci(?:\\(.*\\))?:", skip = true },
+    { message = "^chore(?:\\(.*\\))?:", skip = true },
+    { message = "^refactor(?:\\(.*\\))?:", skip = true },
+    { message = "^feat(?:\\(.*\\))?:", group = "added" },
+    { message = "^changed", group = "changed" },
+    { message = "^deprecated", group = "deprecated" },
+    { message = "^removed", group = "removed" },
+    { message = "^fix(?:\\(.*\\))?:", group = "fixed" },
+    { message = "^security(?:\\(.*\\))?:", group = "security" },
+    { message = "^.*", group = "other" },
+]

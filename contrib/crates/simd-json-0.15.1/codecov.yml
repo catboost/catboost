@@ -1,0 +1,5 @@
+ignore:
+  - "src/neon/**"  # We currently can't run coverage on arm so we're excluding it
+  - "examples/*" # examples
+  - "benches/*" # examples
+  - "fuzz/*" # fuzz testing

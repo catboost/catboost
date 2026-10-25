@@ -1,0 +1,26 @@
+#:schema https://raw.githubusercontent.com/crate-ci/committed/refs/heads/master/config.schema.json
+## Configuration for committed
+##
+## See <https://github.com/crate-ci/committed/blob/master/docs/reference.md>
+style = "conventional"
+
+line_length         = 80
+merge_commit        = false
+no_fixup            = false
+subject_capitalized = false
+
+allowed_types = [
+  "chore",
+  "docs",
+  "feat",
+  "fix",
+  "perf",
+  "refactor",
+  "revert",
+  "style",
+  "test",
+]
+
+# The author string is of the form `Name <email>`. We want to ignore all bots
+# which typically have are ofthe form `some-name[bot] <email>`.
+ignore_author_re = "(?i)^.*\\[bot\\] <.*>$"

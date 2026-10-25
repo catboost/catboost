@@ -1,0 +1,7 @@
+comment_width = 120
+format_code_in_doc_comments = true
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"
+imports_layout = "HorizontalVertical"
+reorder_imports = true
+wrap_comments = true

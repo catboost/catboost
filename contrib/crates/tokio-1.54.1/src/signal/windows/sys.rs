@@ -1,0 +1,257 @@
+use std::io;
+use std::io::Error;
+use std::ops::Index;
+use std::sync::OnceLock;
+
+use crate::signal::RxFuture;
+use crate::sync::watch;
+
+use windows_sys::core::BOOL;
+use windows_sys::Win32::System::Console as console;
+
+type EventInfo = watch::Sender<()>;
+
+#[derive(Clone, Copy)]
+#[repr(u32)]
+enum SignalKind {
+    CtrlC = console::CTRL_C_EVENT,
+    CtrlBreak = console::CTRL_BREAK_EVENT,
+    CtrlClose = console::CTRL_CLOSE_EVENT,
+    CtrlLogoff = console::CTRL_LOGOFF_EVENT,
+    CtrlShutdown = console::CTRL_SHUTDOWN_EVENT,
+}
+
+impl SignalKind {
+    const fn terminates(&self) -> bool {
+        // Returning from the handler function of those events immediately terminates the process.
+        // So for async systems, the easiest solution is to simply never return from
+        // the handler function.
+        //
+        // For more information, see:
+        // https://learn.microsoft.com/en-us/windows/console/handlerroutine#remarks
+        matches!(
+            self,
+            Self::CtrlClose | Self::CtrlLogoff | Self::CtrlShutdown
+        )
+    }
+}
+
+pub(super) fn ctrl_break() -> io::Result<RxFuture> {
+    new(SignalKind::CtrlBreak)
+}
+
+pub(super) fn ctrl_close() -> io::Result<RxFuture> {
+    new(SignalKind::CtrlClose)
+}
+
+pub(super) fn ctrl_c() -> io::Result<RxFuture> {
+    new(SignalKind::CtrlC)
+}
+
+pub(super) fn ctrl_logoff() -> io::Result<RxFuture> {
+    new(SignalKind::CtrlLogoff)
+}
+
+pub(super) fn ctrl_shutdown() -> io::Result<RxFuture> {
+    new(SignalKind::CtrlShutdown)
+}
+
+fn new(signal: SignalKind) -> io::Result<RxFuture> {
+    // Initialize the registry BEFORE registering the OS handler: the
+    // handler thread can then always observe an initialized `REGISTRY`
+    // (`SetConsoleCtrlHandler` happens-after the initialization below),
+    // so it needs no blocking wait.
+    let registry = REGISTRY.get_or_init(Registry::default);
+
+    HANDLER_RESULT
+        .get_or_init(
+            || match unsafe { console::SetConsoleCtrlHandler(Some(handler), 1) } {
+                0 => Err(Error::last_os_error().raw_os_error().expect("unreachable")),
+                _ => Ok(()),
+            },
+        )
+        .map_err(Error::from_raw_os_error)?;
+
+    let rx = registry[signal].subscribe();
+    Ok(RxFuture::new(rx))
+}
+
+#[derive(Debug, Default)]
+struct Registry {
+    ctrl_break: EventInfo,
+    ctrl_close: EventInfo,
+    ctrl_c: EventInfo,
+    ctrl_logoff: EventInfo,
+    ctrl_shutdown: EventInfo,
+}
+
+impl Index<SignalKind> for Registry {
+    type Output = EventInfo;
+
+    fn index(&self, signal: SignalKind) -> &Self::Output {
+        match signal {
+            SignalKind::CtrlC => &self.ctrl_c,
+            SignalKind::CtrlBreak => &self.ctrl_break,
+            SignalKind::CtrlClose => &self.ctrl_close,
+            SignalKind::CtrlLogoff => &self.ctrl_logoff,
+            SignalKind::CtrlShutdown => &self.ctrl_shutdown,
+        }
+    }
+}
+
+static REGISTRY: OnceLock<Registry> = OnceLock::new();
+
+/// Whether `SetConsoleCtrlHandler` succeeded, initialized (once) only
+/// after `REGISTRY` — see `new` for the ordering argument.
+static HANDLER_RESULT: OnceLock<Result<(), i32>> = OnceLock::new();
+
+unsafe extern "system" fn handler(ty: u32) -> BOOL {
+    let signal = match ty {
+        console::CTRL_C_EVENT => SignalKind::CtrlC,
+        console::CTRL_BREAK_EVENT => SignalKind::CtrlBreak,
+        console::CTRL_CLOSE_EVENT => SignalKind::CtrlClose,
+        console::CTRL_LOGOFF_EVENT => SignalKind::CtrlLogoff,
+        console::CTRL_SHUTDOWN_EVENT => SignalKind::CtrlShutdown,
+        // Ignore unknown signals.
+        _ => return 0,
+    };
+
+    // `new` initializes `REGISTRY` before it registers this handler with
+    // the OS, so an invoked handler always finds it initialized —
+    // `get()` suffices and no blocking wait is needed (using `get`
+    // also keeps the crate's MSRV: `OnceLock::wait` needs Rust 1.86).
+    let Some(registry) = REGISTRY.get() else {
+        // Unreachable by the ordering above; kept as a defensive
+        // fallback that lets the OS run the next handler.
+        return 0;
+    };
+
+    // According to https://learn.microsoft.com/en-us/windows/console/handlerroutine
+    // the handler routine is always invoked in a new thread, thus we don't
+    // have the same restrictions as in Unix signal handlers, meaning we can
+    // go ahead and perform the broadcast here.
+    match registry[signal].send(()) {
+        Ok(_) if signal.terminates() => loop {
+            std::thread::park();
+        },
+        Ok(_) => 1,
+        // No one is listening for this notification any more
+        // let the OS fire the next (possibly the default) handler.
+        Err(_) => 0,
+    }
+}
+
+#[cfg(all(test, not(loom)))]
+mod tests {
+    use super::*;
+    use crate::runtime::Runtime;
+
+    use tokio_test::{assert_ok, assert_pending, assert_ready_ok, task};
+
+    unsafe fn raise_event(signal: SignalKind) {
+        if signal.terminates() {
+            // Those events will enter an infinite loop in `handler`, so
+            // we need to run them on a separate thread
+            std::thread::spawn(move || unsafe { super::handler(signal as u32) });
+        } else {
+            unsafe { super::handler(signal as u32) };
+        }
+    }
+
+    #[test]
+    fn ctrl_c() {
+        let rt = rt();
+        let _enter = rt.enter();
+
+        let mut ctrl_c = task::spawn(crate::signal::ctrl_c());
+
+        assert_pending!(ctrl_c.poll());
+
+        // Windows doesn't have a good programmatic way of sending events
+        // like sending signals on Unix, so we'll stub out the actual OS
+        // integration and test that our handling works.
+        unsafe {
+            raise_event(SignalKind::CtrlC);
+        }
+
+        assert_ready_ok!(ctrl_c.poll());
+    }
+
+    #[test]
+    fn ctrl_break() {
+        let rt = rt();
+
+        rt.block_on(async {
+            let mut ctrl_break = assert_ok!(crate::signal::windows::ctrl_break());
+
+            // Windows doesn't have a good programmatic way of sending events
+            // like sending signals on Unix, so we'll stub out the actual OS
+            // integration and test that our handling works.
+            unsafe {
+                raise_event(SignalKind::CtrlBreak);
+            }
+
+            ctrl_break.recv().await.unwrap();
+        });
+    }
+
+    #[test]
+    fn ctrl_close() {
+        let rt = rt();
+
+        rt.block_on(async {
+            let mut ctrl_close = assert_ok!(crate::signal::windows::ctrl_close());
+
+            // Windows doesn't have a good programmatic way of sending events
+            // like sending signals on Unix, so we'll stub out the actual OS
+            // integration and test that our handling works.
+            unsafe {
+                raise_event(SignalKind::CtrlClose);
+            }
+
+            ctrl_close.recv().await.unwrap();
+        });
+    }
+
+    #[test]
+    fn ctrl_shutdown() {
+        let rt = rt();
+
+        rt.block_on(async {
+            let mut ctrl_shutdown = assert_ok!(crate::signal::windows::ctrl_shutdown());
+
+            // Windows doesn't have a good programmatic way of sending events
+            // like sending signals on Unix, so we'll stub out the actual OS
+            // integration and test that our handling works.
+            unsafe {
+                raise_event(SignalKind::CtrlShutdown);
+            }
+
+            ctrl_shutdown.recv().await.unwrap();
+        });
+    }
+
+    #[test]
+    fn ctrl_logoff() {
+        let rt = rt();
+
+        rt.block_on(async {
+            let mut ctrl_logoff = assert_ok!(crate::signal::windows::ctrl_logoff());
+
+            // Windows doesn't have a good programmatic way of sending events
+            // like sending signals on Unix, so we'll stub out the actual OS
+            // integration and test that our handling works.
+            unsafe {
+                raise_event(SignalKind::CtrlLogoff);
+            }
+
+            ctrl_logoff.recv().await.unwrap();
+        });
+    }
+
+    fn rt() -> Runtime {
+        crate::runtime::Builder::new_current_thread()
+            .build()
+            .unwrap()
+    }
+}

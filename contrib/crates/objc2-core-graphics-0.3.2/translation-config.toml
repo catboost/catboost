@@ -1,0 +1,105 @@
+framework = "CoreGraphics"
+crate = "objc2-core-graphics"
+required-crates = ["objc2-core-foundation"]
+flags = [
+    # TODO(breaking): Add this to disable cg_nullable and get better nullability information.
+    # "-D__swift__=0",
+]
+custom-lib-rs = true
+macos = "10.8"
+maccatalyst = "13.0"
+ios = "2.0"
+tvos = "9.0"
+watchos = "2.0"
+visionos = "1.0"
+
+external.MTLDevice.module = "Metal.MTLDevice"
+
+# CF_RELEASES_ARGUMENT / cf_consumed, requires manual handling
+fn.CGColorSpaceRelease.skipped = true
+
+# CoreGraphics redefines this for some reason
+struct.__IOSurface.skipped = true
+typedef.IOSurfaceRef.skipped = true
+external.IOSurfaceRef.module = "IOSurface.IOSurfaceRef"
+
+# Defined for real in ColorSync, CoreGraphics redefines it just for the
+# purpose of this function.
+typedef.ColorSyncProfileRef.skipped = true
+fn.CGColorSpaceCreateWithColorSyncProfile.skipped = true
+
+# Needs io_service_t from the kernel
+fn.CGDisplayIOServicePort.skipped = true
+
+# Needs core::ffi::VaList, currently unstable
+fn.CGColorConversionInfoCreateFromListWithArguments.skipped = true
+
+# Unknown how to handle the calling convention here?
+fn.CGColorSpaceCreateCalibratedGray.skipped = true
+fn.CGColorSpaceCreateCalibratedRGB.skipped = true
+fn.CGColorSpaceCreateLab.skipped = true
+fn.CGFontCreatePostScriptSubset.skipped = true
+fn.CGFontCreatePostScriptEncoding.skipped = true
+
+# Calculation of these constants overflow, so we must use a larger type.
+static.kCGFontIndexMax.use-value = true
+static.kCGFontIndexInvalid.use-value = true
+
+# Dependent on target endianness
+static.kCGBitmapByteOrder16Host.skipped = true
+static.kCGBitmapByteOrder32Host.skipped = true
+const.kCGImageByteOrder16Host.skipped = true
+const.kCGImageByteOrder32Host.skipped = true
+
+# Uses defines from IOKit
+enum.CGEventFlags.use-value = true
+enum.CGEventType.use-value = true
+const.kCGEventTapDisabledByTimeout.use-value = true
+const.kCGEventTapDisabledByUserInput.use-value = true
+
+# Calls `CGMainDisplayID`.
+const.kCGDirectMainDisplay.skipped = true
+
+# Wrong type (should be i32)
+const.kCGNumReservedWindowLevels.skipped = true
+const.kCGNumReservedBaseWindowLevels.skipped = true
+
+# Needs to be wrapped as `CGEventType(!0)`.
+const.kCGAnyInputEventType.skipped = true
+
+# Complex value.
+const.CG_OS_VERSION_2020.skipped = true
+
+# Rename because it conflicts with `CGColorSpaceCopyName`.
+# TODO(breaking): Simply skip this.
+fn.CGColorSpaceGetName.renamed = "get_name"
+
+# Conflicts with `CGColorSpaceGetBaseColorSpace`.
+fn.CGColorSpaceCopyBaseColorSpace.renamed = "copy_base_color_space"
+
+# TODO(breaking): Has better typed parameter.
+fn.CGBitmapContextCreateWithData.skipped = true
+fn.CGBitmapContextCreate.skipped = true
+
+##
+## Safety
+##
+
+# SAFETY: CoreGraphics is well-behaved when it comes to memory safety.
+unsafe-default-safety.documentation-is-reviewed = true
+# TODO: Things like `CGPDFArrayGetNull` are maybe not bounds-checked?
+unsafe-default-safety.bounds-checked-internally = true
+
+# TODO: Unsure if the run loop source must be sendable?
+# https://github.com/madsmtm/objc2/issues/696
+fn.CGDisplayStreamGetRunLoopSource.unsafe = true
+
+# Unclear if these can be used correctly if the dictionary is owned by the
+# system (and hence might be released on another thread just before we retain
+# the return value?)
+fn.CGDisplayAvailableModes.unsafe = true
+fn.CGDisplayBestModeForParameters.unsafe = true
+fn.CGDisplayBestModeForParametersAndRefreshRate.unsafe = true
+fn.CGDisplayCurrentMode.unsafe = true
+fn.CGDisplaySwitchToMode.unsafe = true
+fn.CGDisplaySetDisplayMode.unsafe = true

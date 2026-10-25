@@ -1,0 +1,26 @@
+edition = "2018"
+array_width = 100
+chain_width = 60
+fn_call_width = 100
+max_width = 120
+brace_style = "AlwaysNextLine"
+control_brace_style = "AlwaysSameLine"
+fn_params_layout = "Compressed" # ?
+format_macro_bodies = false
+imports_granularity = "Preserve"
+imports_indent = "Block"
+imports_layout = "HorizontalVertical"
+inline_attribute_width = 0
+indent_style = "Block"
+match_arm_blocks = false
+match_arm_leading_pipes = "Preserve"
+merge_derives = false
+overflow_delimited_expr = true
+reorder_modules = false  # impacts rustdoc order
+short_array_element_width_threshold = 32
+skip_macro_invocations = ["*"]
+unstable_features = true
+where_single_line = true
+
+# ignored files
+ignore = []

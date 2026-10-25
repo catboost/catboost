@@ -1,0 +1,22 @@
+venv/*
+testing/*
+target/*
+dev/release/rat_exclude_files.txt
+arrow/test/data/*
+arrow-csv/test/data/*
+arrow-json/test/data/*
+arrow/test/dependency/*
+arrow-integration-test/data/*
+parquet_derive/test/dependency/*
+.gitattributes
+**.gitignore
+.gitmodules
+Cargo.lock
+filtered_rat.txt
+rat.txt
+# auto-generated
+arrow-flight/src/arrow.flight.protocol.rs
+arrow-flight/src/sql/arrow.flight.protocol.sql.rs
+.github/*
+parquet/src/bin/parquet-fromcsv-help.txt
+arrow-flight/examples/data/*
