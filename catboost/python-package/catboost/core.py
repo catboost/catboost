@@ -5970,6 +5970,8 @@ class CatBoostClassifier(CatBoost):
         elif y is None:
             raise CatBoostError("y should be specified.")
         y = np.array(y)
+        if y.ndim == 2 and y.shape[1] == 1:
+            y = y.reshape(-1)
         predicted_classes = self._predict(
             X,
             prediction_type='Class',
