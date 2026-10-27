@@ -1,8 +1,8 @@
 #pragma once
 
-#include <library/cpp/on_disk/chunks/chunked_helpers.h>
-
 #include "comptrie.h"
+
+#include <util/system/unaligned_mem.h>
 
 class TTrieSet {
 private:

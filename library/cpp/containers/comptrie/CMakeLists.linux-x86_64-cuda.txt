@@ -21,8 +21,6 @@ target_link_libraries(cpp-containers-comptrie PUBLIC
   yutil
   library-cpp-packers
   cpp-containers-compact_vector
-  cpp-on_disk-chunks
-  util-draft
 )
 
 target_sources(cpp-containers-comptrie PRIVATE
