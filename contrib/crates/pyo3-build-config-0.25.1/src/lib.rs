@@ -155,8 +155,11 @@ const HOST_CONFIG: &str = include_str!(concat!(env!("OUT_DIR"), "/pyo3-build-con
 #[doc(hidden)]
 #[cfg(feature = "resolve-config")]
 fn resolve_cross_compile_config_path() -> Option<PathBuf> {
+    // Arcadia build scripts can run on a different worker. Do not embed the
+    // compiler's temporary OUT_DIR in the crate or its metadata hash.
+    let out_dir = env::var_os("OUT_DIR")?;
     env::var_os("TARGET").map(|target| {
-        let mut path = PathBuf::from(env!("OUT_DIR"));
+        let mut path = PathBuf::from(out_dir);
         path.push(Path::new(&target));
         path.push("pyo3-build-config.txt");
         path
