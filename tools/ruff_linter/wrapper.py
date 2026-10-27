@@ -29,6 +29,10 @@ def check_extend_option_present(config: Path) -> bool:
     raise RuntimeError(f'Unknown config type: {config.name}')
 
 
+class RuffError(Exception):
+    """Ruff failed to check the file (e.g. broken config) instead of reporting violations"""
+
+
 def run_ruff(ruff_bin: str, cmd_args: list[str], filename: str, config: Path) -> list[str]:
     # XXX: `--no-cache` is important when we run ruff in source root and don't want to pollute arcadia
     cmd = [ruff_bin, *cmd_args, '--no-cache', '--config', config, filename]
@@ -44,7 +48,14 @@ def run_ruff(ruff_bin: str, cmd_args: list[str], filename: str, config: Path) ->
         # https://docs.astral.sh/ruff/configuration/#config-file-discovery
         cwd=os.path.dirname(config),
     )
-    return res.stdout.splitlines(keepends=True) if res.returncode else []
+    # Exit codes: 0 - no violations, 1 - violations found (reported to stdout),
+    # 2 - ruff itself failed (reported to stderr), see https://docs.astral.sh/ruff/linter/#exit-codes
+    if res.returncode == 0:
+        return []
+    if res.returncode == 1:
+        return res.stdout.splitlines(keepends=True)
+    details = res.stderr.strip() or res.stdout.strip() or '<no output>'
+    raise RuffError(f'`ruff {cmd_args[0]}` exited with code {res.returncode}:\n{details}')
 
 
 def process_file(
@@ -131,14 +142,24 @@ def main():
             )
             continue
 
-        error = process_file(
-            file_name,
-            ruff_bin,
-            style_config_path,
-            params.source_root,
-            params.extra_params.get('check_format') == 'yes',
-            params.extra_params.get('run_in_source_root') == 'yes',
-        )
+        try:
+            error = process_file(
+                file_name,
+                ruff_bin,
+                style_config_path,
+                params.source_root,
+                params.extra_params.get('check_format') == 'yes',
+                params.extra_params.get('run_in_source_root') == 'yes',
+            )
+        except RuffError as exc:
+            elapsed = time.perf_counter() - start_time
+            report.add(
+                file_name,
+                reporter.LintStatus.FAIL,
+                f'[[bad]]Ruff failed to check the file[[rst]]:\n{exc}',
+                elapsed=elapsed,
+            )
+            continue
         elapsed = time.perf_counter() - start_time
 
         if error:
