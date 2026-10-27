@@ -216,6 +216,7 @@ if __name__ == '__main__':
     else:
         stdout = sys.stdout
 
+    cmd = link_exe.with_lld_threads(cmd, opts.arch, os.environ.get('_YA_LLD_THREADS'))
     proc = subprocess.Popen(cmd, shell=False, stderr=sys.stderr, stdout=stdout)
     proc.communicate()
     thinlto_cache.postprocess(opts)
