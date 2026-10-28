@@ -71,7 +71,7 @@ def hardlink_or_copy(src, dst):
         except OSError as e:
             if e.errno == errno.EEXIST:
                 return
-            elif e.errno in (errno.EXDEV, errno.EMLINK, errno.EINVAL, errno.EACCES):
+            elif e.errno in (errno.EXDEV, errno.EMLINK, errno.EINVAL, errno.EACCES, errno.EPERM):
                 sys.stderr.write(
                     "Can't make hardlink (errno={}) - fallback to copy: {} -> {}\n".format(e.errno, src, dst)
                 )
