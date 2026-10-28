@@ -8,45 +8,70 @@
 #include <util/string/printf.h>
 #include <util/system/yassert.h>
 
+#include <type_traits>
+
 // Stack memory bitmask for TEnum values [begin, end).
 // @end value is not included in the mask and is not necessarily defined as enum value.
 // For example: enum EType { A, B, C } ==> TEnumBitSet<EType, A, C + 1>
+// Uses the smallest ui8/ui16/ui32/ui64 chunk that fits end - begin; ranges wider
+// than 64 bits use multiple ui64 chunks. Object size and alignment depend on this
+// choice; Save/Load and hexadecimal formats do not. Raw object memory is not a
+// serialization format.
 template <typename TEnum, int mbegin, int mend>
-class TEnumBitSet: private TBitMap<mend - mbegin> {
+class TEnumBitSet: private TBitMap<mend - mbegin,
+    std::conditional_t<(mend - mbegin <= 8), ui8,
+        std::conditional_t<(mend - mbegin <= 16), ui16,
+            std::conditional_t<(mend - mbegin <= 32), ui32, ui64>>>> {
 public:
-    static const int BeginIndex = mbegin;
-    static const int EndIndex = mend;
-    static const size_t BitsetSize = EndIndex - BeginIndex;
+    static constexpr int BeginIndex = mbegin;
+    static constexpr int EndIndex = mend;
+    static constexpr size_t BitsetSize = EndIndex - BeginIndex;
 
-    typedef TBitMap<BitsetSize> TParent;
-    typedef TEnumBitSet<TEnum, mbegin, mend> TThis;
+    using TParent = typename TEnumBitSet::TBitMap;
+    using TChunk = typename TParent::TChunk;
+    // Backward compatibility: hexadecimal input is parsed in 64-bit chunks.
+    using TLegacyChunk = ui64;
+    using TThis = TEnumBitSet<TEnum, mbegin, mend>;
 
-    TEnumBitSet()
+    TEnumBitSet() noexcept
         : TParent(0)
     {
     }
 
-    explicit TEnumBitSet(const TParent& p)
+    TEnumBitSet(const TThis&) noexcept = default;
+    TEnumBitSet(TThis&&) noexcept = default;
+    TThis& operator=(const TThis&) noexcept = default;
+    TThis& operator=(TThis&&) noexcept = default;
+
+    explicit TEnumBitSet(const TParent& p) noexcept
         : TParent(p)
     {
     }
 
-    void Init(TEnum c) {
-        Set(c);
+    template <typename TSourceChunk>
+    explicit TEnumBitSet(const TBitMap<BitsetSize, TSourceChunk>& p) noexcept {
+        if constexpr (sizeof(TSourceChunk) > sizeof(TChunk)) {
+            // Backward compatibility with construction from a ui64-based TBitMap.
+            TChunk low = 0;
+            p.Export(0, low);
+            TParent::Or(low);
+        } else {
+            TParent::operator=(TParent(p));
+        }
     }
 
+    // Earlier updates remain applied if converting a later argument throws.
     template <class... R>
-    void Init(TEnum c1, TEnum c2, R... r) {
-        Set(c1);
-        Init(c2, r...);
+    void Init(R... r) noexcept((noexcept(Set(r)) && ...)) {
+        (Set(r), ...);
     }
 
-    explicit TEnumBitSet(TEnum c) {
+    explicit TEnumBitSet(TEnum c) noexcept {
         Init(c);
     }
 
     template <class... R>
-    TEnumBitSet(TEnum c1, TEnum c2, R... r) {
+    TEnumBitSet(TEnum c1, TEnum c2, R... r) noexcept(noexcept(Init(c1, c2, r...))) {
         Init(c1, c2, r...);
     }
 
@@ -56,40 +81,40 @@ public:
             Set(*p);
     }
 
-    static bool IsValid(TEnum c) {
+    static constexpr bool IsValid(TEnum c) noexcept {
         return int(c) >= BeginIndex && int(c) < EndIndex;
     }
 
-    bool Test(TEnum c) const {
+    bool Test(TEnum c) const noexcept {
         return TParent::Test(Pos(c));
     }
 
-    TThis& Flip(TEnum c) {
+    TThis& Flip(TEnum c) noexcept {
         TParent::Flip(Pos(c));
         return *this;
     }
 
-    TThis& Flip() {
+    TThis& Flip() noexcept {
         TParent::Flip();
         return *this;
     }
 
-    TThis& Reset(TEnum c) {
+    TThis& Reset(TEnum c) noexcept {
         TParent::Reset(Pos(c));
         return *this;
     }
 
-    TThis& Reset() {
+    TThis& Reset() noexcept {
         TParent::Clear();
         return *this;
     }
 
-    TThis& Set(TEnum c) {
+    TThis& Set(TEnum c) noexcept {
         TParent::Set(Pos(c));
         return *this;
     }
 
-    TThis& Set(TEnum c, bool val) {
+    TThis& Set(TEnum c, bool val) noexcept {
         if (val)
             Set(c);
         else
@@ -97,43 +122,43 @@ public:
         return *this;
     }
 
-    bool SafeTest(TEnum c) const {
+    bool SafeTest(TEnum c) const noexcept {
         if (IsValid(c))
             return Test(c);
         return false;
     }
 
-    TThis& SafeFlip(TEnum c) {
+    TThis& SafeFlip(TEnum c) noexcept {
         if (IsValid(c))
             return Flip(c);
         return *this;
     }
 
-    TThis& SafeReset(TEnum c) {
+    TThis& SafeReset(TEnum c) noexcept {
         if (IsValid(c))
             return Reset(c);
         return *this;
     }
 
-    TThis& SafeSet(TEnum c) {
+    TThis& SafeSet(TEnum c) noexcept {
         if (IsValid(c))
             return Set(c);
         return *this;
     }
 
-    TThis& SafeSet(TEnum c, bool val) {
+    TThis& SafeSet(TEnum c, bool val) noexcept {
         if (IsValid(c))
             return Set(c, val);
         return *this;
     }
 
-    static TThis SafeConstruct(TEnum c) {
+    static TThis SafeConstruct(TEnum c) noexcept {
         TThis ret;
         ret.SafeSet(c);
         return ret;
     }
 
-    bool operator<(const TThis& right) const {
+    bool operator<(const TThis& right) const noexcept {
         Y_ASSERT(this->GetChunkCount() == right.GetChunkCount());
         for (size_t i = 0; i < this->GetChunkCount(); ++i) {
             if (this->GetChunks()[i] < right.GetChunks()[i])
@@ -144,117 +169,130 @@ public:
         return false;
     }
 
-    bool operator!=(const TThis& right) const {
+    bool operator!=(const TThis& right) const noexcept {
         return !(TParent::operator==(right));
     }
 
-    bool operator==(const TThis& right) const {
+    bool operator==(const TThis& right) const noexcept {
         return TParent::operator==(right);
     }
 
-    TThis& operator&=(const TThis& right) {
+    TThis& operator&=(const TThis& right) noexcept {
         TParent::operator&=(right);
         return *this;
     }
 
-    TThis& operator|=(const TThis& right) {
+    TThis& operator|=(const TThis& right) noexcept {
         TParent::operator|=(right);
         return *this;
     }
 
-    TThis& operator^=(const TThis& right) {
+    TThis& operator^=(const TThis& right) noexcept {
         TParent::operator^=(right);
         return *this;
     }
 
-    TThis operator~() const {
+    TThis operator~() const noexcept {
         TThis r = *this;
         r.Flip();
         return r;
     }
 
-    TThis operator|(const TThis& right) const {
+    TThis operator|(const TThis& right) const noexcept {
         TThis ret = *this;
         ret |= right;
         return ret;
     }
 
-    TThis operator&(const TThis& right) const {
+    TThis operator&(const TThis& right) const noexcept {
         TThis ret = *this;
         ret &= right;
         return ret;
     }
 
-    TThis operator^(const TThis& right) const {
+    TThis operator^(const TThis& right) const noexcept {
         TThis ret = *this;
         ret ^= right;
         return ret;
     }
 
 
-    TThis& operator&=(const TEnum c) {
+    TThis& operator&=(const TEnum c) noexcept {
         return TThis::operator&=(TThis(c));
     }
 
-    TThis& operator|=(const TEnum c) {
-        return TThis::operator|=(TThis(c));
+    TThis& operator|=(const TEnum c) noexcept {
+        return Set(c);
     }
 
-    TThis& operator^=(const TEnum c) {
-        return TThis::operator^=(TThis(c));
+    TThis& operator^=(const TEnum c) noexcept {
+        return Flip(c);
     }
 
-    TThis operator&(const TEnum c) const {
+    TThis operator&(const TEnum c) const noexcept {
         return TThis::operator&(TThis(c));
     }
 
-    TThis operator|(const TEnum c) const {
-        return TThis::operator|(TThis(c));
+    TThis operator|(const TEnum c) const noexcept {
+        TThis ret = *this;
+        ret.Set(c);
+        return ret;
     }
 
-    TThis operator^(const TEnum c) const {
-        return TThis::operator^(TThis(c));
+    TThis operator^(const TEnum c) const noexcept {
+        TThis ret = *this;
+        ret.Flip(c);
+        return ret;
     }
 
-    auto operator[] (TEnum e) {
+    auto operator[] (TEnum e) noexcept {
         return TParent::operator[](this->Pos(e));
     }
 
-    auto operator[] (TEnum e) const {
+    auto operator[] (TEnum e) const noexcept {
         return TParent::operator[](this->Pos(e));
     }
 
     using TParent::Count;
     using TParent::Empty;
 
-    explicit operator bool() const {
+    explicit operator bool() const noexcept {
         return !Empty();
     }
 
-    void Swap(TThis& bitmap) {
+    void Swap(TThis& bitmap) noexcept {
         TParent::Swap(bitmap);
     }
 
-    size_t GetHash() const {
+    size_t GetHash() const noexcept {
         return this->Hash();
     }
 
-    bool HasAny(const TThis& mask) const {
+    bool HasAny(TEnum c) const noexcept {
+        return Test(c);
+    }
+
+    bool HasAny(const TThis& mask) const noexcept {
         return TParent::HasAny(mask);
     }
 
-    template <class... R>
-    bool HasAny(TEnum c1, R... r) const {
-        return Test(c1) || HasAny(r...);
+    // Single-argument calls select an enum/mask overload, also for derived sets.
+    template <class... R, std::enable_if_t<sizeof...(R) != 1, int> = 0>
+    bool HasAny(R... r) const noexcept((noexcept(HasAny(r)) && ...)) {
+        return (HasAny(r) || ...);
     }
 
-    bool HasAll(const TThis& mask) const {
+    bool HasAll(TEnum c) const noexcept {
+        return Test(c);
+    }
+
+    bool HasAll(const TThis& mask) const noexcept {
         return TParent::HasAll(mask);
     }
 
-    template <class... R>
-    bool HasAll(TEnum c1, R... r) const {
-        return Test(c1) && HasAll(r...);
+    template <class... R, std::enable_if_t<sizeof...(R) != 1, int> = 0>
+    bool HasAll(R... r) const noexcept((noexcept(HasAll(r)) && ...)) {
+        return (HasAll(r) && ...);
     }
 
     //serialization to/from stream
@@ -275,11 +313,17 @@ public:
             ui32 bit = 0;
             ::Load(buffer, bit);
 
-            Set((TEnum)bit);
+            SafeSet((TEnum)bit);
         }
     }
 
-    ui64 Low() const {
+    // Returns the complete integer bit mask only when the set fits in one chunk.
+    template <size_t Size = BitsetSize, std::enable_if_t<Size == BitsetSize && Size <= sizeof(TChunk) * 8, int> = 0>
+    TChunk ToMask() const noexcept {
+        return this->GetChunks()[0];
+    }
+
+    ui64 Low() const noexcept {
         ui64 t = 0;
         this->Export(0, t);
         return t;
@@ -287,15 +331,15 @@ public:
 
     TString ToString() const {
         static_assert(sizeof(typename TParent::TChunk) <= sizeof(ui64), "expect sizeof(typename TParent::TChunk) <= sizeof(ui64)");
-        static const size_t chunkSize = sizeof(typename TParent::TChunk) * 8;
-        static const size_t numDig = chunkSize / 4;
-        static const TString templ = Sprintf("%%0%lulX", numDig);
-        static const size_t numOfChunks = (BitsetSize + chunkSize - 1) / chunkSize;
+        static constexpr size_t chunkSize = sizeof(TChunk) * 8;
+        static constexpr size_t numDig = chunkSize / 4;
+        static constexpr size_t numOfChunks = (BitsetSize + chunkSize - 1) / chunkSize;
         TString ret;
-        for (int pos = numOfChunks * chunkSize; pos >= 0; pos -= chunkSize) {
+        ret.reserve(numOfChunks * numDig);
+        for (int pos = (numOfChunks - 1) * chunkSize; pos >= 0; pos -= chunkSize) {
             ui64 t = 0;
             this->Export(pos, t);
-            ret += Sprintf(templ.data(), t);
+            fcat(ret, "%0*lX", static_cast<int>(numDig), t);
         }
 
         size_t n = 0;
@@ -306,10 +350,10 @@ public:
     }
 
     void FromString(TStringBuf s) {
-        static const size_t chunkSize = sizeof(typename TParent::TChunk) * 8;
-        static const size_t numDig = chunkSize / 4;
-        static const size_t highChunkBits = (BitsetSize + chunkSize - 1) % chunkSize + 1;
-        static const typename TParent::TChunk highChunkBitsMask = (highChunkBits == chunkSize ? 0 : (typename TParent::TChunk(1) << highChunkBits)) - 1;
+        static constexpr size_t chunkSize = sizeof(TLegacyChunk) * 8;
+        static constexpr size_t numDig = chunkSize / 4;
+        static constexpr size_t highChunkBits = (BitsetSize + chunkSize - 1) % chunkSize + 1;
+        static constexpr TLegacyChunk highChunkBitsMask = (highChunkBits == chunkSize ? 0 : (TLegacyChunk(1) << highChunkBits)) - 1;
 
         Reset();
         for (size_t prev = s.length(), n = s.length() - numDig, pos = 0; prev; n -= numDig, pos += chunkSize) {
@@ -317,16 +361,16 @@ public:
                 ythrow yexception() << "too many digits";
             if (n > prev)
                 n = 0;
-            typename TParent::TChunk t = IntFromString<typename TParent::TChunk, 16, TStringBuf>(s.substr(n, prev - n));
+            TLegacyChunk t = IntFromString<TLegacyChunk, 16, TStringBuf>(s.substr(n, prev - n));
             if (BitsetSize < pos + chunkSize && t > highChunkBitsMask)
                 ythrow yexception() << "digit is too big";
-            this->Or(TParent(t), pos);
+            this->Or(TParent(static_cast<TChunk>(t)), pos);
             prev = n;
         }
     }
 
     // TODO: Get rid of exceptions at all
-    bool TryFromString(TStringBuf s) {
+    bool TryFromString(TStringBuf s) noexcept {
         try {
             FromString(s);
         } catch (...) {
@@ -336,38 +380,38 @@ public:
         return true;
     }
 
-    bool any() const { // obsolete
+    bool any() const noexcept { // obsolete
         return !Empty();
     }
 
-    bool none() const { // obsolete
+    bool none() const noexcept { // obsolete
         return Empty();
     }
 
-    size_t count() const { // obsolete
+    size_t count() const noexcept { // obsolete
         return Count();
     }
 
     class TIterator {
     public:
-        TIterator(TEnum value, const TThis* bitmap) noexcept
+        constexpr TIterator(TEnum value, const TThis* bitmap) noexcept
             : Value(static_cast<int>(value))
             , BitMap(bitmap)
         {
         }
 
-        TIterator(const TThis* bitmap) noexcept
+        constexpr TIterator(const TThis* bitmap) noexcept
             : Value(EndIndex)
             , BitMap(bitmap)
         {
         }
 
-        TEnum operator*() const noexcept {
+        constexpr TEnum operator*() const noexcept {
             Y_ASSERT(Value < EndIndex);
             return static_cast<TEnum>(Value);
         }
 
-        bool operator!=(const TIterator& other) const noexcept {
+        constexpr bool operator!=(const TIterator& other) const noexcept {
             return Value != other.Value;
         }
 
@@ -388,30 +432,22 @@ public:
         const TThis* BitMap;
     };
 
-    TIterator begin() const {
+    TIterator begin() const noexcept {
         TEnum res;
         return FindFirst(res) ? TIterator(res, this) : TIterator(this);
     }
 
-    TIterator end() const {
+    constexpr TIterator end() const noexcept {
         return TIterator(this);
     }
 
 private:
-    static size_t Pos(TEnum c) {
+    static size_t Pos(TEnum c) noexcept {
         Y_ASSERT(IsValid(c));
         return static_cast<size_t>(int(c) - BeginIndex);
     }
 
-    bool HasAny(TEnum c) const {
-        return Test(c);
-    }
-
-    bool HasAll(TEnum c) const {
-        return Test(c);
-    }
-
-    bool FindFirst(TEnum& result) const {
+    bool FindFirst(TEnum& result) const noexcept {
         // finds first set item in bitset (or End if bitset is empty)
         const int index = int(this->FirstNonZeroBit()) + BeginIndex;
         if (index < EndIndex) {
@@ -421,7 +457,7 @@ private:
         return false;
     }
 
-    bool FindNext(TEnum current, TEnum& result) const {
+    bool FindNext(TEnum current, TEnum& result) const noexcept {
         // finds first set item in bitset (or End if bitset is empty)
         const int index = int(this->NextNonZeroBit(int(current) - BeginIndex)) + BeginIndex;
         if (index < EndIndex) {
@@ -433,53 +469,49 @@ private:
 };
 
 template <typename TEnum, TEnum mbegin, int mend>
-class TSfEnumBitSet: public TEnumBitSet<TEnum, mbegin, mend> {
+class TSfEnumBitSet: public TEnumBitSet<TEnum, static_cast<int>(mbegin), mend> {
 public:
-    typedef TEnumBitSet<TEnum, mbegin, mend> TParent;
+    using TParent = typename TSfEnumBitSet::TEnumBitSet;
 
-    TSfEnumBitSet()
+    TSfEnumBitSet() noexcept
         : TParent()
     {
     }
 
-    TSfEnumBitSet(const TParent& p)
+    TSfEnumBitSet(const TParent& p) noexcept
         : TParent(p)
     {
     }
 
     //! unsafe initialization from ui64, value must be shifted according to TParent::Begin
-    explicit TSfEnumBitSet(ui64 val)
+    explicit TSfEnumBitSet(ui64 val) noexcept
         : TParent(typename TParent::TParent(val))
     {
         //static_assert(TParent::BitsetSize <= 64, "expect TParent::BitsetSize <= 64");
     }
 
-    void Init(TEnum c) {
-        this->SafeSet(c);
-    }
-
+    // Earlier updates remain applied if converting a later argument throws.
     template <class... R>
-    void Init(TEnum c1, TEnum c2, R... r) {
-        this->SafeSet(c1);
-        Init(c2, r...);
+    void Init(R... r) noexcept((noexcept(this->SafeSet(r)) && ...)) {
+        (this->SafeSet(r), ...);
     }
 
-    TSfEnumBitSet(TEnum c) {
+    TSfEnumBitSet(TEnum c) noexcept {
         Init(c);
     }
 
     template <class... R>
-    TSfEnumBitSet(TEnum c1, TEnum c2, R... r) {
+    TSfEnumBitSet(TEnum c1, TEnum c2, R... r) noexcept(noexcept(Init(c1, c2, r...))) {
         Init(c1, c2, r...);
     }
 
-    static TSfEnumBitSet GetFromString(const TString& s) {
+    static TSfEnumBitSet GetFromString(TStringBuf s) {
         TSfEnumBitSet ebs;
         ebs.FromString(s);
         return ebs;
     }
 
-    static TSfEnumBitSet TryGetFromString(const TString& s) {
+    static TSfEnumBitSet TryGetFromString(TStringBuf s) noexcept {
         TSfEnumBitSet ebs;
         ebs.TryFromString(s);
         return ebs;
@@ -492,23 +524,23 @@ class TGeneratedEnumBitSet : public TEnumBitSet<TEnum, 0, GetEnumItemsCount<TEnu
 public:
     using TParent = TEnumBitSet<TEnum, 0, GetEnumItemsCount<TEnum>()>;
 
-    TGeneratedEnumBitSet()
+    TGeneratedEnumBitSet() noexcept
         : TParent()
     {
     }
 
-    explicit TGeneratedEnumBitSet(const TParent& p)
+    explicit TGeneratedEnumBitSet(const TParent& p) noexcept
         : TParent(p)
     {
     }
 
-    explicit TGeneratedEnumBitSet(TEnum c1)
+    explicit TGeneratedEnumBitSet(TEnum c1) noexcept
         : TParent(c1)
     {
     }
 
     template <class... R>
-    TGeneratedEnumBitSet(TEnum c1, TEnum c2, R... r)
+    TGeneratedEnumBitSet(TEnum c1, TEnum c2, R... r) noexcept(noexcept(TParent(c1, c2, r...)))
         : TParent(c1, c2, r...)
     {
     }
