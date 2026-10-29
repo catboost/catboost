@@ -719,6 +719,13 @@ public:
     }
 
     template <class U, class = TGuardConversion<T, U>>
+    inline TIntrusiveConstPtr(TIntrusivePtr<U> p) noexcept
+        : T_(p.T_)
+    {
+        p.T_ = nullptr;
+    }
+
+    template <class U, class = TGuardConversion<T, U>>
     inline TIntrusiveConstPtr(const TIntrusiveConstPtr<U>& p) noexcept
         : T_(p.T_)
     {
