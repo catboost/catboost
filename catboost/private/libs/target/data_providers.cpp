@@ -813,10 +813,45 @@ namespace NCB {
             auto maybeBaseline = rawData.GetBaseline();
             if (maybeBaseline) {
                 if (targetCreationOptions.CreateMultiClassTarget) {
+                    auto baselines = MakeBaselines(rawData.GetBaseline(), (ui32)classCount);
+#if defined(CATBOOST_HAVE_METAL)
+                    // Targets use compressed class IDs. Keep the corresponding
+                    // baseline columns in that same internal order before the
+                    // processed provider validates its approximation dimension.
+                    if (isForGpu) {
+                        const auto& converter = **outputClassificationInfo->LabelConverter;
+                        const ui32 dimension = converter.GetApproxDimension();
+                        if (baselines.size() != dimension) {
+                            TClassLabelOptions labels;
+                            labels.Load(ReadTJsonValue(converter.SerializeClassParams(
+                                classCount, outputClassificationInfo->ClassLabels)));
+                            CB_ENSURE(labels.ClassToLabel->size() == dimension,
+                                      "Metal baseline class mapping has an inconsistent dimension");
+                            TVector<TSharedVector<float>> compressed;
+                            for (float externalClass : labels.ClassToLabel.Get()) {
+                                CB_ENSURE(externalClass >= 0 && externalClass < baselines.size(),
+                                          "Metal baseline class mapping is outside the public baseline columns");
+                                compressed.push_back(baselines[static_cast<ui32>(externalClass)]);
+                            }
+                            baselines = std::move(compressed);
+                        }
+                    }
+#endif
                     processedTargetData.Baselines.emplace(
                         "",
-                        MakeBaselines(rawData.GetBaseline(), (ui32)classCount));
-                } else {
+                        std::move(baselines));
+                }
+#if defined(CATBOOST_HAVE_METAL)
+                else if (isForGpu && mainLossFunction && EqualToOneOf(mainLossFunction->GetLossFunction(),
+                    ELossFunction::MultiRMSE, ELossFunction::RMSEWithUncertainty,
+                    ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)) {
+                    const ui32 dimension = mainLossFunction->GetLossFunction() == ELossFunction::RMSEWithUncertainty
+                        ? 2 : knownModelApproxDimension.GetOrElse(
+                            rawData.GetTargetDimension() ? rawData.GetTargetDimension() : maybeBaseline->size());
+                    processedTargetData.Baselines.emplace("", MakeBaselines(maybeBaseline, dimension));
+                }
+#endif
+                else {
                     processedTargetData.Baselines.emplace("", MakeOneBaseline(maybeBaseline));
                 }
             }
