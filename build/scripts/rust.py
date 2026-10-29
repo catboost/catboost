@@ -78,7 +78,10 @@ def toolchain_environment(args, work):
 
 def dependency_name(path):
     name = Path(path).name
-    for suffix in ("-host.a", "-host.lib", ".a", ".lib", ".dylib", ".so", ".dll"):
+    # Windows DLLs have no library prefix, even for crate names starting with lib.
+    if name.endswith(".dll"):
+        return name[:-4].replace("-", "_")
+    for suffix in ("-host.a", "-host.lib", ".a", ".lib", ".dylib", ".so"):
         if name.endswith(suffix):
             name = name[:-len(suffix)]
             break
