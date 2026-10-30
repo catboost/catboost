@@ -4,7 +4,7 @@ A {{ product }} model based on oblivious trees can be modified in way to remove 
 - Carry: replace features subset by fixed values. Resulting model produce n-dimensional scores (where n is number of values specified for each feature).
 - Uplift: replace features subset by value pair. Resulting model produce one dimensional score equal to score difference between carrying model by second and first value from pair.
 
-The functions for carry and uplift are defined in the `catboost/libs/carry/carry.h`. These functions produce {{ product }} models wich can be applyed as usual.
+The functions for carry and uplift are defined in the `catboost/libs/carry/carry.h`. These functions produce {{ product }} models which can be applied as usual.
 
 > NOTE: Only float features not used in any CTR are supported
 

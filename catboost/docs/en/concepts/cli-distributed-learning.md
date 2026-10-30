@@ -1,6 +1,6 @@
 # Distributed Learning
 
-To train in distibuted mode follow these steps:
+To train in distributed mode follow these steps:
 
 1. Start a worker with `catboost run-worker --node-port {port}` on each worker host. Any free port is ok. Ports do not have to be equal for all workers.
 1. Create plain text file containing hostnames. Each line of the file should contains one line per worker: `hostname:port`

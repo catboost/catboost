@@ -127,7 +127,7 @@ None
 
 {% cut "Command-line" %}
 
-Ommited
+Omitted
 
 {% endcut %}
 
