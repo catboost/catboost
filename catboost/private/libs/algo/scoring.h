@@ -60,6 +60,28 @@ void CalcStatsAndScores(
     IScoreCalcer* scoreCalcer
 );
 
+// Same as two CalcStatsAndScores calls with nullptr stats3d and pairwiseStats,
+// but in plain mode bucket sums for both candidates are calculated in one pass over objects if possible.
+void CalcStatsAndScoresForTwoCandidates(
+    const NCB::TQuantizedObjectsDataProvider& objectsDataProvider,
+    const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
+    const TCalcScoreFold& fold,
+    const TCalcScoreFold& prevLevelData,
+    const TFold* initialFold,
+    const TFlatPairsInfo& pairs,
+    const NCatboostOptions::TCatBoostOptions& fitParams,
+    const TCandidateInfo& candidateInfo0,
+    const TCandidateInfo& candidateInfo1,
+    int depth,
+    bool useTreeLevelCaching,
+    const TVector<int>& currTreeMonotonicConstraints,
+    const TMap<ui32, int>& monotonicConstraints,
+    NPar::ILocalExecutor* localExecutor,
+    TBucketStatsCache* statsFromPrevTree,
+    IScoreCalcer* scoreCalcer0,
+    IScoreCalcer* scoreCalcer1
+);
+
 TVector<double> GetScores(
     const TStats3D& stats,
     int depth,

@@ -19,6 +19,7 @@
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/restrictions.h>
 
+#include <library/cpp/containers/stack_vector/stack_vec.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 #include <library/cpp/dot_product/dot_product.h>
 
@@ -224,6 +225,48 @@ inline static void UpdateWeighted(
 }
 
 
+// Same as UpdateWeighted for two indexers that differ only in quantized values and bucket count,
+// objects data is loaded once for both
+inline static void UpdateWeightedForTwo(
+    const TStatsIndexer& indexer0,
+    const TStatsIndexer& indexer1,
+    const double* weightedDer,
+    const float* sampleWeights,
+    NCB::TIndexRange<int> docIndexRange,
+    TBucketStats* stats0,
+    TBucketStats* stats1
+) {
+    Y_ASSERT(indexer0.Depth == indexer1.Depth);
+    Y_ASSERT(indexer0.BitsPerValue == indexer1.BitsPerValue);
+    Y_ASSERT(indexer0.LeafIndices == indexer1.LeafIndices);
+    Y_ASSERT(indexer0.ObjectIndices == indexer1.ObjectIndices && indexer0.ObjectOffset == indexer1.ObjectOffset);
+    DispatchByBitsPerValue(
+        [=] (const auto* quantizedValues0) {
+            const auto* quantizedValues1 = reinterpret_cast<decltype(quantizedValues0)>(indexer1.QuantizedValues);
+            DispatchGenericLambda(
+                [=] (auto isOneNode) {
+                    for (int doc : docIndexRange.Iter()) {
+                        const double weightedDerOfDoc = weightedDer[doc];
+                        const float sampleWeight = sampleWeights[doc];
+                        const auto objectIdx = indexer0.ObjectIndices
+                            ? indexer0.ObjectIndices[doc]
+                            : indexer0.ObjectOffset + doc;
+                        const TIndexType leafIndex = isOneNode ? 0 : indexer0.LeafIndices[doc];
+                        auto& leafStats0 = stats0[indexer0.BucketCount * leafIndex + quantizedValues0[objectIdx]];
+                        leafStats0.SumWeightedDelta += weightedDerOfDoc;
+                        leafStats0.SumWeight += sampleWeight;
+                        auto& leafStats1 = stats1[indexer1.BucketCount * leafIndex + quantizedValues1[objectIdx]];
+                        leafStats1.SumWeightedDelta += weightedDerOfDoc;
+                        leafStats1.SumWeight += sampleWeight;
+                    }
+                },
+                indexer0.Depth == 0);
+        },
+        indexer0.BitsPerValue,
+        indexer0.QuantizedValues);
+}
+
+
 // Update not bootstraped sums on docIndexRange in a bucket
 inline static void UpdateDeltaCount(
     const TStatsIndexer& indexer,
@@ -258,17 +301,27 @@ inline static void CalcStatsKernel(
     const TCalcScoreFold::TBodyTail& bt,
     int dim,
     NCB::TIndexRange<int> docIndexRange,
-    TBucketStats* stats
+    TBucketStats* stats,
+    // optional second candidate (only in plain mode), its sums are updated in the same pass over objects
+    const TStatsIndexer* secondIndexer = nullptr,
+    TBucketStats* secondStats = nullptr
 ) {
     Y_ASSERT(!isCaching || depth > 0);
-    if (isCaching) {
-        Fill(
-            stats + indexer.CalcSize(depth - 1),
-            stats + indexer.CalcSize(depth),
-            TBucketStats{0, 0, 0, 0}
-        );
-    } else {
-        Fill(stats, stats + indexer.CalcSize(depth), TBucketStats{0, 0, 0, 0});
+    Y_ASSERT(!secondIndexer || isPlainMode);
+    const auto fillStats = [&] (const TStatsIndexer& candidateIndexer, TBucketStats* candidateStats) {
+        if (isCaching) {
+            Fill(
+                candidateStats + candidateIndexer.CalcSize(depth - 1),
+                candidateStats + candidateIndexer.CalcSize(depth),
+                TBucketStats{0, 0, 0, 0}
+            );
+        } else {
+            Fill(candidateStats, candidateStats + candidateIndexer.CalcSize(depth), TBucketStats{0, 0, 0, 0});
+        }
+    };
+    fillStats(indexer, stats);
+    if (secondIndexer) {
+        fillStats(*secondIndexer, secondStats);
     }
 
     if (bt.TailFinish > docIndexRange.Begin) {
@@ -280,7 +333,17 @@ inline static void CalcStatsKernel(
 
         int tailFinishInRange = Min((int)bt.TailFinish, docIndexRange.End);
 
-        if (isPlainMode) {
+        if (isPlainMode && secondIndexer) {
+            UpdateWeightedForTwo(
+                indexer,
+                *secondIndexer,
+                GetDataPtr(bt.SampleWeightedDerivatives[dim]),
+                sampleWeightsData,
+                NCB::TIndexRange<int>(docIndexRange.Begin, tailFinishInRange),
+                stats,
+                secondStats
+            );
+        } else if (isPlainMode) {
             UpdateWeighted(
                 indexer,
                 GetDataPtr(bt.SampleWeightedDerivatives[dim]),
@@ -477,36 +540,44 @@ static void CalcStatsPairwise(
 }
 
 
+// Stats for one or two (only in plain mode) candidates with the same objects and leaves indexing,
+// bucket sums of two candidates are updated in one pass over objects
 template <typename TIsCaching>
 static void CalcStatsPointwise(
     const TCalcScoreFold& fold,
-    const TStatsIndexer& indexer,
+    TConstArrayRef<TStatsIndexer> indexers,
     const TIsCaching& isCaching,
     bool isPlainMode,
     int depth,
-    int splitStatsCount,
+    TConstArrayRef<int> splitStatsCounts,
     NPar::ILocalExecutor* localExecutor,
-    TBucketStatsRefOptionalHolder* stats
+    TConstArrayRef<TBucketStatsRefOptionalHolder*> stats
 ) {
     Y_ASSERT(!isCaching || depth > 0);
+    const size_t candidateCount = indexers.size();
+    Y_ASSERT(candidateCount == 1 || (candidateCount == 2 && isPlainMode));
 
-    const int statsCount = fold.GetBodyTailCount() * fold.GetApproxDimension() * splitStatsCount;
-    const int filledSplitStatsCount = indexer.CalcSize(depth);
-
-    // bodyFunc must accept (bodyTailIdx, dim, bucketStatsArrayBegin) params
+    // bodyFunc must accept (bodyTailIdx, dim, bodyTailAndDimIdx) params,
+    // stats for them begin at bodyTailAndDimIdx * splitStatsCount
     auto forEachBodyTailAndApproxDimension = [&](auto bodyFunc) {
         const int approxDimension = fold.GetApproxDimension();
         for (int bodyTailIdx : xrange(fold.GetBodyTailCount())) {
             for (int dim : xrange(approxDimension)) {
-                bodyFunc(bodyTailIdx, dim, (bodyTailIdx * approxDimension + dim) * splitStatsCount);
+                bodyFunc(bodyTailIdx, dim, bodyTailIdx * approxDimension + dim);
             }
         }
     };
 
+    using TCandidatesStats = TStackVec<TBucketStatsRefOptionalHolder, 2>;
+    TCandidatesStats candidatesStats;
+    for (auto* candidateStats : stats) {
+        candidatesStats.push_back(std::move(*candidateStats));
+    }
+
     NCB::MapMerge(
         localExecutor,
         fold.GetCalcStatsIndexRanges(),
-        /*mapFunc*/[&](NCB::TIndexRange<int> indexRange, TBucketStatsRefOptionalHolder* output) {
+        /*mapFunc*/[&](NCB::TIndexRange<int> indexRange, TCandidatesStats* output) {
             NCB::TIndexRange<int> docIndexRange = fold.HasQueryInfo() ?
                 NCB::TIndexRange<int>(
                     fold.LearnQueriesInfo[indexRange.Begin].Begin,
@@ -514,58 +585,76 @@ static void CalcStatsPointwise(
                 )
                 : indexRange;
 
-            if (output->NonInited()) {
-                (*output) = TBucketStatsRefOptionalHolder(statsCount);
-            } else {
-                Y_ASSERT(docIndexRange.Begin == 0);
+            output->resize(candidateCount);
+            for (auto candidateIdx : xrange(candidateCount)) {
+                if ((*output)[candidateIdx].NonInited()) {
+                    const int statsCount =
+                        fold.GetBodyTailCount() * fold.GetApproxDimension() * splitStatsCounts[candidateIdx];
+                    (*output)[candidateIdx] = TBucketStatsRefOptionalHolder(statsCount);
+                } else {
+                    Y_ASSERT(docIndexRange.Begin == 0);
+                }
             }
 
             forEachBodyTailAndApproxDimension(
-                [&](int bodyTailIdx, int dim, int bucketStatsArrayBegin) {
-                    TBucketStats* statsSubset = output->GetData().data() + bucketStatsArrayBegin;
+                [&](int bodyTailIdx, int dim, int bodyTailAndDimIdx) {
+                    const auto getStatsSubset = [&] (size_t candidateIdx) {
+                        return (*output)[candidateIdx].GetData().data()
+                            + bodyTailAndDimIdx * splitStatsCounts[candidateIdx];
+                    };
                     CalcStatsKernel(
                         isCaching && (indexRange.Begin == 0),
                         fold,
                         isPlainMode,
-                        indexer,
+                        indexers[0],
                         depth,
                         fold.BodyTailArr[bodyTailIdx],
                         dim,
                         docIndexRange,
-                        statsSubset
+                        getStatsSubset(0),
+                        (candidateCount == 2) ? &indexers[1] : nullptr,
+                        (candidateCount == 2) ? getStatsSubset(1) : nullptr
                     );
                 }
             );
         },
         /*mergeFunc*/[&](
-            TBucketStatsRefOptionalHolder* output,
-            TVector<TBucketStatsRefOptionalHolder>&& addVector
+            TCandidatesStats* output,
+            TVector<TCandidatesStats>&& addVector
         ) {
-            forEachBodyTailAndApproxDimension(
-                [&](int /*bodyTailIdx*/, int /*dim*/, int bucketStatsArrayBegin) {
-                    TBucketStats* outputStatsSubset =
-                        output->GetData().data() + bucketStatsArrayBegin;
+            for (auto candidateIdx : xrange(candidateCount)) {
+                const int splitStatsCount = splitStatsCounts[candidateIdx];
+                const int filledSplitStatsCount = indexers[candidateIdx].CalcSize(depth);
+                forEachBodyTailAndApproxDimension(
+                    [&](int /*bodyTailIdx*/, int /*dim*/, int bodyTailAndDimIdx) {
+                        TBucketStats* outputStatsSubset =
+                            (*output)[candidateIdx].GetData().data() + bodyTailAndDimIdx * splitStatsCount;
 
-                    for (const auto& addItem : addVector) {
-                        const TBucketStats* addStatsSubset =
-                            addItem.GetData().data() + bucketStatsArrayBegin;
-                        for (size_t i : xrange(filledSplitStatsCount)) {
-                            (outputStatsSubset + i)->Add(*(addStatsSubset + i));
+                        for (const auto& addItem : addVector) {
+                            const TBucketStats* addStatsSubset =
+                                addItem[candidateIdx].GetData().data() + bodyTailAndDimIdx * splitStatsCount;
+                            for (size_t i : xrange(filledSplitStatsCount)) {
+                                (outputStatsSubset + i)->Add(*(addStatsSubset + i));
+                            }
                         }
                     }
-                }
-            );
+                );
+            }
         },
-        stats
+        &candidatesStats
     );
 
-    if (isCaching) {
-        forEachBodyTailAndApproxDimension(
-            [&](int /*bodyTailIdx*/, int /*dim*/, int bucketStatsArrayBegin) {
-                TBucketStats* statsSubset = stats->GetData().data() + bucketStatsArrayBegin;
-                FixUpStats(depth, indexer, fold.SmallestSplitSideValue, statsSubset);
-            }
-        );
+    for (auto candidateIdx : xrange(candidateCount)) {
+        *stats[candidateIdx] = std::move(candidatesStats[candidateIdx]);
+        if (isCaching) {
+            forEachBodyTailAndApproxDimension(
+                [&](int /*bodyTailIdx*/, int /*dim*/, int bodyTailAndDimIdx) {
+                    TBucketStats* statsSubset = stats[candidateIdx]->GetData().data()
+                        + bodyTailAndDimIdx * splitStatsCounts[candidateIdx];
+                    FixUpStats(depth, indexers[candidateIdx], fold.SmallestSplitSideValue, statsSubset);
+                }
+            );
+        }
     }
 }
 
@@ -770,6 +859,217 @@ static void CalculateNonPairwiseScore(
 }
 
 
+// Pointwise scoring for one or two candidates (see CalcStatsAndScoresForTwoCandidates)
+static void CalcPointwiseStatsAndScores(
+    const TQuantizedObjectsDataProvider& objectsDataProvider,
+    const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
+    const TCalcScoreFold& fold,
+    const TCalcScoreFold& prevLevelData,
+    const TFold* initialFold,
+    const NCatboostOptions::TCatBoostOptions& fitParams,
+    TConstArrayRef<const TCandidateInfo*> candidateInfos,
+    int depth,
+    bool useTreeLevelCaching,
+    const TVector<int>& currTreeMonotonicConstraints,
+    const TMap<ui32, int>& monotonicConstraints,
+    NPar::ILocalExecutor* localExecutor,
+    TBucketStatsCache* statsFromPrevTree,
+    TStats3D* stats3d, // can be non-nullptr only for one candidate
+    TConstArrayRef<IScoreCalcer*> scoreCalcers
+) {
+    const size_t candidateCount = candidateInfos.size();
+    Y_ASSERT(scoreCalcers.size() == candidateCount);
+    Y_ASSERT(candidateCount == 1 || (candidateCount == 2 && !stats3d));
+
+    const float l2Regularizer = static_cast<const float>(fitParams.ObliviousTreeOptions->L2Reg);
+    const ui32 oneHotMaxSize = fitParams.CatFeatureParams.Get().OneHotMaxSize.Get();
+    const bool isPlainMode = IsPlainMode(fitParams.BoostingOptions->BoostingType);
+
+    const auto& treeOptions = fitParams.ObliviousTreeOptions.Get();
+
+    TStackVec<int, 2> bucketCounts;
+    TStackVec<int, 2> splitStatsCounts;
+    TStackVec<TBucketStatsRefOptionalHolder, 2> extOrInSplitStats;
+    TStackVec<TVector<TBucketStats, TPoolAllocator>*, 2> splitStatsFromCache;
+    TStackVec<bool, 2> isCaching;
+    TStackVec<TStatsIndexer, 2> indexers;
+
+    for (const auto* candidateInfo : candidateInfos) {
+        const auto& splitEnsemble = candidateInfo->SplitEnsemble;
+        const int bucketCount = GetBucketCount(
+            splitEnsemble,
+            *objectsDataProvider.GetQuantizedFeaturesInfo(),
+            objectsDataProvider.GetPackedBinaryFeaturesSize(),
+            objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
+            objectsDataProvider.GetFeaturesGroupsMetaData()
+        );
+        bucketCounts.push_back(bucketCount);
+        extOrInSplitStats.emplace_back();
+        splitStatsFromCache.push_back(nullptr);
+        isCaching.push_back(false);
+
+        if (!useTreeLevelCaching) {
+            splitStatsCounts.push_back((ui64(1) << depth) * bucketCount);
+            const int statsCount =
+                fold.GetBodyTailCount() * fold.GetApproxDimension() * splitStatsCounts.back();
+
+            if (stats3d != nullptr) {
+                stats3d->Stats.yresize(statsCount);
+                stats3d->BucketCount = bucketCount;
+                stats3d->MaxLeafCount = 1U << depth;
+                stats3d->SplitEnsembleSpec = TSplitEnsembleSpec(
+                    splitEnsemble,
+                    objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
+                    objectsDataProvider.GetFeaturesGroupsMetaData()
+                );
+
+                extOrInSplitStats.back() = TBucketStatsRefOptionalHolder(stats3d->Stats);
+            }
+        } else {
+            splitStatsCounts.push_back((ui64(1) << treeOptions.MaxDepth) * bucketCount);
+            bool areStatsDirty;
+
+            // thread-safe access
+            splitStatsFromCache.back() =
+                &statsFromPrevTree->GetStats(splitEnsemble, splitStatsCounts.back(), &areStatsDirty);
+            extOrInSplitStats.back() = TBucketStatsRefOptionalHolder(*splitStatsFromCache.back());
+            isCaching.back() = (depth != 0) && !areStatsDirty;
+        }
+
+        size_t bitsPerValue;
+        const char* rawPtr;
+        GetBitsPerValueAndRawPtr(
+            objectsDataProvider,
+            allCtrs,
+            splitEnsemble,
+            &bitsPerValue,
+            &rawPtr);
+
+        const TCalcScoreFold& statsFold = isCaching.back() ? prevLevelData : fold;
+        const ui32* objectIndexing;
+        int beginOffset;
+        GetIndexingParams(
+            statsFold,
+            splitEnsemble,
+            &objectIndexing,
+            &beginOffset);
+
+        indexers.emplace_back(
+            bucketCount,
+            depth,
+            GetDataPtr(statsFold.Indices),
+            rawPtr,
+            bitsPerValue,
+            objectIndexing,
+            beginOffset);
+    }
+
+    // candidates [begin, end) are calculated together
+    const auto calcStatsPointwise = [&] (size_t begin, size_t end) {
+        TStackVec<TBucketStatsRefOptionalHolder*, 2> stats;
+        for (auto candidateIdx : xrange(begin, end)) {
+            stats.push_back(&extOrInSplitStats[candidateIdx]);
+        }
+        const auto calc = [&] (auto isCachingConst) {
+            CalcStatsPointwise(
+                isCachingConst ? prevLevelData : fold,
+                MakeArrayRef(indexers).Slice(begin, end - begin),
+                isCachingConst,
+                isPlainMode,
+                depth,
+                MakeArrayRef(splitStatsCounts).Slice(begin, end - begin),
+                localExecutor,
+                stats);
+        };
+        if (isCaching[begin]) {
+            calc(std::true_type());
+        } else {
+            calc(std::false_type());
+        }
+    };
+    const bool calcInOnePass = (candidateCount == 2)
+        && isPlainMode
+        && (isCaching[0] == isCaching[1])
+        && (indexers[0].BitsPerValue == indexers[1].BitsPerValue)
+        && (indexers[0].LeafIndices == indexers[1].LeafIndices)
+        && (indexers[0].ObjectIndices == indexers[1].ObjectIndices)
+        && (indexers[0].ObjectOffset == indexers[1].ObjectOffset);
+    if (calcInOnePass) {
+        calcStatsPointwise(0, 2);
+    } else {
+        for (auto candidateIdx : xrange(candidateCount)) {
+            calcStatsPointwise(candidateIdx, candidateIdx + 1);
+        }
+    }
+
+    for (auto candidateIdx : xrange(candidateCount)) {
+        const TCandidateInfo& candidateInfo = *candidateInfos[candidateIdx];
+        const auto& splitEnsemble = candidateInfo.SplitEnsemble;
+        const int bucketCount = bucketCounts[candidateIdx];
+        const int splitStatsCount = splitStatsCounts[candidateIdx];
+        if (useTreeLevelCaching && stats3d) {
+            TBucketStatsCache::GetStatsInUse(
+                fold.GetBodyTailCount() * fold.GetApproxDimension(),
+                splitStatsCount,
+                (ui64(1) << depth) * bucketCount,
+                *splitStatsFromCache[candidateIdx]
+            ).swap(stats3d->Stats);
+            stats3d->BucketCount = bucketCount;
+            stats3d->MaxLeafCount = 1U << depth;
+            stats3d->SplitEnsembleSpec = TSplitEnsembleSpec(
+                splitEnsemble,
+                objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
+                objectsDataProvider.GetFeaturesGroupsMetaData()
+            );
+        }
+        if (IScoreCalcer* scoreCalcer = scoreCalcers[candidateIdx]) {
+            const int leafCount = 1 << depth;
+            TSplitEnsembleSpec splitEnsembleSpec(
+                splitEnsemble,
+                objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
+                objectsDataProvider.GetFeaturesGroupsMetaData()
+            );
+            const int candidateSplitCount = CalcSplitsCount(
+                splitEnsembleSpec, bucketCount, oneHotMaxSize
+            );
+            scoreCalcer->SetSplitsCount(candidateSplitCount);
+
+            TVector<int> candidateSplitMonotonicConstraints;
+            if (!monotonicConstraints.empty()) {
+                candidateSplitMonotonicConstraints.resize(candidateSplitCount, 0);
+                for (int splitIdx : xrange(candidateSplitCount)) {
+                    const auto split = candidateInfo.GetSplit(
+                        splitIdx, objectsDataProvider, oneHotMaxSize
+                    );
+                    if (split.Type == ESplitType::FloatFeature) {
+                        Y_ASSERT(split.FeatureIdx >= 0);
+                        if (monotonicConstraints.contains(split.FeatureIdx)) {
+                            candidateSplitMonotonicConstraints[splitIdx] =
+                                monotonicConstraints.at(split.FeatureIdx);
+                        }
+                    }
+                }
+            }
+
+            CalculateNonPairwiseScore(
+                fold,
+                *initialFold,
+                splitEnsembleSpec,
+                isPlainMode,
+                leafCount,
+                l2Regularizer,
+                oneHotMaxSize,
+                TStatsIndexer(bucketCount),
+                extOrInSplitStats[candidateIdx].GetData().data(),
+                splitStatsCount,
+                currTreeMonotonicConstraints,
+                candidateSplitMonotonicConstraints,
+                dynamic_cast<IPointwiseScoreCalcer*>(scoreCalcer)
+            );
+        }
+    }
+}
+
 void CalcStatsAndScores(
     const TQuantizedObjectsDataProvider& objectsDataProvider,
     const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
@@ -850,164 +1150,89 @@ void CalcStatsAndScores(
     } else {
         CB_ENSURE(!pairwiseStats, "Per-object scoring is incompatible with pairwiseStats calculation");
 
-        size_t bitsPerValue;
-        const char* rawPtr;
-        GetBitsPerValueAndRawPtr(
+        CalcPointwiseStatsAndScores(
             objectsDataProvider,
             allCtrs,
-            splitEnsemble,
-            &bitsPerValue,
-            &rawPtr);
-
-        const bool isPlainMode = IsPlainMode(fitParams.BoostingOptions->BoostingType);
-
-        const auto calcStatsPointwise = [&] (
-            auto isCaching,
-            const TCalcScoreFold& fold,
-            int splitStatsCount,
-            auto* stats
-        ) {
-            const ui32* objectIndexing;
-            int beginOffset;
-            GetIndexingParams(
-                fold,
-                splitEnsemble,
-                &objectIndexing,
-                &beginOffset);
-
-            const TStatsIndexer indexer(
-                bucketCount,
-                depth,
-                GetDataPtr(fold.Indices),
-                rawPtr,
-                bitsPerValue,
-                objectIndexing,
-                beginOffset);
-
-            CalcStatsPointwise(
-                fold,
-                indexer,
-                isCaching,
-                isPlainMode,
-                depth,
-                splitStatsCount,
-                localExecutor,
-                stats);
-        };
-
-        TBucketStatsRefOptionalHolder extOrInSplitStats;
-        int splitStatsCount = 0;
-
-        const auto& treeOptions = fitParams.ObliviousTreeOptions.Get();
-
-        if (!useTreeLevelCaching) {
-            splitStatsCount = (ui64(1) << depth) * bucketCount;
-            const int statsCount =
-                fold.GetBodyTailCount() * fold.GetApproxDimension() * splitStatsCount;
-
-            if (stats3d != nullptr) {
-                stats3d->Stats.yresize(statsCount);
-                stats3d->BucketCount = bucketCount;
-                stats3d->MaxLeafCount = 1U << depth;
-                stats3d->SplitEnsembleSpec = TSplitEnsembleSpec(
-                    splitEnsemble,
-                    objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
-                    objectsDataProvider.GetFeaturesGroupsMetaData()
-                );
-
-                extOrInSplitStats = TBucketStatsRefOptionalHolder(stats3d->Stats);
-            }
-            calcStatsPointwise(
-                /*isCaching*/ std::false_type(),
-                fold,
-                splitStatsCount,
-                &extOrInSplitStats
-            );
-        } else {
-            splitStatsCount = (ui64(1) << treeOptions.MaxDepth) * bucketCount;
-            bool areStatsDirty;
-
-            // thread-safe access
-            TVector<TBucketStats, TPoolAllocator>& splitStatsFromCache =
-                statsFromPrevTree->GetStats(splitEnsemble, splitStatsCount, &areStatsDirty);
-            extOrInSplitStats = TBucketStatsRefOptionalHolder(splitStatsFromCache);
-            if (depth == 0 || areStatsDirty) {
-                calcStatsPointwise(
-                    /*isCaching*/ std::false_type(),
-                    fold,
-                    splitStatsCount,
-                    &extOrInSplitStats
-                );
-            } else {
-                calcStatsPointwise(
-                    /*isCaching*/ std::true_type(),
-                    prevLevelData,
-                    splitStatsCount,
-                    &extOrInSplitStats
-                );
-            }
-            if (stats3d) {
-                TBucketStatsCache::GetStatsInUse(
-                    fold.GetBodyTailCount() * fold.GetApproxDimension(),
-                    splitStatsCount,
-                    (ui64(1) << depth) * bucketCount,
-                    splitStatsFromCache
-                ).swap(stats3d->Stats);
-                stats3d->BucketCount = bucketCount;
-                stats3d->MaxLeafCount = 1U << depth;
-                stats3d->SplitEnsembleSpec = TSplitEnsembleSpec(
-                    splitEnsemble,
-                    objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
-                    objectsDataProvider.GetFeaturesGroupsMetaData()
-                );
-            }
-        }
-        if (scoreCalcer) {
-            const int leafCount = 1 << depth;
-            TSplitEnsembleSpec splitEnsembleSpec(
-                splitEnsemble,
-                objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
-                objectsDataProvider.GetFeaturesGroupsMetaData()
-            );
-            const int candidateSplitCount = CalcSplitsCount(
-                splitEnsembleSpec, bucketCount, oneHotMaxSize
-            );
-            scoreCalcer->SetSplitsCount(candidateSplitCount);
-
-            TVector<int> candidateSplitMonotonicConstraints;
-            if (!monotonicConstraints.empty()) {
-                candidateSplitMonotonicConstraints.resize(candidateSplitCount, 0);
-                for (int splitIdx : xrange(candidateSplitCount)) {
-                    const auto split = candidateInfo.GetSplit(
-                        splitIdx, objectsDataProvider, oneHotMaxSize
-                    );
-                    if (split.Type == ESplitType::FloatFeature) {
-                        Y_ASSERT(split.FeatureIdx >= 0);
-                        if (monotonicConstraints.contains(split.FeatureIdx)) {
-                            candidateSplitMonotonicConstraints[splitIdx] =
-                                monotonicConstraints.at(split.FeatureIdx);
-                        }
-                    }
-                }
-            }
-
-            CalculateNonPairwiseScore(
-                fold,
-                *initialFold,
-                splitEnsembleSpec,
-                isPlainMode,
-                leafCount,
-                l2Regularizer,
-                oneHotMaxSize,
-                TStatsIndexer(bucketCount),
-                extOrInSplitStats.GetData().data(),
-                splitStatsCount,
-                currTreeMonotonicConstraints,
-                candidateSplitMonotonicConstraints,
-                dynamic_cast<IPointwiseScoreCalcer*>(scoreCalcer)
-            );
-        }
+            fold,
+            prevLevelData,
+            initialFold,
+            fitParams,
+            {&candidateInfo},
+            depth,
+            useTreeLevelCaching,
+            currTreeMonotonicConstraints,
+            monotonicConstraints,
+            localExecutor,
+            statsFromPrevTree,
+            stats3d,
+            {scoreCalcer});
     }
+}
+
+
+void CalcStatsAndScoresForTwoCandidates(
+    const TQuantizedObjectsDataProvider& objectsDataProvider,
+    const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
+    const TCalcScoreFold& fold,
+    const TCalcScoreFold& prevLevelData,
+    const TFold* initialFold,
+    const TFlatPairsInfo& pairs,
+    const NCatboostOptions::TCatBoostOptions& fitParams,
+    const TCandidateInfo& candidateInfo0,
+    const TCandidateInfo& candidateInfo1,
+    int depth,
+    bool useTreeLevelCaching,
+    const TVector<int>& currTreeMonotonicConstraints,
+    const TMap<ui32, int>& monotonicConstraints,
+    NPar::ILocalExecutor* localExecutor,
+    TBucketStatsCache* statsFromPrevTree,
+    IScoreCalcer* scoreCalcer0,
+    IScoreCalcer* scoreCalcer1
+) {
+    if (IsPairwiseScoring(fitParams.LossFunctionDescription->GetLossFunction())) {
+        for (auto [candidateInfo, scoreCalcer] : {
+            std::make_pair(&candidateInfo0, scoreCalcer0),
+            std::make_pair(&candidateInfo1, scoreCalcer1)
+        }) {
+            CalcStatsAndScores(
+                objectsDataProvider,
+                allCtrs,
+                fold,
+                prevLevelData,
+                initialFold,
+                pairs,
+                fitParams,
+                *candidateInfo,
+                depth,
+                useTreeLevelCaching,
+                currTreeMonotonicConstraints,
+                monotonicConstraints,
+                localExecutor,
+                statsFromPrevTree,
+                /*stats3d*/ nullptr,
+                /*pairwiseStats*/ nullptr,
+                scoreCalcer);
+        }
+        return;
+    }
+    CB_ENSURE(initialFold, "initialFold must be non-nullptr for scores calculation");
+
+    CalcPointwiseStatsAndScores(
+        objectsDataProvider,
+        allCtrs,
+        fold,
+        prevLevelData,
+        initialFold,
+        fitParams,
+        {&candidateInfo0, &candidateInfo1},
+        depth,
+        useTreeLevelCaching,
+        currTreeMonotonicConstraints,
+        monotonicConstraints,
+        localExecutor,
+        statsFromPrevTree,
+        /*stats3d*/ nullptr,
+        {scoreCalcer0, scoreCalcer1});
 }
 
 TVector<double> GetScores(
