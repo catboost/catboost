@@ -83,33 +83,37 @@ double TMvsSampler::GetLambda(
 // which are mispredicted for random candidates.
 // std::partition swaps the k-th element of [begin, middle) not satisfying the predicate with the k-th
 // element from the end of [middle, end) satisfying it, where middle = begin + (count satisfying the predicate).
-// buffer must have room for (end - begin) elements.
+// The offsets of both groups of elements are stored in partitionIndexBuffer, one after another, and the number
+// of elements in each group is at most (end - begin) / 2, so the buffer must have room for (end - begin) elements.
 template <typename TPredicate>
 static TVector<double>::iterator PartitionBranchless(
     TVector<double>::iterator begin,
     TVector<double>::iterator end,
     TPredicate predicate,
-    ui32* buffer) {
+    TArrayRef<ui32> partitionIndexBuffer) {
 
-    const ui32 size = end - begin;
-    ui32 middle = 0;
-    for (ui32 idx : xrange(size)) {
-        middle += predicate(begin[idx]);
-    }
+    Y_ASSERT(partitionIndexBuffer.size() >= static_cast<size_t>(end - begin));
+    const ui32 middle = CountIf(begin, end, predicate);
+
+    ui32* const left = partitionIndexBuffer.data();
     ui32 leftCount = 0;
     for (ui32 idx : xrange(middle)) {
-        buffer[leftCount] = idx;
-        leftCount += !predicate(begin[idx]);
+        left[leftCount] = idx;
+        leftCount += !predicate(*(begin + idx));
     }
-    ui32* right = buffer + leftCount;
+
+    // [middle, end) has exactly leftCount elements satisfying the predicate, no need to look past the last one
+    ui32* const right = left + leftCount;
     ui32 rightCount = 0;
-    for (ui32 idx = size; idx > middle; --idx) {
-        right[rightCount] = idx - 1;
-        rightCount += predicate(begin[idx - 1]);
+    for (ui32 idx = middle; rightCount < leftCount; ++idx) {
+        Y_ASSERT(begin + idx != end);
+        right[rightCount] = idx;
+        rightCount += predicate(*(begin + idx));
     }
-    Y_ASSERT(leftCount == rightCount);
+
+    // right is in increasing order, so the k-th element of left is swapped with the k-th element from the end of right
     for (ui32 pairIdx : xrange(leftCount)) {
-        std::swap(begin[buffer[pairIdx]], begin[right[pairIdx]]);
+        std::swap(*(begin + left[pairIdx]), *(begin + right[leftCount - 1 - pairIdx]));
     }
     return begin + middle;
 }
@@ -120,7 +124,7 @@ double TMvsSampler::CalculateThreshold(
     double sumOfSmallCurrent,
     ui32 numberOfLargeCurrent,
     double sampleSize,
-    ui32* partitionBuffer) const {
+    TArrayRef<ui32> partitionIndexBuffer) const {
 
     double threshold = *candidatesBegin;
     auto middleBegin = PartitionBranchless(
@@ -129,7 +133,7 @@ double TMvsSampler::CalculateThreshold(
         [threshold](double candidate) {
             return candidate < threshold;
         },
-        partitionBuffer);
+        partitionIndexBuffer);
     auto middleEnd = std::partition(middleBegin, candidatesEnd, [threshold](double candidate) {
         return candidate <= threshold;
     });
@@ -144,14 +148,14 @@ double TMvsSampler::CalculateThreshold(
     if (estimatedSampleSize > sampleSize) {
         if (middleEnd != candidatesEnd) {
             sumOfSmallCurrent += sumOfMiddle + sumOfSmallUpdate;
-            return CalculateThreshold(middleEnd, candidatesEnd, sumOfSmallCurrent, numberOfLargeCurrent, sampleSize, partitionBuffer);
+            return CalculateThreshold(middleEnd, candidatesEnd, sumOfSmallCurrent, numberOfLargeCurrent, sampleSize, partitionIndexBuffer);
         } else {
             return (sumOfSmallCurrent + sumOfSmallUpdate + sumOfMiddle) / (sampleSize - numberOfLargeCurrent);
         }
     } else {
         if (middleBegin != candidatesBegin) {
             numberOfLargeCurrent += numberOfLargeUpdate + numberOfMiddle;
-            return CalculateThreshold(candidatesBegin, middleBegin, sumOfSmallCurrent, numberOfLargeCurrent, sampleSize, partitionBuffer);
+            return CalculateThreshold(candidatesBegin, middleBegin, sumOfSmallCurrent, numberOfLargeCurrent, sampleSize, partitionIndexBuffer);
         } else {
             return sumOfSmallCurrent / (sampleSize - numberOfLargeCurrent - numberOfMiddle - numberOfLargeUpdate);
         }
@@ -235,15 +239,15 @@ void TMvsSampler::GenSampleWeights(
                 for (auto& value : thresholdCandidates) {
                     value = sqrt(value);
                 }
-                TVector<ui32> partitionBuffer;
-                partitionBuffer.yresize(blockSize);
+                TVector<ui32> partitionIndexBuffer;
+                partitionIndexBuffer.yresize(blockSize);
                 double threshold = CalculateThreshold(
                     thresholdCandidates.begin(),
                     thresholdCandidates.end(),
                     0,
                     0,
                     SampleRate * blockSize,
-                    partitionBuffer.data());
+                    partitionIndexBuffer);
                 for (ui32 i = blockOffset; i < blockFinish; ++i) {
                     double grad2 = 0;
                     for (auto dim : xrange(approxDimension)) {
