@@ -197,6 +197,24 @@ namespace NCB {
             MetaInfo.HasWeights = true;
         }
 
+        void SetTarget(TVector<TRawTarget> target) {
+            RawTargetData.SetTarget(std::move(target));
+            MetaInfo.TargetCount = RawTargetData.GetTargetDimension();
+            MetaInfo.TargetType = RawTargetData.GetTargetType();
+        }
+
+        void SetNumericTarget(TConstArrayRef<float> target) { // [objectIdx], single-target
+            RawTargetData.SetNumericTarget(target);
+            MetaInfo.TargetCount = RawTargetData.GetTargetDimension();
+            MetaInfo.TargetType = RawTargetData.GetTargetType();
+        }
+
+        void SetNumericTarget(TVector<float>&& target) { // [objectIdx], single-target
+            RawTargetData.SetNumericTarget(std::move(target));
+            MetaInfo.TargetCount = RawTargetData.GetTargetDimension();
+            MetaInfo.TargetType = RawTargetData.GetTargetType();
+        }
+
         void SetTimestamps(TConstArrayRef<ui64> timestamps) { // [objectIdx]
             ObjectsData->SetTimestamps(timestamps);
             MetaInfo.HasTimestamp = true;
