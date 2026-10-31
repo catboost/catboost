@@ -5195,6 +5195,23 @@ cdef class _PoolBase:
             return [weight for weight in non_trivial_data]
 
 
+    cpdef get_group_weight(self):
+        """
+        Get group weight for each instance.
+
+        Returns
+        -------
+        group_weight : list
+        """
+        cdef const TWeights[float]* group_weights = &(self.__pool.Get()[0].RawTargetData.GetGroupWeights())
+        cdef TConstArrayRef[float] non_trivial_data
+        if group_weights.IsTrivial():
+            return [1.0]*group_weights.GetSize()
+        else:
+            non_trivial_data = group_weights.GetNonTrivialData()
+            return [group_weight for group_weight in non_trivial_data]
+
+
     cpdef get_group_id_hash(self):
         """
         Get hashes generated from group_id.

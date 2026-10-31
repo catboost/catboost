@@ -2378,6 +2378,31 @@ def test_group_weight(task_type):
     assert _check_data(pred1, pred2)
 
 
+def test_ranker_score_with_pool_group_weight():
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
+    model = CatBoostRanker(loss_function='YetiRank', iterations=10, thread_count=4)
+    model.fit(train_pool)
+
+    df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_query_weight = df.loc[:, 0].values
+    test_query_id = df.loc[:, 1]
+    test_target = df.loc[:, 2]
+    test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
+
+    assert np.allclose(test_pool.get_group_weight(), test_query_weight)
+
+    weighted_score = model.score(test_data, test_target, group_id=test_query_id, group_weight=test_query_weight)
+    unweighted_score = model.score(test_data, test_target, group_id=test_query_id)
+    assert not np.isclose(weighted_score, unweighted_score)
+    assert np.isclose(model.score(test_pool), weighted_score)
+
+
+def test_pool_get_group_weight_without_group_weight():
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    assert pool.get_group_weight() == [1.0] * pool.num_row()
+
+
 def test_zero_baseline(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     baseline = np.zeros(pool.num_row())
