@@ -109,7 +109,7 @@ namespace NKernel
         if (fullPass)
         {
             ComputeSplitPropertiesHalfByteImpl < BlockSize, true,
-                    BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
+                    BlocksPerFeatureCount > <<<numBlocks, BlockSize, 0, stream>>>(
                     nbFeatures, nbCount, cindex, target, weight,
                             indices, partition, binSums, binFeatureCount
             );
@@ -117,7 +117,7 @@ namespace NKernel
         } else
         {
             ComputeSplitPropertiesHalfByteImpl < BlockSize, false,
-                    BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
+                    BlocksPerFeatureCount > <<<numBlocks, BlockSize, 0, stream>>>(
                     nbFeatures, nbCount, cindex, target, weight,
                             indices, partition, binSums, binFeatureCount);
         }

@@ -103,9 +103,9 @@ namespace NKernel {
         }
 
         if (fullPass) {
-            BuildBinaryFeatureHistograms<true><< <numBlocks, buildHistogramBlockSize, 0, stream >> > (features, featureCount, partition, partitionStats, histLineSize, histogram);
+            BuildBinaryFeatureHistograms<true><<<numBlocks, buildHistogramBlockSize, 0, stream >>> (features, featureCount, partition, partitionStats, histLineSize, histogram);
         } else {
-            BuildBinaryFeatureHistograms<false><< <numBlocks, buildHistogramBlockSize, 0, stream >> > (features, featureCount, partition, partitionStats, histLineSize, histogram);
+            BuildBinaryFeatureHistograms<false><<<numBlocks, buildHistogramBlockSize, 0, stream >>> (features, featureCount, partition, partitionStats, histLineSize, histogram);
         }
     }
 
@@ -192,7 +192,7 @@ namespace NKernel {
         if (IsGridEmpty(numBlocks)) {
             return;
         }
-        UpdatePairwiseHistogramsImpl<< <numBlocks, blockSize, 0, stream>>>(firstFeatureId, featureCount, dataParts, histLineSize, histograms);
+        UpdatePairwiseHistogramsImpl<<<numBlocks, blockSize, 0, stream>>>(firstFeatureId, featureCount, dataParts, histLineSize, histograms);
     }
 
 
@@ -216,7 +216,7 @@ namespace NKernel {
             return;
         }
 
-        ScanHistogramsImpl<scanBlockSize, 4> << < scanBlocks, scanBlockSize, 0, stream >> > (features, featureCount, histLineSize, binSums + histOffset);
+        ScanHistogramsImpl<scanBlockSize, 4> <<< scanBlocks, scanBlockSize, 0, stream >>> (features, featureCount, histLineSize, binSums + histOffset);
     }
 
 

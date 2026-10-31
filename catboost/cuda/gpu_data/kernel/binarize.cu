@@ -27,7 +27,7 @@ namespace NKernel {
         const ui32 blockSize = 256;
         const ui32 numBlocks = (docCount + blockSize - 1) / blockSize;
 
-        WriteCompressedIndexImpl<< < numBlocks, blockSize, 0, stream >> > (feature, bins, docCount, cindex);
+        WriteCompressedIndexImpl<<< numBlocks, blockSize, 0, stream >>> (feature, bins, docCount, cindex);
     }
 
 
@@ -248,11 +248,11 @@ namespace NKernel {
 
         if (atomicUpdate)
         {
-            BinarizeFloatFeatureImpl<true, blockSize, docsPerThread> << < numBlocks, blockSize, 0, stream >> > (feature, values, docCount,
+            BinarizeFloatFeatureImpl<true, blockSize, docsPerThread> <<< numBlocks, blockSize, 0, stream >>> (feature, values, docCount,
                     borders, gatherIndex,
                     dst);
         } else {
-            BinarizeFloatFeatureImpl<false, blockSize, docsPerThread> << < numBlocks, blockSize, 0, stream >> > (feature, values, docCount,
+            BinarizeFloatFeatureImpl<false, blockSize, docsPerThread> <<< numBlocks, blockSize, 0, stream >>> (feature, values, docCount,
                     borders, gatherIndex,
                     dst);
         }

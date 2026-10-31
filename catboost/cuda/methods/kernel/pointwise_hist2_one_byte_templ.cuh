@@ -201,13 +201,13 @@ namespace NKernel {
     {
 
         if (fullPass) {
-            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, Bits, true, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, Bits, true, BLOCKS_PER_FEATURE_COUNT > <<<numBlocks, BLOCK_SIZE, 0, stream>>>(
                     nbFeatures, nbCount, cindex, target, weight,
                             indices, partition, binSums, binFeatureCount
             );
 
         } else {
-            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, Bits, false, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, Bits, false, BLOCKS_PER_FEATURE_COUNT > <<<numBlocks, BLOCK_SIZE, 0, stream>>>(
                     nbFeatures, nbCount, cindex, target, weight,
                             indices, partition, binSums, binFeatureCount
             );
