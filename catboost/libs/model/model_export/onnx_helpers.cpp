@@ -573,7 +573,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
             size_t biasSize = bias.size();
             CB_ENSURE_INTERNAL(
                 biasSize == trees.GetDimensionsCount(),
-            "Inappropraite dimension of bias, should be " << trees.GetDimensionsCount() << " or 0, found " << biasSize);
+            "Inappropriate dimension of bias, should be " << trees.GetDimensionsCount() << " or 0, found " << biasSize);
             for (auto b : bias) {
                 treesAttributes.base_values->add_floats(b);
             }
