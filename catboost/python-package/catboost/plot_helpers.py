@@ -43,7 +43,6 @@ def save_plot_file(plot_file, plot_name, figs):
             graph_div = plotly_plot(
                 fig,
                 output_type='div',
-                show_link=False,
                 include_plotlyjs=False
             )
             plot_file_stream.write('\n{}\n'.format(graph_div))
@@ -72,7 +71,7 @@ class OfflineMetricVisualizer(object):
 
         if os.path.isfile(training_json):
             try:
-                with open(training_json, 'r') as json_data:
+                with open(training_json, 'r', encoding='utf-8') as json_data:
                     training_data = json.load(json_data)
                     data['meta'] = training_data['meta']
                     data['iterations'] = training_data['iterations']

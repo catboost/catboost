@@ -43,17 +43,13 @@ The cheapest MPSC variant: elements are spread across internal partitions, so FI
 
 The same as `TRelaxedManyOneQueue`, but with multiple readers allowed.
 
-### Pointer queues: `TAutoOneOneQueue` and friends
-
-[`TAutoQueueBase`](queue.h) is a wrapper for queues of owning pointers: `Enqueue(TAutoPtr<T>)` takes ownership, `Dequeue` returns a `TAutoPtr<T>`, and the queue destructor deletes all remaining elements. Aliases: `TAutoOneOneQueue`, `TAutoManyOneQueue`, `TAutoManyManyQueue`, `TAutoRelaxedManyOneQueue`, `TAutoRelaxedManyManyQueue`.
-
 ## Example
 
 See usage examples: [`queue_ut.cpp`](queue_ut.cpp).
 
 ## Template parameters
 
-- `T` — the element type (stored by value; for pointer ownership use the `TAuto*` aliases);
+- `T` — the element type (stored by value);
 - `ChunkSize` — chunk size in bytes (default 4 KiB); a larger chunk means fewer allocations but more overhead for small queues;
 - `Concurrency` — the number of internal partitions in the `TMany*`/`TRelaxed*` queues (default 4); scale it with the number of writers;
 - `TLock` (`TManyManyQueue` only) — the lock type (default `TAdaptiveLock`).

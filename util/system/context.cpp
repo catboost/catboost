@@ -114,22 +114,18 @@ namespace {
         return JmpBufReg(buf, FRAME_CNT);
     }
 
-    #if defined(_x86_64_)
-    // not sure if Y_NO_SANITIZE is needed
-    Y_NO_SANITIZE("address")
-    Y_NO_SANITIZE("memory") extern "C" void
-    ContextTrampoLine(void*, void*, void*, void*, void*, void*, // register arguments, no defined value
-                      /* first argument passed through the stack */ void* t1,
-                      /* second argument passed through the stack */ void* t2) {
-        Y_ASSERT(t1 == t2);
-        Run(t1);
+    extern "C" void ContextTrampoLine();
+
+    extern "C" Y_NO_SANITIZE("address") Y_NO_SANITIZE("memory") Y_HIDDEN void
+    ContextTrampoLineRun(void* trampoline) {
+        static_cast<ITrampoLine*>(trampoline)->DoRunNaked();
     }
-    #else
-    Y_NO_SANITIZE("address")
-    Y_NO_SANITIZE("memory") static void
-    ContextTrampoLine() {
-        void** argPtr = (void**)((char*)AlignUp(&argPtr + EXTRA_PUSH_ARGS, STACK_ALIGN) + STACK_ALIGN);
-        Run(*(argPtr - 1));
+
+    #if !defined(NDEBUG)
+    extern "C" Y_NO_SANITIZE("address") Y_NO_SANITIZE("memory") Y_HIDDEN void
+    ContextTrampoLineAbort(void* t1, void* t2) {
+        Y_ASSERT(t1 == t2);
+        abort();
     }
     #endif
 } // namespace
@@ -171,24 +167,10 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
     auto trampoline = c.TrampoLine;
     #endif
 
-    #if defined(_x86_64_)
     stack.ReAlign();
-    // push twice to preserve alignment by 16
-    stack.Push(trampoline); // second stack argument
-    stack.Push(trampoline); // first stack argument
-
-    stack.Push(nullptr); // fake return address
-    #else
-    stack.Push(trampoline);
-    stack.Push(trampoline);
-    stack.ReAlign();
-    /*
-     * fake return address
-     */
-    for (size_t i = 0; i < EXTRA_PUSH_ARGS; ++i) {
-        stack.Push(nullptr);
-    }
-    #endif
+    // 16-byte aligned record at SP upon entering ContextTrampoLine:
+    stack.Push(trampoline); // [SP + sizeof(void*)]: duplicate checked in debug builds
+    stack.Push(trampoline); // [SP]: ITrampoLine* dispatch pointer
 
     __mysetjmp(Buf_);
 

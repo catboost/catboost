@@ -65,6 +65,23 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("http://ya.ru:81", GetSchemeHostAndPort("http://ya.ru:81", /*trimHttp*/false));
         UNIT_ASSERT_VALUES_EQUAL("http://ya.ru:81", GetSchemeHostAndPort("http://ya.ru:81", /*trimHttp*/false, /*trimDefaultPort*/false));
 
+        // trimDefaultPort=true with IPv4
+        UNIT_ASSERT_VALUES_EQUAL("192.168.1.1", GetSchemeHostAndPort("http://192.168.1.1:80/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("https://192.168.1.1", GetSchemeHostAndPort("https://192.168.1.1:443/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("192.168.1.1:8080", GetSchemeHostAndPort("http://192.168.1.1:8080/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("https://192.168.1.1:8443", GetSchemeHostAndPort("https://192.168.1.1:8443/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("http://192.168.1.1", GetSchemeHostAndPort("http://192.168.1.1:80/bebe", /*trimHttp*/false));
+        UNIT_ASSERT_VALUES_EQUAL("http://192.168.1.1:8080", GetSchemeHostAndPort("http://192.168.1.1:8080/bebe", /*trimHttp*/false));
+        // trimDefaultPort=true with IPv6 (port is after the closing bracket)
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetSchemeHostAndPort("http://[::1]:80/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("https://[::1]", GetSchemeHostAndPort("https://[::1]:443/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("[::1]:8080", GetSchemeHostAndPort("http://[::1]:8080/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("https://[::1]:8443", GetSchemeHostAndPort("https://[::1]:8443/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("http://[::1]", GetSchemeHostAndPort("http://[::1]:80/bebe", /*trimHttp*/false));
+        UNIT_ASSERT_VALUES_EQUAL("http://[::1]:8080", GetSchemeHostAndPort("http://[::1]:8080/bebe", /*trimHttp*/false));
+        UNIT_ASSERT_VALUES_EQUAL("[2001:db8::1]", GetSchemeHostAndPort("http://[2001:db8::1]:80/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("https://[2001:db8::1]", GetSchemeHostAndPort("https://[2001:db8::1]:443/bebe"));
+
         // irl RFC3986 sometimes gets ignored
         UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetSchemeHostAndPort("pravda-kmv.ru?page=news&id=6973"));
         UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetSchemeHostAndPort("pravda-kmv.ru?page=news&id=6973", /*trimHttp*/false));
@@ -364,5 +381,106 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://bebe", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("https://bebe/", "bebe"));
+    }
+
+    Y_UNIT_TEST(TestGetHostIp) {
+        // IPv4
+        UNIT_ASSERT_VALUES_EQUAL("192.168.1.1", GetHost("192.168.1.1/path"));
+        UNIT_ASSERT_VALUES_EQUAL("192.168.1.1", GetHost("192.168.1.1:8080/path"));
+        UNIT_ASSERT_VALUES_EQUAL("192.168.1.1", GetHost("http://192.168.1.1/path"));
+        UNIT_ASSERT_VALUES_EQUAL("192.168.1.1", GetHost("https://192.168.1.1:8080/path"));
+        UNIT_ASSERT_VALUES_EQUAL("192.168.1.1", GetHost("192.168.1.1"));
+        // IPv6 (RFC 3986: address is enclosed in brackets, port is separated by colon after brackets)
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetHost("[::1]/path"));
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetHost("[::1]:8080/path"));
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetHost("http://[::1]/path"));
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetHost("https://[::1]:8080/path"));
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetHost("[::1]"));
+        UNIT_ASSERT_VALUES_EQUAL("[2001:db8::1]", GetHost("http://[2001:db8::1]/path"));
+        UNIT_ASSERT_VALUES_EQUAL("[2001:db8::1]", GetHost("http://[2001:db8::1]:8080/path"));
+    }
+
+    Y_UNIT_TEST(TestGetSchemeHostIp) {
+        // IPv4
+        UNIT_ASSERT_VALUES_EQUAL("192.168.1.1", GetSchemeHost("http://192.168.1.1/path"));
+        UNIT_ASSERT_VALUES_EQUAL("http://192.168.1.1", GetSchemeHost("http://192.168.1.1/path", false));
+        UNIT_ASSERT_VALUES_EQUAL("https://192.168.1.1", GetSchemeHost("https://192.168.1.1/path"));
+        UNIT_ASSERT_VALUES_EQUAL("https://192.168.1.1", GetSchemeHost("https://192.168.1.1:8080/path"));
+        UNIT_ASSERT_VALUES_EQUAL("192.168.1.1", GetSchemeHost("192.168.1.1/path"));
+        // IPv6
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetSchemeHost("http://[::1]/path"));
+        UNIT_ASSERT_VALUES_EQUAL("http://[::1]", GetSchemeHost("http://[::1]/path", false));
+        UNIT_ASSERT_VALUES_EQUAL("https://[::1]", GetSchemeHost("https://[::1]/path"));
+        UNIT_ASSERT_VALUES_EQUAL("https://[::1]", GetSchemeHost("https://[::1]:8080/path"));
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetSchemeHost("[::1]/path"));
+        UNIT_ASSERT_VALUES_EQUAL("https://[2001:db8::1]", GetSchemeHost("https://[2001:db8::1]/path"));
+    }
+
+    Y_UNIT_TEST(TestGetPathAndQueryIp) {
+        // IPv4
+        UNIT_ASSERT_VALUES_EQUAL("/path", GetPathAndQuery("192.168.1.1/path"));
+        UNIT_ASSERT_VALUES_EQUAL("/path?query", GetPathAndQuery("http://192.168.1.1/path?query"));
+        UNIT_ASSERT_VALUES_EQUAL("/", GetPathAndQuery("192.168.1.1"));
+        UNIT_ASSERT_VALUES_EQUAL("/", GetPathAndQuery("http://192.168.1.1"));
+        UNIT_ASSERT_VALUES_EQUAL("/", GetPathAndQuery("192.168.1.1:8080"));
+        // IPv6
+        UNIT_ASSERT_VALUES_EQUAL("/path", GetPathAndQuery("[::1]/path"));
+        UNIT_ASSERT_VALUES_EQUAL("/path?query", GetPathAndQuery("http://[::1]/path?query"));
+        UNIT_ASSERT_VALUES_EQUAL("/", GetPathAndQuery("[::1]"));
+        UNIT_ASSERT_VALUES_EQUAL("/", GetPathAndQuery("http://[::1]"));
+        UNIT_ASSERT_VALUES_EQUAL("/", GetPathAndQuery("[::1]:8080"));
+        UNIT_ASSERT_VALUES_EQUAL("/path", GetPathAndQuery("http://[2001:db8::1]/path"));
+    }
+
+    Y_UNIT_TEST(TestGetDomainIp) {
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetDomain("[::1]"));
+        UNIT_ASSERT_VALUES_EQUAL("[2001:db8::1]", GetDomain("[2001:db8::1]"));
+    }
+
+    Y_UNIT_TEST(TestGetParentDomainIp) {
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetParentDomain("[::1]", 1));
+        UNIT_ASSERT_VALUES_EQUAL("[::1]", GetParentDomain("[::1]", 2));
+        UNIT_ASSERT_VALUES_EQUAL("[2001:db8::1]", GetParentDomain("[2001:db8::1]", 1));
+        UNIT_ASSERT_VALUES_EQUAL("[2001:db8::1]", GetParentDomain("[2001:db8::1]", 2));
+    }
+
+    Y_UNIT_TEST(TestSeparateUrlFromQueryAndFragmentIp) {
+        // IPv4
+        {
+            TStringBuf sanitizedUrl, query, fragment;
+            SeparateUrlFromQueryAndFragment("http://192.168.1.1/path?param=val#frag", sanitizedUrl, query, fragment);
+            UNIT_ASSERT_STRINGS_EQUAL(sanitizedUrl, "http://192.168.1.1/path");
+            UNIT_ASSERT_STRINGS_EQUAL(query, "param=val");
+            UNIT_ASSERT_STRINGS_EQUAL(fragment, "frag");
+        }
+        {
+            TStringBuf sanitizedUrl, query, fragment;
+            SeparateUrlFromQueryAndFragment("192.168.1.1/path?param=val", sanitizedUrl, query, fragment);
+            UNIT_ASSERT_STRINGS_EQUAL(sanitizedUrl, "192.168.1.1/path");
+            UNIT_ASSERT_STRINGS_EQUAL(query, "param=val");
+            UNIT_ASSERT_STRINGS_EQUAL(fragment, "");
+        }
+        // IPv6
+        {
+            TStringBuf sanitizedUrl, query, fragment;
+            SeparateUrlFromQueryAndFragment("http://[::1]/path?param=val#frag", sanitizedUrl, query, fragment);
+            UNIT_ASSERT_STRINGS_EQUAL(sanitizedUrl, "http://[::1]/path");
+            UNIT_ASSERT_STRINGS_EQUAL(query, "param=val");
+            UNIT_ASSERT_STRINGS_EQUAL(fragment, "frag");
+        }
+        {
+            TStringBuf sanitizedUrl, query, fragment;
+            SeparateUrlFromQueryAndFragment("[::1]/path?param=val", sanitizedUrl, query, fragment);
+            UNIT_ASSERT_STRINGS_EQUAL(sanitizedUrl, "[::1]/path");
+            UNIT_ASSERT_STRINGS_EQUAL(query, "param=val");
+            UNIT_ASSERT_STRINGS_EQUAL(fragment, "");
+        }
+        {
+            TStringBuf sanitizedUrl, query, fragment;
+            SeparateUrlFromQueryAndFragment("http://[2001:db8::1]/path#frag", sanitizedUrl, query, fragment);
+            UNIT_ASSERT_STRINGS_EQUAL(sanitizedUrl, "http://[2001:db8::1]/path");
+            UNIT_ASSERT_STRINGS_EQUAL(query, "");
+            UNIT_ASSERT_STRINGS_EQUAL(fragment, "frag");
+        }
     }
 }

@@ -52,6 +52,7 @@ namespace NLastGetopt {
     private:
         typedef THashSet<const TOpt*> TdOptSet;
         TdOptSet OptsSeen_; //the set of options that have been met during parsing
+        bool FreeArgsSeen_ = false;
 
         TList<const TOpt*> OptsDefault_;
 

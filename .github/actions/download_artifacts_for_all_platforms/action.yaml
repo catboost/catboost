@@ -34,7 +34,7 @@ runs:
         New-Item -Path ${{ inputs.dst_path_prefix }}_windows-x86_64 -ItemType Directory
 
     - name: Download ${{ inputs.name }} for Darwin
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: catboost-${{ inputs.name }}-darwin-universal2-${{ inputs.artifacts_version }}
         path: ${{ inputs.dst_path_prefix }}_darwin-universal2/
@@ -43,7 +43,7 @@ runs:
         run-id: ${{ inputs.artifacts_run_id }}
 
     - name: Download ${{ inputs.name }} for Linux aarch64
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: catboost-${{ inputs.name }}-linux-aarch64-${{ inputs.artifacts_version }}
         path: ${{ inputs.dst_path_prefix }}_linux-aarch64/
@@ -52,7 +52,7 @@ runs:
         run-id: ${{ inputs.artifacts_run_id }}
 
     - name: Download ${{ inputs.name }} for Linux x86_64
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: catboost-${{ inputs.name }}-linux-x86_64-${{ inputs.artifacts_version }}
         path: ${{ inputs.dst_path_prefix }}_linux-x86_64/
@@ -61,7 +61,7 @@ runs:
         run-id: ${{ inputs.artifacts_run_id }}
 
     - name: Download ${{ inputs.name }} for Windows x86_64
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: catboost-${{ inputs.name }}-windows-x86_64-${{ inputs.artifacts_version }}
         path: ${{ inputs.dst_path_prefix }}_windows-x86_64/

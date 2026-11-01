@@ -48,6 +48,7 @@ template<class E> const E* end(initializer_list<E> il) noexcept; // constexpr in
 #if defined(_LIBCPP_COMPILER_MSVC) && !defined(__clang__)
 
 // save these macros because they can be redefined inside MSVC standard headers
+#pragma push_macro("__cpp_lib_atomic_ref")
 #pragma push_macro("__cpp_lib_concepts")
 #pragma push_macro("__cpp_lib_format")
 #pragma push_macro("__cpp_lib_memory_resource")
@@ -56,6 +57,7 @@ template<class E> const E* end(initializer_list<E> il) noexcept; // constexpr in
 
 #include Y_MSVC_INCLUDE_NEXT(yvals.h)
 
+#pragma pop_macro("__cpp_lib_atomic_ref")
 #pragma pop_macro("__cpp_lib_concepts")
 #pragma pop_macro("__cpp_lib_format")
 #pragma pop_macro("__cpp_lib_memory_resource")

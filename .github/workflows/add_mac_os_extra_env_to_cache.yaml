@@ -9,6 +9,8 @@ on:
 
 jobs:
   add_macos_arm64_extra_env_to_cache:
+    # disable as it is not needed when CI in run on Arm64 hosts but don't delete it outright just yet
+    if: false
     name: Add MacOS Arm64 extra env to cache
     runs-on: macos-14
     steps:
@@ -43,7 +45,7 @@ jobs:
           cd $HOME/.pyenv/versions/ && zip -r -y ${{ github.workspace }}/python_versions_macos_arm64.zip *
 
       - name: Save to cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           enableCrossOsArchive: true # to be used on macOS x86_64 as well
           path: python_versions_macos_arm64.zip
@@ -55,15 +57,16 @@ jobs:
     steps:
       - name: Install pyenv and python versions and pack to zip file
         run: |
-          brew install openssl@3.0 readline sqlite3 xz zlib tcl-tk@8 libb2
+          brew install openssl@3.5 readline sqlite3 xz zlib tcl-tk@8 libb2
 
-          # pyenv builds cannot handle both openssl@1.1 and openssl@3 installed at the same time
+          # pyenv builds cannot handle both openssl@1.1 and openssl@3.5 installed at the same time
           brew unlink openssl@1.1
           mv /usr/local/opt/openssl@1.1 /usr/local/opt/openssl@1.1.BAK
+          brew link openssl@3.5
 
           brew install pyenv
 
-          export OPENSSL_PATH=$(brew --prefix openssl@3.0)
+          export OPENSSL_PATH=$(brew --prefix openssl@3.5)
           export CFLAGS="-I$OPENSSL_PATH/include -I$(brew --prefix bzip2)/include -I$(brew --prefix readline)/include -I$(xcrun --show-sdk-path)/usr/include"
           export LDFLAGS="-L$OPENSSL_PATH/lib -L$(brew --prefix readline)/lib -L$(brew --prefix zlib)/lib -L$(brew --prefix bzip2)/lib"
 
@@ -96,7 +99,7 @@ jobs:
           cd $HOME/.pyenv/versions/ && zip -r -y ${{ github.workspace }}/python_versions_macos_x86_64.zip *
 
       - name: Save to cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           enableCrossOsArchive: true # to be used on macOS arm64 as well
           path: python_versions_macos_x86_64.zip

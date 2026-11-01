@@ -63,7 +63,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
       - [`lld` linker](https://lld.llvm.org/), version 7+
 
-      For Linux target the default CMake toolchain assumes that `clang`, `clang++` and `ld.lld` are available from the command line and will use them to compile and link {{ product }} components. If the default versions of `clang`, `clang++`, `ld.lld` are not what is intended to be used for building then modify the toolchain file `$CATBOOST_SRC_ROOT/build/toolchains/clang.toolchain` - replace all occurences of `clang`, `clang++` and `ld.lld` with `clang-$LLVM_VERSION`, `clang++-$LLVM_VERSION` and `ld.lld-$LLVM_VERSION` respectively where `$LLVM_VERSION` is the version of `clang` or `lld` you want to use like, for example, `19` or `20` (must be already installed).
+      For Linux target the default CMake toolchain assumes that `clang`, `clang++` and `ld.lld` are available from the command line and will use them to compile and link {{ product }} components. If the default versions of `clang`, `clang++`, `ld.lld` are not what is intended to be used for building then modify the toolchain file `$CATBOOST_SRC_ROOT/build/toolchains/clang.toolchain` - replace all occurrences of `clang`, `clang++` and `ld.lld` with `clang-$LLVM_VERSION`, `clang++-$LLVM_VERSION` and `ld.lld-$LLVM_VERSION` respectively where `$LLVM_VERSION` is the version of `clang` or `lld` you want to use like, for example, `19` or `20` (must be already installed).
 
       For compilation with CUDA support the default CMake toolchain assumes that `clang-14` is available from the command line.
 
@@ -142,9 +142,11 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
 ### [Conan](https://conan.io/) {#conan}
 
-  Version 2.4.1+.
+  Version 2.9.2+.
 
   {% cut "Previous requirements" %}
+
+  For revisions before [a97bcec](https://github.com/catboost/catboost/commit/a97bcec7978c66e957a4232576a8963a1aa09b86) the minimal supported version is 2.4.1
 
   For revisions before [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e) versions 1.57.0 - 1.62.0 are supported and version 1.62.0 is required if you use python 3.12+.
 

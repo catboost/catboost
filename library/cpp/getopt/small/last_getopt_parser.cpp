@@ -2,7 +2,10 @@
 
 #include <library/cpp/colorizer/colors.h>
 
+#include <util/generic/vector.h>
+
 #include <util/string/escape.h>
+#include <util/string/join.h>
 
 namespace NLastGetopt {
     void TOptsParser::Init(const TOpts* opts, int argc, const char* argv[]) {
@@ -45,6 +48,7 @@ namespace NLastGetopt {
         DoSwap(CurrentValue_, that.CurrentValue_);
         DoSwap(GotMinusMinus_, that.GotMinusMinus_);
         DoSwap(OptsSeen_, that.OptsSeen_);
+        DoSwap(FreeArgsSeen_, that.FreeArgsSeen_);
     }
 
     bool TOptsParser::Commit(const TOpt* currentOpt, const TStringBuf& currentValue, size_t pos, size_t sop) {
@@ -52,8 +56,11 @@ namespace NLastGetopt {
         Sop_ = sop;
         CurrentOpt_ = currentOpt;
         CurrentValue_ = currentValue;
-        if (nullptr != currentOpt)
+        if (nullptr != currentOpt) {
             OptsSeen_.insert(currentOpt);
+        } else {
+            FreeArgsSeen_ = true;
+        }
         return true;
     }
 
@@ -65,11 +72,36 @@ namespace NLastGetopt {
 
         Y_ASSERT(!Stopped_);
 
-        if (Opts_->FreeArgsMin_ == Opts_->FreeArgsMax_ && Argc_ - Pos_ != Opts_->FreeArgsMin_)
+        const size_t freeArgCount = Argc_ - Pos_;
+        // PERMUTE and REQUIRE_ORDER leave free arguments in argv;
+        // RETURN_IN_ORDER has already consumed them, so FreeArgsSeen_ records their presence.
+        if (freeArgCount > 0 || FreeArgsSeen_) {
+            for (const TOpt* opt : Opts_->ExclusiveWithFreeArgs_) {
+                if (Seen(opt)) {
+                    throw TUsageException()
+                        << "option " << opt->ToShortString()
+                        << " can't appear together with free arguments";
+                }
+            }
+        }
+
+        if (Opts_->ShowFreeArgTitlesInErrors_ && freeArgCount < Opts_->FreeArgsMin_) {
+            TVector<TStringBuf> missingArguments;
+            for (size_t index = freeArgCount; index < Opts_->FreeArgsMin_; ++index) {
+                missingArguments.push_back(Opts_->GetFreeArgTitle(index));
+            }
+            throw TUsageException()
+                << "missing required positional argument"
+                << (missingArguments.size() == 1 ? "" : "s")
+                << ": "
+                << JoinSeq(" ", missingArguments);
+        }
+
+        if (Opts_->FreeArgsMin_ == Opts_->FreeArgsMax_ && freeArgCount != Opts_->FreeArgsMin_)
             throw TUsageException() << "required exactly " << Opts_->FreeArgsMin_ << " free args";
-        else if (Argc_ - Pos_ < Opts_->FreeArgsMin_)
+        else if (freeArgCount < Opts_->FreeArgsMin_)
             throw TUsageException() << "required at least " << Opts_->FreeArgsMin_ << " free args";
-        else if (Argc_ - Pos_ > Opts_->FreeArgsMax_)
+        else if (freeArgCount > Opts_->FreeArgsMax_)
             throw TUsageException() << "required at most " << Opts_->FreeArgsMax_ << " free args";
 
         return false;

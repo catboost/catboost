@@ -1864,6 +1864,7 @@ typedef internal::IgnoredValue Unused;
 
 // Deprecated single-argument DoAll.
 template <typename Action>
+GTEST_INTERNAL_DEPRECATE_AND_INLINE("Avoid using DoAll() for single actions")
 typename std::decay<Action>::type DoAll(Action&& action) {
   return std::forward<Action>(action);
 }
@@ -2035,6 +2036,9 @@ PolymorphicAction<internal::SetErrnoAndReturnAction<T>> SetErrnoAndReturn(
 // Legacy function.
 // This function exists for backwards compatibility.
 template <typename FunctionImpl>
+GTEST_INTERNAL_DEPRECATE_AND_INLINE(
+    "Actions can now be implicitly constructed from callables. No need to "
+    "create wrapper objects using Invoke().")
 typename std::decay<FunctionImpl>::type Invoke(FunctionImpl&& function_impl) {
   return std::forward<FunctionImpl>(function_impl);
 }
@@ -2049,6 +2053,9 @@ internal::InvokeMethodAction<Class, MethodPtr> Invoke(Class* obj_ptr,
 
 // Creates an action that invokes 'function_impl' with no argument.
 template <typename FunctionImpl>
+GTEST_INTERNAL_DEPRECATE_AND_INLINE(
+    "Actions can now be implicitly constructed from zero-argument callables. "
+    "No need to create wrapper objects using InvokeWithoutArgs().")
 std::decay_t<FunctionImpl> InvokeWithoutArgs(FunctionImpl&& function_impl) {
   return std::forward<FunctionImpl>(function_impl);
 }

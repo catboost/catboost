@@ -31,10 +31,11 @@ namespace NPrivate {
         };
 
     public:
-        TThreadSafeCache(const ICallbacks& callbacks, size_t maxSize = Max<size_t>())
+        TThreadSafeCache(const ICallbacks& callbacks, size_t maxSize = Max<size_t>(), size_t initialCapacity = 0)
             : Callbacks(callbacks)
             , Cache(maxSize)
         {
+            Cache.Reserve(initialCapacity);
         }
 
         bool Insert(const Key& key, const TPtr& value) {

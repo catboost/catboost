@@ -9,6 +9,8 @@
 #include <util/system/yassert.h>
 #include <util/generic/scope.h>
 
+#include <memory>
+
 THolder<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority, bool threaded) {
     TLogBackendCreatorUninitialized creator;
     creator.InitCustom(fname, priority, threaded);
@@ -90,7 +92,7 @@ public:
     }
 
     inline void CloseLog() noexcept {
-        Backend_.Destroy();
+        Backend_.reset();
 
         Y_ASSERT(!IsOpen());
     }
@@ -134,6 +136,11 @@ TLog::TLog(const TString& fname, ELogPriority priority)
 
 TLog::TLog(THolder<TLogBackend> backend)
     : Impl_(MakeIntrusive<TImpl>(std::move(backend)))
+{
+}
+
+TLog::TLog(std::unique_ptr<TLogBackend> backend)
+    : TLog(THolder<TLogBackend>(backend.release()))
 {
 }
 
@@ -213,6 +220,10 @@ bool TLog::OpenLog(const char* path, ELogPriority lp) {
 
 void TLog::ResetBackend(THolder<TLogBackend> backend) noexcept {
     Impl_->ResetBackend(std::move(backend));
+}
+
+void TLog::ResetBackend(std::unique_ptr<TLogBackend> backend) noexcept {
+    ResetBackend(THolder<TLogBackend>(backend.release()));
 }
 
 bool TLog::IsNullLog() const noexcept {

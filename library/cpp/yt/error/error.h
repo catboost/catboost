@@ -2,6 +2,8 @@
 
 #include <library/cpp/yt/error/error_code.h>
 
+#include <library/cpp/yt/system/spin_lock.h>
+
 #include <library/cpp/yt/threading/public.h>
 
 #include <library/cpp/yt/error/mergeable_dictionary.h>
@@ -11,6 +13,7 @@
 
 #include <library/cpp/yt/logging/tag.h>
 
+#include <library/cpp/yt/misc/lazy.h>
 #include <library/cpp/yt/misc/property.h>
 
 #include <util/system/compiler.h>
@@ -129,7 +132,7 @@ public:
     bool HasOriginAttributes() const;
     TProcessId GetPid() const;
     TStringBuf GetThreadName() const;
-    NThreading::TThreadId GetTid() const;
+    TThreadId GetTid() const;
 
     bool HasDatetime() const;
     TInstant GetDatetime() const;
@@ -242,7 +245,7 @@ public:
     [[nodiscard]] TError&& With(TRange&& innerErrors) &&;
 
     //! Forwards to #With only when #condition holds.
-    //! NB: The operands are evaluated either way.
+    //! NB: The operands are evaluated either way unless wrapped in |YT_LAZY|.
     template <class... TArgs>
     [[nodiscard]] TError WithIf(bool condition, TArgs&&... args) const &;
     template <class... TArgs>
@@ -357,12 +360,16 @@ public:
 
 public:
     TErrorException() = default;
-    TErrorException(const TErrorException& other) = default;
-    TErrorException(TErrorException&& other) = default;
+    TErrorException(const TErrorException& other);
+    TErrorException(TErrorException&& other) noexcept;
+
+    TErrorException& operator=(const TErrorException& other);
+    TErrorException& operator=(TErrorException&& other) noexcept;
 
     const char* what() const noexcept override;
 
 private:
+    YT_DECLARE_SPIN_LOCK(mutable TSpinLock, CachedWhatLock_);
     mutable std::string CachedWhat_;
 };
 

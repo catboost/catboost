@@ -116,10 +116,70 @@ i32 DotProductVnni(const i8* lhs, const i8* rhs, size_t length) noexcept {
     return HsumI32(dotProduct);
 }
 
+namespace {
+    template <size_t length>
+    Y_FORCE_INLINE i32 DotProductFixedVnni(const i8* lhs, const i8* rhs) noexcept {
+        static_assert(length % 64 == 0 && length <= 4096);
+
+        const __m512i signBit = _mm512_set1_epi8(-128);
+        const __m512i ones = _mm512_set1_epi8(1);
+
+        // Same (lhs + 128) * rhs - 128 * sum(rhs) trick as in DotProductVnni, but for a fixed length
+        // the correction is applied once at the end: each i32 lane accumulates at most
+        // length / 16 products of |(lhs + 128) * rhs| <= 255 * 128, so the biased sum can not overflow.
+        // Two independent chains per accumulator hide VPDPBUSD latency.
+        // The loop with constant bound is fully unrolled by the compiler.
+        __m512i biased[2] = {_mm512_setzero_si512(), _mm512_setzero_si512()};
+        __m512i rhsSum[2] = {_mm512_setzero_si512(), _mm512_setzero_si512()};
+        for (size_t i = 0; i != length / 64; ++i) {
+            const __m512i r = Load512i(rhs + i * 64);
+            const __m512i unsignedL = _mm512_xor_si512(Load512i(lhs + i * 64), signBit);
+            biased[i % 2] = _mm512_dpbusd_epi32(biased[i % 2], unsignedL, r);
+            rhsSum[i % 2] = _mm512_dpbusd_epi32(rhsSum[i % 2], ones, r);
+        }
+
+        return HsumI32(CorrectSignedLhsDotProduct(
+            _mm512_add_epi32(biased[0], biased[1]),
+            _mm512_add_epi32(rhsSum[0], rhsSum[1])));
+    }
+}
+
+i32 DotProduct64Vnni(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductFixedVnni<64>(lhs, rhs);
+}
+
+i32 DotProduct128Vnni(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductFixedVnni<128>(lhs, rhs);
+}
+
+i32 DotProduct256Vnni(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductFixedVnni<256>(lhs, rhs);
+}
+
+i32 DotProduct512Vnni(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductFixedVnni<512>(lhs, rhs);
+}
+
 #else
 
 i32 DotProductVnni(const i8* lhs, const i8* rhs, size_t length) noexcept {
     return DotProductAvx2(lhs, rhs, length);
+}
+
+i32 DotProduct64Vnni(const i8* lhs, const i8* rhs) noexcept {
+    return DotProduct64Avx2(lhs, rhs);
+}
+
+i32 DotProduct128Vnni(const i8* lhs, const i8* rhs) noexcept {
+    return DotProduct128Avx2(lhs, rhs);
+}
+
+i32 DotProduct256Vnni(const i8* lhs, const i8* rhs) noexcept {
+    return DotProduct256Avx2(lhs, rhs);
+}
+
+i32 DotProduct512Vnni(const i8* lhs, const i8* rhs) noexcept {
+    return DotProduct512Avx2(lhs, rhs);
 }
 
 #endif

@@ -40,6 +40,8 @@
 
 namespace Pire {
 
+namespace Impl { class ParserValues; }
+
 namespace Consts {
 enum { Inf = -1 };
 

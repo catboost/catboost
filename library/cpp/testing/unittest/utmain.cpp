@@ -34,6 +34,7 @@
 #include <util/system/shellcommand.h>
 
 #include <filesystem>
+#include <memory>
 
 #if defined(_win_)
     #include <fcntl.h>
@@ -125,11 +126,11 @@ public:
     inline TTraceWriterProcessor(const char* traceFilePath, EOpenMode mode)
         : PrevTime(TInstant::Now())
     {
-        TraceFile = new TUnbufferedFileOutput(TFile(traceFilePath, mode | WrOnly | Seq));
+        TraceFile.reset(new TUnbufferedFileOutput(TFile(traceFilePath, mode | WrOnly | Seq)));
     }
 
 private:
-    TAutoPtr<TUnbufferedFileOutput> TraceFile;
+    std::unique_ptr<TUnbufferedFileOutput> TraceFile;
     TString TraceFilePath;
     TInstant PrevTime;
     TVector<TString> ErrorMessages;
@@ -144,7 +145,7 @@ private:
 
         json.EndObject();
 
-        json.FlushTo(TraceFile.Get());
+        json.FlushTo(TraceFile.get());
         *TraceFile << "\n";
     }
 

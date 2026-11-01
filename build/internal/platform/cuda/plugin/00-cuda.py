@@ -94,7 +94,9 @@ class CUDAManager:
 
     def _arch_flag(self, arch):
         _, ver = arch.split('_', 1)
-        return 'arch=compute_{},code={}'.format(ver, arch)
+        # Vendor libraries may contain compatible baseline cubins, even for an a target.
+        code = '[{},{}]'.format(arch[:-1], arch) if arch.endswith('a') else arch
+        return 'arch=compute_{},code={}'.format(ver, code)
 
     def prune_lib(self, inp_fname, out_fname):
         if self.prune_args:
@@ -199,6 +201,17 @@ def process_cuda_libraries_by_nvprune(cmd, cuda_manager, build_root):
 
 
 def add_custom_linker_script(cmd, cuda_manager, build_root):
+    # mold does not support `SECTIONS`/`INSERT AFTER` linker script commands
+    # (it only parses trivial scripts: INPUT/OUTPUT/VERSION/symbol assignments),
+    # so passing the script below makes mold fail with
+    # `fatal: ... unknown linker script token`.
+    # The script is just an optimization (it places .nv_fatbin right after .bss
+    # to decrease chances of relocation overflows from .text to .bss),
+    # so it is safe to skip it when linking with mold: sections get the
+    # linker's default placement instead.
+    if any('mold' in flag for flag in cmd if flag.startswith('-fuse-ld=')):
+        return list(cmd)
+
     to_dirpath = next(tmpdir_generator(build_root, 'cuda_linker_script'))
     script_path = os.path.join(to_dirpath, 'script.ld')
     with open(script_path, 'w') as f:

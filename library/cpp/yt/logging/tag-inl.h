@@ -8,6 +8,7 @@
 
 #include <library/cpp/yt/string/string_builder.h>
 
+#include <exception>
 #include <utility>
 
 namespace NYT::NLogging {
@@ -129,48 +130,73 @@ void TLoggingTagList::DoAdd(TLoggingTagKey key, const TValue& value, TStringBuf 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline TLoggingTagListBuilder::TLoggingTagListBuilder(TLoggingTagList* tags)
+template <class TFunctor>
+TLoggingTagListBuilderGuard<TFunctor>::TLoggingTagListBuilderGuard(TLoggingTagList* tags, TFunctor functor)
     : Tags_(tags)
+    , Functor_(std::move(functor))
+    , UncaughtExceptionCount_(std::uncaught_exceptions())
 { }
 
-template <class TValue>
-TLoggingTagListBuilder& TLoggingTagListBuilder::With(TLoggingTagKey key, const TValue& value)
+template <class TFunctor>
+TLoggingTagListBuilderGuard<TFunctor>::~TLoggingTagListBuilderGuard()
 {
-    Tags_->Add(key, value);
+    if (std::uncaught_exceptions() == UncaughtExceptionCount_) {
+        Functor_();
+    }
+}
+
+template <class TFunctor>
+template <class TValue>
+auto TLoggingTagListBuilderGuard<TFunctor>::With(TLoggingTagKey key, const TValue& value)
+    -> TLoggingTagListBuilderGuard&
+{
+    if (Tags_) {
+        Tags_->Add(key, value);
+    }
     return *this;
 }
 
+template <class TFunctor>
 template <class TValue>
-TLoggingTagListBuilder& TLoggingTagListBuilder::WithIf(bool condition, TLoggingTagKey key, const TValue& value)
+auto TLoggingTagListBuilderGuard<TFunctor>::WithIf(bool condition, TLoggingTagKey key, const TValue& value)
+    -> TLoggingTagListBuilderGuard&
 {
-    return condition ? With(key, value) : *this;
+    return Tags_ && condition ? With(key, Force(value)) : *this;
 }
 
+template <class TFunctor>
 template <class... TArgs>
-TLoggingTagListBuilder& TLoggingTagListBuilder::WithFormat(
+auto TLoggingTagListBuilderGuard<TFunctor>::WithFormat(
     TLoggingTagKey key,
     TFormatString<TArgs...> format,
-    TArgs&&... args)
+    TArgs&&... args) -> TLoggingTagListBuilderGuard&
 {
-    Tags_->AddFormat(key, format, std::forward<TArgs>(args)...);
+    if (Tags_) {
+        Tags_->AddFormat(key, format, std::forward<TArgs>(args)...);
+    }
     return *this;
 }
 
+template <class TFunctor>
 template <class... TArgs>
-TLoggingTagListBuilder& TLoggingTagListBuilder::WithFormatIf(
+auto TLoggingTagListBuilderGuard<TFunctor>::WithFormatIf(
     bool condition,
     TLoggingTagKey key,
-    TFormatString<TArgs...> format,
-    TArgs&&... args)
+    TFormatString<TForced<TArgs>...> format,
+    TArgs&&... args) -> TLoggingTagListBuilderGuard&
 {
-    return condition
-        ? WithFormat(key, format, std::forward<TArgs>(args)...)
+    return Tags_ && condition
+        ? WithFormat(key, format, Force(std::forward<TArgs>(args))...)
         : *this;
 }
 
-inline TLoggingTagListBuilder& TLoggingTagListBuilder::With(const TLoggingTagList& tags)
+template <class TFunctor>
+auto TLoggingTagListBuilderGuard<TFunctor>::With(const TLoggingTagList& tags)
+    -> TLoggingTagListBuilderGuard&
 {
-    Tags_->Add(tags);
+    if (Tags_) {
+        Tags_->Add(tags);
+    }
     return *this;
 }
 

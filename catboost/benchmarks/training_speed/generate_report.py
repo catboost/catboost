@@ -244,7 +244,7 @@ def main():
         while len(stats.keys()) == 1:
             stats = stats.values()[0]
 
-        with open(output, 'w') as f:
+        with open(output, 'w', encoding='utf-8') as f:
             json.dump(stats, f)
 
         return

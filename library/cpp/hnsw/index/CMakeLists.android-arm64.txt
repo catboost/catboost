@@ -12,6 +12,9 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+add_subdirectory(core)
+add_subdirectory(layout)
+
 add_library(cpp-hnsw-index)
 
 
@@ -19,6 +22,8 @@ target_link_libraries(cpp-hnsw-index PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-containers-dense_hash
+  hnsw-index-core
+  hnsw-index-layout
   library-cpp-dot_product
   cpp-hnsw-helpers
   library-cpp-l1_distance

@@ -477,22 +477,19 @@ constexpr T TEnumTraits<T, true>::FromString(TStringBuf literal)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename E>
-    requires TEnumTraits<E>::IsBitEnum
+template <CBitEnum E>
 constexpr bool Any(E value) noexcept
 {
     return ToUnderlying(value) != 0;
 }
 
-template <typename E>
-    requires TEnumTraits<E>::IsBitEnum
+template <CBitEnum E>
 constexpr bool None(E value) noexcept
 {
     return ToUnderlying(value) == 0;
 }
 
-template <typename E>
-    requires TEnumTraits<E>::IsBitEnum
+template <CBitEnum E>
 constexpr int PopCount(E value)
 {
     return std::popcount(static_cast<std::underlying_type_t<E>>(value));

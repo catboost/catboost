@@ -291,6 +291,30 @@ TString Base64DecodeUneven(const TStringBuf s) {
     return ret;
 }
 
+size_t Base64StrictDecodeUneven(char* dst, const TStringBuf s) {
+    const size_t tailSize = s.length() % 4;
+    if (tailSize == 0) {
+        return Base64StrictDecode(dst, s.begin(), s.end());
+    }
+    Y_ENSURE(tailSize != 1,
+             "incorrect input length for base64 decode");  // Always invalid for 8-bit bytes
+
+    // Divide s into an even part and a tail and decode in two steps to avoid memory allocation.
+    char tail[4] = {'=', '=', '=', '='};
+    memcpy(tail, s.end() - tailSize, tailSize);
+    size_t decodedEven =
+        s.length() > 4 ? Base64StrictDecode(dst, s.begin(), s.end() - tailSize) : 0;
+    size_t decodedTail = Base64StrictDecode(dst + decodedEven, tail, tail + 4);
+    return decodedEven + decodedTail;
+}
+
+TString Base64StrictDecodeUneven(const TStringBuf s) {
+    TString out;
+    out.ReserveAndResize(Base64DecodeBufSize(s.size()));
+    out.resize(Base64StrictDecodeUneven(out.begin(), s));
+    return out;
+}
+
 char* Base64Encode(char* outstr, const unsigned char* instr, size_t len) {
     static const TImpl IMPL = GetImpl();
     if (Y_LIKELY(len < 8)) {

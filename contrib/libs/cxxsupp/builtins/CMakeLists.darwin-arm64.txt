@@ -36,6 +36,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/fp_mode.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/sme-abi-assert.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/sme-abi.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/sme-libc-opt-memcpy-memmove-sve.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvti2.c

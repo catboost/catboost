@@ -31,6 +31,12 @@ void TTaggedPayloadBuilder::WritePodAt(size_t offset, const T& value)
     ::memcpy(Begin_ + offset, &value, sizeof(value));
 }
 
+inline void TTaggedPayloadBuilder::Truncate(size_t length)
+{
+    YT_ASSERT(length <= GetLength());
+    Current_ = Begin_ + length;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 inline TStringBuilderBase* TTaggedPayloadWriter::BeginMessage() &
@@ -47,16 +53,6 @@ inline TTaggedPayloadWriter& TTaggedPayloadWriter::EndMessage() &
     MessageEnded_ = true;
     BackpatchLengthPrefix();
     return *this;
-}
-
-inline TStringBuilderBase* TTaggedPayloadWriter::BeginTag(TStringBuf key) &
-{
-    return DoBeginTag(key, /*wellKnown*/ false);
-}
-
-inline TStringBuilderBase* TTaggedPayloadWriter::BeginWellKnownTag(TStringBuf key) &
-{
-    return DoBeginTag(key, /*wellKnown*/ true);
 }
 
 inline TStringBuilderBase* TTaggedPayloadWriter::DoBeginTag(TStringBuf key, bool wellKnown)
@@ -77,11 +73,40 @@ inline TStringBuilderBase* TTaggedPayloadWriter::DoBeginTag(TStringBuf key, bool
     return &Builder_;
 }
 
-inline TTaggedPayloadWriter& TTaggedPayloadWriter::EndTag() &
+inline void TTaggedPayloadWriter::EndTag()
 {
     YT_ASSERT(InTag_);
     InTag_ = false;
     BackpatchLengthPrefix();
+}
+
+template <class TFormatter>
+TTaggedPayloadWriter& TTaggedPayloadWriter::AppendTag(TStringBuf key, const TFormatter& formatter) &
+{
+    return DoAppendTag(key, /*wellKnown*/ false, formatter);
+}
+
+template <class TFormatter>
+TTaggedPayloadWriter& TTaggedPayloadWriter::AppendWellKnownTag(TStringBuf key, const TFormatter& formatter) &
+{
+    return DoAppendTag(key, /*wellKnown*/ true, formatter);
+}
+
+template <class TFormatter>
+TTaggedPayloadWriter& TTaggedPayloadWriter::DoAppendTag(
+    TStringBuf key,
+    bool wellKnown,
+    const TFormatter& formatter)
+{
+    auto initialLength = Builder_.GetLength();
+    try {
+        formatter(DoBeginTag(key, wellKnown));
+        EndTag();
+    } catch (...) {
+        Builder_.Truncate(initialLength);
+        InTag_ = false;
+        throw;
+    }
     return *this;
 }
 

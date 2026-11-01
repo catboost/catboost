@@ -22,6 +22,7 @@
 
 
 #include <ctype.h>
+#include <limits>
 #include <stdexcept>
 
 #include <library/cpp/regex/pire/pire/stub/stl.h>
@@ -264,6 +265,8 @@ namespace {
                             Error("Wrong character range");
                     }
 
+                    if (begin <= end)
+                        Impl::ChargeOperations(size_t(end) - begin + 1);
                     for (ch = begin; ch <= end; ++ch) {
                         cs.first.insert(Term::String(1, ch));
                     }
@@ -296,13 +299,7 @@ namespace {
             if (ch == (Control | '{') || ch == (Control | '}'))
                 return Term::Character(ch & ~ControlMask);
             ch = GetChar();
-            int lower = 0, upper = 0;
-
-            if (!is_digit(ch))
-                Error("Wrong repetition count");
-
-            for (; is_digit(ch); ch = GetChar())
-                lower = lower * 10 + (ch - '0');
+            const int lower = ReadCount(ch);
             if (ch == '}')
                 return Term::Repetition(lower, lower);
             else if (ch != ',')
@@ -311,14 +308,28 @@ namespace {
             ch = GetChar();
             if (ch == '}')
                 return Term::Repetition(lower, Inf);
-            else if (!is_digit(ch))
-                Error("Wrong repetition count");
-            for (; is_digit(ch); ch = GetChar())
-                upper = upper * 10 + (ch - '0');
+            const int upper = ReadCount(ch);
 
             if (ch != '}')
                 Error("Wrong repetition count");
+            if (lower > upper)
+                Error("Repetition lower bound exceeds upper bound");
             return Term::Repetition(lower, upper);
+        }
+
+    private:
+        int ReadCount(wchar32& ch)
+        {
+            if (!is_digit(ch))
+                Error("Wrong repetition count");
+            int value = 0;
+            for (; is_digit(ch); ch = GetChar()) {
+                const int digit = ch - '0';
+                if (value > (std::numeric_limits<int>::max() - digit) / 10)
+                    Error("Repetition count exceeds INT_MAX");
+                value = value * 10 + digit;
+            }
+            return value;
         }
     };
 

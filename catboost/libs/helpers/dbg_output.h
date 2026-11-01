@@ -44,7 +44,7 @@ namespace NCB {
         };
 
         template <class T>
-        static inline IOutputStream& operator<<(IOutputStream& out, const TDbgDumpWithIndices<T>& d) {
+        inline IOutputStream& operator<<(IOutputStream& out, const TDbgDumpWithIndices<T>& d) {
             d.DumpTo(&out);
             return out;
         }
@@ -52,7 +52,7 @@ namespace NCB {
     }
 
     template <class T>
-    static inline NPrivate::TDbgDumpWithIndices<T> DbgDumpWithIndices(
+    inline NPrivate::TDbgDumpWithIndices<T> DbgDumpWithIndices(
         TConstArrayRef<T> v,
         bool onSeparateLines = false
     ) {
@@ -60,7 +60,7 @@ namespace NCB {
     }
 
     template <class T>
-    static inline NPrivate::TDbgDumpWithIndices<T> DbgDumpWithIndices(
+    inline NPrivate::TDbgDumpWithIndices<T> DbgDumpWithIndices(
         const TVector<T>& v,
         bool onSeparateLines = false
     ) {

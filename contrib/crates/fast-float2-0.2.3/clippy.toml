@@ -1,0 +1,20 @@
+avoid-breaking-exported-api = false
+disallowed-macros = [
+    # Can also use an inline table with a `path` key.
+    { path = "std::print", reason = "no IO allowed" },
+    { path = "std::println", reason = "no IO allowed" },
+    { path = "std::format", reason = "no string allocation allowed" },
+    { path = "std::debug", reason = "debugging macros should not be present in any release" },
+    # NOTE: unimplemented is fine because this can be for intentionally disabled methods
+    { path = "std::todo", reason = "should never have TODO macros in releases" },
+]
+disallowed-methods = [
+    { path = "std::io::stdout", reason = "no IO allowed" },
+    { path = "std::io::stdin", reason = "no IO allowed" },
+    { path = "std::io::stderr", reason = "no IO allowed" },
+]
+disallowed-types = [
+    { path = "std::io::File", reason = "no IO allowed" },
+    { path = "std::io::BufReader", reason = "need our own abstractions for reading/writing" },
+    { path = "std::io::BufWriter", reason = "need our own abstractions for reading/writing" },
+]

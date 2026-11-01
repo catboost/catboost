@@ -671,7 +671,9 @@ public:
             Collapse(s);
             UNIT_ASSERT(s == w);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.c_str() == w.c_str()); // Collapse() does not change the string at all
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.c_str() == w.c_str()); // Collapse() does not change the string at all
+            }
 #endif
         }
         s = ASCIIToWide("  123    456  ");
@@ -699,7 +701,9 @@ public:
             Collapse(s);
             UNIT_ASSERT(s == w);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.c_str() == w.c_str()); // Collapse() does not change the string at all
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.c_str() == w.c_str()); // Collapse() does not change the string at all
+            }
 #endif
         }
         s = ASCIIToWide("   ");
@@ -832,19 +836,25 @@ public:
         Strip(s);
         UNIT_ASSERT(s == w);
 #ifndef TSTRING_IS_STD_STRING
-        UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
+        if (TStringUseCow) {
+            UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
+        }
 #endif
         s = w;
         StripLeft(s);
         UNIT_ASSERT(s == w);
 #ifndef TSTRING_IS_STD_STRING
-        UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
+        if (TStringUseCow) {
+            UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
+        }
 #endif
         s = w;
         StripRight(s);
         UNIT_ASSERT(s == w);
 #ifndef TSTRING_IS_STD_STRING
-        UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
+        if (TStringUseCow) {
+            UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
+        }
 #endif
     }
 
@@ -1157,7 +1167,9 @@ public:
             UNIT_ASSERT(!ToLower(s));
             UNIT_ASSERT(s == lower);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
@@ -1178,7 +1190,9 @@ public:
             UNIT_ASSERT(!ToLower(s));
             UNIT_ASSERT(s == lower);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
@@ -1198,7 +1212,9 @@ public:
             UNIT_ASSERT(!ToLower(s, 100500));
             UNIT_ASSERT(s == lower);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(ToLowerRet(copy, 100500) == lower);
@@ -1212,7 +1228,9 @@ public:
             UNIT_ASSERT(!ToLower(s, 100500, 1111));
             UNIT_ASSERT(s == lower);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(ToLowerRet(copy, 100500, 1111) == lower);
@@ -1245,7 +1263,9 @@ public:
             UNIT_ASSERT(!ToLower(s));
             UNIT_ASSERT(s == lower);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
@@ -1266,7 +1286,9 @@ public:
             UNIT_ASSERT(!ToLower(s));
             UNIT_ASSERT(s == lower);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
@@ -1315,7 +1337,9 @@ public:
             UNIT_ASSERT(!ToLower(s, 2));
             UNIT_ASSERT(s == lower);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(ToLowerRet(copy, 2) == lower);
@@ -1340,7 +1364,9 @@ public:
             UNIT_ASSERT(!ToLower(s, 3, 1));
             UNIT_ASSERT(s == copy);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(ToLowerRet(copy, 3, 1) == lower);
@@ -1354,7 +1380,9 @@ public:
             UNIT_ASSERT(!ToLower(s, 3, 100500));
             UNIT_ASSERT(s == copy);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(ToLowerRet(copy, 3, 100500) == lower);
@@ -1372,7 +1400,9 @@ public:
             UNIT_ASSERT(!ToUpper(s));
             UNIT_ASSERT(s == upper);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
@@ -1393,7 +1423,9 @@ public:
             UNIT_ASSERT(!ToUpper(s));
             UNIT_ASSERT(s == upper);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
@@ -1414,7 +1446,9 @@ public:
             UNIT_ASSERT(!ToUpper(s, 100500));
             UNIT_ASSERT(s == upper);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
@@ -1434,7 +1468,9 @@ public:
             UNIT_ASSERT(!ToUpper(s, 100500, 1111));
             UNIT_ASSERT(s == upper);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(ToUpperRet(copy, 100500, 1111) == upper);
@@ -1467,7 +1503,9 @@ public:
             UNIT_ASSERT(!ToUpper(s));
             UNIT_ASSERT(s == copy);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
@@ -1589,7 +1627,9 @@ public:
             UNIT_ASSERT(!ToTitle(s));
             UNIT_ASSERT(s == title);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
@@ -1610,7 +1650,9 @@ public:
             UNIT_ASSERT(!ToTitle(s));
             UNIT_ASSERT(s == title);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
@@ -1630,7 +1672,9 @@ public:
             UNIT_ASSERT(!ToTitle(s, 100500));
             UNIT_ASSERT(s == title);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(ToTitleRet(copy) == title);
@@ -1644,7 +1688,9 @@ public:
             UNIT_ASSERT(!ToTitle(s, 100500, 1111));
             UNIT_ASSERT(s == title);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(ToTitleRet(copy) == title);
@@ -1677,7 +1723,9 @@ public:
             UNIT_ASSERT(!ToTitle(s));
             UNIT_ASSERT(s == title);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
@@ -1716,7 +1764,9 @@ public:
             UNIT_ASSERT(!ToTitle(s));
             UNIT_ASSERT(s == title);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
@@ -1765,7 +1815,9 @@ public:
             UNIT_ASSERT(!ToTitle(s, 2));
             UNIT_ASSERT(s == title);
 #ifndef TSTRING_IS_STD_STRING
-            UNIT_ASSERT(s.data() == copy.data());
+            if (TStringUseCow) {
+                UNIT_ASSERT(s.data() == copy.data());
+            }
 #endif
 
             UNIT_ASSERT(ToTitleRet(copy, 2) == title);

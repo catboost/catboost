@@ -549,7 +549,7 @@ namespace NLastGetopt {
          *
          * Note: this only works in zsh.
          *
-         * @param arg index of free arg
+         * @param index index of free arg
          */
         TOpt& IfPresentDisableCompletionForFreeArg(size_t index) {
             DisableCompletionForFreeArg_.push_back(index);

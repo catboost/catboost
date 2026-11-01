@@ -62,6 +62,33 @@ public:
      */
     void SetAllowMultipleStreams(bool allowMultipleStreams);
 
+    /**
+     * Requires compressed streams to reach their format-defined end before input EOF.
+     * Disabled by default for compatibility with readers that accept incomplete input.
+     *
+     * When enabled, an underlying input EOF encountered before inflate reports
+     * Z_STREAM_END throws TZLibDecompressorError instead of returning a normal EOF.
+     * This detects truncated streams, including a missing or incomplete gzip/zlib
+     * trailer even when all uncompressed payload bytes have already been produced.
+     * Empty input is also rejected; a valid compressed stream with an empty payload
+     * is accepted. Other decompression errors remain errors regardless of this flag.
+     *
+     * With multiple sequential streams enabled, the check applies to each stream:
+     * EOF at a completed stream boundary is valid, but an incomplete following
+     * stream is not. This option does not enable reading additional streams when
+     * SetAllowMultipleStreams(false) is in effect.
+     *
+     * Validation happens while reading, not when setting this flag or destroying
+     * the decompressor. Reading only a prefix does not validate the unread suffix;
+     * consume the stream to EOF to verify that the entire input is complete.
+     * Bytes returned by earlier reads are not retracted if a later read fails.
+     * Enable this option before reading when completeness must be guaranteed.
+     *
+     * @param requireCompleteStreams true to reject premature input EOF; false to
+     *        retain the default behavior of accepting EOF without Z_STREAM_END.
+     */
+    void SetRequireCompleteStreams(bool requireCompleteStreams);
+
     ~TZLibDecompress() override;
 
 protected:

@@ -1,0 +1,3 @@
+#:schema https://json.schemastore.org/any.json
+criterion_home   = "./criterion"
+plotting_backend = "plotters"

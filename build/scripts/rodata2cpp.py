@@ -10,7 +10,7 @@ def main():
     args = parser.parse_args()
     args.cpp.write('static_assert(sizeof(unsigned int) == 4, "ups, something gone wrong");\n\n')
     args.cpp.write('extern "C" {\n')
-    args.cpp.write('    extern const unsigned char ' + args.symbol + '[] = {\n')
+    args.cpp.write('    alignas(16) extern const unsigned char ' + args.symbol + '[] = {\n')
 
     cnt = 0
 

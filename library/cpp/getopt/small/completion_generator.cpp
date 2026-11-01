@@ -1,11 +1,10 @@
 #include "completion_generator.h"
+#include "last_getopt_parse_result.h"
 
+#include <util/generic/hash_set.h>
 #include <util/generic/overloaded.h>
 
 #include <util/string/ascii.h>
-#include <util/generic/hash_set.h>
-
-#include "last_getopt_parse_result.h"
 
 using NLastGetopt::NEscaping::Q;
 using NLastGetopt::NEscaping::QQ;
@@ -21,6 +20,121 @@ namespace NLastGetopt {
 #define L out.Line()
 #define I auto Y_GENERATE_UNIQUE_ID(indent) = out.Indent()
 
+    namespace {
+
+    TString MakeShellIdentifier(TStringBuf value) {
+        TString identifier(value);
+        for (auto& character : identifier) {
+            if (!IsAsciiAlnum(character) && character != '_') {
+                character = '_';
+            }
+        }
+        return identifier;
+    }
+
+    struct TCompletionFunctionNames {
+        TString Main;
+        TString YaToolExec;
+        TString YaToolCompletion;
+        TString YaToolCompletionVariable;
+        TString YaToolCommandVariable;
+    };
+
+    TCompletionFunctionNames MakeCompletionFunctionNames(TStringBuf command) {
+        const auto yaToolPrefix = "_" + MakeShellIdentifier(command) + "_ya_tool";
+        return {
+            .Main = "_" + TString(command),
+            .YaToolExec = yaToolPrefix + "_exec",
+            .YaToolCompletion = yaToolPrefix + "_completion",
+            .YaToolCompletionVariable = yaToolPrefix + "_completion_active",
+            .YaToolCommandVariable = yaToolPrefix + "_command",
+        };
+    }
+
+    bool IsCompletableMode(const TModChooser::TMode& mode) {
+        return !mode.Hidden && !mode.NoCompletion;
+    }
+
+    bool IsNamedCompletableMode(const TModChooser::TMode& mode) {
+        return !mode.Name.empty() && IsCompletableMode(mode);
+    }
+
+    void GenerateZshModeNormalization(TFormattedOutput& out, const TModChooser& chooser)
+    {
+        L << "for (( mode_index = 2; mode_index < CURRENT; ++mode_index )); do";
+        {
+            I;
+            auto& line = L << "case \"${words[mode_index]}\" in ";
+            TStringBuf separator;
+            for (const auto& mode : chooser.GetUnsortedModes()) {
+                if (!IsNamedCompletableMode(*mode)) {
+                    continue;
+                }
+
+                line << separator << SS(mode->Name);
+                separator = "|";
+                for (const auto& alias : mode->Aliases) {
+                    line << separator << SS(alias);
+                }
+            }
+            line << ")";
+            {
+                I;
+                L << "if (( mode_index != 2 )); then";
+                {
+                    I;
+                    L << "words=(\"${words[1]}\" \"${words[mode_index]}\" "
+                         "\"${(@)words[2,mode_index-1]}\" \"${(@)words[mode_index+1,-1]}\")";
+                }
+                L << "fi";
+                L << "break";
+                L << ";;";
+            }
+            L << "esac";
+        }
+        L << "done";
+    }
+
+    void GenerateBashModeNormalization(TFormattedOutput& out, const TModChooser& chooser)
+    {
+        L << "for (( i=1; i < cword; i++ )); do";
+        {
+            I;
+            auto& line = L << "case \"${words[i]}\" in ";
+            TStringBuf separator;
+            for (const auto& mode : chooser.GetUnsortedModes()) {
+                if (!IsNamedCompletableMode(*mode)) {
+                    continue;
+                }
+
+                line << separator << BB(mode->Name);
+                separator = "|";
+                for (const auto& alias : mode->Aliases) {
+                    line << separator << BB(alias);
+                }
+            }
+            line << ")";
+            {
+                I;
+                L << "mode_found=1";
+                L << "if (( i != 1 )); then";
+                {
+                    I;
+                    L << "words=(\"${words[0]}\" \"${words[i]}\" \"${words[@]:1:i-1}\" "
+                         "\"${words[@]:i+1}\")";
+                    L << "prev=\"${words[cword - 1]}\"";
+                }
+                L << "fi";
+                L << "break";
+                L << ";;";
+            }
+            L << "esac";
+        }
+        L << "done";
+    }
+
+    } // namespace
+
     TCompletionGenerator::TCompletionGenerator(const TModChooser* modChooser)
         : Options_(modChooser)
     {
@@ -34,23 +148,54 @@ namespace NLastGetopt {
     }
 
     void TZshCompletionGenerator::Generate(TStringBuf command, IOutputStream& stream) {
-        TFormattedOutput out;
-        NComp::TCompleterManager manager{command};
+        Generate(TCompletionConfig{
+            .Command = TString(command),
+        }, stream);
+    }
 
-        L << "#compdef " << command;
+    void TZshCompletionGenerator::Generate(const TCompletionConfig& config, IOutputStream& stream) {
+        TFormattedOutput out;
+        NComp::TCompleterManager manager{config.Command};
+        const auto names = MakeCompletionFunctionNames(config.Command);
+
+        auto& compdef = L << "#compdef " << config.Command;
+        for (const auto& alias : config.CommandAliases) {
+            compdef << " " << alias;
+        }
         L;
-        L << "_" << command << "() {";
+        L << names.Main << "() {";
         {
             I;
+            if (!config.YaToolName.empty()) {
+                L << "if [[ -n ${" << names.YaToolCompletionVariable << ":-} ]]; then";
+                {
+                    I;
+                    L << "words=(" << names.YaToolExec << " \"${(@)words[4,-1]}\")";
+                    L << "(( CURRENT -= 2 ))";
+                }
+                L << "fi";
+                L;
+            }
             L << "local state line desc modes context curcontext=\"$curcontext\" ret=1";
+            if (config.OptionsBeforeMode) {
+                const auto* modChooser = std::get_if<const TModChooser*>(&Options_);
+                Y_ABORT_UNLESS(modChooser);
+                L << "local mode_index";
+                GenerateZshModeNormalization(out, **modChooser);
+                L;
+            }
             L << "local words_orig=(\"${words[@]}\")";
             L << "local current_orig=\"$((CURRENT - 1))\"";
             L << "local prefix_orig=\"$PREFIX\"";
             L << "local suffix_orig=\"$SUFFIX\"";
             L;
             std::visit(TOverloaded{
-                [&out, &manager](const TModChooser* modChooser) {
-                    GenerateModesCompletion(out, *modChooser, manager);
+                [&out, &manager, &config](const TModChooser* modChooser) {
+                    GenerateModesCompletion(
+                        out,
+                        *modChooser,
+                        manager,
+                        config.OptionsBeforeMode ? &*config.OptionsBeforeMode : nullptr);
                 },
                 [&out, &manager](const TOpts* opts) {
                     GenerateOptsCompletion(out, *opts, manager);
@@ -63,27 +208,70 @@ namespace NLastGetopt {
         L;
         manager.GenerateZsh(out);
 
-        // When the completion file is autoloaded by `compinit` from `$fpath`,
-        // zsh treats the file content as the body of function `_<command>`.
-        // On first invocation that body merely (re)defines `_<command>` and
-        // its helpers, so completion would not actually run until the second
-        // TAB. Calling the redefined function here makes it work on the very
-        // first TAB and is also harmless when the script is `source`d.
-        L << "_" << command << " \"$@\"";
+        if (!config.YaToolName.empty()) {
+            L << names.YaToolExec << "() {";
+            {
+                I;
+                L << "command \"$" << names.YaToolCommandVariable << "\" tool " << SS(config.YaToolName) << " \"$@\"";
+            }
+            L << "}";
+            L;
+            L << names.YaToolCompletion << "() {";
+            {
+                I;
+                L << "local " << names.YaToolCompletionVariable << "=1";
+                L << "local " << names.YaToolCommandVariable << "=\"$words[1]\"";
+                L << "local -a words=(\"${words[@]}\")";
+                L << "local CURRENT=\"$CURRENT\"";
+                L << names.Main << " \"$@\"";
+            }
+            L << "}";
+            L;
+            L << "__YA_TOOL_COMPLETION_ENTRY=" << names.YaToolCompletion;
+            L;
+            L << "if [[ \"$words[1]\" != \"ya\" || \"$words[2]\" != \"tool\" || \"$words[3]\" != "
+              << SS(config.YaToolName) << " ]]; then";
+            {
+                I;
+                L << names.Main << " \"$@\"";
+            }
+            L << "fi";
+        } else {
+            // When the completion file is autoloaded by `compinit` from `$fpath`,
+            // zsh treats the file content as the body of function `_<command>`.
+            // On first invocation that body merely (re)defines `_<command>` and
+            // its helpers, so completion would not actually run until the second
+            // TAB. Calling the redefined function here makes it work on the very
+            // first TAB and is also harmless when the script is `source`d.
+            L << names.Main << " \"$@\"";
+        }
 
         out.Print(stream);
     }
 
-    void TZshCompletionGenerator::GenerateModesCompletion(TFormattedOutput& out, const TModChooser& chooser, NComp::TCompleterManager& manager) {
+    void TZshCompletionGenerator::GenerateModesCompletion(
+        TFormattedOutput& out,
+        const TModChooser& chooser,
+        NComp::TCompleterManager& manager,
+        const TOpts* optionsBeforeMode)
+    {
         auto modes = chooser.GetUnsortedModes();
 
         L << "_arguments -C \\";
-        L << "  '(- : *)'{-h,--help}'[show help information]' \\";
-        if (chooser.GetVersionHandler() != nullptr) {
-            L << "  '(- : *)'{-v,--version}'[display version information]' \\";
-        }
-        if (!chooser.IsSvnRevisionOptionDisabled()) {
-            L << "  '(- : *)--svnrevision[show build information]' \\";
+        if (optionsBeforeMode) {
+            for (const auto& option : optionsBeforeMode->GetOpts()) {
+                if (!option->Hidden_) {
+                    GenerateOptCompletion(out, *optionsBeforeMode, *option, manager);
+                }
+            }
+        } else {
+            L << "  '(- : *)'{-h,--help}'[show help information]' \\";
+            if (chooser.GetVersionHandler() != nullptr) {
+                L << "  '(- : *)'{-v,--version}'[display version information]' \\";
+            }
+            if (!chooser.IsSvnRevisionOptionDisabled()) {
+                L << "  '(- : *)--svnrevision[show build information]' \\";
+            }
         }
         L << "  '(-v --version -h --help --svnrevision)1: :->modes' \\";
         L << "  '(-v --version -h --help --svnrevision)*:: :->args' \\";
@@ -103,7 +291,7 @@ namespace NLastGetopt {
                 L << "desc='modes'";
                 L << "modes=(";
                 for (auto& mode : modes) {
-                    if (mode->Hidden) {
+                    if (!IsCompletableMode(*mode)) {
                         continue;
                     }
                     if (!mode->Name.empty()) {
@@ -148,7 +336,7 @@ namespace NLastGetopt {
                     I;
 
                     for (auto& mode : modes) {
-                        if (mode->Name.empty() || mode->Hidden) {
+                        if (!IsNamedCompletableMode(*mode)) {
                             continue;
                         }
 
@@ -382,30 +570,71 @@ namespace NLastGetopt {
     }
 
     void TBashCompletionGenerator::Generate(TStringBuf command, IOutputStream& stream) {
-        TFormattedOutput out;
-        NComp::TCompleterManager manager{command};
+        Generate(TCompletionConfig{
+            .Command = TString(command),
+        }, stream);
+    }
 
-        L << "_" << command << "() {";
+    void TBashCompletionGenerator::Generate(const TCompletionConfig& config, IOutputStream& stream) {
+        TFormattedOutput out;
+        NComp::TCompleterManager manager{config.Command};
+        const auto names = MakeCompletionFunctionNames(config.Command);
+
+        L << names.Main << "() {";
         {
             I;
             L << "COMPREPLY=()";
             L;
             L << "local i args opts items candidates";
+            L << "local mode_found option_arg_completion";
             L;
             L << "local cur prev words cword";
             L << "_get_comp_words_by_ref -n \"\\\"'><=;|&(:\" cur prev words cword";
+            if (!config.YaToolName.empty()) {
+                L;
+                L << "if [[ -n ${" << names.YaToolCompletionVariable << ":-} ]]; then";
+                {
+                    I;
+                    L << "words=(" << names.YaToolExec << " \"${words[@]:3}\")";
+                    L << "(( cword -= 2 ))";
+                    L << "prev=\"${words[cword - 1]}\"";
+                }
+                L << "fi";
+            }
+            if (config.OptionsBeforeMode) {
+                const auto* modChooser = std::get_if<const TModChooser*>(&Options_);
+                Y_ABORT_UNLESS(modChooser);
+                L;
+                GenerateBashModeNormalization(out, **modChooser);
+            }
             L;
             L << "local need_space=\"1\"";
             L << "local IFS=$' \\t\\n'";
             L;
-            std::visit(TOverloaded{
-                [&out, &manager](const TModChooser* modChooser) {
-                    GenerateModesCompletion(out, *modChooser, manager, 1);
-                },
-                [&out, &manager](const TOpts* opts) {
-                    GenerateOptsCompletion(out, *opts, manager, 1);
+            if (config.OptionsBeforeMode) {
+                const auto* modChooser = std::get_if<const TModChooser*>(&Options_);
+                Y_ABORT_UNLESS(modChooser);
+                L << "if [[ -z $mode_found ]]; then";
+                {
+                    I;
+                    GenerateOptionsBeforeModeCompletion(out, *config.OptionsBeforeMode, **modChooser);
                 }
-            }, Options_);
+                L << "else";
+                {
+                    I;
+                    GenerateModesCompletion(out, **modChooser, manager, 1);
+                }
+                L << "fi";
+            } else {
+                std::visit(TOverloaded{
+                    [&out, &manager](const TModChooser* modChooser) {
+                        GenerateModesCompletion(out, *modChooser, manager, 1);
+                    },
+                    [&out, &manager](const TOpts* opts) {
+                        GenerateOptsCompletion(out, *opts, manager, 1);
+                    }
+                }, Options_);
+            }
             L;
             L;
             L << "__ltrim_colon_completions \"$cur\"";
@@ -432,7 +661,31 @@ namespace NLastGetopt {
         }
         L << "}";
         L;
-        L << "complete -o nospace -o default -F _" << command << " " << command;
+        auto& complete = L << "complete -o nospace -o default -F " << names.Main << " " << config.Command;
+        for (const auto& alias : config.CommandAliases) {
+            complete << " " << BB(alias);
+        }
+
+        if (!config.YaToolName.empty()) {
+            L;
+            L << names.YaToolExec << "() {";
+            {
+                I;
+                L << "command \"$" << names.YaToolCommandVariable << "\" tool " << BB(config.YaToolName) << " \"$@\"";
+            }
+            L << "}";
+            L;
+            L << names.YaToolCompletion << "() {";
+            {
+                I;
+                L << "local " << names.YaToolCompletionVariable << "=1";
+                L << "local " << names.YaToolCommandVariable << "=\"${COMP_WORDS[0]}\"";
+                L << names.Main << " \"$@\"";
+            }
+            L << "}";
+            L;
+            L << "__YA_TOOL_COMPLETION_ENTRY=" << names.YaToolCompletion;
+        }
 
         out.Print(stream);
     }
@@ -461,7 +714,7 @@ namespace NLastGetopt {
                 auto& line = L << "COMPREPLY+=( $(compgen -W '";
                 TStringBuf sep = "";
                 for (auto& mode : modes) {
-                    if (!mode->Hidden && !mode->NoCompletion) {
+                    if (IsNamedCompletableMode(*mode)) {
                         line << sep << B(mode->Name);
                         sep = " ";
                     }
@@ -478,7 +731,7 @@ namespace NLastGetopt {
                 I;
 
                 for (auto& mode : modes) {
-                    if (mode->Name.empty() || mode->Hidden || mode->NoCompletion) {
+                    if (!IsNamedCompletableMode(*mode)) {
                         continue;
                     }
 
@@ -504,6 +757,83 @@ namespace NLastGetopt {
                 }
             }
             L << "esac";
+        }
+        L << "fi";
+    }
+
+    void TBashCompletionGenerator::GenerateOptionsBeforeModeCompletion(
+        TFormattedOutput& out,
+        const TOpts& opts,
+        const TModChooser& chooser)
+    {
+        L << "option_arg_completion=";
+        L << "case ${prev} in";
+        {
+            I;
+            for (const auto& option : opts.GetOpts()) {
+                if (option->HasArg_ == EHasArg::NO_ARGUMENT || option->IsHidden()) {
+                    continue;
+                }
+
+                auto& line = L;
+                TStringBuf separator;
+                for (char shortName : option->GetShortNames()) {
+                    line << separator << "'-" << B(TStringBuf(&shortName, 1)) << "'";
+                    separator = "|";
+                }
+                for (const auto& longName : option->GetLongNames()) {
+                    line << separator << "'--" << B(longName) << "'";
+                    separator = "|";
+                }
+                line << ")";
+                {
+                    I;
+                    L << "option_arg_completion=1";
+                    if (option->Completer_) {
+                        option->Completer_->GenerateBash(out);
+                    }
+                    L << ";;";
+                }
+            }
+        }
+        L << "esac";
+        L << "if [[ -z $option_arg_completion ]]; then";
+        {
+            I;
+            L << "if [[ ${cur} == -* ]]; then";
+            {
+                I;
+                auto& line = L << "COMPREPLY+=( $(compgen -W '";
+                TStringBuf separator;
+                for (const auto& option : opts.GetOpts()) {
+                    if (option->IsHidden()) {
+                        continue;
+                    }
+                    for (char shortName : option->GetShortNames()) {
+                        line << separator << "-" << B(TStringBuf(&shortName, 1));
+                        separator = " ";
+                    }
+                    for (const auto& longName : option->GetLongNames()) {
+                        line << separator << "--" << B(longName);
+                        separator = " ";
+                    }
+                }
+                line << "' -- ${cur}) )";
+            }
+            L << "else";
+            {
+                I;
+                auto& line = L << "COMPREPLY+=( $(compgen -W '";
+                TStringBuf separator;
+                for (const auto& mode : chooser.GetUnsortedModes()) {
+                    if (IsNamedCompletableMode(*mode)) {
+                        line << separator << B(mode->Name);
+                        separator = " ";
+                    }
+                }
+                line << "' -- ${cur}) )";
+            }
+            L << "fi";
         }
         L << "fi";
     }

@@ -138,7 +138,7 @@ static void ReportMismatchedDelete(Static& state,
   PrintStackTrace(stack, depth);
 
   RecordCrash("GWP-ASan", "mismatched-size-delete");
-  state.mismatched_delete_state().Record(
+  state.gwp_asan_state().RecordMismatch(
       size, size, requested_size, maximum_size,
       absl::MakeSpan(alloc.sampled_stack.stack, alloc.sampled_stack.depth),
       absl::MakeSpan(stack, depth));
@@ -173,10 +173,10 @@ static void ReportMismatchedDelete(Static& state, void* ptr, size_t size,
   PrintStackTrace(stack, depth);
 
   RecordCrash("GWP-ASan", "mismatched-size-delete");
-  state.mismatched_delete_state().Record(/*provided_min=*/size,
-                                         /*provided_max=*/size, minimum_size,
-                                         maximum_size, std::nullopt,
-                                         absl::MakeSpan(stack, depth));
+  state.gwp_asan_state().RecordMismatch(/*provided_min=*/size,
+                                        /*provided_max=*/size, minimum_size,
+                                        maximum_size, std::nullopt,
+                                        absl::MakeSpan(stack, depth));
   abort();
 }
 

@@ -27,6 +27,7 @@
 #include <library/cpp/regex/pire/pire/stub/stl.h>
 
 #include "partition.h"
+#include "operation_budget.h"
 
 namespace Pire {
     namespace Impl {
@@ -107,6 +108,7 @@ namespace Pire {
             for (size_t stateIdx = 0; stateIdx < states.size(); ++stateIdx) {
                 if (!task.IsRequired(states[stateIdx]))
                     continue;
+                ChargeOperations(task.Letters().Size() + 1);
                 TransitionTable::value_type row(task.Letters().Size());
                 for (auto&& letter : task.Letters()) {
                     State newState = task.Next(states[stateIdx], letter.first);

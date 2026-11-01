@@ -4,9 +4,54 @@
 
 #include <util/stream/input.h>
 
+#include <cmath>
+#include <limits>
+
 using namespace NJson;
 
 Y_UNIT_TEST_SUITE(TJsonValueTest) {
+    Y_UNIT_TEST(DoubleIntegerBoundaries) {
+        const double min = static_cast<double>(std::numeric_limits<long long>::min());
+        const double max = static_cast<double>(std::numeric_limits<long long>::max());
+        for (double value : {min, std::nextafter(min, 0.0),
+                             std::nextafter(max, 0.0), -1.0, -0.0, 0.0, 1.0}) {
+            const TJsonValue json(value);
+            UNIT_ASSERT(json.IsInteger());
+            UNIT_ASSERT_VALUES_EQUAL(json.GetIntegerSafe(), static_cast<long long>(value));
+        }
+        for (double value : {std::nextafter(min, -std::numeric_limits<double>::infinity()),
+                             max, std::nextafter(max, std::numeric_limits<double>::infinity()),
+                             -0.5, 0.5,
+                             std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max(),
+                             -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(),
+                             std::numeric_limits<double>::quiet_NaN()}) {
+            const TJsonValue json(value);
+            UNIT_ASSERT(!json.IsInteger());
+            UNIT_ASSERT_VALUES_EQUAL(json.GetInteger(), 0);
+            UNIT_ASSERT_EXCEPTION(json.GetIntegerSafe(), TJsonException);
+        }
+    }
+
+    Y_UNIT_TEST(DoubleUIntegerBoundaries) {
+        const double max = static_cast<double>(std::numeric_limits<unsigned long long>::max());
+        const double signedMax = static_cast<double>(std::numeric_limits<long long>::max());
+        for (double value : {-0.0, 0.0, 1.0, signedMax, std::nextafter(max, 0.0)}) {
+            const TJsonValue json(value);
+            UNIT_ASSERT(json.IsUInteger());
+            UNIT_ASSERT_VALUES_EQUAL(json.GetUIntegerSafe(), static_cast<unsigned long long>(value));
+        }
+        for (double value : {-1.0, -0.5, std::nextafter(0.0, -1.0), std::nextafter(0.0, 1.0), 0.5,
+                             max, std::nextafter(max, std::numeric_limits<double>::infinity()),
+                             std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max(),
+                             -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(),
+                             std::numeric_limits<double>::quiet_NaN()}) {
+            const TJsonValue json(value);
+            UNIT_ASSERT(!json.IsUInteger());
+            UNIT_ASSERT_VALUES_EQUAL(json.GetUInteger(), 0);
+            UNIT_ASSERT_EXCEPTION(json.GetUIntegerSafe(), TJsonException);
+        }
+    }
+
     Y_UNIT_TEST(Equal) {
         UNIT_ASSERT(1 == TJsonValue(1));
         UNIT_ASSERT(TJsonValue(1) == 1);

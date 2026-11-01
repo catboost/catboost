@@ -1163,7 +1163,7 @@ namespace NCB {
                 dstColumn
             );
             if (ClearSrcObjectsData) {
-                srcColumn->Destroy();
+                srcColumn->reset();
             }
         }
 
@@ -1197,7 +1197,7 @@ namespace NCB {
                 std::move(callback)
             );
             if (ClearSrcObjectsData) {
-                srcColumn->Destroy();
+                srcColumn->reset();
             }
         }
 
@@ -2321,7 +2321,7 @@ namespace NCB {
                                               floatFeatureIdx
                                          ))))
                                     {
-                                        srcFloatFeatureHolderPtr->Destroy();
+                                        srcFloatFeatureHolderPtr->reset();
                                     }
                                 }
                             }
@@ -2366,7 +2366,7 @@ namespace NCB {
                                                   catFeatureIdx
                                              )))
                                         {
-                                            srcCatFeatureHolderPtr->Destroy();
+                                            srcCatFeatureHolderPtr->reset();
                                         }
                                     }
                                 }

@@ -14,11 +14,11 @@ from log_parser import parse_log, Track
 
 def check_exists(hash_id, result_file):
     if not os.path.exists(result_file):
-        with open(result_file, 'w') as f:
+        with open(result_file, 'w', encoding='utf-8') as f:
             json.dump({}, f)
         return False
 
-    with open(result_file, 'r') as f:
+    with open(result_file, 'r', encoding='utf-8') as f:
         content = json.load(f)
         return str(hash_id) in content
 
@@ -26,13 +26,13 @@ def check_exists(hash_id, result_file):
 def update_result_file(track, result_file):
     chunk = track.dump_to_json()
 
-    with open(result_file, 'r') as f:
+    with open(result_file, 'r', encoding='utf-8') as f:
         results = json.load(f)
 
     results.update(chunk)
 
     backup_result_file = result_file + '.bkp'
-    with open(backup_result_file, 'w') as f:
+    with open(backup_result_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=4)
 
     os.rename(backup_result_file, result_file)

@@ -1,3 +1,4 @@
+#include <contrib/libs/llvm/flang-rt/flang-rt/lib/runtime/stl-overrides.h>
 //===-- lib/runtime/file.cpp ------------------------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -99,6 +100,9 @@ void OpenFile::Open(OpenStatus status, common::optional<Action> action,
     }
     if (status == OpenStatus::New) {
       flags |= O_EXCL;
+      if (!action) {
+        action = Action::ReadWrite;
+      }
     } else if (status == OpenStatus::Replace) {
       flags |= O_TRUNC;
     }
@@ -131,6 +135,12 @@ void OpenFile::Open(OpenStatus status, common::optional<Action> action,
       }
       fd_ = ::open(path_.get(), flags, 0600);
       if (fd_ < 0) {
+        if (errno == EEXIST && status == OpenStatus::New) {
+          handler.SignalError(IostatOpenNewExtant,
+              "OPEN(STATUS='NEW') on existing file '%s'", path_.get());
+          path_.reset(); // prevent unlink
+          return;
+        }
         handler.SignalErrno();
       }
     }
@@ -151,8 +161,12 @@ void OpenFile::Open(OpenStatus status, common::optional<Action> action,
       mayPosition_ = S_ISREG(buf.st_mode);
       knownSize_ = buf.st_size;
     }
-#else // TODO: _WIN32
-    mayPosition_ = true;
+#else // _WIN32
+    struct _stat64 buf;
+    if (fd_ >= 0 && ::_fstat64(fd_, &buf) == 0) {
+      mayPosition_ = S_IFREG & buf.st_mode;
+      knownSize_ = buf.st_size;
+    }
 #endif
   } else {
     knownSize_ = 0;

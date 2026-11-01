@@ -1,7 +1,5 @@
 #include "rseq.h"
-
-#ifdef YT_RSEQ_AVAILABLE
-
+#include "rseq_area.h"
 #include "per_cpu.h"
 
 #include <library/cpp/yt/misc/static_initializer.h>
@@ -21,9 +19,15 @@ namespace NYT::NRseq {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Set by the static initializer below before main(); see the header for the zero
+namespace NDetail {
+
+// Set by the static initializer below before main(); see rseq_area.h for the zero
 // placeholder window.
-std::ptrdiff_t CpuIdFieldOffset = 0;
+std::ptrdiff_t RseqAreaOffset = 0;
+
+} // namespace NDetail
+
+using namespace NDetail;
 
 namespace {
 
@@ -31,28 +35,16 @@ namespace {
     constexpr long RseqSyscallNumber = 334;
 #elif defined(__aarch64__)
     constexpr long RseqSyscallNumber = 293;
+#else
+    #error "Unsupported architecture"
 #endif
 
-// The kernel struct rseq is registered with this (original ABI) size; cpu_id sits at
-// offset 4 and is the only field we read.
-constexpr unsigned RseqRegistrationSize = 32;
+constexpr unsigned RseqRegistrationSize = sizeof(TRseqArea);
 
 // The conventional rseq signature shared by glibc, librseq and tcmalloc. We must pass
 // the same one so that re-registering an already-registered area yields EBUSY (success)
 // rather than EINVAL; see RegisterCurrentThread.
 constexpr unsigned RseqSignature = 0x53053053;
-
-struct alignas(32) TRseqArea
-{
-    ui32 CpuIdStart;
-    ui32 CpuId;
-    ui64 RseqCs;
-    ui32 Flags;
-    ui32 Padding[3];
-};
-
-static_assert(sizeof(TRseqArea) == RseqRegistrationSize);
-static_assert(offsetof(TRseqArea, CpuId) == 4);
 
 // Defined by glibc (>= 2.35) when it owns the rseq registration; absent (weak ->
 // nullptr) otherwise, e.g. on glibc 2.31 and musl.
@@ -67,8 +59,8 @@ extern const unsigned int __rseq_size __attribute__((weak));
 // cannot grant a module dlopen'd afterwards (e.g. a YQL UDF .so), failing with "cannot
 // allocate memory in static TLS block". Position-independent objects (-fPIC/-fPIE, what
 // such .so's are built as) therefore use global-dynamic instead. This only affects the
-// cold &__rseq_abi accesses (ComputeCpuIdFieldOffset / RegisterCurrentThread); the hot
-// path reads *(thread_pointer + CpuIdFieldOffset) off a cached offset and is unchanged.
+// cold &__rseq_abi accesses (ComputeRseqAreaOffset / RegisterCurrentThread); the hot
+// path reads *(thread_pointer + RseqAreaOffset + field) off a cached offset and is unchanged.
 // Mirrors the __PIC__/__PIE__ handling in contrib/libs/tcmalloc.
 #if defined(__PIC__) || defined(__PIE__)
     #define YT_RSEQ_ABI_TLS_MODEL "global-dynamic"
@@ -106,12 +98,12 @@ bool RegisterCurrentThread()
     return errno == EBUSY;
 }
 
-YT_PREVENT_TLS_CACHING std::ptrdiff_t ComputeCpuIdFieldOffset()
+YT_PREVENT_TLS_CACHING std::ptrdiff_t ComputeRseqAreaOffset()
 {
     if (&__rseq_size != nullptr && __rseq_size != 0) {
         // glibc owns the registration and keeps every thread's cpu_id up to date in its
         // own area; just read it.
-        return __rseq_offset + static_cast<std::ptrdiff_t>(offsetof(TRseqArea, CpuId));
+        return __rseq_offset;
     }
     // Otherwise use __rseq_abi. Register this (main) thread; other threads register
     // lazily on their first slow-path call. The offset points at __rseq_abi either way:
@@ -120,15 +112,14 @@ YT_PREVENT_TLS_CACHING std::ptrdiff_t ComputeCpuIdFieldOffset()
     OwnsRegistration = true;
     RegisterCurrentThread();
     auto* threadPointer = static_cast<char*>(__builtin_thread_pointer());
-    return (reinterpret_cast<char*>(&__rseq_abi) - threadPointer) +
-        static_cast<std::ptrdiff_t>(offsetof(TRseqArea, CpuId));
+    return reinterpret_cast<char*>(&__rseq_abi) - threadPointer;
 }
 
 YT_STATIC_INITIALIZER({
-    CpuIdFieldOffset = ComputeCpuIdFieldOffset();
+    RseqAreaOffset = ComputeRseqAreaOffset();
 });
 
-// Checks, on a freshly spawned thread, whether CpuIdFieldOffset names *this* thread's rseq
+// Checks, on a freshly spawned thread, whether RseqAreaOffset names *this* thread's rseq
 // area -- i.e. whether __rseq_abi sits at a fixed thread-pointer offset (a glibc-owned area or
 // the static TLS block, incl. tcmalloc) rather than a dlopen'd module's dynamically allocated
 // TLS, where the offset is valid only on the thread that computed it. Compares addresses
@@ -139,10 +130,8 @@ YT_PREVENT_TLS_CACHING bool ValidateFastPathOnFreshThread()
     if (OwnsRegistration) {
         RegisterCurrentThread();
         const auto* viaOffset =
-            static_cast<const char*>(__builtin_thread_pointer()) + CpuIdFieldOffset;
-        const auto* viaSymbol =
-            reinterpret_cast<const char*>(&__rseq_abi) +
-            static_cast<std::ptrdiff_t>(offsetof(TRseqArea, CpuId));
+            static_cast<const char*>(__builtin_thread_pointer()) + RseqAreaOffset;
+        const auto* viaSymbol = reinterpret_cast<const char*>(&__rseq_abi);
         if (viaOffset != viaSymbol) {
             // Not thread-pointer-stable: dynamically allocated TLS. Disable the fast path.
             return false;
@@ -152,7 +141,7 @@ YT_PREVENT_TLS_CACHING bool ValidateFastPathOnFreshThread()
     }
     // glibc owns the registration: __rseq_offset is a fixed thread-pointer-relative offset
     // valid on every thread. Usable iff a valid cpu_id is present.
-    return ReadField<int>(CpuIdFieldOffset) >= 0;
+    return ReadRseqAreaField<int>(offsetof(TRseqArea, CpuId)) >= 0;
 }
 
 void* RunFastPathProbe(void* result)
@@ -174,7 +163,7 @@ YT_PREVENT_TLS_CACHING bool EnsureCurrentThreadRegistered()
         }
     }
     // Either way the thread is registered iff cpu_id reads as valid (>= 0).
-    return ReadField<int>(CpuIdFieldOffset) >= 0;
+    return ReadRseqAreaField<int>(offsetof(TRseqArea, CpuId)) >= 0;
 }
 
 bool IsPerCpuFastPathSupported()
@@ -185,7 +174,7 @@ bool IsPerCpuFastPathSupported()
     // from a global constructor under the dynamic loader lock, spawning the probe thread could
     // deadlock, but hot sensors are not built during static initialization.
     static const bool Safe = [] {
-        // Make sure CpuIdFieldOffset (static initializer) and CpuCount are in place.
+        // Make sure RseqAreaOffset (static initializer) and CpuCount are in place.
         GetCpuCount();
         bool result = false;
         pthread_t thread;
@@ -203,20 +192,3 @@ bool IsPerCpuFastPathSupported()
 
 } // namespace NYT::NRseq
 
-#else // YT_RSEQ_AVAILABLE
-
-namespace NYT::NRseq {
-
-////////////////////////////////////////////////////////////////////////////////
-
-// No rseq fast path on this platform; hot sensors use the atomic fallback.
-bool IsPerCpuFastPathSupported()
-{
-    return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-} // namespace NYT::NRseq
-
-#endif // YT_RSEQ_AVAILABLE

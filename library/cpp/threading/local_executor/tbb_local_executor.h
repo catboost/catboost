@@ -22,22 +22,11 @@ namespace NPar {
         virtual int GetWorkerThreadId() const noexcept override;
         virtual int GetThreadCount() const noexcept override;
 
-        // Add task for further execution.
-        //
-        // @param exec          Task description.
-        // @param id            Task argument.
-        // @param flags         Bitmask composed by `HIGH_PRIORITY`, `MED_PRIORITY`, `LOW_PRIORITY`
-        //                      and `WAIT_COMPLETE`.
         virtual void Exec(TIntrusivePtr<ILocallyExecutable> exec, int id, int flags) override;
 
-        // Add tasks range for further execution.
-        //
-        // @param exec                      Task description.
-        // @param firstId, lastId           Task arguments [firstId, lastId)
-        // @param flags                     Same as for `Exec`.
         virtual void ExecRange(TIntrusivePtr<ILocallyExecutable> exec, int firstId, int lastId, int flags) override;
 
-        // Submit tasks for async run
+        /// Submit tasks for async run
         void SubmitAsyncTasks(TLocallyExecutableFunction exec, int firstId, int lastId);
 
     private:

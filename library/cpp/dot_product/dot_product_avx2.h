@@ -21,6 +21,30 @@ Y_PURE_FUNCTION
 float DotProductFloatI8Avx2(const float* lhs, const i8* rhs, size_t length) noexcept;
 
 Y_PURE_FUNCTION
+i32 DotProduct64Avx2(const i8* lhs, const i8* rhs) noexcept;
+
+Y_PURE_FUNCTION
+float DotProduct64Avx2(const float* lhs, const float* rhs) noexcept;
+
+Y_PURE_FUNCTION
+i32 DotProduct128Avx2(const i8* lhs, const i8* rhs) noexcept;
+
+Y_PURE_FUNCTION
+float DotProduct128Avx2(const float* lhs, const float* rhs) noexcept;
+
+Y_PURE_FUNCTION
+i32 DotProduct256Avx2(const i8* lhs, const i8* rhs) noexcept;
+
+Y_PURE_FUNCTION
+float DotProduct256Avx2(const float* lhs, const float* rhs) noexcept;
+
+Y_PURE_FUNCTION
+i32 DotProduct512Avx2(const i8* lhs, const i8* rhs) noexcept;
+
+Y_PURE_FUNCTION
+float DotProduct512Avx2(const float* lhs, const float* rhs) noexcept;
+
+Y_PURE_FUNCTION
 double DotProductAvx2(const double* lhs, const double* rhs, size_t length) noexcept;
 
 Y_PURE_FUNCTION

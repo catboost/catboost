@@ -33,9 +33,9 @@ namespace NBench {
     void Clobber();
 
     /**
-     * Forces whatever `p` points to be in memory and not in register.
+     * Forces whatever @p p points to be in memory and not in register.
      *
-     * @param       Pointer to data.
+     * @param p      Pointer to data.
      */
     template <typename T>
     void Escape(T* p);
@@ -74,7 +74,7 @@ namespace NBench {
     /**
      * Use this function to prevent unused variables elimination.
      *
-     * @param       Unused variable (e.g. return value of benchmarked function).
+     * @param datum Unused variable (e.g. return value of benchmarked function).
      */
     template <typename T>
     Y_FORCE_INLINE void DoNotOptimize(T&& datum) {

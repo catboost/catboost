@@ -1,3 +1,15 @@
+Snappy v1.3.1, Sep 18th 2026:
+
+   * Fixed a uint32_t overflow when decompressor accepted an input with incorrect format
+
+   * Significant RISC-V efficiency improvements
+
+   * New API on providing your own memory context
+
+   * Supporting compression levels (1-2) in C API
+
+   * Various other small fixes
+
 Snappy v1.2.2, Mar 26th 2025:
 
   * We added a new compression level in v1.2.1 which compresses a bit

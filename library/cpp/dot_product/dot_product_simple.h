@@ -8,7 +8,7 @@
 #include <numeric>
 
 /**
- * Dot product implementation without SSE optimizations.
+ * Dot product implementation without SIMD optimizations.
  */
 Y_PURE_FUNCTION
 inline ui32 DotProductSimple(const ui8* lhs, const ui8* rhs, size_t length) noexcept {

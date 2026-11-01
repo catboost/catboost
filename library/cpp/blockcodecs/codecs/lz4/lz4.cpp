@@ -60,6 +60,9 @@ namespace {
             if (res < 0) {
                 ythrow TDecompressError(res);
             }
+            if (static_cast<size_t>(res) != len) {
+                ythrow TDecompressError(len, res);
+            }
         }
 
         static inline TStringBuf DPrefix() {

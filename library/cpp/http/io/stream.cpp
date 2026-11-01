@@ -620,6 +620,10 @@ public:
         CompressionHeaderEnabled_ = enable;
     }
 
+    inline void SetContentEncodingPredicate(TEncodeContentPredicate predicate) {
+        ContentEncodingPredicate_ = std::move(predicate);
+    }
+
     inline bool IsCompressionEnabled() const noexcept {
         return !ComprSchemas_.empty();
     }
@@ -793,7 +797,8 @@ private:
         }
 
         if (IsHttpResponse()) {
-            if (Request_ && IsCompressionEnabled() && HasResponseBody()) {
+            const bool contentEncodingAllowed = IsContentEncodingAllowed();
+            if (Request_ && IsCompressionEnabled() && HasResponseBody() && contentEncodingAllowed) {
                 TString scheme = Request_->BestCompressionScheme(ComprSchemas_);
                 if (scheme != "identity") {
                     AddOrReplaceHeader(THttpInputHeader("Content-Encoding", scheme));
@@ -801,7 +806,7 @@ private:
                 }
             }
 
-            RebuildStream();
+            RebuildStream(contentEncodingAllowed);
         } else {
             if (IsCompressionEnabled()) {
                 AddOrReplaceHeader(THttpInputHeader("Accept-Encoding", BuildAcceptEncoding()));
@@ -826,7 +831,16 @@ private:
         return ret;
     }
 
-    inline void RebuildStream() {
+    inline bool IsContentEncodingAllowed() const {
+        if (!ContentEncodingPredicate_) {
+            return true;
+        }
+
+        static const THttpHeaders emptyHeaders;
+        return ContentEncodingPredicate_(Request_ ? Request_->Headers() : emptyHeaders, Headers_);
+    }
+
+    inline void RebuildStream(bool contentEncodingAllowed = true) {
         bool keepAlive = false;
         const TCompressionCodecFactory::TEncoderConstructor* encoder = nullptr;
         bool chunked = false;
@@ -838,7 +852,10 @@ private:
 
             if (hl == TStringBuf("connection")) {
                 keepAlive = to_lower(header.Value()) == TStringBuf("keep-alive");
-            } else if (IsCompressionHeaderEnabled() && hl == TStringBuf("content-encoding")) {
+            } else if (contentEncodingAllowed &&
+                       IsCompressionHeaderEnabled() &&
+                       hl == TStringBuf("content-encoding"))
+            {
                 encoder = TCompressionCodecFactory::Instance().FindEncoder(to_lower(header.Value()));
             } else if (hl == TStringBuf("transfer-encoding")) {
                 chunked = to_lower(header.Value()) == TStringBuf("chunked");
@@ -887,6 +904,7 @@ private:
     size_t Version_;
 
     TArrayRef<const TStringBuf> ComprSchemas_;
+    TEncodeContentPredicate ContentEncodingPredicate_;
 
     bool KeepAliveEnabled_;
     bool BodyEncodingEnabled_;
@@ -953,6 +971,10 @@ void THttpOutput::EnableBodyEncoding(bool enable) {
 
 void THttpOutput::EnableCompressionHeader(bool enable) {
     Impl_->EnableCompressionHeader(enable);
+}
+
+void THttpOutput::SetContentEncodingPredicate(TEncodeContentPredicate predicate) {
+    Impl_->SetContentEncodingPredicate(std::move(predicate));
 }
 
 bool THttpOutput::IsKeepAliveEnabled() const noexcept {

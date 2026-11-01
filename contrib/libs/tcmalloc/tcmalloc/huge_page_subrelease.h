@@ -78,15 +78,17 @@ class SkippedSubreleaseCorrectnessTracker {
   SkippedSubreleaseCorrectnessTracker& operator=(
       const SkippedSubreleaseCorrectnessTracker&) = delete;
 
-  void ReportSkippedSubreleasePages(Length skipped_pages, Length peak_pages,
-                                    absl::Duration summary_interval) {
+  void ReportSkippedSubreleasePages(
+      Length skipped_pages, Length peak_pages,
+      absl::Duration expected_time_until_next_peak) {
     total_skipped_ += SkippedSubreleaseDecision(skipped_pages);
     pending_skipped_ += SkippedSubreleaseDecision(skipped_pages);
 
     SkippedSubreleaseUpdate update;
     update.decision = SkippedSubreleaseDecision(skipped_pages);
     update.num_pages_at_decision = peak_pages;
-    update.correctness_interval_epochs = summary_interval / epoch_length_;
+    update.correctness_interval_epochs =
+        expected_time_until_next_peak / epoch_length_;
     tracker_.Report(update);
   }
 
@@ -201,13 +203,20 @@ class SkippedSubreleaseCorrectnessTracker {
 };
 
 struct SkipSubreleaseIntervals {
+  // Interval that locates recent demand peak.
+  absl::Duration peak_interval;
   // Interval that locates recent short-term demand fluctuation.
   absl::Duration short_interval;
   // Interval that locates recent long-term demand trend.
   absl::Duration long_interval;
+  // Checks if the peak interval is set.
+  bool IsPeakIntervalSet() const {
+    return peak_interval != absl::ZeroDuration();
+  }
   // Checks if the skip subrelease feature is enabled.
   bool SkipSubreleaseEnabled() const {
-    if (short_interval != absl::ZeroDuration() ||
+    if (peak_interval != absl::ZeroDuration() ||
+        short_interval != absl::ZeroDuration() ||
         long_interval != absl::ZeroDuration()) {
       return true;
     }
@@ -321,6 +330,17 @@ class SubreleaseStatsTracker {
   void PrintTimeseriesStatsInPbtxt(PbtxtRegion& hpaa,
                                    absl::string_view field) const;
 
+  // Calculates recent peaks for skipping subrelease decisions. If our allocated
+  // memory is below the demand peak within the last peak_interval, we stop
+  // subreleasing. If our demand is going above that peak again within another
+  // realized fragemenation interval, we report that we made the correct
+  // decision.
+  Length GetRecentPeak(absl::Duration peak_interval) {
+    last_skip_subrelease_intervals_.peak_interval =
+        std::min(peak_interval, window_);
+    return CalculateDemandPeak(peak_interval);
+  }
+
   // Calculates demand requirements for the skip subrelease: we do not
   // subrelease if the number of free pages are than (or equal to) the demand
   // computed by GetRecentDemand. The demand requirement is the sum of
@@ -363,12 +383,13 @@ class SubreleaseStatsTracker {
   // Reports a skipped subrelease, which is evaluated by coming peaks within the
   // given time interval.
   void ReportSkippedSubreleasePages(Length pages, Length peak_pages,
-                                    absl::Duration summary_interval) {
+                                    absl::Duration next_peak_interval) {
     if (pages == Length(0)) {
       return;
     }
+    last_next_peak_interval_ = next_peak_interval;
     skipped_subrelease_correctness_.ReportSkippedSubreleasePages(
-        pages, peak_pages, summary_interval);
+        pages, peak_pages, next_peak_interval);
   }
 
   inline typename SkippedSubreleaseCorrectnessTracker<
@@ -559,9 +580,10 @@ class SubreleaseStatsTracker {
   SkippedSubreleaseCorrectnessTracker<kEpochs> skipped_subrelease_correctness_;
 
   // Records most recent intervals for skipping subreleases, plus expected next
-  // intervals for evaluating skipped subreleases. All for reporting and
+  // peak_interval for evaluating skipped subreleases. All for reporting and
   // debugging only.
   SkipSubreleaseIntervals last_skip_subrelease_intervals_;
+  absl::Duration last_next_peak_interval_;
 };
 
 // Evaluates a/b, avoiding division by zero.
@@ -614,9 +636,10 @@ void SubreleaseStatsTracker<kEpochs>::Print(Printer& out,
 
   out.printf(
       "\n%s: Since the start of the execution, %zu subreleases (%zu"
-      " pages) were skipped due to the sum of short-term (%ds)"
-      " fluctuations and long-term (%ds) trends.\n",
+      " pages) were skipped due to either recent (%ds) peaks, or the sum of"
+      " short-term (%ds) fluctuations and long-term (%ds) trends.\n",
       field, total_skipped().count, total_skipped().pages.raw_num(),
+      absl::ToInt64Seconds(last_skip_subrelease_intervals_.peak_interval),
       absl::ToInt64Seconds(last_skip_subrelease_intervals_.short_interval),
       absl::ToInt64Seconds(last_skip_subrelease_intervals_.long_interval));
 
@@ -630,9 +653,11 @@ void SubreleaseStatsTracker<kEpochs>::Print(Printer& out,
 
   out.printf(
       "%s: %.4f%% of decisions confirmed correct, %zu "
-      "pending (%.4f%% of pages, %zu pending).\n",
+      "pending (%.4f%% of pages, %zu pending), as per anticipated %ds realized "
+      "fragmentation.\n",
       field, correctly_skipped_count_percentage, pending_skipped().count,
-      correctly_skipped_pages_percentage, pending_skipped().pages.raw_num());
+      correctly_skipped_pages_percentage, pending_skipped().pages.raw_num(),
+      absl::ToInt64Seconds(last_next_peak_interval_));
 
   // Print subrelease stats
   Length total_subreleased;
@@ -659,6 +684,9 @@ template <size_t kEpochs>
 void SubreleaseStatsTracker<kEpochs>::PrintSubreleaseStatsInPbtxt(
     PbtxtRegion& hpaa, absl::string_view field) const {
   PbtxtRegion region = hpaa.CreateSubRegion(field);
+  region.PrintI64(
+      "skipped_subrelease_interval_ms",
+      absl::ToInt64Milliseconds(last_skip_subrelease_intervals_.peak_interval));
   region.PrintI64("skipped_subrelease_short_interval_ms",
                   absl::ToInt64Milliseconds(
                       last_skip_subrelease_intervals_.short_interval));
@@ -674,6 +702,8 @@ void SubreleaseStatsTracker<kEpochs>::PrintSubreleaseStatsInPbtxt(
   region.PrintI64("correctly_skipped_subrelease_count",
                   correctly_skipped().count);
   region.PrintI64("pending_skipped_subrelease_count", pending_skipped().count);
+  region.PrintI64("next_peak_interval_ms",
+                  absl::ToInt64Milliseconds(last_next_peak_interval_));
 }
 
 template <size_t kEpochs>

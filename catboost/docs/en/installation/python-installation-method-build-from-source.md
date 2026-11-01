@@ -48,7 +48,7 @@ For building with earlier versions see these pages:
         - setuptools
         - wheel (if using setuptools < 70.1.0, ['wheel' functionality has been integrated into setuptools since 70.1.0](https://github.com/pypa/setuptools/issues/1386) )
         - jupyterlab (3.x, 4.x is not supported yet, see [the relevant issue](https://github.com/catboost/catboost/issues/2533))
-        - conan (2.4.1+, for revisions before [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e) only conan 1.x with versions 1.62.0+ is supported)
+        - conan (2.9.2+, for requirements for older CatBoost revisions see [here](build-environment-setup-for-cmake.md#conan))
 
     {% endnote %}
 

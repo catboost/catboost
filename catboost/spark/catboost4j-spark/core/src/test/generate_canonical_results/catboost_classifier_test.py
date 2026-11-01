@@ -48,7 +48,11 @@ def binary_classification_simple_on_dataframe():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'binary_classification_simple_on_dataframe_predictions.json'), 'w'),
+            fp=open(
+                os.path.join(OUTPUT_DIR, 'binary_classification_simple_on_dataframe_predictions.json'),
+                'w',
+                encoding='utf-8',
+            ),
             allow_nan=True,
             indent=2
         )
@@ -102,7 +106,7 @@ def simple_binary_classification():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'simple_binary_classification.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'simple_binary_classification.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -151,7 +155,7 @@ def binary_classification_with_target_border():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'binary_classification_with_target_border.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'binary_classification_with_target_border.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -200,7 +204,11 @@ def binary_classification_with_class_weights_map():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'binary_classification_with_class_weights_map.json'), 'w'),
+            fp=open(
+                os.path.join(OUTPUT_DIR, 'binary_classification_with_class_weights_map.json'),
+                'w',
+                encoding='utf-8',
+            ),
             allow_nan=True,
             indent=2
         )
@@ -251,7 +259,7 @@ def binary_classification_with_weights():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'binary_classification_with_weights.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'binary_classification_with_weights.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -352,7 +360,8 @@ def binary_classification_with_num_and_one_hot_and_ctr_cat_features_with_eval_se
                     OUTPUT_DIR,
                     'binary_classification_with_num_and_one_hot_and_ctr_cat_features_with_eval_sets.json'
                 ),
-                'w'
+                'w',
+                encoding='utf-8',
             ),
             allow_nan=True,
             indent=2
@@ -407,7 +416,7 @@ def simple_multi_classification():
 
         json.dump(
             result,
-            fp=open(os.path.join(OUTPUT_DIR, 'simple_multi_classification.json'), 'w'),
+            fp=open(os.path.join(OUTPUT_DIR, 'simple_multi_classification.json'), 'w', encoding='utf-8'),
             allow_nan=True,
             indent=2
         )
@@ -507,7 +516,8 @@ def multi_classification_with_num_and_one_hot_and_ctr_cat_features_with_eval_set
                     OUTPUT_DIR,
                     'multi_classification_with_num_and_one_hot_and_ctr_cat_features_with_eval_sets.json'
                 ),
-                'w'
+                'w',
+                encoding='utf-8',
             ),
             allow_nan=True,
             indent=2

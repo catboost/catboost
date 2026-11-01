@@ -1,5 +1,6 @@
 #include "http_parser.h"
 
+#include <library/cpp/streams/zstd/zstd.h>
 #include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/string_utils/base64/base64.h>
 
@@ -10,6 +11,14 @@ namespace {
     template <size_t N>
     bool Parse(THttpParser& p, const char (&data)[N]) {
         return p.Parse(data, N - 1);
+    }
+
+    TString CompressZstd(TStringBuf data) {
+        TStringStream out;
+        TZstdCompress compressor(&out, 1);
+        compressor.Write(data);
+        compressor.Finish();
+        return out.Str();
     }
 
     TString MakeEncodedRequest(const TString& encoding, const TString& data) {
@@ -443,6 +452,78 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             UNIT_ASSERT(p.DecodeContent(decoded));
             UNIT_ASSERT_VALUES_EQUAL(decoded, testLine);
         }
+    }
+
+    Y_UNIT_TEST(TParsingZstdContent) {
+        const TVector<TString> bodies = {
+            TString(),
+            TString("promo\0protobuf"sv),
+            TString(256 * 1024, 'x'),
+        };
+        for (const auto& body : bodies) {
+            const TString encoded = CompressZstd(body);
+            for (auto messageType : {THttpParser::Request, THttpParser::Response}) {
+                THttpParser p(messageType);
+                const TString msg = messageType == THttpParser::Request
+                                        ? MakeEncodedRequest("zstd", encoded)
+                                        : MakeEncodedResponse("zstd", encoded);
+                for (size_t i = 0; i + 1 < msg.size(); ++i) {
+                    UNIT_ASSERT(!p.Parse(msg.data() + i, 1));
+                }
+                UNIT_ASSERT(p.Parse(msg.data() + msg.size() - 1, 1));
+                UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), body);
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TParsingChunkedZstdContent) {
+        const TString body("promo\0protobuf"sv);
+        const TString encoded = CompressZstd(body);
+        TStringStream msg;
+        msg << "HTTP/1.1 200 OK\r\n"
+               "Content-Encoding: zstd\r\n"
+               "Transfer-Encoding: chunked\r\n\r\n";
+        for (char byte : encoded) {
+            msg << "1\r\n"
+                << byte << "\r\n";
+        }
+        msg << "0\r\n\r\n";
+
+        THttpParser p;
+        UNIT_ASSERT(p.Parse(msg.Str().data(), msg.Str().size()));
+        UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), body);
+    }
+
+    Y_UNIT_TEST(TParsingMultipleZstdFrames) {
+        const TString msg = MakeEncodedResponse("zstd", CompressZstd("first") + CompressZstd("second"));
+        THttpParser p;
+        UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
+        UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), "firstsecond");
+    }
+
+    Y_UNIT_TEST(TParsingInvalidZstdContent) {
+        TString truncated = CompressZstd("test line");
+        truncated.pop_back();
+        for (const auto& content : {TString("not a zstd frame"), truncated, CompressZstd("test line") + "garbage"}) {
+            const TString msg = MakeEncodedResponse("zstd", content);
+            THttpParser p;
+            UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
+        }
+    }
+
+    Y_UNIT_TEST(TParsingZstdWithoutAutomaticDecoding) {
+        const TString body("promo\0protobuf"sv);
+        const TString encoded = CompressZstd(body);
+        const TString msg = MakeEncodedResponse("zstd", encoded);
+        THttpParser p;
+        p.DisableDecodeContent();
+        UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
+        UNIT_ASSERT_VALUES_EQUAL(p.Content(), encoded);
+        UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), "");
+
+        TString decoded;
+        UNIT_ASSERT(p.DecodeContent(decoded));
+        UNIT_ASSERT_VALUES_EQUAL(decoded, body);
     }
 
     Y_UNIT_TEST(TParsingMultilineHeaders) {

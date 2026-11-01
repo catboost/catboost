@@ -143,6 +143,10 @@ public:
     /// указанным в Content-Encoding (включен по умолчанию)
     void EnableCompressionHeader(bool enable);
 
+    /// Устанавливает политику HTTP-кодирования тела ответа. Если предикат вернул false,
+    /// сжатие тела не применяется, а заголовок Content-Encoding передается без изменений.
+    void SetContentEncodingPredicate(TEncodeContentPredicate predicate);
+
     /// Проверяет, производится ли выдача ответов в упакованном виде.
     bool IsCompressionEnabled() const noexcept;
 

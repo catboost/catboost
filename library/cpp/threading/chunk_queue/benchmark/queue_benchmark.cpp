@@ -135,13 +135,33 @@ namespace {
         RunMpmc(state, q, MakeString);
     }
 
-    void BM_CQ_TManyOneQueue(benchmark::State& state) {
-        NThreading::TManyOneQueue<int> q;
+    void BM_CQ_TManyOneQueue_4(benchmark::State& state) {
+        NThreading::TManyOneQueue<int, 4> q;
         RunMpmc(state, q, MakeInt);
     }
 
-    void BM_CQ_TManyOneQueue_String(benchmark::State& state) {
-        NThreading::TManyOneQueue<TString> q;
+    void BM_CQ_TManyOneQueue_8(benchmark::State& state) {
+        NThreading::TManyOneQueue<int, 8> q;
+        RunMpmc(state, q, MakeInt);
+    }
+
+    void BM_CQ_TManyOneQueue_16(benchmark::State& state) {
+        NThreading::TManyOneQueue<int, 16> q;
+        RunMpmc(state, q, MakeInt);
+    }
+
+    void BM_CQ_TManyOneQueue_4_String(benchmark::State& state) {
+        NThreading::TManyOneQueue<TString, 4> q;
+        RunMpmc(state, q, MakeString);
+    }
+
+    void BM_CQ_TManyOneQueue_8_String(benchmark::State& state) {
+        NThreading::TManyOneQueue<TString, 8> q;
+        RunMpmc(state, q, MakeString);
+    }
+
+    void BM_CQ_TManyOneQueue_16_String(benchmark::State& state) {
+        NThreading::TManyOneQueue<TString, 16> q;
         RunMpmc(state, q, MakeString);
     }
 
@@ -190,7 +210,9 @@ namespace {
     // ----- int, 4096 elements -----
 
     BENCHMARK(BM_CQ_TOneOneQueue)->Args({1, 1, 4096})->UseRealTime();
-    BENCHMARK(BM_CQ_TManyOneQueue)->Args({4, 1, 4096})->Args({16, 1, 4096})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_4)->Args({4, 1, 4096})->Args({16, 1, 4096})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_8)->Args({4, 1, 4096})->Args({16, 1, 4096})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_16)->Args({4, 1, 4096})->Args({16, 1, 4096})->UseRealTime();
     BENCHMARK(BM_CQ_TRelaxedManyOneQueue)->Args({4, 1, 4096})->Args({16, 1, 4096})->UseRealTime();
     BENCHMARK(BM_CQ_TManyManyQueue)->Args({4, 1, 4096})->Args({16, 1, 4096})->Args({4, 4, 4096})->Args({8, 8, 4096})->UseRealTime();
     BENCHMARK(BM_CQ_TRelaxedManyManyQueue)->Args({4, 1, 4096})->Args({16, 1, 4096})->Args({4, 4, 4096})->Args({8, 8, 4096})->UseRealTime();
@@ -199,7 +221,9 @@ namespace {
     // ----- int, 16384 elements -----
 
     BENCHMARK(BM_CQ_TOneOneQueue)->Args({1, 1, 16384})->UseRealTime();
-    BENCHMARK(BM_CQ_TManyOneQueue)->Args({4, 1, 16384})->Args({16, 1, 16384})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_4)->Args({4, 1, 16384})->Args({16, 1, 16384})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_8)->Args({4, 1, 16384})->Args({16, 1, 16384})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_16)->Args({4, 1, 16384})->Args({16, 1, 16384})->UseRealTime();
     BENCHMARK(BM_CQ_TRelaxedManyOneQueue)->Args({4, 1, 16384})->Args({16, 1, 16384})->UseRealTime();
     BENCHMARK(BM_CQ_TManyManyQueue)->Args({4, 1, 16384})->Args({16, 1, 16384})->Args({4, 4, 16384})->Args({8, 8, 16384})->UseRealTime();
     BENCHMARK(BM_CQ_TRelaxedManyManyQueue)->Args({4, 1, 16384})->Args({16, 1, 16384})->Args({4, 4, 16384})->Args({8, 8, 16384})->UseRealTime();
@@ -208,7 +232,9 @@ namespace {
     // ----- TString, 4096 elements -----
 
     BENCHMARK(BM_CQ_TOneOneQueue_String)->Args({1, 1, 4096})->UseRealTime();
-    BENCHMARK(BM_CQ_TManyOneQueue_String)->Args({4, 1, 4096})->Args({16, 1, 4096})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_4_String)->Args({4, 1, 4096})->Args({16, 1, 4096})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_8_String)->Args({4, 1, 4096})->Args({16, 1, 4096})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_16_String)->Args({4, 1, 4096})->Args({16, 1, 4096})->UseRealTime();
     BENCHMARK(BM_CQ_TRelaxedManyOneQueue_String)->Args({4, 1, 4096})->Args({16, 1, 4096})->UseRealTime();
     BENCHMARK(BM_CQ_TManyManyQueue_String)->Args({4, 1, 4096})->Args({16, 1, 4096})->Args({4, 4, 4096})->Args({8, 8, 4096})->UseRealTime();
     BENCHMARK(BM_CQ_TRelaxedManyManyQueue_String)->Args({4, 1, 4096})->Args({16, 1, 4096})->Args({4, 4, 4096})->Args({8, 8, 4096})->UseRealTime();
@@ -217,7 +243,9 @@ namespace {
     // ----- TString, 16384 elements -----
 
     BENCHMARK(BM_CQ_TOneOneQueue_String)->Args({1, 1, 16384})->UseRealTime();
-    BENCHMARK(BM_CQ_TManyOneQueue_String)->Args({4, 1, 16384})->Args({16, 1, 16384})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_4_String)->Args({4, 1, 16384})->Args({16, 1, 16384})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_8_String)->Args({4, 1, 16384})->Args({16, 1, 16384})->UseRealTime();
+    BENCHMARK(BM_CQ_TManyOneQueue_16_String)->Args({4, 1, 16384})->Args({16, 1, 16384})->UseRealTime();
     BENCHMARK(BM_CQ_TRelaxedManyOneQueue_String)->Args({4, 1, 16384})->Args({16, 1, 16384})->UseRealTime();
     BENCHMARK(BM_CQ_TManyManyQueue_String)->Args({4, 1, 16384})->Args({16, 1, 16384})->Args({4, 4, 16384})->Args({8, 8, 16384})->UseRealTime();
     BENCHMARK(BM_CQ_TRelaxedManyManyQueue_String)->Args({4, 1, 16384})->Args({16, 1, 16384})->Args({4, 4, 16384})->Args({8, 8, 16384})->UseRealTime();

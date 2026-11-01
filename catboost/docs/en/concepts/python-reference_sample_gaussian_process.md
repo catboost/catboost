@@ -271,7 +271,7 @@ Possible range is \(0, +inf\)
 
 #### Description
 
-Scale of homogenious noise of GP kernel (adjust if target is noisy)
+Scale of homogeneous noise of GP kernel (adjust if target is noisy)
 
 Possible range is \[0, +inf\)
 

@@ -334,10 +334,10 @@ std::size_t TTransparentWeakPtrHasher::operator()(T* ptr) const
 ////////////////////////////////////////////////////////////////////////////////
 
 //! Abseil hash support for TWeakPtr.
-template <class THash, class T>
-THash AbslHashValue(THash hash, const TWeakPtr<T>& ptr)
+template <class THashState, class T>
+THashState AbslHashValue(THashState hash, const TWeakPtr<T>& ptr)
 {
-    return THash::combine(std::move(hash), ptr.Get());
+    return THashState::combine(std::move(hash), ptr.Get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

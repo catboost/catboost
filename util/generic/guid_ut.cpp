@@ -2,6 +2,10 @@
 
 #include "guid.h"
 
+#include <util/system/datetime.h>
+
+#include <unordered_set>
+
 Y_UNIT_TEST_SUITE(TGuidTest) {
     // TODO - make real constructor
     static TGUID Construct(ui32 d1, ui32 d2, ui32 d3, ui32 d4) {
@@ -124,5 +128,43 @@ Y_UNIT_TEST_SUITE(TGuidTest) {
         TString guid = TGUID::CreateTimebased().AsUuidString();
         UNIT_ASSERT(!guid.empty());
         UNIT_ASSERT_EQUAL(guid[14], '1');
+    }
+
+    Y_UNIT_TEST(UuidV7) {
+        // UUIDv7 stores timestamps with millisecond precision, while TInstant::Now()
+        // has microsecond precision. Round the bounds to avoid rejecting a valid UUID
+        // whose extracted timestamp is earlier within the same millisecond.
+        const TInstant before = TInstant::MilliSeconds(TInstant::Now().MilliSeconds());
+        const TGUID uuid = TGUID::CreateUuidV7();
+        const TInstant after = TInstant::MilliSeconds(TInstant::Now().MilliSeconds());
+
+        UNIT_ASSERT(IsUuidV7(uuid));
+        UNIT_ASSERT_GE(GetUuidV7Timestamp(uuid), before);
+        UNIT_ASSERT_LE(GetUuidV7Timestamp(uuid), after);
+        UNIT_ASSERT_EQUAL(uuid.AsUuidString()[14], '7');
+    }
+
+    Y_UNIT_TEST(UuidV7RfcExample) {
+        // RFC 9562, Appendix A.6.
+        const TGUID uuid = GetUuid("017f22e2-79b0-7cc3-98c4-dc0c0c07398f");
+
+        UNIT_ASSERT(IsUuidV7(uuid));
+        UNIT_ASSERT_EQUAL(GetUuidV7Timestamp(uuid), TInstant::MilliSeconds(1645557742000ULL));
+    }
+
+    Y_UNIT_TEST(UuidV7RejectsWrongVersionAndVariant) {
+        UNIT_ASSERT(!IsUuidV7(GetUuid("017f22e2-79b0-4cc3-98c4-dc0c0c07398f")));
+        UNIT_ASSERT(!IsUuidV7(GetUuid("017f22e2-79b0-7cc3-18c4-dc0c0c07398f")));
+    }
+
+    Y_UNIT_TEST(UuidV7ValuesAreDistinct) {
+        std::unordered_set<TString> uuids;
+        constexpr size_t count = 1000;
+
+        for (size_t i = 0; i < count; ++i) {
+            uuids.insert(TGUID::CreateUuidV7().AsUuidString());
+        }
+
+        UNIT_ASSERT_EQUAL(uuids.size(), count);
     }
 } // Y_UNIT_TEST_SUITE(TGuidTest)

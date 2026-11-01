@@ -320,6 +320,60 @@ float DotProductAvx2(const float* lhs, const float* rhs, size_t length) noexcept
     return HsumFloat(_mm256_add_ps(sum1, sum2));
 }
 
+template <size_t length>
+Y_FORCE_INLINE float DotProductFixedAvx2(const float* lhs, const float* rhs) noexcept {
+    static_assert(length % 32 == 0);
+    // Four independent FMA chains hide FMA latency, loads are the bottleneck.
+    // The loop with constant bound is fully unrolled by the compiler.
+    __m256 sum0 = _mm256_setzero_ps();
+    __m256 sum1 = _mm256_setzero_ps();
+    __m256 sum2 = _mm256_setzero_ps();
+    __m256 sum3 = _mm256_setzero_ps();
+    for (size_t i = 0; i != length; i += 32) {
+        sum0 = _mm256_fmadd_ps(_mm256_loadu_ps(lhs + i + 0), _mm256_loadu_ps(rhs + i + 0), sum0);
+        sum1 = _mm256_fmadd_ps(_mm256_loadu_ps(lhs + i + 8), _mm256_loadu_ps(rhs + i + 8), sum1);
+        sum2 = _mm256_fmadd_ps(_mm256_loadu_ps(lhs + i + 16), _mm256_loadu_ps(rhs + i + 16), sum2);
+        sum3 = _mm256_fmadd_ps(_mm256_loadu_ps(lhs + i + 24), _mm256_loadu_ps(rhs + i + 24), sum3);
+    }
+
+    return HsumFloat(_mm256_add_ps(_mm256_add_ps(sum0, sum1), _mm256_add_ps(sum2, sum3)));
+}
+
+// DotProductAvx2 is inlined here with a constant length and fully unrolled by the compiler
+// (no length switch, leftover handling and loop). Hand-written i8 variants (more accumulators,
+// sign extension via shifts) gave no additional gain. Use AVX512 VNNI (DotProduct*Vnni) when possible.
+i32 DotProduct64Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductAvx2(lhs, rhs, 64);
+}
+
+float DotProduct64Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductFixedAvx2<64>(lhs, rhs);
+}
+
+i32 DotProduct128Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductAvx2(lhs, rhs, 128);
+}
+
+float DotProduct128Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductFixedAvx2<128>(lhs, rhs);
+}
+
+i32 DotProduct256Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductAvx2(lhs, rhs, 256);
+}
+
+float DotProduct256Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductFixedAvx2<256>(lhs, rhs);
+}
+
+i32 DotProduct512Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductAvx2(lhs, rhs, 512);
+}
+
+float DotProduct512Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductFixedAvx2<512>(lhs, rhs);
+}
+
 double DotProductAvx2(const double* lhs, const double* rhs, size_t length) noexcept {
     if (length < 16) {
         return DotProductSse(lhs, rhs, length);
@@ -607,6 +661,38 @@ float DotProductAvx2(const float* lhs, const float* rhs, size_t length) noexcept
     return DotProductSse(lhs, rhs, length);
 }
 
+i32 DotProduct64Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductSse(lhs, rhs, 64);
+}
+
+float DotProduct64Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductSse(lhs, rhs, 64);
+}
+
+i32 DotProduct128Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductSse(lhs, rhs, 128);
+}
+
+float DotProduct128Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductSse(lhs, rhs, 128);
+}
+
+i32 DotProduct512Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductSse(lhs, rhs, 512);
+}
+
+float DotProduct512Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductSse(lhs, rhs, 512);
+}
+
+i32 DotProduct256Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductSse(lhs, rhs, 256);
+}
+
+float DotProduct256Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductSse(lhs, rhs, 256);
+}
+
 double DotProductAvx2(const double* lhs, const double* rhs, size_t length) noexcept {
     return DotProductSse(lhs, rhs, length);
 }
@@ -656,6 +742,38 @@ i64 DotProductAvx2(const i32* lhs, const i32* rhs, size_t length) noexcept {
 
 float DotProductAvx2(const float* lhs, const float* rhs, size_t length) noexcept {
     return DotProductSimple(lhs, rhs, length);
+}
+
+i32 DotProduct64Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductSimple(lhs, rhs, 64);
+}
+
+float DotProduct64Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductSimple(lhs, rhs, 64);
+}
+
+i32 DotProduct128Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductSimple(lhs, rhs, 128);
+}
+
+float DotProduct128Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductSimple(lhs, rhs, 128);
+}
+
+i32 DotProduct256Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductSimple(lhs, rhs, 256);
+}
+
+float DotProduct256Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductSimple(lhs, rhs, 256);
+}
+
+i32 DotProduct512Avx2(const i8* lhs, const i8* rhs) noexcept {
+    return DotProductSimple(lhs, rhs, 512);
+}
+
+float DotProduct512Avx2(const float* lhs, const float* rhs) noexcept {
+    return DotProductSimple(lhs, rhs, 512);
 }
 
 double DotProductAvx2(const double* lhs, const double* rhs, size_t length) noexcept {

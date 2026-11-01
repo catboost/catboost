@@ -142,7 +142,7 @@ namespace {
         } else {
             out << TStringBuf("\r\n");
         }
-        return out.Str();
+        return std::move(out).Str();
     }
 
     bool NeedGetRequestFor(TStringBuf scheme) {
@@ -259,4 +259,3 @@ namespace NNeh {
         }
     }
 }
-

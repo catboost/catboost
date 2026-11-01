@@ -386,7 +386,9 @@ void CrossValidate(
         catBoostOptions.MetricOptions,
         evalMetricDescriptor,
         approxDimension,
-        data->MetaInfo.HasWeights
+        data->MetaInfo.HasWeights ||
+            !catBoostOptions.DataProcessingOptions->ClassWeights.Get().empty() ||
+            catBoostOptions.DataProcessingOptions->AutoClassWeights.Get() != EAutoClassWeightsType::None
     );
 
     CheckMetrics(metrics, catBoostOptions.LossFunctionDescription.Get().GetLossFunction());

@@ -32,16 +32,47 @@ GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
+// Abstract base class for Residency, which offers information about memory
+// residency: whether or not specific spans of memory are resident in core ("m
+// in core"), swapped, or not present.
+class Residency {
+ public:
+  virtual ~Residency() = default;
+
+  struct Info {
+    size_t bytes_resident = 0;
+    size_t bytes_swapped = 0;
+  };
+
+  virtual std::optional<Info> Get(const void* addr, size_t size) = 0;
+  virtual inline size_t GetNativePagesInHugePage() const = 0;
+
+  static constexpr int kMaxResidencyBits = 512;
+  // Struct is ordered with bitmaps first to optimize cacheline usage.
+  struct SinglePageBitmaps {
+    Bitmap<kMaxResidencyBits> unbacked;
+    Bitmap<kMaxResidencyBits> swapped;
+    absl::StatusCode status;
+  };
+
+  // Using a hugepage-aligned address, parse through /proc/self/pagemap
+  // to output two bitmaps - one for pages that are unbacked and one for pages
+  // that are swapped. Hugepage-sized regions are assumed to be 2MiB in size. A
+  // SinglePageBitmaps struct is returned with the status, the page_unbacked
+  // bitmap, and the page_swapped bitmap.
+  virtual SinglePageBitmaps GetUnbackedAndSwappedBitmaps(const void* addr) = 0;
+};
+
 // Residency offers information about memory residency: whether or not specific
 // spans of memory are resident in core ("m in core"), swapped, or not present.
 // Originally, this was implemented via the mincore syscall, but has since been
 // abstracted to provide more information.
-class Residency {
+class ResidencyPageMap : public Residency {
  public:
   // This class keeps an open file handle to procfs. Destroy the object to
   // reclaim it.
-  Residency();
-  ~Residency();
+  ResidencyPageMap();
+  ~ResidencyPageMap() override;
 
   // Query a span of memory starting from `addr` for `size` bytes.
   //
@@ -52,27 +83,19 @@ class Residency {
   //
   // This is NOT thread-safe. Do not use multiple copies of this class across
   // threads.
-  struct Info {
-    size_t bytes_resident = 0;
-    size_t bytes_swapped = 0;
-  };
-  std::optional<Info> Get(const void* addr, size_t size);
+  std::optional<Info> Get(const void* addr, size_t size) override;
 
-  static constexpr int kMaxResidencyBits = 512;
-
-  // Struct is ordered with bitmaps first to optimize cacheline usage.
-  struct SinglePageBitmaps {
-    Bitmap<kMaxResidencyBits> holes;
-    Bitmap<kMaxResidencyBits> swapped;
-    absl::StatusCode status;
-  };
+  // Getter method for kNativePagesInHugePage.
+  size_t GetNativePagesInHugePage() const override {
+    return kNativePagesInHugePage;
+  }
 
   // Using a hugepage-aligned address, parse through /proc/self/pagemap
-  // to output two bitmaps - one for pages that are holes and one for pages that
-  // are swapped. Hugepage-sized regions are assumed to be 2MiB in size. A
-  // SinglePageBitmaps struct is returned with the status , the page_holes
+  // to output two bitmaps - one for pages that are unbacked and one for pages
+  // that are swapped. Hugepage-sized regions are assumed to be 2MiB in size. A
+  // SinglePageBitmaps struct is returned with the status, the page_unbacked
   // bitmap, and the page_swapped bitmap.
-  SinglePageBitmaps GetHolesAndSwappedBitmaps(const void* addr);
+  SinglePageBitmaps GetUnbackedAndSwappedBitmaps(const void* addr) override;
 
  private:
   // This helper seeks the internal file to the correct location for the given
@@ -89,7 +112,7 @@ class Residency {
 
   // For testing.
   friend class ResidencySpouse;
-  explicit Residency(const char* alternate_filename);
+  explicit ResidencyPageMap(const char* alternate_filename);
 
   // Size of the buffer used to gather results.
   static constexpr int kBufferLength = 4096;

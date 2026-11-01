@@ -37,14 +37,14 @@ RUN apt-get install -y python-is-python3
 
 RUN pip3 install --upgrade pip
 
-RUN pip3 install --upgrade 'setuptools>=70.1.0,<83.0' build
+RUN pip3 install --upgrade 'setuptools>=70.1.0,<85.0' build
 
 # Install jupyterlab for catboost-widget
 RUN pip3 install jupyterlab==3.0.6
 
 RUN pip3 install 'cmake>=3.24.0,<4.0'
 
-RUN pip3 install conan==2.4.1
+RUN pip3 install conan==2.9.2
 
 RUN pip3 install cython==3.0.12
 

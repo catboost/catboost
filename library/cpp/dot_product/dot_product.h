@@ -8,7 +8,7 @@
 #include <numeric>
 
 /**
- * Dot product (Inner product or scalar product) implementation using SSE when possible.
+ * Dot product (Inner product or scalar product) implementation using SIMD when possible.
  */
 namespace NDotProductImpl {
     extern i32 (*DotProductI8Impl)(const i8* lhs, const i8* rhs, size_t length) noexcept;
@@ -26,6 +26,15 @@ namespace NDotProductImpl {
 
     extern TTriWayDotProduct<i32> (*TriWayDotProductI8Impl)
         (const i8* lhs, const i8* rhs, size_t length) noexcept;
+
+    extern i32 (*DotProduct64I8Impl)(const i8* lhs, const i8* rhs) noexcept;
+    extern float (*DotProduct64FloatImpl)(const float* lhs, const float* rhs) noexcept;
+    extern i32 (*DotProduct128I8Impl)(const i8* lhs, const i8* rhs) noexcept;
+    extern float (*DotProduct128FloatImpl)(const float* lhs, const float* rhs) noexcept;
+    extern i32 (*DotProduct256I8Impl)(const i8* lhs, const i8* rhs) noexcept;
+    extern float (*DotProduct256FloatImpl)(const float* lhs, const float* rhs) noexcept;
+    extern i32 (*DotProduct512I8Impl)(const i8* lhs, const i8* rhs) noexcept;
+    extern float (*DotProduct512FloatImpl)(const float* lhs, const float* rhs) noexcept;
 }
 
 Y_PURE_FUNCTION
@@ -56,6 +65,51 @@ inline float DotProduct(const float* lhs, const i8* rhs, size_t length) noexcept
 Y_PURE_FUNCTION
 inline double DotProduct(const double* lhs, const double* rhs, size_t length) noexcept {
     return NDotProductImpl::DotProductDoubleImpl(lhs, rhs, length);
+}
+
+/**
+ * Dot product of vectors with fixed length 64, 128, 256 or 512 (`DotProduct256(l, r) == DotProduct(l, r, 256)`).
+ * Fully unrolled, without tail handling and length dispatch, uses AVX512 VNNI for i8 when available.
+ * Float result may differ from `DotProduct` in the last bits because of different summation order.
+ */
+Y_PURE_FUNCTION
+inline i32 DotProduct64(const i8* lhs, const i8* rhs) noexcept {
+    return NDotProductImpl::DotProduct64I8Impl(lhs, rhs);
+}
+
+Y_PURE_FUNCTION
+inline float DotProduct64(const float* lhs, const float* rhs) noexcept {
+    return NDotProductImpl::DotProduct64FloatImpl(lhs, rhs);
+}
+
+Y_PURE_FUNCTION
+inline i32 DotProduct128(const i8* lhs, const i8* rhs) noexcept {
+    return NDotProductImpl::DotProduct128I8Impl(lhs, rhs);
+}
+
+Y_PURE_FUNCTION
+inline float DotProduct128(const float* lhs, const float* rhs) noexcept {
+    return NDotProductImpl::DotProduct128FloatImpl(lhs, rhs);
+}
+
+Y_PURE_FUNCTION
+inline i32 DotProduct256(const i8* lhs, const i8* rhs) noexcept {
+    return NDotProductImpl::DotProduct256I8Impl(lhs, rhs);
+}
+
+Y_PURE_FUNCTION
+inline float DotProduct256(const float* lhs, const float* rhs) noexcept {
+    return NDotProductImpl::DotProduct256FloatImpl(lhs, rhs);
+}
+
+Y_PURE_FUNCTION
+inline i32 DotProduct512(const i8* lhs, const i8* rhs) noexcept {
+    return NDotProductImpl::DotProduct512I8Impl(lhs, rhs);
+}
+
+Y_PURE_FUNCTION
+inline float DotProduct512(const float* lhs, const float* rhs) noexcept {
+    return NDotProductImpl::DotProduct512FloatImpl(lhs, rhs);
 }
 
 /**

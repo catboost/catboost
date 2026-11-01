@@ -175,6 +175,22 @@ static inline TStringBuf GetHostAndPortImpl(const TStringBuf url) {
     };
 
     const auto& nonHostCharacters = *Singleton<TDelim>();
+
+    // Handle IPv6 addresses enclosed in brackets (RFC 3986): the host is [...],
+    // optionally followed by :port. Colons inside brackets are not delimiters.
+    if (!urlNoScheme.empty() && urlNoScheme[0] == '[') {
+        const size_t closeBracket = urlNoScheme.find(']');
+        if (closeBracket != TStringBuf::npos) {
+            if constexpr (KeepPort) {
+                // Include port after ]: find end at first /;?#
+                const char* end = nonHostCharacters.brk(urlNoScheme.begin() + closeBracket + 1, urlNoScheme.end());
+                return urlNoScheme.Head(end - urlNoScheme.data());
+            } else {
+                return urlNoScheme.Head(closeBracket + 1);
+            }
+        }
+    }
+
     const char* firstNonHostCharacter = nonHostCharacters.brk(urlNoScheme.begin(), urlNoScheme.end());
 
     if (firstNonHostCharacter != urlNoScheme.end()) {
@@ -216,7 +232,7 @@ TStringBuf GetSchemeHostAndPort(const TStringBuf url Y_LIFETIME_BOUND, bool trim
     TStringBuf hostAndPort = GetHostAndPort(url.Tail(schemeSize));
 
     if (trimDefaultPort) {
-        const size_t pos = hostAndPort.find(':');
+        const size_t pos = hostAndPort.rfind(':');
         if (pos != TStringBuf::npos) {
             const bool isHttps = (scheme == TStringBuf("https://"));
 

@@ -1931,7 +1931,7 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject) e
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
 
-cdef TCustomCallbackDescriptor _BuildCustomCallbackDescritor(object callbackObject) except *:
+cdef TCustomCallbackDescriptor _BuildCustomCallbackDescriptor(object callbackObject) except *:
     cdef TCustomCallbackDescriptor descriptor
     descriptor.CustomData = <void*>callbackObject
     descriptor.AfterIterationFunc = &_CallbackAfterIteration
@@ -2080,7 +2080,7 @@ cdef class _PreprocessParams:
                     "Custom eval metric should not be inherited from MultiTargetCustomMetric for single-target objective"
 
         if params_to_json.get("callbacks") == "PythonUserDefinedPerObject":
-            self.customCallbackDescriptor = _BuildCustomCallbackDescritor(params["callbacks"])
+            self.customCallbackDescriptor = _BuildCustomCallbackDescriptor(params["callbacks"])
 
         dumps_params = dumps(params_to_json, cls=_NumpyAwareEncoder)
 

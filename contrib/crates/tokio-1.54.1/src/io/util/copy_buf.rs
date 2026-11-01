@@ -1,0 +1,176 @@
+use crate::io::{AsyncBufRead, AsyncWrite};
+use std::future::Future;
+use std::io;
+use std::pin::Pin;
+use std::task::{ready, Context, Poll};
+
+cfg_io_util! {
+    /// A future that asynchronously copies the entire contents of a reader into a
+    /// writer.
+    ///
+    /// This struct is generally created by calling [`copy_buf`][copy_buf]. Please
+    /// see the documentation of `copy_buf()` for more details.
+    ///
+    /// [copy_buf]: copy_buf()
+    #[derive(Debug)]
+    #[must_use = "futures do nothing unless you `.await` or poll them"]
+    struct CopyBuf<'a, R: ?Sized, W: ?Sized> {
+        reader: &'a mut R,
+        writer: &'a mut W,
+        amt: u64,
+        need_flush: bool,
+    }
+
+    /// Asynchronously copies the entire contents of a reader into a writer.
+    ///
+    /// This function returns a future that will continuously read data from
+    /// `reader` and then write it into `writer` in a streaming fashion until
+    /// `reader` returns EOF or fails.
+    ///
+    /// On success, the total number of bytes that were copied from `reader` to
+    /// `writer` is returned.
+    ///
+    /// This is a [`tokio::io::copy`] alternative for [`AsyncBufRead`] readers
+    /// with no extra buffer allocation, since [`AsyncBufRead`] allow access
+    /// to the reader's inner buffer.
+    ///
+    /// # When to use async alternatives instead of `SyncIoBridge`
+    ///
+    /// If you are looking to use [`std::io::copy`] with a synchronous consumer
+    /// (like a `hasher` or compressor), consider using async alternatives instead of
+    /// wrapping the reader with [`SyncIoBridge`]. See the [`SyncIoBridge`]
+    /// documentation for detailed examples and guidance on hashing, compression,
+    /// and data parsing.
+    ///
+    /// [`tokio::io::copy`]: crate::io::copy
+    /// [`AsyncBufRead`]: crate::io::AsyncBufRead
+    /// [`SyncIoBridge`]: https://docs.rs/tokio-util/latest/tokio_util/io/struct.SyncIoBridge.html
+    ///
+    /// # Errors
+    ///
+    /// Errors from `poll_fill_buf` and `poll_write` are returned immediately,
+    /// except [`io::ErrorKind::Interrupted`], which is retried. Errors from
+    /// flushing the writer are returned without retrying.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::io;
+    ///
+    /// # async fn dox() -> std::io::Result<()> {
+    /// let mut reader: &[u8] = b"hello";
+    /// let mut writer: Vec<u8> = vec![];
+    ///
+    /// io::copy_buf(&mut reader, &mut writer).await?;
+    ///
+    /// assert_eq!(b"hello", &writer[..]);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn copy_buf<'a, R, W>(reader: &'a mut R, writer: &'a mut W) -> io::Result<u64>
+    where
+        R: AsyncBufRead + Unpin + ?Sized,
+        W: AsyncWrite + Unpin + ?Sized,
+    {
+        CopyBuf {
+            reader,
+            writer,
+            amt: 0,
+            need_flush: false,
+        }.await
+    }
+}
+
+impl<R, W> Future for CopyBuf<'_, R, W>
+where
+    R: AsyncBufRead + Unpin + ?Sized,
+    W: AsyncWrite + Unpin + ?Sized,
+{
+    type Output = io::Result<u64>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        #[cfg(any(
+            feature = "fs",
+            feature = "io-std",
+            feature = "net",
+            feature = "process",
+            feature = "rt",
+            feature = "signal",
+            feature = "sync",
+            feature = "time",
+        ))]
+        // Keep track of task budget
+        let coop = ready!(crate::task::coop::poll_proceed(cx));
+        loop {
+            let me = &mut *self;
+            let buffer = match Pin::new(&mut *me.reader).poll_fill_buf(cx) {
+                Poll::Ready(Ok(buffer)) => {
+                    #[cfg(any(
+                        feature = "fs",
+                        feature = "io-std",
+                        feature = "net",
+                        feature = "process",
+                        feature = "rt",
+                        feature = "signal",
+                        feature = "sync",
+                        feature = "time",
+                    ))]
+                    coop.made_progress();
+                    buffer
+                }
+                Poll::Ready(Err(err)) if err.kind() == io::ErrorKind::Interrupted => continue,
+                Poll::Ready(Err(err)) => {
+                    #[cfg(any(
+                        feature = "fs",
+                        feature = "io-std",
+                        feature = "net",
+                        feature = "process",
+                        feature = "rt",
+                        feature = "signal",
+                        feature = "sync",
+                        feature = "time",
+                    ))]
+                    coop.made_progress();
+                    return Poll::Ready(Err(err));
+                }
+                Poll::Pending => {
+                    // Try flushing when the reader has no progress to avoid deadlock
+                    // when the reader depends on buffered writer.
+                    if me.need_flush {
+                        ready!(Pin::new(&mut *me.writer).poll_flush(cx))?;
+                        me.need_flush = false;
+                    }
+
+                    return Poll::Pending;
+                }
+            };
+
+            if buffer.is_empty() {
+                ready!(Pin::new(&mut self.writer).poll_flush(cx))?;
+                return Poll::Ready(Ok(self.amt));
+            }
+
+            let i = match ready!(Pin::new(&mut *me.writer).poll_write(cx, buffer)) {
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                res => res?,
+            };
+            if i == 0 {
+                return Poll::Ready(Err(std::io::ErrorKind::WriteZero.into()));
+            }
+            self.amt += i as u64;
+            self.need_flush = true;
+            Pin::new(&mut *self.reader).consume(i);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn assert_unpin() {
+        use std::marker::PhantomPinned;
+        crate::is_unpin::<CopyBuf<'_, PhantomPinned, PhantomPinned>>();
+    }
+}

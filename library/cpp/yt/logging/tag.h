@@ -2,6 +2,9 @@
 
 #include "public.h"
 
+#include <library/cpp/yt/misc/lazy.h>
+#include <library/cpp/yt/misc/no_op.h>
+
 #include <library/cpp/yt/string/format.h>
 
 #include <util/generic/strbuf.h>
@@ -70,38 +73,57 @@ struct TWellKnownLoggingTagTraits
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//! Appends keyed tags to an existing list, fluently.
+//! Appends keyed tags to an existing list, fluently, and invokes #functor once the chain
+//! is over, i.e. when the guard dies.
 /*!
  *  Lets an owner of a #TLoggingTagList offer |request->Annotate().With("Key", value)|
  *  without exposing the list itself. Holds the list by pointer and appends in place, so
- *  the chain need not be a single expression and nothing is committed at the end.
+ *  the chain need not be a single expression.
  *
- *  The referenced list must outlive the builder.
+ *  The referenced list must outlive the guard. A null #tags discards the chain without
+ *  formatting anything, for owners that annotate only when someone will read the tags.
+ *
+ *  The functor is optional -- for owners that must act on the tags rather than merely
+ *  collect them -- and is not invoked when the guard dies while an exception is
+ *  propagating.
  */
-class TLoggingTagListBuilder
+template <class TFunctor = TNoOp>
+class TLoggingTagListBuilderGuard
 {
 public:
-    explicit TLoggingTagListBuilder(TLoggingTagList* tags Y_LIFETIME_BOUND);
+    explicit TLoggingTagListBuilderGuard(TLoggingTagList* tags Y_LIFETIME_BOUND, TFunctor functor = {});
+    ~TLoggingTagListBuilderGuard();
+
+    TLoggingTagListBuilderGuard(const TLoggingTagListBuilderGuard&) = delete;
+    TLoggingTagListBuilderGuard& operator=(const TLoggingTagListBuilderGuard&) = delete;
 
     template <class TValue>
-    TLoggingTagListBuilder& With(TLoggingTagKey key, const TValue& value);
+    TLoggingTagListBuilderGuard& With(TLoggingTagKey key, const TValue& value);
 
-    //! Attaches the tag only when #condition holds. NB: #value is evaluated either way.
+    //! Attaches the tag only when #condition holds.
+    //! NB: #value is evaluated either way unless wrapped in |YT_LAZY|.
     template <class TValue>
-    TLoggingTagListBuilder& WithIf(bool condition, TLoggingTagKey key, const TValue& value);
+    TLoggingTagListBuilderGuard& WithIf(bool condition, TLoggingTagKey key, const TValue& value);
 
     template <class... TArgs>
-    TLoggingTagListBuilder& WithFormat(TLoggingTagKey key, TFormatString<TArgs...> format, TArgs&&... args);
+    TLoggingTagListBuilderGuard& WithFormat(TLoggingTagKey key, TFormatString<TArgs...> format, TArgs&&... args);
 
-    //! Attaches a composed tag only when #condition holds. NB: #args are evaluated either way.
+    //! Attaches a composed tag only when #condition holds.
+    //! NB: #args are evaluated either way unless wrapped in |YT_LAZY|.
     template <class... TArgs>
-    TLoggingTagListBuilder& WithFormatIf(bool condition, TLoggingTagKey key, TFormatString<TArgs...> format, TArgs&&... args);
+    TLoggingTagListBuilderGuard& WithFormatIf(
+        bool condition,
+        TLoggingTagKey key,
+        TFormatString<TForced<TArgs>...> format,
+        TArgs&&... args);
 
     //! Splices a pre-built list, keeping its tags individual.
-    TLoggingTagListBuilder& With(const TLoggingTagList& tags);
+    TLoggingTagListBuilderGuard& With(const TLoggingTagList& tags);
 
 private:
     TLoggingTagList* const Tags_;
+    Y_NO_UNIQUE_ADDRESS TFunctor Functor_;
+    const int UncaughtExceptionCount_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

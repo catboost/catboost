@@ -1,24 +1,11 @@
 #pragma once
 
+#include "comparison.h"
 #include "compact_vector.h"
 
 #include <functional>
 
 namespace NYT {
-
-///////////////////////////////////////////////////////////////////////////////
-
-namespace NDetail {
-
-template <typename T>
-concept CHasIsTransparentFlag = requires {
-    typename T::is_transparent;
-};
-
-template <typename T, typename U, typename TCompare>
-concept CComparisonAllowed = std::same_as<T, U> || CHasIsTransparentFlag<TCompare>;
-
-} // namespace NDetail
 
 ///////////////////////////////////////////////////////////////////////////////
 

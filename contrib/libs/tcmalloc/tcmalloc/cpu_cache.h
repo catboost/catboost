@@ -68,6 +68,8 @@ namespace cpu_cache_internal {
 template <class CpuCache>
 struct DrainHandler;
 
+bool use_wider_slabs();
+
 // Determine number of bits we should use for allocating per-cpu cache.
 // The amount of per-cpu cache is 2 ^ per-cpu-shift.
 // When dynamic slab size is enabled, we start with kInitialPerCpuShift and
@@ -177,6 +179,14 @@ class StaticForwarder {
 
   static bool UseShardedCacheForLargeClassesOnly() {
     return tc_globals.sharded_transfer_cache().UseCacheForLargeClassesOnly();
+  }
+
+  static bool UseWiderSlabs() {
+    // We use wider 512KiB slab only when NUMA partitioning is not enabled. NUMA
+    // increases shift by 1 by itself, so we can not increase it further.
+    //
+    // TODO(b/394157733): Remove call to use_wider_slabs.
+    return use_wider_slabs() && !numa_topology().numa_aware();
   }
 
   static bool HaveHooks() { return tc_globals.HaveHooks(); }
@@ -931,9 +941,7 @@ inline void CpuCache<Forwarder>::UpdateMaxCapacity(int size_class,
 
 template <class Forwarder>
 inline bool CpuCache<Forwarder>::UseWiderSlabs() const {
-  // We use wider 512KiB slab only when NUMA partitioning is not enabled. NUMA
-  // increases shift by 1 by itself, so we can not increase it further.
-  return !forwarder_.numa_topology().numa_aware();
+  return forwarder_.UseWiderSlabs();
 }
 
 template <class Forwarder>

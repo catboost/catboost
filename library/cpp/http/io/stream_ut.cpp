@@ -441,6 +441,67 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         UNIT_ASSERT(!result.Contains("content-length"));
     }
 
+    TString MakeCompressedResponse(bool allowContentEncoding, TStringBuf contentEncoding = {}) {
+        TString requestData = "GET / HTTP/1.1\r\nAccept-Encoding: gzip\r\n";
+        requestData += "X-Allow-Content-Encoding: ";
+        requestData += allowContentEncoding ? "yes" : "no";
+        requestData += "\r\n";
+        requestData += "\r\n";
+
+        TMemoryInput request(requestData);
+        THttpInput httpInput(&request);
+        TString result;
+        TStringOutput output(result);
+        THttpOutput httpOutput(&output, &httpInput);
+        httpOutput.EnableCompression(true);
+        httpOutput.SetContentEncodingPredicate([](const THttpHeaders& requestHeaders, const THttpHeaders& responseHeaders) {
+            const auto* requestHeader = requestHeaders.FindHeader("X-Allow-Content-Encoding");
+            const auto* responseHeader = responseHeaders.FindHeader("X-Allow-Content-Encoding");
+            return requestHeader && requestHeader->Value() == "yes" &&
+                   responseHeader && responseHeader->Value() == "yes";
+        });
+
+        constexpr TStringBuf body = "Mary had a little lamb.";
+        httpOutput << "HTTP/1.1 200 OK\r\n"
+                   << "Content-Type: application/octet-stream\r\n"
+                   << "X-Allow-Content-Encoding: " << (allowContentEncoding ? "yes" : "no") << "\r\n"
+                   << "Content-Length: " << body.size() << "\r\n";
+        if (contentEncoding) {
+            httpOutput << "Content-Encoding: " << contentEncoding << "\r\n";
+        }
+        httpOutput << "\r\n" << body;
+        httpOutput.Finish();
+        return result;
+    }
+
+    void AssertCompressionBypassed(const TString& response) {
+        TMemoryInput input(response);
+        THttpInput httpInput(&input);
+        UNIT_ASSERT(!httpInput.Headers().HasHeader("Content-Encoding"));
+        UNIT_ASSERT(httpInput.Headers().HasHeader("Content-Length"));
+        UNIT_ASSERT_VALUES_EQUAL(httpInput.ReadAll(), "Mary had a little lamb.");
+    }
+
+    Y_UNIT_TEST(ContentEncodingPredicateBypassesNegotiatedCompression) {
+        AssertCompressionBypassed(MakeCompressedResponse(false));
+    }
+
+    Y_UNIT_TEST(ContentEncodingPredicateBypassesExplicitContentEncoding) {
+        const TString response = MakeCompressedResponse(false, "gzip");
+        const TString lower = to_lower(response);
+        UNIT_ASSERT(lower.Contains("content-encoding: gzip"));
+        UNIT_ASSERT(lower.Contains("content-length:"));
+        UNIT_ASSERT(response.EndsWith("Mary had a little lamb."));
+    }
+
+    Y_UNIT_TEST(ContentEncodingPredicateAllowsCompression) {
+        const TString response = MakeCompressedResponse(true);
+        const TString lower = to_lower(response);
+        UNIT_ASSERT(lower.Contains("content-encoding: gzip"));
+        UNIT_ASSERT(!lower.Contains("content-length:"));
+        UNIT_ASSERT(!response.EndsWith("Mary had a little lamb."));
+    }
+
     Y_UNIT_TEST(CodecsPriority) {
         TMemoryInput request("GET / HTTP/1.1\r\nAccept-Encoding: gzip, br\r\n\r\n");
         TVector<TStringBuf> codecs = {"br", "gzip"};
