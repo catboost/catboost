@@ -772,6 +772,6 @@ void NCB::NOnnx::ConvertOnnxToCatboostModel(const onnx::ModelProto& onnxModel, T
     //InitMetaData
     ConfigureMetaInfo(onnxModel, fullModel);
 
-    onnx::GraphProto onnxGraph = onnxModel.graph();
+    const onnx::GraphProto& onnxGraph = onnxModel.graph();
     ConfigureSymmetricTrees(onnxGraph, fullModel);
 }
