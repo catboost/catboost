@@ -300,6 +300,26 @@ Y_UNIT_TEST_SUITE(TEnumBitSetTest) {
         static_assert(TTestBitSet::BitsetSize == TE_MAX - TE_FIRST);
         static_assert(TTestBitSet::IsValid(TE_1));
         static_assert(!TTestBitSet::IsValid(TE_OVERFLOW));
+
+        constexpr auto mask = [] {
+            TTestBitSet result(TE_1, TE_3);
+            result |= TE_MIDDLE;
+            result.Reset(TE_3);
+            return result;
+        }();
+        static_assert(mask == TTestBitSet(TE_1, TE_MIDDLE));
+
+        constexpr int sum = [mask] {
+            int result = 0;
+            for (const auto value : mask) {
+                result += value;
+            }
+            return result;
+        }();
+        static_assert(sum == TE_1 + TE_MIDDLE);
+
+        constexpr TSfEnumBitSet<ETestEnum, TE_FIRST, 8> safeMask(TE_1, TE_3, TE_OVERFLOW);
+        static_assert(safeMask.ToMask() == 0xa);
     }
 
     Y_UNIT_TEST(TestEmpty) {
