@@ -600,7 +600,7 @@ static void ConfigureMetaInfo(const onnx::ModelProto& onnxModel, TFullModel* ful
         modelInfo[key] = value;
     }
 
-    fullModel->ModelInfo = modelInfo;
+    fullModel->ModelInfo = std::move(modelInfo);
 }
 
 
