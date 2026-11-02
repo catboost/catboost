@@ -333,6 +333,7 @@ public:
         if (new_attr.name() == #attr) { \
             attr = &new_attr; \
         }
+
         if (isClassifierModel) {
             target_ids = nullptr;
             target_nodeids = nullptr;
