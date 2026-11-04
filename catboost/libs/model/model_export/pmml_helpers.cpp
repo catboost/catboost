@@ -569,7 +569,13 @@ static void OutputTreeEnsemble(
 
     const auto& modelTrees = *model.ModelTrees;
 
-    if (!isChainPart && modelTrees.GetOneHotFeatures().size()) {
+    // must be before 'LocalTransformations' and 'Segmentation' to comply with the PMML schema
+    if (!isChainPart) {
+        OutputTargetsFields(model, xmlOut);
+    }
+
+    // the derived fields are resolvable only from the model that directly contains the tree segments
+    if (modelTrees.GetOneHotFeatures().size()) {
         OutputCategoricalMapping(model, *catFeaturesHashToString, oneHotValuesToIdx, xmlOut);
     }
 
@@ -590,18 +596,32 @@ static void OutputTreeEnsemble(
             OutputTree(model, treeIdx, targetName, *oneHotValuesToIdx, &obliviousTreeFirstGlobalLeafIdx, xmlOut);
         }
     }
-    if (!isChainPart) {
-        OutputTargetsFields(model, xmlOut);
-    }
 }
 
 
-static void OutputClassFromApprox(TXmlOutputContext* xmlOut) {
-    TXmlElementOutputContext treeModel(xmlOut, "TreeModel");
+static void OutputClassificationOutputFields(TXmlOutputContext* xmlOut) {
+    TXmlElementOutputContext output(xmlOut, "Output");
+    {
+        TXmlElementOutputContext outputField(xmlOut, "OutputField");
+        xmlOut->AddAttr("name", "prediction").AddAttr("optype", "categorical").AddAttr("dataType", "boolean");
+    }
+    for (auto classValue : {TStringBuf("false"), TStringBuf("true")}) {
+        TXmlElementOutputContext outputField(xmlOut, "OutputField");
+        xmlOut->AddAttr("name", TStringBuilder() << "probability(" << classValue << ")")
+            .AddAttr("optype", "continuous")
+            .AddAttr("dataType", "double")
+            .AddAttr("feature", "probability")
+            .AddAttr("value", classValue);
+    }
+}
 
-    xmlOut->AddAttr("modelName", "selectClass")
+// probability(true) = 1 / (1 + exp(-(bias + scale * approx))), probability(false) = 1 - it
+static void OutputProbabilitiesAndClassFromApprox(const TFullModel& model, TXmlOutputContext* xmlOut) {
+    TXmlElementOutputContext regressionModel(xmlOut, "RegressionModel");
+
+    xmlOut->AddAttr("modelName", "classProbabilities")
         .AddAttr("functionName", "classification")
-        .AddAttr("splitCharacteristic", "binarySplit");
+        .AddAttr("normalizationMethod", "logit");
 
     {
         TXmlElementOutputContext miningSchema(xmlOut, "MiningSchema");
@@ -609,35 +629,27 @@ static void OutputClassFromApprox(TXmlOutputContext* xmlOut) {
             TXmlElementOutputContext miningField(xmlOut, "MiningField");
             xmlOut->AddAttr("name", "approx").AddAttr("usageType", "active");
         }
+        {
+            TXmlElementOutputContext miningField(xmlOut, "MiningField");
+            xmlOut->AddAttr("name", "prediction").AddAttr("usageType", "target");
+        }
     }
 
-    {
-        TXmlElementOutputContext output(xmlOut, "Output");
-        TXmlElementOutputContext outputField(xmlOut, "OutputField");
-        xmlOut->AddAttr("name", "prediction").AddAttr("optype", "categorical").AddAttr("dataType", "boolean");
-    }
+    OutputClassificationOutputFields(xmlOut);
 
-    TXmlElementOutputContext node(xmlOut, "Node");
-    xmlOut->AddAttr("id", "root");
-
-    // predicate
     {
-        TXmlElementOutputContext predicate(xmlOut, "True");
+        // scale and bias are folded in here: 'Targets' rescaling is defined only for continuous targets
+        TXmlElementOutputContext regressionTable(xmlOut, "RegressionTable");
+        xmlOut->AddAttr("targetCategory", "true")
+            .AddAttr("intercept", model.GetScaleAndBias().GetOneDimensionalBiasOrZero());
+
+        TXmlElementOutputContext numericPredictor(xmlOut, "NumericPredictor");
+        xmlOut->AddAttr("name", "approx").AddAttr("coefficient", model.GetScaleAndBias().Scale);
     }
     {
-        TXmlElementOutputContext node(xmlOut, "Node");
-        xmlOut->AddAttr("id", "1").AddAttr("score", "true");
-
-        TXmlElementOutputContext simplePredicate(xmlOut, "SimplePredicate");
-        xmlOut->AddAttr("field", "approx")
-            .AddAttr("operator", "greaterThan")
-            .AddAttr("value", "0.0");
-    }
-    {
-        TXmlElementOutputContext node(xmlOut, "Node");
-        xmlOut->AddAttr("id", "0").AddAttr("score", "false");
-
-        TXmlElementOutputContext predicate(xmlOut, "True");
+        // the reference category, its probability is derived from the first table's one
+        TXmlElementOutputContext regressionTable(xmlOut, "RegressionTable");
+        xmlOut->AddAttr("targetCategory", "false").AddAttr("intercept", 0.0);
     }
 }
 
@@ -654,10 +666,6 @@ static void OutputMiningModel(
         xmlOut->AddAttr("functionName", "classification");
 
         OutputMiningSchemaWithModelFeatures(model, /*mappedCategoricalFeatures*/ false, "prediction", xmlOut);
-
-        if (model.ModelTrees->GetOneHotFeatures().size()) {
-            OutputCategoricalMapping(model, *catFeaturesHashToString, &oneHotValuesToIdx, xmlOut);
-        }
 
         {
             TXmlElementOutputContext segmentation(xmlOut, "Segmentation");
@@ -683,10 +691,9 @@ static void OutputMiningModel(
                     TXmlElementOutputContext predicate(xmlOut, "True");
                 }
 
-                OutputClassFromApprox(xmlOut);
+                OutputProbabilitiesAndClassFromApprox(model, xmlOut);
             }
         }
-        OutputTargetsFields(model, xmlOut);
     } else {
         OutputTreeEnsemble(model, "prediction", /*isChainPart*/ false, catFeaturesHashToString, &oneHotValuesToIdx, xmlOut);
     }
