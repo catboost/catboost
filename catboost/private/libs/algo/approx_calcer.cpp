@@ -687,19 +687,29 @@ static void CalcExactLeafDeltas(
     TConstArrayRef<float> targets,
     TConstArrayRef<float> weights,
     TVector<double>* leafDeltas) {
+    const bool needOrigTargets = (lossDescription.GetLossFunction() == ELossFunction::PiecewiseQuantile);
     TVector<TVector<float>> leafSamples(leafCount);
     TVector<TVector<float>> leafWeights(leafCount);
+    TVector<TVector<float>> leafOrigTargets;
+    if (needOrigTargets) {
+        leafOrigTargets.resize(leafCount);
+    }
 
     for (size_t i = 0; i < sampleCount; i++) {
         Y_ASSERT(indices[i] < leafSamples.size());
         leafSamples[indices[i]].emplace_back(targets[i] - approxes[i]);
         leafWeights[indices[i]].emplace_back(weights[i]);
+        if (needOrigTargets) {
+            leafOrigTargets[indices[i]].emplace_back(targets[i]);
+        }
     }
 
     Y_ASSERT(leafCount == leafDeltas->size());
     for (size_t i = 0; i < leafCount; i++) {
         double& leafDelta = (*leafDeltas)[i];
-        leafDelta = *NCB::CalcOneDimensionalOptimumConstApprox(lossDescription, leafSamples[i], leafWeights[i]);
+        leafDelta = *NCB::CalcOneDimensionalOptimumConstApprox(
+            lossDescription, leafSamples[i], leafWeights[i],
+            needOrigTargets ? leafOrigTargets[i] : TConstArrayRef<float>());
     }
 }
 
