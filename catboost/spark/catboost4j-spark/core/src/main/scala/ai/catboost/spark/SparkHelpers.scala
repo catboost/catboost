@@ -5,7 +5,7 @@ import util.control.Breaks._
 import org.apache.spark.{SparkContext,SparkJobInfo,SparkStageInfo}
 import org.apache.spark.sql.SparkSession
 
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 
 
 private[spark] object SparkHelpers {

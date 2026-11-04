@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+import ai.catboost.common.CatBoostError;
 import ai.catboost.common.NativeLib;
 
 /**
