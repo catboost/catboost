@@ -67,6 +67,27 @@ Several methods for applying a model to different types of objects and input fea
 {{ java__ref-table-header__modifier-and-type }}: [CatBoostPredictions](java-reference_catboostpredictions.md) or {{ java__modifier-and-type__void }}
 
 
+#### [predictProba](java-reference_catboostmodel__predictproba.md)
+
+Several methods for applying a classification model to different types of objects and input features and getting class probabilities.
+
+{{ java__ref-table-header__modifier-and-type }}: [CatBoostPredictions](java-reference_catboostpredictions.md)
+
+
+#### [getLossFunctionName](java-reference_catboostmodel__getlossfunctionname.md)
+
+Return the name of the loss function the model has been trained with.
+
+{{ java__ref-table-header__modifier-and-type }}: {{ java__modifier-and-type__string }}
+
+
+#### [isClassificationModel](java-reference_catboostmodel__isclassificationmodel.md)
+
+Return whether class probabilities can be calculated for the model.
+
+{{ java__ref-table-header__modifier-and-type }}: {{ java__modifier-and-type__boolean }}
+
+
 #### [close](java-reference_catboostmodel__close.md)
 
 
