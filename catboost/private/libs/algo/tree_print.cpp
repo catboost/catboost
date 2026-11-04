@@ -164,11 +164,11 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     }
 
     if (feature.Type == ESplitType::OnlineCtr) {
-        result << ", border=" << feature.OnlineCtr.Border;
+        result << ", border=" << FloatToString(feature.OnlineCtr.Border);
     } else if (feature.Type == ESplitType::FloatFeature) {
-        result << ", bin=" << feature.FloatFeature.Split;
+        result << ", bin=" << FloatToString(feature.FloatFeature.Split);
     } else if (feature.Type == ESplitType::EstimatedFeature) {
-        result << ", bin=" << feature.EstimatedFeature.Split;
+        result << ", bin=" << FloatToString(feature.EstimatedFeature.Split);
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);
         result << ", value=";
