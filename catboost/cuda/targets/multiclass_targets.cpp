@@ -66,6 +66,14 @@ namespace NCatboostCuda {
                 &sampledIndices,
                 (TVec*)nullptr,
                 &ders);
+        } else if (Type == ELossFunction::MultiRMSEWithMissingValues) {
+            MultiRMSEWithMissingValuesValueAndDer(
+                gatheredTarget.ConstCopyView(),
+                weights.ConstCopyView(),
+                point,
+                &sampledIndices,
+                (TVec*)nullptr,
+                &ders);
         } else {
             CB_ENSURE(false, "Bug");
         }
@@ -99,6 +107,15 @@ namespace NCatboostCuda {
                 stream);
         } else if (Type == ELossFunction::MultiRMSE) {
             MultiRMSEValueAndDer(
+                target,
+                weights,
+                point,
+                (const TStripeBuffer<ui32>*)nullptr,
+                value,
+                der,
+                stream);
+        } else if (Type == ELossFunction::MultiRMSEWithMissingValues) {
+            MultiRMSEWithMissingValuesValueAndDer(
                 target,
                 weights,
                 point,
@@ -148,6 +165,18 @@ namespace NCatboostCuda {
                     target.GetColumnCount() == point.GetColumnCount(),
                     LabeledOutput(target.GetColumnCount(), point.GetColumnCount()));
                 MultiRMSESecondDerRow(
+                    target,
+                    weights,
+                    row,
+                    der,
+                    stream);
+                break;
+            }
+            case ELossFunction::MultiRMSEWithMissingValues: {
+                CB_ENSURE(
+                    target.GetColumnCount() == point.GetColumnCount(),
+                    LabeledOutput(target.GetColumnCount(), point.GetColumnCount()));
+                MultiRMSEWithMissingValuesSecondDerRow(
                     target,
                     weights,
                     row,
