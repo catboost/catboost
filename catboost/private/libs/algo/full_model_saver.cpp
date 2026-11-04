@@ -766,7 +766,8 @@ namespace NCB {
                 [] (EModelType format) {
                     return format == EModelType::Python ||
                         format == EModelType::Cpp ||
-                        format == EModelType::Json;
+                        format == EModelType::Json ||
+                        format == EModelType::Pmml;
                 }
             );
             if (anyExportFormatRequiresCatFeaturesHashToString) {
