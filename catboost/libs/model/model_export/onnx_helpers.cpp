@@ -273,27 +273,27 @@ static void InitProbabilitiesOutput(
 
 struct TTreesAttributes {
     // TreeEnsembleClassifier only
-    onnx::AttributeProto* class_ids;
-    onnx::AttributeProto* class_nodeids;
-    onnx::AttributeProto* class_treeids;
-    onnx::AttributeProto* class_weights;
+    onnx::AttributeProto* class_ids = nullptr;
+    onnx::AttributeProto* class_nodeids = nullptr;
+    onnx::AttributeProto* class_treeids = nullptr;
+    onnx::AttributeProto* class_weights = nullptr;
 
     // TreeEnsembleRegressor only
-    onnx::AttributeProto* target_ids;
-    onnx::AttributeProto* target_nodeids;
-    onnx::AttributeProto* target_treeids;
-    onnx::AttributeProto* target_weights;
+    onnx::AttributeProto* target_ids = nullptr;
+    onnx::AttributeProto* target_nodeids = nullptr;
+    onnx::AttributeProto* target_treeids = nullptr;
+    onnx::AttributeProto* target_weights = nullptr;
 
-    onnx::AttributeProto* base_values;  // can be nullptr if model has no bias.
-    onnx::AttributeProto* nodes_falsenodeids;
-    onnx::AttributeProto* nodes_featureids;
-    onnx::AttributeProto* nodes_hitrates;
-    onnx::AttributeProto* nodes_missing_value_tracks_true;
-    onnx::AttributeProto* nodes_modes;
-    onnx::AttributeProto* nodes_nodeids;
-    onnx::AttributeProto* nodes_treeids;
-    onnx::AttributeProto* nodes_truenodeids;
-    onnx::AttributeProto* nodes_values;
+    onnx::AttributeProto* base_values = nullptr;  // can be nullptr if model has no bias.
+    onnx::AttributeProto* nodes_falsenodeids = nullptr;
+    onnx::AttributeProto* nodes_featureids = nullptr;
+    onnx::AttributeProto* nodes_hitrates = nullptr;
+    onnx::AttributeProto* nodes_missing_value_tracks_true = nullptr;
+    onnx::AttributeProto* nodes_modes = nullptr;
+    onnx::AttributeProto* nodes_nodeids = nullptr;
+    onnx::AttributeProto* nodes_treeids = nullptr;
+    onnx::AttributeProto* nodes_truenodeids = nullptr;
+    onnx::AttributeProto* nodes_values = nullptr;
 
 public:
     TTreesAttributes(
@@ -348,49 +348,69 @@ public:
         const bool isClassifierModel,
         google::protobuf::RepeatedPtrField<onnx::AttributeProto>& attributes) {
 
-#define SET_ATTR(attr, new_attr) \
-        if (new_attr.name() == #attr) { \
-            attr = &new_attr; \
+#define SET_ATTR(attr, attr_type_suffix) \
+        if (attribute.name() == #attr) { \
+            CB_ENSURE(!attr, "Duplicate ONNX attribute " << #attr); \
+            CB_ENSURE(attribute.type() == onnx::AttributeProto_AttributeType_##attr_type_suffix, \
+                "Invalid type of ONNX attribute " << #attr); \
+            attr = &attribute; \
         }
-
-        if (isClassifierModel) {
-            target_ids = nullptr;
-            target_nodeids = nullptr;
-            target_treeids = nullptr;
-            target_weights = nullptr;
-        } else {
-            class_ids = nullptr;
-            class_nodeids = nullptr;
-            class_treeids = nullptr;
-            class_weights = nullptr;
-        }
-        base_values = nullptr;
 
         for (auto& attribute : attributes) {
             if (isClassifierModel) {
-                SET_ATTR(class_ids, attribute);
-                SET_ATTR(class_nodeids, attribute);
-                SET_ATTR(class_treeids, attribute);
-                SET_ATTR(class_weights, attribute);
+                SET_ATTR(class_ids, INTS);
+                SET_ATTR(class_nodeids, INTS);
+                SET_ATTR(class_treeids, INTS);
+                SET_ATTR(class_weights, FLOATS);
             } else {
-                SET_ATTR(target_ids, attribute);
-                SET_ATTR(target_nodeids, attribute);
-                SET_ATTR(target_treeids, attribute);
-                SET_ATTR(target_weights, attribute);
+                SET_ATTR(target_ids, INTS);
+                SET_ATTR(target_nodeids, INTS);
+                SET_ATTR(target_treeids, INTS);
+                SET_ATTR(target_weights, FLOATS);
             }
 
-            SET_ATTR(base_values, attribute);
-            SET_ATTR(nodes_falsenodeids, attribute);
-            SET_ATTR(nodes_featureids, attribute);
-            SET_ATTR(nodes_hitrates, attribute);
-            SET_ATTR(nodes_missing_value_tracks_true, attribute);
-            SET_ATTR(nodes_modes, attribute);
-            SET_ATTR(nodes_nodeids, attribute);
-            SET_ATTR(nodes_treeids, attribute);
-            SET_ATTR(nodes_truenodeids, attribute);
-            SET_ATTR(nodes_values, attribute);
+            SET_ATTR(base_values, FLOATS);
+            SET_ATTR(nodes_falsenodeids, INTS);
+            SET_ATTR(nodes_featureids, INTS);
+            SET_ATTR(nodes_hitrates, FLOATS);
+            SET_ATTR(nodes_missing_value_tracks_true, INTS);
+            SET_ATTR(nodes_modes, STRINGS);
+            SET_ATTR(nodes_nodeids, INTS);
+            SET_ATTR(nodes_treeids, INTS);
+            SET_ATTR(nodes_truenodeids, INTS);
+            SET_ATTR(nodes_values, FLOATS);
         }
 #undef SET_ATTR
+
+        CB_ENSURE(nodes_treeids && nodes_treeids->ints_size() > 0, "ONNX nodes_treeids must not be empty");
+        const int nodeCount = nodes_treeids->ints_size();
+#define CHECK_ATTR_SIZE(attr, field, size) \
+        CB_ENSURE(attr, "Missing ONNX attribute " << #attr); \
+        CB_ENSURE(attr->field##_size() == size, "Invalid size of ONNX attribute " << #attr);
+
+        CHECK_ATTR_SIZE(nodes_nodeids, ints, nodeCount);
+        CHECK_ATTR_SIZE(nodes_featureids, ints, nodeCount);
+        CHECK_ATTR_SIZE(nodes_falsenodeids, ints, nodeCount);
+        CHECK_ATTR_SIZE(nodes_truenodeids, ints, nodeCount);
+        CHECK_ATTR_SIZE(nodes_modes, strings, nodeCount);
+        CHECK_ATTR_SIZE(nodes_values, floats, nodeCount);
+        if (nodes_missing_value_tracks_true && nodes_missing_value_tracks_true->ints_size() > 0) {
+            CHECK_ATTR_SIZE(nodes_missing_value_tracks_true, ints, nodeCount);
+        }
+        if (isClassifierModel) {
+            CB_ENSURE(class_treeids && class_treeids->ints_size() > 0, "ONNX class_treeids must not be empty");
+            const int weightCount = class_treeids->ints_size();
+            CHECK_ATTR_SIZE(class_nodeids, ints, weightCount);
+            CHECK_ATTR_SIZE(class_ids, ints, weightCount);
+            CHECK_ATTR_SIZE(class_weights, floats, weightCount);
+        } else {
+            CB_ENSURE(target_treeids && target_treeids->ints_size() > 0, "ONNX target_treeids must not be empty");
+            const int weightCount = target_treeids->ints_size();
+            CHECK_ATTR_SIZE(target_nodeids, ints, weightCount);
+            CHECK_ATTR_SIZE(target_ids, ints, weightCount);
+            CHECK_ATTR_SIZE(target_weights, floats, weightCount);
+        }
+#undef CHECK_ATTR_SIZE
     }
 };
 
@@ -1122,7 +1142,9 @@ static void PrepareTrees(
                 split.FloatFeature.Split = treesAttributes.nodes_values->floats(idx);
 
                 //update floatFeatures
-                if (treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1) {
+                if (treesAttributes.nodes_missing_value_tracks_true &&
+                    treesAttributes.nodes_missing_value_tracks_true->ints_size() > 0 &&
+                    treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1) {
                     (*floatFeatures)[split.FloatFeature.FloatFeature].NanValueTreatment =
                     ENanValueTreatment::AsTrue;
                 }
