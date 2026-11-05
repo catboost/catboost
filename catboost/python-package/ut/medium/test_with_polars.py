@@ -11,7 +11,7 @@ import numpy as np
 
 import polars as pl
 
-from catboost import Pool, _have_equal_features, CatBoost, CatBoostClassifier, CatBoostRanker, CatBoostRegressor
+from catboost import Pool, _have_equal_features, CatBoost, CatBoostClassifier, CatBoostRanker, CatBoostRegressor, CatBoostError
 import catboost.utils
 
 try:
@@ -815,6 +815,25 @@ def test_features_categorical(data_type_spec, has_nulls, n_samples, n_features, 
             assert _have_equal_features(dataset_from_lists, dataset_from_df, ignore_cat_features_hash_to_string=True)
 
             check_features_with_model_methods(X, Xdf, y, feature_names, cat_features=feature_names)
+
+
+@pytest.mark.parametrize('invalid_dtype', [pl.Float64, pl.Object])
+def test_categorical_column_error_waits_for_workers(invalid_dtype):
+    # The last column fails either during dispatch or in a Python callback while
+    # the preceding Arrow columns are still being processed by C++ workers.
+    n_samples = 10000
+    data = pl.DataFrame({
+        **{f'cat_{i}': pl.Series(range(n_samples), dtype=pl.Int32) for i in range(7)},
+        'invalid': pl.Series([0.5] * n_samples, dtype=invalid_dtype),
+    })
+    for _ in range(5):
+        with pytest.raises(CatBoostError, match="column for feature 'invalid'|cat_feature"):
+            Pool(data, cat_features=data.columns, thread_count=4)
+
+    valid_data = data.drop('invalid')
+    actual = Pool(valid_data, cat_features=valid_data.columns, thread_count=4)
+    expected = Pool(valid_data.rows(), cat_features=valid_data.columns, feature_names=valid_data.columns)
+    assert _have_equal_features(actual, expected, ignore_cat_features_hash_to_string=True)
 
 
 text_test_data_types_specs = [
