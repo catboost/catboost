@@ -121,7 +121,7 @@ namespace NCB {
         TStringOutput out(data);
         SerializeFullModelToOnnxStream(model, userParametersJson, &out, catFeaturesHashToString);
         return data;
-        }
+    }
 
     void OutputModelOnnx(
         const TFullModel& model,
