@@ -62,7 +62,7 @@ namespace NKernel {
         const ui32 blockSize = 256;
         const ui32 elementsPerThreads = 4;
         const ui32 numBlocks = CeilDivide<ui32>(size, blockSize * elementsPerThreads);
-        AddBinModelValueImpl<blockSize, elementsPerThreads> << <numBlocks, blockSize, 0, stream>>>(binValues, binCount, bins, size, readIndices, writeIndices, cursorDim, cursorAlignSize, cursor);
+        AddBinModelValueImpl<blockSize, elementsPerThreads> <<<numBlocks, blockSize, 0, stream>>>(binValues, binCount, bins, size, readIndices, writeIndices, cursorDim, cursorAlignSize, cursor);
     }
 
 
@@ -178,7 +178,7 @@ namespace NKernel {
 
         const ui32 blockSize = 256;
         const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
-        AddObliviousTreeImpl<< <numBlocks, blockSize, 0, stream>>>(features, bins, leaves, depth, cindex, readIndices, writeIndices, size, cursor, cursorAlignSize, cursorDim);
+        AddObliviousTreeImpl<<<numBlocks, blockSize, 0, stream>>>(features, bins, leaves, depth, cindex, readIndices, writeIndices, size, cursor, cursorAlignSize, cursorDim);
     }
 
 
@@ -192,7 +192,7 @@ namespace NKernel {
 
         const ui32 blockSize = 256;
         const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
-       ComputeObliviousTreeBinsImpl<< <numBlocks, blockSize, 0, stream>>>(features, bins, depth, cindex, readIndices, writeIndices, cursor, size);
+       ComputeObliviousTreeBinsImpl<<<numBlocks, blockSize, 0, stream>>>(features, bins, depth, cindex, readIndices, writeIndices, cursor, size);
     }
 
 
@@ -333,7 +333,7 @@ namespace NKernel {
 
         const ui32 blockSize = 256;
         const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
-        AddRegionImpl<< <numBlocks, blockSize, 0, stream>>>(features, splits, leaves, depth, cindex, readIndices, writeIndices, size, cursor, cursorAlignSize, cursorDim);
+        AddRegionImpl<<<numBlocks, blockSize, 0, stream>>>(features, splits, leaves, depth, cindex, readIndices, writeIndices, size, cursor, cursorAlignSize, cursorDim);
     }
 
     void ComputeRegionBins(const TCFeature* features, const TRegionDirection* bins, ui32 depth,
@@ -346,7 +346,7 @@ namespace NKernel {
 
         const ui32 blockSize = 256;
         const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
-        ComputeRegionBinsImpl<< <numBlocks, blockSize, 0, stream>>>(features, bins, depth, cindex, readIndices, writeIndices, cursor, size);
+        ComputeRegionBinsImpl<<<numBlocks, blockSize, 0, stream>>>(features, bins, depth, cindex, readIndices, writeIndices, cursor, size);
     }
 
 
@@ -407,7 +407,7 @@ namespace NKernel {
 
         const ui32 blockSize = 256;
         const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
-        ComputeNonSymmetricDecisionTreeBinsImpl<< <numBlocks, blockSize, 0, stream>>>(features, nodes, cindex, readIndices, writeIndices, cursor, size);
+        ComputeNonSymmetricDecisionTreeBinsImpl<<<numBlocks, blockSize, 0, stream>>>(features, nodes, cindex, readIndices, writeIndices, cursor, size);
     }
 
 

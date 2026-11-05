@@ -648,8 +648,7 @@ namespace NKernel {
         numBlocks.y  =  1;
         numBlocks.z  =  1;
         if (numBlocks.x) {
-            SplitAndMakeSequenceInSingleLeafImpl<N, blockSize> << < numBlocks, blockSize, 0, stream >>
-                > (compressedIndex, loadIndices, parts, leafId, splitFeature, splitBin, splitFlags, indices);
+            SplitAndMakeSequenceInSingleLeafImpl<N, blockSize> <<< numBlocks, blockSize, 0, stream >>>(compressedIndex, loadIndices, parts, leafId, splitFeature, splitBin, splitFlags, indices);
         }
     }
 
@@ -700,12 +699,23 @@ namespace NKernel {
             char* tempStorage = context.TempStorage.Get();
 
             const ui64 tempOffsetsSize = sizeof(int) * part.Size;
+#if defined(USE_HIP)
+            // rocPRIM's DeviceScan lookback tile-state requires its
+            // temp storage to be aligned. This shares one buffer for the int
+            // scan output [0, 4*part.Size) and the scan working temp after it;
+            // at offset 4*part.Size (not 256-aligned) rocPRIM corrupts the scan
+            // non-deterministically at tile boundaries, producing wrong split
+            // indices. Start the scan temp at a 256-aligned offset.
+            const ui64 scanTempOffset = (tempOffsetsSize + 255) & ~static_cast<ui64>(255);
+#else
+            const ui64 scanTempOffset = tempOffsetsSize;
+#endif
             {
                 using TInput = TScanBitIterator<bool>;
                 TInput inputIter(context.TempFlags.Get(), 0);
 
-                ui64 tempStorageSize = tempStorage ? context.TempStorageSizes[0] - tempOffsetsSize : 0;
-                auto scanTmp = tempStorage ? (void*)(tempStorage + tempOffsetsSize) : nullptr;
+                ui64 tempStorageSize = tempStorage ? context.TempStorageSizes[0] - scanTempOffset : 0;
+                auto scanTmp = tempStorage ? (void*)(tempStorage + scanTempOffset) : nullptr;
                 cudaError_t err = cub::DeviceScan::ExclusiveSum < TInput, int*> (scanTmp,
                                                                tempStorageSize,
                                                                inputIter,
@@ -713,7 +723,7 @@ namespace NKernel {
                                                                part.Size,
                                                                stream);
                 if (!tempStorage) {
-                    context.TempStorageSizes[0] = tempStorageSize + tempOffsetsSize;
+                    context.TempStorageSizes[0] = tempStorageSize + scanTempOffset;
                 }
                 CUDA_SAFE_CALL(err);
             }
@@ -722,7 +732,7 @@ namespace NKernel {
                 const int blockSize = 512;
                 const int N = 1;
                 const int numBlocks = (part.Size + (N * blockSize) - 1) / (N * blockSize);
-                ReorderOneBitImpl<bool, ui32, N, blockSize> << < numBlocks, blockSize, 0, stream >> > (
+                ReorderOneBitImpl<bool, ui32, N, blockSize> <<< numBlocks, blockSize, 0, stream >>> (
                     flagsSrc,
                         indicesSrc,
                         (int*) tempStorage,

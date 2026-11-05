@@ -632,13 +632,13 @@ template <int BlockSize, bool IsFullPass>
     {
 
         if (fullPass) {
-            ComputeSplitPropertiesNBImpl < BlockSize, true > << <numBlocks, BlockSize, 0, stream>>>(BlocksPerFeatureCount,
+            ComputeSplitPropertiesNBImpl < BlockSize, true > <<<numBlocks, BlockSize, 0, stream>>>(BlocksPerFeatureCount,
                     nbFeatures, nbCount, cindex, target,
                             indices, partition, binSums, binFeatureCount
             );
 
         } else {
-            ComputeSplitPropertiesNBImpl < BlockSize, false > << <numBlocks, BlockSize, 0, stream>>>( BlocksPerFeatureCount,
+            ComputeSplitPropertiesNBImpl < BlockSize, false > <<<numBlocks, BlockSize, 0, stream>>>( BlocksPerFeatureCount,
                     nbFeatures, nbCount, cindex, target,
                             indices, partition, binSums, binFeatureCount
             );
@@ -659,9 +659,9 @@ template <int BlockSize, bool IsFullPass>
                                      TCudaStream stream,
                                      dim3 numBlocks) {
         if (fullPass) {
-            ComputeSplitPropertiesBImpl < BlockSize, true > << <numBlocks, BlockSize, 0, stream>>>(BlocksPerFeatureCount, bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
+            ComputeSplitPropertiesBImpl < BlockSize, true > <<<numBlocks, BlockSize, 0, stream>>>(BlocksPerFeatureCount, bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
         } else {
-            ComputeSplitPropertiesBImpl < BlockSize, false > << <numBlocks, BlockSize, 0, stream>>>(BlocksPerFeatureCount, bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
+            ComputeSplitPropertiesBImpl < BlockSize, false > <<<numBlocks, BlockSize, 0, stream>>>(BlocksPerFeatureCount, bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
         }
     };
 
@@ -761,12 +761,12 @@ template <int BlockSize, bool IsFullPass>
     {
 
         if (fullPass) {
-            ComputeSplitPropertiesHalfByteImpl < BlockSize, true > << <numBlocks, BlockSize, 0, stream>>>(
+            ComputeSplitPropertiesHalfByteImpl < BlockSize, true > <<<numBlocks, BlockSize, 0, stream>>>(
                     BlocksPerFeatureCount, nbFeatures, nbCount, cindex, target, indices, partition, binSums, binFeatureCount
             );
 
         } else {
-            ComputeSplitPropertiesHalfByteImpl < BlockSize, false > << <numBlocks, BlockSize, 0, stream>>>(
+            ComputeSplitPropertiesHalfByteImpl < BlockSize, false > <<<numBlocks, BlockSize, 0, stream>>>(
                     BlocksPerFeatureCount, nbFeatures, nbCount, cindex, target, indices, partition, binSums, binFeatureCount);
         }
     }

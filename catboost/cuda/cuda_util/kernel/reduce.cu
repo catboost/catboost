@@ -6,10 +6,14 @@
 #include <cub/device/device_reduce.cuh>
 #include <cub/device/device_segmented_reduce.cuh>
 
+#if !defined(USE_HIP)
+// libcu++ (cuda/std) is CUDA-only; on HIP the thrust::plus fallback below is
+// taken because _LIBCUDACXX_CUDA_API_VERSION stays undefined.
 #include <cuda/std/version>
 
 #if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2008000
 #include <cuda/functional>
+#endif
 #endif
 
 #include <thrust/functional.h>
@@ -280,7 +284,7 @@ namespace NKernel {
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
 
-                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
+                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> <<< min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >>>
                                 (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
 
                     } else if (meanSize <= 4) {
@@ -288,7 +292,7 @@ namespace NKernel {
                         const ui32 blockSize = 256;
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
-                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
+                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> <<< min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >>>
                                 (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
 
                     } else if (meanSize <= 8) {
@@ -296,7 +300,7 @@ namespace NKernel {
                         const ui32 blockSize = 256;
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
-                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
+                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> <<< min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >>>
                                 (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
 
                     } else if (meanSize <= 16) {
@@ -304,18 +308,18 @@ namespace NKernel {
                         const ui32 blockSize = 256;
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
-                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >
+                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> <<< min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >>>
                                 (input, beginOffsets, endOffsets, numSegments, output, numBlocks);
                     } else if (meanSize <= 256) {
                         const ui32 lineSize = 32;
                         const ui32 blockSize = 256;
                         const ui32 segmentsPerBlock = blockSize / lineSize;
                         const ui32 numBlocks = CeilDivide(numSegments, segmentsPerBlock);
-                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >(input, beginOffsets, endOffsets, numSegments, output, numBlocks);
+                        SegmentedReduceWarpPartPerSegmentImpl<T, blockSize, lineSize> <<< min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >>>(input, beginOffsets, endOffsets, numSegments, output, numBlocks);
                     } else {
                         const ui32 blockSize = 512;
                         const ui32 numBlocks = numSegments;
-                        SegmentedReduceBlockPerSegmentImpl<T, blockSize> << < min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >> >(input, beginOffsets, endOffsets, numSegments, output, numBlocks);
+                        SegmentedReduceBlockPerSegmentImpl<T, blockSize> <<< min(numBlocks, (ui32)TArchProps::MaxBlockCount()), blockSize, 0, stream >>>(input, beginOffsets, endOffsets, numSegments, output, numBlocks);
                     }
                     return cudaSuccess;
                 }
