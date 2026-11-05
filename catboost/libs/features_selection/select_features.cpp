@@ -74,7 +74,7 @@ namespace NCB {
             for (const ui32 feature : featuresForSelect) {
                 CB_ENSURE(
                     feature < featureCount,
-                    "Tested feature " << feature << " is not present; dataset contains only " << featureCount
+                    "Tested feature # " << feature << " is not present; dataset contains only " << featureCount
                     << " features"
                 );
             }
@@ -173,7 +173,7 @@ namespace NCB {
         const TPoolLoadParams* poolLoadParams,
         NPar::ILocalExecutor* executor
     ) {
-        CATBOOST_DEBUG_LOG << "Loading fstr pool..." << Endl;
+        CATBOOST_DEBUG_LOG << "Loading fstr dataset..." << Endl;
         const ui32 totalDocumentCount = srcPool->GetObjectCount();
         const ui32 minSubsetDocumentCount = SafeIntegerCast<ui32>(
             GetMaxObjectCountForFstrCalc(
@@ -247,7 +247,7 @@ namespace NCB {
         TDataProviderPtr fstrPool = haveFeaturesInMemory
             ? GetSubsetForFstrCalc(srcPool, executor)
             : LoadSubsetForFstrCalc(srcPool, catBoostOptions, poolLoadParams, executor);
-        CATBOOST_DEBUG_LOG << "Fstr pool size: " << fstrPool->GetObjectCount() << Endl;
+        CATBOOST_DEBUG_LOG << "Fstr dataset size: " << fstrPool->GetObjectCount() << Endl;
 
         auto trainingData = QuantizePools(
             poolLoadParams,

@@ -41,7 +41,8 @@ public:
 
     void CalcBordersWithoutNans(i32 threadCount);
 
-    /* updates parameters in quantizedFeaturesInfo passed to constructor
+    /**
+     * updates parameters in quantizedFeaturesInfo passed to constructor
      * @param hasNans is an array with flatFeatureIdx index, can be empty
      */
     void Finish(TConstArrayRef<i8> hasNans);

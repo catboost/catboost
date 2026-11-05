@@ -1,3 +1,4 @@
+#include <contrib/libs/llvm/flang-rt/flang-rt/lib/runtime/stl-overrides.h>
 //===-- lib/runtime/unit.cpp ------------------------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -826,20 +827,23 @@ void ExternalFileUnit::HitEndOnRead(IoErrorHandler &handler) {
 }
 
 ChildIo &ExternalFileUnit::PushChildIo(IoStatementState &parent) {
-  OwningPtr<ChildIo> current{std::move(child_)};
+  ChildIo *current{child_};
   Terminator &terminator{parent.GetIoErrorHandler()};
-  OwningPtr<ChildIo> next{New<ChildIo>{terminator}(parent, std::move(current))};
-  child_.reset(next.release());
+  child_ = new (AllocateMemoryOrCrash(terminator, sizeof(ChildIo)))
+      ChildIo{parent, current};
   leftTabLimit = positionInRecord;
   return *child_;
 }
 
 void ExternalFileUnit::PopChildIo(ChildIo &child) {
-  if (child_.get() != &child) {
+  ChildIo *previous = child.AcquirePrevious();
+  if (child_ != &child) {
     child.parent().GetIoErrorHandler().Crash(
         "ChildIo being popped is not top of stack");
   }
-  child_.reset(child.AcquirePrevious().release()); // deletes top child
+  child_->~ChildIo(); // delete top child
+  FreeMemory(child_);
+  child_ = previous;
 }
 
 std::uint32_t ExternalFileUnit::ReadHeaderOrFooter(std::int64_t frameOffset) {

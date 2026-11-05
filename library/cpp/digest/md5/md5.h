@@ -7,6 +7,9 @@ class IInputStream;
 
 class MD5 {
 public:
+    static constexpr size_t MD5_HEX_DIGEST_LENGTH = 32;
+
+public:
     MD5() {
         Init();
     }

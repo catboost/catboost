@@ -1,11 +1,14 @@
 #include "dot_product.h"
 #include "dot_product_simple.h"
+#include "dot_product_avx2.h"
+#include "dot_product_vnni.h"
 
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <library/cpp/sse/sse.h>
 #include <util/generic/vector.h>
 #include <util/random/fast.h>
+#include <util/system/cpu_id.h>
 
 #include <cmath>
 
@@ -37,18 +40,142 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         return sum;
     }
 
+    template <class Res, class TLhs, class TRhs>
+    Res SimpleDotProductMixed(const TLhs* lhs, const TRhs* rhs, size_t length) {
+        Res sum = 0;
+        for (size_t i = 0; i < length; ++i) {
+            sum += static_cast<Res>(lhs[i]) * static_cast<Res>(rhs[i]);
+        }
+        return sum;
+    }
+
+    bool HaveVnniDotProduct() {
+        return NX86::HaveAVX2() && NX86::HaveFMA() && NX86::HaveAVX512BW() && NX86::HaveAVX512VNNI();
+    }
+
     Y_UNIT_TEST(TestDotProduct8) {
         TVector<i8> a(100);
         FillWithRandomNumbers(a.data(), 179, 100);
         TVector<i8> b(100);
         FillWithRandomNumbers(b.data(), 239, 100);
 
+        const bool haveVnni = HaveVnniDotProduct();
         for (size_t i = 0; i < 30; ++i) {
             for (size_t length = 1; length + i + 1 < a.size(); ++length) {
-                UNIT_ASSERT_EQUAL(DotProduct(a.data() + i, b.data() + i, length), (SimpleDotProduct<i32, i8>(a.data() + i, b.data() + i, length)));
-                UNIT_ASSERT_EQUAL(DotProductSimple(a.data() + i, b.data() + i, length), (SimpleDotProduct<i32, i8>(a.data() + i, b.data() + i, length)));
+                const i32 expected = SimpleDotProduct<i32, i8>(a.data() + i, b.data() + i, length);
+                UNIT_ASSERT_EQUAL(DotProduct(a.data() + i, b.data() + i, length), expected);
+                UNIT_ASSERT_EQUAL(DotProductSimple(a.data() + i, b.data() + i, length), expected);
+                if (haveVnni) {
+                    UNIT_ASSERT_EQUAL(DotProductVnni(a.data() + i, b.data() + i, length), expected);
+                }
             }
         }
+    }
+
+    Y_UNIT_TEST(TestDotProduct8VnniEdges) {
+        if (!HaveVnniDotProduct()) {
+            return;
+        }
+
+        TVector<i8> a(512);
+        TVector<i8> b(512);
+        for (size_t i = 0; i < a.size(); ++i) {
+            a[i] = static_cast<i8>((i * 37) % 256 - 128);
+            b[i] = static_cast<i8>((i * 53 + 17) % 256 - 128);
+        }
+
+        for (size_t offset = 0; offset < 16; ++offset) {
+            for (size_t length = 0; length + offset <= a.size(); ++length) {
+                UNIT_ASSERT_EQUAL(
+                    DotProductVnni(a.data() + offset, b.data() + offset, length),
+                    (SimpleDotProduct<i32, i8>(a.data() + offset, b.data() + offset, length)));
+            }
+        }
+    }
+
+    using TFixedI8DotProduct = i32 (*)(const i8* lhs, const i8* rhs) noexcept;
+    using TFixedFloatDotProduct = float (*)(const float* lhs, const float* rhs) noexcept;
+
+    void TestFixedLengthI8(size_t length, TFixedI8DotProduct dispatched, TFixedI8DotProduct avx2, TFixedI8DotProduct vnni) {
+        TVector<i8> a(length + 16);
+        TVector<i8> b(length + 16);
+        FillWithRandomNumbers(a.data(), 179, a.size());
+        FillWithRandomNumbers(b.data(), 239, b.size());
+
+        const bool haveAvx2 = NX86::HaveAVX2() && NX86::HaveFMA();
+        const bool haveVnni = HaveVnniDotProduct();
+        const auto check = [&](const i8* lhs, const i8* rhs) {
+            const i32 expected = SimpleDotProduct<i32, i8>(lhs, rhs, length);
+            UNIT_ASSERT_VALUES_EQUAL(dispatched(lhs, rhs), expected);
+            if (haveAvx2) {
+                UNIT_ASSERT_VALUES_EQUAL(avx2(lhs, rhs), expected);
+            }
+            if (haveVnni) {
+                UNIT_ASSERT_VALUES_EQUAL(vnni(lhs, rhs), expected);
+            }
+        };
+
+        for (size_t offset = 0; offset < 16; ++offset) {
+            check(a.data() + offset, b.data() + offset);
+        }
+
+        // extreme values
+        const i8 extremes[][2] = {{-128, -128}, {-128, 127}, {127, 127}, {127, -128}};
+        for (const auto& [l, r] : extremes) {
+            TVector<i8> lhs(length, l);
+            TVector<i8> rhs(length, r);
+            check(lhs.data(), rhs.data());
+        }
+    }
+
+    void TestFixedLengthFloat(size_t length, TFixedFloatDotProduct dispatched, TFixedFloatDotProduct avx2) {
+        TVector<float> a(length + 16);
+        TVector<float> b(length + 16);
+        FillWithRandomFloats(a.data(), 179, a.size());
+        FillWithRandomFloats(b.data(), 239, b.size());
+
+        const bool haveAvx2 = NX86::HaveAVX2() && NX86::HaveFMA();
+        for (size_t offset = 0; offset < 16; ++offset) {
+            const float* lhs = a.data() + offset;
+            const float* rhs = b.data() + offset;
+            const double expected = SimpleDotProduct<double, float>(lhs, rhs, length);
+            UNIT_ASSERT(std::fabs(dispatched(lhs, rhs) - expected) < EPSILON * expected);
+            if (haveAvx2) {
+                UNIT_ASSERT(std::fabs(avx2(lhs, rhs) - expected) < EPSILON * expected);
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestDotProduct64I8) {
+        TestFixedLengthI8(64, &DotProduct64, &DotProduct64Avx2, &DotProduct64Vnni);
+    }
+
+    Y_UNIT_TEST(TestDotProduct128I8) {
+        TestFixedLengthI8(128, &DotProduct128, &DotProduct128Avx2, &DotProduct128Vnni);
+    }
+
+    Y_UNIT_TEST(TestDotProduct256I8) {
+        TestFixedLengthI8(256, &DotProduct256, &DotProduct256Avx2, &DotProduct256Vnni);
+    }
+
+    Y_UNIT_TEST(TestDotProduct512I8) {
+        TestFixedLengthI8(512, &DotProduct512, &DotProduct512Avx2, &DotProduct512Vnni);
+    }
+
+    Y_UNIT_TEST(TestDotProduct64Float) {
+        TestFixedLengthFloat(64, &DotProduct64, &DotProduct64Avx2);
+    }
+
+    Y_UNIT_TEST(TestDotProduct128Float) {
+        TestFixedLengthFloat(128, &DotProduct128, &DotProduct128Avx2);
+    }
+
+    Y_UNIT_TEST(TestDotProduct256Float) {
+        TestFixedLengthFloat(256, &DotProduct256, &DotProduct256Avx2);
+    }
+
+    Y_UNIT_TEST(TestDotProduct512Float) {
+        TestFixedLengthFloat(512, &DotProduct512, &DotProduct512Avx2);
     }
 
     Y_UNIT_TEST(TestDotProduct8u) {
@@ -89,6 +216,72 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
             for (size_t length = 1; length + i + 1 < a.size(); ++length) {
                 UNIT_ASSERT(std::fabs(DotProduct(a.data() + i, b.data() + i, length) - (SimpleDotProduct<float, float>(a.data() + i, b.data() + i, length))) < EPSILON);
                 UNIT_ASSERT(std::fabs(DotProductSimple(a.data() + i, b.data() + i, length) - (SimpleDotProduct<float, float>(a.data() + i, b.data() + i, length))) < EPSILON);
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestDotProductFloatI8) {
+        TVector<float> floats(100);
+        FillWithRandomFloats(floats.data(), 179, 100);
+        TVector<i8> bytes(100);
+        FillWithRandomNumbers(bytes.data(), 239, 100);
+
+        constexpr double MIXED_EPSILON = 1e-4;
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t length = 1; length + i + 1 < floats.size(); ++length) {
+                const float expected = SimpleDotProductMixed<float, float, i8>(floats.data() + i, bytes.data() + i, length);
+                UNIT_ASSERT(std::fabs(DotProduct(floats.data() + i, bytes.data() + i, length) - expected) < MIXED_EPSILON);
+                UNIT_ASSERT(std::fabs(DotProductSimple(floats.data() + i, bytes.data() + i, length) - expected) < EPSILON);
+                if (NX86::HaveAVX2() && NX86::HaveFMA()) {
+                    UNIT_ASSERT(std::fabs(DotProductFloatI8Avx2(floats.data() + i, bytes.data() + i, length) - expected) < MIXED_EPSILON);
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestTriWayDotProductFloatI8) {
+        TVector<float> floats(100);
+        FillWithRandomFloats(floats.data(), 179, 100);
+        TVector<i8> bytes(100);
+        FillWithRandomNumbers(bytes.data(), 239, 100);
+
+        constexpr double MIXED_EPSILON = 1e-4;
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t length = 1; length + i + 1 < floats.size(); ++length) {
+                const auto expected = TriWayDotProductFloatI8Simple(floats.data() + i, bytes.data() + i, length);
+                const auto actual = TriWayDotProduct(floats.data() + i, bytes.data() + i, length);
+                UNIT_ASSERT_DOUBLES_EQUAL(expected.LL, actual.LL, MIXED_EPSILON);
+                UNIT_ASSERT_DOUBLES_EQUAL(expected.LR, actual.LR, MIXED_EPSILON);
+                UNIT_ASSERT_DOUBLES_EQUAL(expected.RR, actual.RR, MIXED_EPSILON);
+                if (NX86::HaveAVX2() && NX86::HaveFMA()) {
+                    const auto avx2 = TriWayDotProductFloatI8Avx2(floats.data() + i, bytes.data() + i, length);
+                    UNIT_ASSERT_DOUBLES_EQUAL(expected.LL, avx2.LL, MIXED_EPSILON);
+                    UNIT_ASSERT_DOUBLES_EQUAL(expected.LR, avx2.LR, MIXED_EPSILON);
+                    UNIT_ASSERT_DOUBLES_EQUAL(expected.RR, avx2.RR, MIXED_EPSILON);
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestTriWayDotProductI8) {
+        TVector<i8> a(100);
+        FillWithRandomNumbers(a.data(), 179, 100);
+        TVector<i8> b(100);
+        FillWithRandomNumbers(b.data(), 239, 100);
+
+        for (size_t i = 0; i < 30; ++i) {
+            for (size_t length = 1; length + i + 1 < a.size(); ++length) {
+                const auto expected = TriWayDotProductI8Simple(a.data() + i, b.data() + i, length);
+                const auto actual = TriWayDotProduct(a.data() + i, b.data() + i, length);
+                UNIT_ASSERT_EQUAL(expected.LL, actual.LL);
+                UNIT_ASSERT_EQUAL(expected.LR, actual.LR);
+                UNIT_ASSERT_EQUAL(expected.RR, actual.RR);
+                if (NX86::HaveAVX2() && NX86::HaveFMA()) {
+                    const auto avx2 = TriWayDotProductI8Avx2(a.data() + i, b.data() + i, length);
+                    UNIT_ASSERT_EQUAL(expected.LL, avx2.LL);
+                    UNIT_ASSERT_EQUAL(expected.LR, avx2.LR);
+                    UNIT_ASSERT_EQUAL(expected.RR, avx2.RR);
+                }
             }
         }
     }
@@ -172,12 +365,14 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         UNIT_ASSERT_EQUAL(DotProduct(static_cast<const i8*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT_EQUAL(DotProduct(static_cast<const ui8*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT_EQUAL(DotProduct(static_cast<const i32*>(nullptr), nullptr, 0), 0);
-        UNIT_ASSERT(std::abs(DotProduct(static_cast<const float*>(nullptr), nullptr, 0)) < EPSILON);
+        UNIT_ASSERT(std::abs(DotProduct(static_cast<const float*>(nullptr), static_cast<const float*>(nullptr), 0)) < EPSILON);
+        UNIT_ASSERT(std::abs(DotProduct(static_cast<const float*>(nullptr), static_cast<const i8*>(nullptr), 0)) < EPSILON);
         UNIT_ASSERT(std::abs(DotProduct(static_cast<const double*>(nullptr), nullptr, 0)) < EPSILON);
         UNIT_ASSERT_EQUAL(DotProductSimple(static_cast<const i8*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT_EQUAL(DotProductSimple(static_cast<const ui8*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT_EQUAL(DotProductSimple(static_cast<const i32*>(nullptr), nullptr, 0), 0);
-        UNIT_ASSERT(std::abs(DotProductSimple(static_cast<const float*>(nullptr), nullptr, 0)) < EPSILON);
+        UNIT_ASSERT(std::abs(DotProductSimple(static_cast<const float*>(nullptr), static_cast<const float*>(nullptr), 0)) < EPSILON);
+        UNIT_ASSERT(std::abs(DotProductSimple(static_cast<const float*>(nullptr), static_cast<const i8*>(nullptr), 0)) < EPSILON);
         UNIT_ASSERT(std::abs(DotProductSimple(static_cast<const double*>(nullptr), nullptr, 0)) < EPSILON);
     }
 

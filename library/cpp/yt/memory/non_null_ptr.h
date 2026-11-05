@@ -2,7 +2,7 @@
 
 #include "public.h"
 
-#include <library/cpp/yt/misc/concepts.h>
+#include <library/cpp/yt/mpl/concepts.h>
 
 namespace NYT {
 
@@ -51,7 +51,7 @@ class TNonNullPtr
 
 // NB(pogorelov): Method definitions placed in .h file (instead of -inl.h) because of clang16 bug.
 // TODO(pogorelov): Move method definitions to helpers-inl.h when new clang will be used.
-template <CConst T>
+template <NMpl::CConst T>
 class TNonNullPtr<T>
     : public TNonNullPtrBase<T>
 {

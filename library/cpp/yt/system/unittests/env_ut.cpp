@@ -6,6 +6,8 @@
 
 #include <library/cpp/yt/string/format.h>
 
+#include <util/generic/scope.h>
+
 #include <util/system/env.h>
 
 namespace NYT {
@@ -40,6 +42,33 @@ TEST(TGetEnvironNameValuePairsTest, Simple)
     auto pairs = GetEnvironNameValuePairs();
     EXPECT_TRUE(std::ranges::find(pairs, pair) != pairs.end());
     UnsetEnv(key);
+}
+
+TEST(TGetEnvValueOrThrowTest, Typed)
+{
+    auto key = Format("var%v", TGuid::Create());
+    SetEnv(key, "42");
+    Y_DEFER {
+        UnsetEnv(key);
+    };
+    EXPECT_EQ(GetEnvValueOrThrow<int>(key), 42);
+    EXPECT_EQ(GetEnvValueOrThrow(key), "42");
+}
+
+TEST(TGetEnvValueOrThrowTest, Missing)
+{
+    auto key = Format("var%v", TGuid::Create());
+    EXPECT_THROW(GetEnvValueOrThrow<int>(key), std::exception);
+}
+
+TEST(TGetEnvValueOrThrowTest, Unparseable)
+{
+    auto key = Format("var%v", TGuid::Create());
+    SetEnv(key, "not-a-number");
+    Y_DEFER {
+        UnsetEnv(key);
+    };
+    EXPECT_THROW(GetEnvValueOrThrow<int>(key), std::exception);
 }
 
 #endif

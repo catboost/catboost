@@ -12,7 +12,7 @@
 
 #include <library/cpp/yt/containers/enum_indexed_array.h>
 
-#include <library/cpp/yt/misc/concepts.h>
+#include <library/cpp/yt/mpl/concepts.h>
 #include <library/cpp/yt/misc/enum.h>
 #include <library/cpp/yt/misc/source_location.h>
 
@@ -21,12 +21,10 @@
 #include <util/system/platform.h>
 
 #include <cctype>
+#include <filesystem>
 #include <optional>
 #include <span>
 
-#if __cplusplus >= 202302L
-    #include <filesystem>
-#endif
 
 #ifdef __cpp_lib_source_location
 #include <source_location>
@@ -156,6 +154,8 @@ template <class... Ts>
 constexpr bool CKnownRange<THashSet<Ts...>> = true;
 template <class... Ts>
 constexpr bool CKnownRange<THashMultiSet<Ts...>> = true;
+template <class T, size_t N>
+constexpr bool CKnownRange<TCompactFlatSet<T, N>> = true;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -176,8 +176,6 @@ template <class... Ts>
 constexpr bool CKnownKVRange<TCompactFlatMap<Ts...>> = true;
 template <class K, class V, size_t N, class C>
 constexpr bool CKnownKVRange<TCompactFlatMap<K, V, N, C>> = true;
-template <class T, size_t N>
-constexpr bool CKnownRange<TCompactFlatSet<T, N>> = true;
 
 // TODO(arkady-e1ppa): Uncomment me when
 // https://github.com/llvm/llvm-project/issues/58534 is shipped.
@@ -351,7 +349,7 @@ TFormatterWrapper<TFormatter> MakeFormatterWrapper(
     TFormatter&& formatter)
 {
     return TFormatterWrapper<TFormatter>{
-        .Formatter = std::move(formatter)
+        .Formatter = std::forward<TFormatter>(formatter)
     };
 }
 
@@ -427,7 +425,9 @@ auto MakeLazyMultiValueFormatter(TStringBuf format, TArgs&&... args)
 template <class TStringBuilder>
 void FormatString(TStringBuilder* builder, TStringBuf value, TStringBuf spec)
 {
-    if (!spec) {
+    // Fast path: plain "%v" (the overwhelmingly common case) and empty spec
+    // both mean "emit the string verbatim". Skip alignment/flag parsing.
+    if (spec.empty() || (spec.size() == 1 && spec.front() == NDetail::GenericSpecSymbol)) {
         builder->AppendString(value);
         return;
     }
@@ -597,11 +597,12 @@ inline void FormatValue(TStringBuilderBase* builder, const std::string_view& val
     FormatValue(builder, TStringBuf(value), spec);
 }
 
-#if __cplusplus >= 202302L
+#ifdef _LIBCPP_VERSION
+// This branch can not be built against libstdc++ 10, see YT-29941 regarding this gate removal.
 // std::filesystem::path
 inline void FormatValue(TStringBuilderBase* builder, const std::filesystem::path& value, TStringBuf spec)
 {
-    FormatValue(builder, std::string(value), spec);
+    FormatValue(builder, value.string(), spec);
 }
 #endif
 
@@ -722,7 +723,9 @@ void FormatValue(TStringBuilderBase* builder, TEnum value, TStringBuf spec)
 }
 
 template <class TArcadiaEnum>
-    requires (std::is_enum_v<TArcadiaEnum> && !TEnumTraits<TArcadiaEnum>::IsEnum)
+concept CArcadiaEnum = (std::is_enum_v<TArcadiaEnum> && !TEnumTraits<TArcadiaEnum>::IsEnum);
+
+template <CArcadiaEnum TArcadiaEnum>
 void FormatValue(TStringBuilderBase* builder, TArcadiaEnum value, TStringBuf /*spec*/)
 {
     // NB(arkady-e1ppa): This can catch normal enums which
@@ -871,7 +874,7 @@ void FormatValue(TStringBuilderBase* builder, const TEnumIndexedArray<E, T>& col
 {
     builder->AppendChar('{');
     bool firstItem = true;
-    for (const auto& index : TEnumTraits<E>::GetDomainValues()) {
+    for (const auto& index : TEnumTraits<E>::template GetDomainValues</*AllowAmbiguousValues*/ true>()) {
         if (!firstItem) {
             builder->AppendString(DefaultJoinToStringDelimiter);
         }
@@ -941,7 +944,7 @@ void FormatValue(
 {
     std::apply(
         [&] <class... TInnerArgs> (TInnerArgs&&... args) {
-            builder->AppendFormat(value.Format_, std::forward<TInnerArgs>(args)...);
+            builder->AppendFormat(TRuntimeFormat{value.Format_}, std::forward<TInnerArgs>(args)...);
         },
         value.Args_);
 }
@@ -1015,12 +1018,26 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
-concept CFormatter = CInvocable<T, void(size_t, TStringBuilderBase*, TStringBuf)>;
+concept CFormatter = NMpl::CInvocable<T, void(size_t, TStringBuilderBase*, TStringBuf)>;
+
+////////////////////////////////////////////////////////////////////////////////
+
+// NB: |spec| is tiny (usually a single char), so an inline scan beats
+// the AVX2 |memchr| that |TStringBuf::Contains| dispatches to.
+Y_FORCE_INLINE bool SpecContains(TStringBuf spec, char symbol)
+{
+    for (char c : spec) {
+        if (c == symbol) {
+            return true;
+        }
+    }
+    return false;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
 template <CFormatter TFormatter>
-void RunFormatterAt(
+Y_FORCE_INLINE void RunFormatterAt(
     const TFormatter& formatter,
     size_t index,
     TStringBuilderBase* builder,
@@ -1029,7 +1046,7 @@ void RunFormatterAt(
     bool doubleQuotes)
 {
     // 'n' means 'nothing'; skip the argument.
-    if (!spec.Contains('n')) {
+    if (!SpecContains(spec, 'n')) {
         if (singleQuotes) {
             builder->AppendChar('\'');
         }

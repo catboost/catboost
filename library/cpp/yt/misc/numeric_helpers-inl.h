@@ -4,6 +4,8 @@
 #include "numeric_helpers.h"
 #endif
 
+#include <library/cpp/yt/assert/assert.h>
+
 #include <cstdlib>
 #include <cinttypes>
 #include <cmath>

@@ -17,7 +17,7 @@ to_regressor(model)
 
 ## {{ dl--output-format }} {#usage-example}
 
-{{ python-type__catboost-core-CatBoostRegressor }}
+[CatBoostRegressor](python-reference_catboostregressor.md)
 
 ## {{ input_data__title__example }} {#example}
 

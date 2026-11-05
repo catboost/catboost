@@ -846,7 +846,6 @@ absl::StatusOr<std::unique_ptr<perftools::profiles::Profile>> MakeProfileProto(
     const int no_available_slots_id = builder.InternString("NoAvailableSlots");
     const int m_protect_failed_id = builder.InternString("MProtectFailed");
     const int filtered_id = builder.InternString("Filtered");
-    const int unknown_id = builder.InternString("Unknown");
     const int not_attempted_id = builder.InternString("NotAttempted");
     const int requested_id = builder.InternString("Requested");
     const int required_id = builder.InternString("Required");
@@ -876,9 +875,6 @@ absl::StatusOr<std::unique_ptr<perftools::profiles::Profile>> MakeProfileProto(
       case Profile::Sample::GuardedStatus::Filtered:
         guarded_status_label.set_str(filtered_id);
         break;
-      case Profile::Sample::GuardedStatus::Unknown:
-        guarded_status_label.set_str(unknown_id);
-        break;
       case Profile::Sample::GuardedStatus::NotAttempted:
         guarded_status_label.set_str(not_attempted_id);
         break;
@@ -891,6 +887,8 @@ absl::StatusOr<std::unique_ptr<perftools::profiles::Profile>> MakeProfileProto(
       case Profile::Sample::GuardedStatus::Guarded:
         guarded_status_label.set_str(guarded_id);
         break;
+      default:
+        ABSL_UNREACHABLE();
     }
   }
 
@@ -911,7 +909,7 @@ absl::StatusOr<std::unique_ptr<perftools::profiles::Profile>> MakeProfileProto(
     const ::tcmalloc::Profile& profile) {
   // Used to populate residency info in heap profile.
   std::optional<PageFlags> pageflags;
-  std::optional<Residency> residency;
+  std::optional<ResidencyPageMap> residency;
 
   PageFlags* p = nullptr;
   Residency* r = nullptr;

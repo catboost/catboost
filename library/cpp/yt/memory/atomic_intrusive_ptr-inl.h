@@ -3,7 +3,6 @@
 // For the sake of sane code completion.
 #include "atomic_intrusive_ptr.h"
 #endif
-#undef ATOMIC_INTRUSIVE_PTR_INL_H_
 
 #include <util/system/spinlock.h>
 
@@ -43,7 +42,7 @@ TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TIntrusivePtr<T> other)
 { }
 
 template <class T>
-TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other)
+TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other) noexcept
     : Ptr_(std::move(other))
 { }
 
@@ -113,10 +112,10 @@ TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TIntrusivePtr<T> other)
 { }
 
 template <class T>
-TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other)
+TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other) noexcept
     : Ptr_(other.Ptr_.load(std::memory_order::relaxed))
 {
-    other.Ptr_.store(uintptr_t(0), std::memory_order::relaxed);
+    other.Ptr_.store(TPackedPtr(), std::memory_order::relaxed);
 }
 
 template <class T>
@@ -192,7 +191,7 @@ void TAtomicIntrusivePtr<T>::Store(TIntrusivePtr<T> other)
 template <class T>
 void TAtomicIntrusivePtr<T>::Reset()
 {
-    ReleaseObject(Ptr_.exchange(0));
+    ReleaseObject(Ptr_.exchange(TPackedPtr()));
 }
 
 template <class T>

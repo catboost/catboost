@@ -1,7 +1,7 @@
 #if defined(__arm__)
 #error unavailable for arm
 #elif defined(__aarch64__)
-#error unavailable for arm64
+#include "unistd_64_arm64.h"
 #elif defined(__powerpc__)
 #include "unistd_64_powerpc.h"
 #elif defined(__i386__) || defined(__x86_64__)

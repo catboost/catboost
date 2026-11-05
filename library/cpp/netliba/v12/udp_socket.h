@@ -69,7 +69,7 @@ namespace NNetliba_v12 {
         } SendStat;
         float MergeRatio = 0.0;
 
-        bool CrcMatches(ui64 expectedCrc, ui64 crc, const sockaddr_in6& addr);
+        bool CrcMatches(ui64 expectedCrc, ui64 crc, const TSockAddrPair& addr);
         bool CheckPacketIntegrity(const char* buf, const size_t size, const TSockAddrPair& addr);
 
         size_t GetNumUdpPacketsInQueue() const;
@@ -119,4 +119,17 @@ namespace NNetliba_v12 {
         void UpdateStats();
         bool IsLocal(const TUdpAddress& address) const;
     };
+
+    // Accept packets whose crc matches the kernel-reported destination address
+    // (IPV6_PKTINFO) of the very packet, in addition to the local address list
+    // snapshotted at socket creation. Covers addresses assigned after the
+    // socket was opened and AnyIP (local-route) destinations, which getifaddrs
+    // never reports. Process-global, default off; call before opening sockets.
+    void EnableCrcMatchByDestinationAddress();
+
+    // Crc candidate matching of TUdpSocket::CrcMatches; dstAddr is the packet's
+    // kernel-reported destination or nullptr when matching by it is disabled.
+    // On success *lastLocalIpCrc holds the matched candidate.
+    bool MatchPacketCrc(ui64 expectedCrc, ui64 crc, const sockaddr_in6* dstAddr,
+                        const TVector<ui32>& localIpCrcs, ui32* lastLocalIpCrc);
 }

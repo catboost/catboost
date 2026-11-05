@@ -89,7 +89,14 @@ static void ParseFeatures(
     }
 }
 
+// Conditional compilation to ensure proper namespace
+#ifdef WITH_CPP_NAMESPACE
+namespace WITH_CPP_NAMESPACE {
+#endif
 extern std::vector<double> ApplyCatboostModelMulti(const vector<float>& floatFeatures, const vector<string>& catFeatures);
+#ifdef WITH_CPP_NAMESPACE
+}
+#endif
 
 int main(int argc, char *argv[]) {
     assert((argc == 4) || (argc == 5));  // main.exe test.tsv cd.tsv predictions.txt [class_names]
@@ -120,7 +127,11 @@ int main(int argc, char *argv[]) {
         }
         ParseFeatures(line, floatColumns, catColumns, &floatFeatures, &catFeatures);
 
+        #ifdef WITH_CPP_NAMESPACE
+        auto rawFormulaVals = WITH_CPP_NAMESPACE::ApplyCatboostModelMulti(floatFeatures, catFeatures);
+        #else
         auto rawFormulaVals = ApplyCatboostModelMulti(floatFeatures, catFeatures);
+        #endif
 
         if (docId == 0) {
             predictions << "SampleId";

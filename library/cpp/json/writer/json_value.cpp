@@ -455,6 +455,13 @@ namespace NJson {
         return Value.String;
     }
 
+    TString& TJsonValue::GetStringSafe() {
+        if (!IsString()) {
+            ythrow TJsonException() << "Not a string";
+        }
+        return Value.String;
+    }
+
     bool TJsonValue::GetBooleanSafe(const bool defaultValue) const {
         if (Type == JSON_UNDEFINED) {
             return defaultValue;
@@ -769,7 +776,9 @@ namespace NJson {
             case JSON_UINTEGER:
                 return (Value.UInteger <= static_cast<unsigned long long>(Max<long long>()));
             case JSON_DOUBLE:
-                return ((long long)Value.Double == Value.Double);
+                return Value.Double >= static_cast<double>(Min<long long>()) &&
+                       Value.Double < static_cast<double>(Max<long long>()) &&
+                       static_cast<long long>(Value.Double) == Value.Double;
             default:
                 return false;
         }
@@ -782,7 +791,9 @@ namespace NJson {
             case JSON_INTEGER:
                 return (Value.Integer >= 0);
             case JSON_DOUBLE:
-                return ((unsigned long long)Value.Double == Value.Double);
+                return Value.Double >= 0 &&
+                       Value.Double < static_cast<double>(Max<unsigned long long>()) &&
+                       static_cast<unsigned long long>(Value.Double) == Value.Double;
             default:
                 return false;
         }
@@ -884,6 +895,11 @@ namespace NJson {
 
     const TJsonValue* TJsonValue::GetValueByPath(const TStringBuf key, char delim) const noexcept {
         return GetValuePtrByPath<false>(this, key, delim);
+    }
+    TJsonValue& TJsonValue::GetValueByPathOrCreate(TStringBuf path, char delimiter) noexcept {
+        TJsonValue* const ptr = GetValuePtrByPath<true>(this, path, delimiter);
+        Y_ASSERT(ptr);
+        return *ptr;
     }
 
     TJsonValue* TJsonValue::GetValueByPath(const TStringBuf key, char delim) noexcept {

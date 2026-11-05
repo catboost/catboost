@@ -14,6 +14,25 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+namespace NDetail {
+
+TSystemThreadId GetSystemThreadIdImpl();
+
+} // namespace NDetail
+
+YT_DECLARE_THREAD_LOCAL(TSystemThreadId, CachedSystemThreadId);
+
+inline TSystemThreadId GetSystemThreadId()
+{
+    auto& cachedSystemThreadId = CachedSystemThreadId();
+    if (Y_UNLIKELY(cachedSystemThreadId == InvalidSystemThreadId)) {
+        cachedSystemThreadId = NDetail::GetSystemThreadIdImpl();
+    }
+    return cachedSystemThreadId;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 YT_DECLARE_THREAD_LOCAL(TSequentialThreadId, CachedSequentialThreadId);
 extern std::atomic<TSequentialThreadId> SequentialThreadIdGenerator;
 

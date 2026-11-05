@@ -1,3 +1,4 @@
+#include <contrib/libs/llvm/flang-rt/flang-rt/lib/runtime/stl-overrides.h>
 //===-- lib/runtime/allocator-registry.cpp ----------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -27,6 +28,11 @@ RT_API_ATTRS void AllocatorRegistry::Register(int pos, Allocator_t allocator) {
 
 RT_API_ATTRS AllocFct AllocatorRegistry::GetAllocator(int pos) {
   INTERNAL_CHECK(pos >= 0 && pos < MAX_ALLOCATOR);
+#ifdef RT_DEVICE_COMPILATION
+  if (pos == kDefaultAllocator) {
+    return &MallocWrapper;
+  }
+#endif
   AllocFct f{allocators[pos].alloc};
   INTERNAL_CHECK(f != nullptr);
   return f;
@@ -34,6 +40,11 @@ RT_API_ATTRS AllocFct AllocatorRegistry::GetAllocator(int pos) {
 
 RT_API_ATTRS FreeFct AllocatorRegistry::GetDeallocator(int pos) {
   INTERNAL_CHECK(pos >= 0 && pos < MAX_ALLOCATOR);
+#ifdef RT_DEVICE_COMPILATION
+  if (pos == kDefaultAllocator) {
+    return &FreeWrapper;
+  }
+#endif
   FreeFct f{allocators[pos].free};
   INTERNAL_CHECK(f != nullptr);
   return f;

@@ -151,8 +151,8 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     TVector<double> leavesStatistics;
     TConstArrayRef<double> weights;
     if (dataset) {
-        CB_ENSURE(dataset->GetObjectCount() != 0, "no docs in pool");
-        CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "no features in pool");
+        CB_ENSURE(dataset->GetObjectCount() != 0, "no docs in dataset");
+        CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "no features in dataset");
         CATBOOST_INFO_LOG << "Used dataset leave statistics for fstr calculation" << Endl;
 
         leavesStatistics = CollectLeavesStatistics(*dataset, model, localExecutor);

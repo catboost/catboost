@@ -60,38 +60,46 @@ T ReadVarUintKnownSize(const char* buffer)
 
 } // namespace NDetail
 
-#define XX(type, size) \
-    if (static_cast<ui8>(input[size - 1]) < 0x80) { \
+#define READ_VARUINT_STEP(type, size, bound) \
+    if (static_cast<ui8>(input[size - 1]) < (bound)) { \
         *value = NYT::NDetail::ReadVarUintKnownSize<type, size>(input); \
         return size; \
     }
 
+#define READ_VARUINT_STEP7(type, size) \
+    READ_VARUINT_STEP(type, size, 0x80)
+
 Y_FORCE_INLINE int ReadVarUint32(const char* input, ui32* value)
 {
-    XX(ui64, 1)
-    XX(ui64, 2)
-    XX(ui64, 3)
-    XX(ui64, 4)
-    XX(ui64, 5)
+    READ_VARUINT_STEP7(ui64, 1)
+    READ_VARUINT_STEP7(ui64, 2)
+    READ_VARUINT_STEP7(ui64, 3)
+    READ_VARUINT_STEP7(ui64, 4)
+    // A varuint32 fits in at most 5 bytes: bytes 1-4 carry 7 bits each (28 bits),
+    // byte 5 carries the remaining 4 bits, so it must be below 0x10 = 2^4.
+    // Using READ_VARUINT_STEP7 here would silently accept 33-35 bit values.
+    READ_VARUINT_STEP(ui64, 5, 0x10)
     throw TSimpleException("Value is too big for varuint32");
 }
 
 Y_FORCE_INLINE int ReadVarUint64(const char* input, ui64* value)
 {
-    XX(ui64, 1)
-    XX(ui64, 2)
-    XX(ui64, 3)
-    XX(ui64, 4)
-    XX(ui64, 5)
-    XX(ui64, 6)
-    XX(ui64, 7)
-    XX(ui64, 8)
-    XX(ui64, 9)
-    XX(ui64, 10)
+    READ_VARUINT_STEP7(ui64, 1)
+    READ_VARUINT_STEP7(ui64, 2)
+    READ_VARUINT_STEP7(ui64, 3)
+    READ_VARUINT_STEP7(ui64, 4)
+    READ_VARUINT_STEP7(ui64, 5)
+    READ_VARUINT_STEP7(ui64, 6)
+    READ_VARUINT_STEP7(ui64, 7)
+    READ_VARUINT_STEP7(ui64, 8)
+    READ_VARUINT_STEP7(ui64, 9)
+    // Last byte of a varuint64 carries only one bit.
+    READ_VARUINT_STEP(ui64, 10, 0x02)
     throw TSimpleException("Value is too big for varuint64");
 }
 
-#undef XX
+#undef READ_VARUINT_STEP7
+#undef READ_VARUINT_STEP
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -149,17 +157,15 @@ Y_FORCE_INLINE int WriteVarInt64(char* output, i64 value)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace NDetail {
-
-template <class TReadCallback>
-int ReadVarUint64Impl(ui64* value, TReadCallback&& doRead)
+template <NMpl::CInvocable<char()> TInvocable>
+int ReadVarUint64(TInvocable&& readNextByte, ui64* value)
 {
     size_t count = 0;
     ui64 result = 0;
 
     ui8 byte;
     do {
-        byte = doRead();
+        byte = readNextByte();
         result |= (static_cast<ui64> (byte & 0x7F)) << (7 * count);
         ++count;
         if (count > MaxVarUint64Size) {
@@ -171,31 +177,33 @@ int ReadVarUint64Impl(ui64* value, TReadCallback&& doRead)
     return count;
 }
 
+namespace NDetail {
+
 inline int ReadVarUint64Fallback(const char* input, const char* end, ui64* value)
 {
-    return ReadVarUint64Impl(
-        value,
+    return ReadVarUint64(
         [&] {
             if (input == end) {
                 throw TSimpleException("Premature end of data while reading varuint64");
             }
             return *input++;
-        });
+        },
+        value);
 }
 
 } // namespace NDetail
 
 inline int ReadVarUint64(IInputStream* input, ui64* value)
 {
-    return NYT::NDetail::ReadVarUint64Impl(
-        value,
+    return ReadVarUint64(
         [&] {
             char byte;
             if (input->Read(&byte, 1) != 1) {
                 throw TSimpleException("Premature end of stream while reading varuint64");
             }
             return byte;
-        });
+        },
+        value);
 }
 
 Y_FORCE_INLINE int ReadVarUint64(const char* input, const char* end, ui64* value)
@@ -225,6 +233,12 @@ Y_FORCE_INLINE int ReadVarUint32Impl(ui32* value, TArgs&&... args)
 
 } // namespace NDetail
 
+template <NMpl::CInvocable<char()> TInvocable>
+Y_FORCE_INLINE int ReadVarUint32(TInvocable&& readNextByte, ui32* value)
+{
+    return NYT::NDetail::ReadVarUint32Impl(value, std::forward<TInvocable>(readNextByte));
+}
+
 Y_FORCE_INLINE int ReadVarUint32(IInputStream* input, ui32* value)
 {
     return NYT::NDetail::ReadVarUint32Impl(value, input);
@@ -252,6 +266,12 @@ Y_FORCE_INLINE int ReadVarInt32Impl(i32* value, TArgs&&... args)
 }
 
 } // namespace NDetail
+
+template <NMpl::CInvocable<char()> TInvocable>
+Y_FORCE_INLINE int ReadVarInt32(TInvocable&& readNextByte, i32* value)
+{
+    return NYT::NDetail::ReadVarInt32Impl(value, std::forward<TInvocable>(readNextByte));
+}
 
 Y_FORCE_INLINE int ReadVarInt32(IInputStream* input, i32* value)
 {
@@ -282,6 +302,12 @@ Y_FORCE_INLINE int ReadVarInt64Impl(i64* value, TArgs&&... args)
 }
 
 } // namespace NDetail
+
+template <NMpl::CInvocable<char()> TInvocable>
+Y_FORCE_INLINE int ReadVarInt64(TInvocable&& readNextByte, i64* value)
+{
+    return NYT::NDetail::ReadVarInt64Impl(value, std::forward<TInvocable>(readNextByte));
+}
 
 Y_FORCE_INLINE int ReadVarInt64(IInputStream* input, i64* value)
 {

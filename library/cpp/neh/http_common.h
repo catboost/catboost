@@ -36,6 +36,11 @@ namespace NNeh {
         }
 
         virtual void SendError(TResponseError err, const THttpErrorDetails& details) = 0;
+
+        //ask the server not to compress the reply, even if the client accepts it;
+        //works only if called before SendReply() (a hint: the https server ignores it)
+        virtual void DisableCompression() {
+        }
     };
 
     namespace NHttp {
@@ -232,8 +237,8 @@ namespace NNeh {
         struct TRequestFull {
             static TRequestData::TPtr Build(const TMessage& msg, const TParsedLocation&) {
                 TRequestData::TPtr req(new TRequestData(0));
-                req->AddPart(msg.Data.data(), msg.Data.size());
                 req->Data = msg.Data;
+                req->AddPart(req->Data.data(), req->Data.size());
                 return req;
             }
 

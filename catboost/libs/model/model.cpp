@@ -703,7 +703,7 @@ void TModelTrees::SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
     }
     CB_ENSURE(
         GetDimensionsCount() == bias.size(),
-        "Inappropraite dimension of bias, should be " << GetDimensionsCount() << " found " << bias.size());
+        "Inappropriate dimension of bias, should be " << GetDimensionsCount() << " found " << bias.size());
 
     ScaleAndBias = TScaleAndBias(scaleAndBias.Scale, bias);
 }
@@ -715,7 +715,7 @@ void TModelTrees::SetScaleAndBias(const NCatBoostFbs::TModelTrees* fbObj) {
         bias.assign(fbObj->MultiBias()->data(), fbObj->MultiBias()->data() + fbObj->MultiBias()->size());
     } else {
         CB_ENSURE(ApproxDimension == 1 || fbObj->Bias() == 0,
-                  "Inappropraite dimension of bias, should be " << GetDimensionsCount() << " found 1");
+                  "Inappropriate dimension of bias, should be " << GetDimensionsCount() << " found 1");
         bias.resize(ApproxDimension, fbObj->Bias());
     }
     SetScaleAndBias({fbObj->Scale(), bias});
@@ -1238,7 +1238,8 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
 
     size_t coreSize = ::LoadSize(&in);
     const ui8* fbPtr = reinterpret_cast<const ui8*>(in.Buf());
-    in.Skip(coreSize);
+    const size_t skippedCore = in.Skip(coreSize);
+    CB_ENSURE(skippedCore == coreSize, "Failed to skip core data in zero-copy model loading");
 
     {
         flatbuffers::Verifier verifier(fbPtr, coreSize, 64 /* max depth */, 256000000 /* max tables */);

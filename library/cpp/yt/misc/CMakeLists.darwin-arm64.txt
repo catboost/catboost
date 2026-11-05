@@ -22,6 +22,7 @@ target_compile_options(cpp-yt-misc PRIVATE
   -Wno-logical-op-parentheses
   -Wno-bitwise-op-parentheses
   -Wswitch
+  -Wreturn-type
 )
 
 target_link_libraries(cpp-yt-misc PUBLIC
@@ -29,11 +30,11 @@ target_link_libraries(cpp-yt-misc PUBLIC
   yutil
   cpp-yt-exception
   cpp-yt-assert
+  cpp-yt-mpl
 )
 
 target_sources(cpp-yt-misc PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/misc/guid.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/misc/source_location.cpp
-  ${PROJECT_SOURCE_DIR}/library/cpp/yt/misc/thread_name.cpp
 )
 

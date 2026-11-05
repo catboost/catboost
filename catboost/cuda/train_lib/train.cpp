@@ -439,7 +439,7 @@ namespace NCatboostCuda {
                                                *modelHolderRef,
                                                &featureCombinationToProjection);
 
-                modelHolderRef.Destroy();
+                modelHolderRef.reset();
             } else {
                 auto& modelHolderRef = std::get<THolder<TAdditiveModel<TNonSymmetricTree>>>(gpuFormatModel);
                 *modelPtr = ConvertToCoreModel(featuresManager,
@@ -449,7 +449,7 @@ namespace NCatboostCuda {
                                                *modelHolderRef,
                                                &featureCombinationToProjection);
 
-                modelHolderRef.Destroy();
+                modelHolderRef.reset();
             }
 
             auto targetClassifiers = CreateTargetClassifiers(featuresManager);

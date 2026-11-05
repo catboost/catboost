@@ -48,11 +48,7 @@
 #elif defined(BOOST_MSVC) && (_MSC_VER < 1900 || defined(_DEBUG))
    //"__forceinline" and MSVC seems to have some bugs in old versions and in debug mode
    #define BOOST_INTRUSIVE_FORCEINLINE inline
-#elif defined(BOOST_CLANG) || (defined(BOOST_GCC) && ((__GNUC__ <= 5) || defined(__MINGW32__)))
-   //Older GCCs have problems with forceinline
-   //Clang can have code bloat issues with forceinline, see
-   //https://lists.boost.org/boost-users/2023/04/91445.php and
-   //https://github.com/llvm/llvm-project/issues/62202
+#elif defined(BOOST_GCC) && (__GNUC__ <= 5)
    #define BOOST_INTRUSIVE_FORCEINLINE inline
 #else
    #define BOOST_INTRUSIVE_FORCEINLINE BOOST_FORCEINLINE
@@ -121,5 +117,8 @@ template<unsigned> struct static_assert_test {};
 #  define BOOST_INTRUSIVE_NO_DANGLING
 #endif
 
+#if defined(__cpp_concepts) && (__cpp_concepts >= 202002L)
+#  define BOOST_INTRUSIVE_CONCEPTS_BASED_OVERLOADING
+#endif
 
 #endif   //#ifndef BOOST_INTRUSIVE_DETAIL_WORKAROUND_HPP

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <sys/mman.h>
 #include <pthread.h>
 #include <dlfcn.h>
@@ -222,7 +223,6 @@ namespace NBalloc {
     struct TBlockHeader {
         size_t Size;
         int RefCount;
-        unsigned short AllCount;
         unsigned short NumaNode;
     };
 
@@ -390,6 +390,7 @@ namespace NBalloc {
         int Counter;
         EMode Mode;
         unsigned char Count0;
+        unsigned int ChunkAllocCount;
         unsigned long Count1;
         bool NeedGC() {
             if (Count0++ != 0)
@@ -488,8 +489,7 @@ namespace NBalloc {
         TLS& ltls = *(TLS*)data;
         ltls.Mode = Dead;
         if (ltls.Chunk) {
-            TBlockHeader* blockHeader = (TBlockHeader*)ltls.Chunk;
-            UnRef(ltls.Chunk, PAGE_ELEM - blockHeader->AllCount, ltls);
+            UnRef(ltls.Chunk, PAGE_ELEM - ltls.ChunkAllocCount, ltls);
         }
         if (ltls.Block) {
             UnRef(ltls.Block, ltls.Counter, ltls);
@@ -524,7 +524,6 @@ namespace NBalloc {
             TBlockHeader* blockHeader = (TBlockHeader*)block;
             blockHeader->RefCount = 1;
             blockHeader->Size = extsize;
-            blockHeader->AllCount = 0;
             TAllocHeader* allocHeader = (TAllocHeader*)Advance(block, sizeof(TBlockHeader));
             allocHeader->Encode(blockHeader, size, signature);
             if (NAllocStats::IsEnabled()) {
@@ -533,6 +532,7 @@ namespace NBalloc {
 #ifdef DBG_FILL_MEMORY
             memset(allocHeader + 1, 0xec, size);
 #endif
+            static_assert((sizeof(TBlockHeader) + sizeof(TAllocHeader)) % alignof(std::max_align_t) == 0);
             return allocHeader;
         }
 
@@ -542,8 +542,7 @@ namespace NBalloc {
         if (ptr < extsize) {
             NAllocSetup::ThrowOnError(PAGE_ELEM);
             if (chunk) {
-                TBlockHeader* blockHeader = (TBlockHeader*)chunk;
-                UnRef(chunk, PAGE_ELEM - blockHeader->AllCount, ltls);
+                UnRef(chunk, PAGE_ELEM - ltls.ChunkAllocCount, ltls);
             }
             void* block = nullptr;
             while (1) {
@@ -562,7 +561,7 @@ namespace NBalloc {
             TBlockHeader* blockHeader = (TBlockHeader*)block;
             blockHeader->RefCount = PAGE_ELEM;
             blockHeader->Size = PAGE_ELEM;
-            blockHeader->AllCount = 0;
+            ltls.ChunkAllocCount = 0;
             ltls.Ptr = PAGE_ELEM;
             ltls.Chunk = block;
             ptr = ltls.Ptr;
@@ -571,8 +570,7 @@ namespace NBalloc {
         ptr = ptr - size - sizeof(TAllocHeader);
         TAllocHeader* allocHeader = (TAllocHeader*)Advance(chunk, ptr);
         allocHeader->Encode(chunk, size, signature);
-        TBlockHeader* blockHeader = (TBlockHeader*)chunk;
-        ++blockHeader->AllCount;
+        ++ltls.ChunkAllocCount;
         ltls.Ptr = ptr;
         if (NAllocStats::IsEnabled()) {
             NAllocStats::IncThreadAllocStats(size);

@@ -102,9 +102,7 @@ CATBOOST_API const char* GetErrorString() {
 }
 
 CATBOOST_API void FreeHandle(ResultHandle* modelHandle) {
-    if (*modelHandle != nullptr) {
-        delete RESULT_PTR(*modelHandle);
-    }
+    delete RESULT_PTR(*modelHandle);
     *modelHandle = nullptr;
 }
 

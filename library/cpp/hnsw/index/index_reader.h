@@ -1,11 +1,13 @@
 #pragma once
 
 #include <util/memory/blob.h>
-#include <util/generic/vector.h>
 
 namespace NHnsw {
+    struct THnswIndexLayout;
+
+    /** @brief Reads the layout of a graph stored in either built-in HNSW format. */
     class THnswIndexReader {
     public:
-        void ReadIndex(const TBlob& blob, TVector<ui32>* numNeighborsInLevels, TVector<const ui32*>* levels) const;
+        void ReadIndex(const TBlob& blob, THnswIndexLayout* layout) const;
     };
-} // namespace Hnsw
+} // namespace NHnsw

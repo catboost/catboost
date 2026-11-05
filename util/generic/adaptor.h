@@ -131,7 +131,7 @@ namespace NPrivate {
  * }
  * @endcode
  *
- * @param cont                          Container to provide a view into. Must be an lvalue.
+ * @param range                         Container to provide a view into. Must be an lvalue.
  * @returns                             A reverse view into the provided container.
  */
 template <class Range>

@@ -1,0 +1,51 @@
+# 0.3.1
+
+* Use the portable optimizer_hide() when running under Miri.
+
+# 0.3.0
+
+* Use black_box instead of volatile read when inline assembly is not
+  available.
+* Increase minimum Rust version to 1.66, which is when black_box was
+  stabilized.
+
+# 0.2.6
+
+* New tests using the count_instructions crate; no functional changes.
+
+# 0.2.5
+
+* Add #[must_use] to all functions.
+
+# 0.2.4
+
+* Since CC0 is no longer accepted as a license for code by Fedora, also
+  allow MIT-0 or Apache-2.0 as options. No code changes.
+
+# 0.2.3
+
+* Add fixed-size variant for arrays of any size (using const generics).
+
+# 0.2.2
+
+* Set rust-version in Cargo.toml to 1.59.
+
+# 0.2.1
+
+* Reduce inlining of variable-size variant. In 0.1.5, the loop was not
+  inlined, and it can be a bit large due to the auto-vectorization. Go
+  back to how it was in 0.1.5, but allowing the compiler to inline if
+  it believes it would be a speed gain.
+
+# 0.2.0
+
+* Use inline assembly when available to hide from the optimizer.
+* When inline assembly is not available, use both a volatile read and
+  disabled inlining.
+* Increase minimum Rust version to 1.59, which is the first with inline
+  assembly.
+
+# 0.1.5
+
+* Add fixed-size variant for arrays with sizes 16 bytes, 32 bytes, and
+  64 bytes.

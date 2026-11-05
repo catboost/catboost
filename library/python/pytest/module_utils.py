@@ -56,7 +56,7 @@ _BASE_PATHS = None
 def get_proper_module_path(module_name):
     """
     Get the file path for a test module relative to the repository root.
-    For synthesized empty __init__.py modules, returns module_name as a fake file path.
+    For synthesized empty __init__.py modules, returns None.
     """
     global _BASE_PATHS
     if _BASE_PATHS is None:

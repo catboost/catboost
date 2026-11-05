@@ -107,3 +107,9 @@ Rules for the `d` namespace include:
 - If the layout of public class X is changed incompatibly, the “d” namespace number should be incremented.
 - If there are existing entry points using the current version of class X, the old version of X should 
 be kept in the previous “d” namespace.
+
+## API and ABI changes by release
+
+For a detailed table of API and ABI changes across all oneTBB releases, see:
+[API and ABI Changes by Release](https://uxlfoundation.github.io/oneTBB/main/intro/api_abi_changes.html)
+

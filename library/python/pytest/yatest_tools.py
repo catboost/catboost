@@ -8,10 +8,11 @@ import re
 import sys
 
 from . import config
+from library.python.pytest import module_utils
 import yatest_lib.tools
 
-
 SEP = '/'
+PY_EXT = '.py'
 TEST_MOD_PREFIX = '__tests__.'
 
 
@@ -292,8 +293,7 @@ def split_node_id(nodeid, test_suffix=None):
     test_name = None
     if separator in path:
         path, test_name = path.split(separator, 1)
-    path = _unify_path(path)
-    class_name = os.path.basename(path)
+    class_name = _nodeid_to_class_name(path)
     if test_name is None:
         test_name = class_name
     if test_suffix:
@@ -310,70 +310,45 @@ def split_node_id(nodeid, test_suffix=None):
 
 
 @lazy
-def _suffix_test_modules_tree():
-    root = {}
+def _nodeid_to_display_module_name_mapping():
+    nodeid_to_display_module_name = {}
 
-    for module in sys.extra_modules:
-        if not module.startswith(TEST_MOD_PREFIX):
+    for module_name in sys.extra_modules:
+        # Conversion rules are taken from LoadedModule in plugins/collection.py.
+
+        if module_name.startswith(TEST_MOD_PREFIX):
+            display_module_name = module_name[len(TEST_MOD_PREFIX) :]
+        else:
+            # Non-test modules can participate in DOCTEST and may need resolving, so include them in mapping too.
+            display_module_name = module_name
+
+        nodeid = module_utils.get_proper_module_path(module_name)
+        if nodeid is None:
             continue
 
-        module = module[len(TEST_MOD_PREFIX) :]
-        node = root
+        nodeid_to_display_module_name[nodeid] = display_module_name
 
-        for name in reversed(module.split('.')):
-            if name == '__init__':
-                continue
-            node = node.setdefault(name, {})
-
-    return root
-
-
-def _conftest_load_policy_is_local(path):
-    return SEP in path and getattr(sys, "is_standalone_binary", False)
+    return nodeid_to_display_module_name
 
 
 class MissingTestModule(Exception):
     pass
 
 
-# If CONFTEST_LOAD_POLICY==LOCAL the path parameters is a true test file path. Something like
-#   /-B/taxi/uservices/services/alt/gen/tests/build/services/alt/validation/test_generated_files.py
-# If CONFTEST_LOAD_POLICY is not LOCAL the path parameter is a module name with '.py' extension added. Example:
-#  validation.test_generated_files.py
-# To make test names independent of the CONFTEST_LOAD_POLICY value replace path by module name if possible.
-@lazy
-def _unify_path(path):
-    py_ext = ".py"
-
-    path = path.strip()
-    if _conftest_load_policy_is_local(path) and path.endswith(py_ext):
-        # Try to find best match for path as a module among test modules and use it as a class name.
-        # This is the only way to unify different CONFTEST_LOAD_POLICY modes
-        suff_tree = _suffix_test_modules_tree()
-        node, res = suff_tree, []
-
-        assert path.endswith(py_ext), path
-        parts = path[: -len(py_ext)].split(SEP)
-
-        # Use SEP as trailing terminator to make an extra step
-        # and find a proper match when parts is a full matching path
-        for p in reversed([SEP] + parts):
-            if p in node:
-                node = node[p]
-                res.append(p)
-            else:
-                if res:
-                    return '.'.join(reversed(res)) + py_ext
-                else:
-                    # Top level test module
-                    if TEST_MOD_PREFIX + p in sys.extra_modules:
-                        return p + py_ext
-                    # Unknown module - raise an error
-                    break
-
-        raise MissingTestModule("Can't find proper module for '{}' path among: {}".format(path, suff_tree))
+# Module's nodeid is the test file path relative to repository root, like:
+#   taxi/uservices/services/alt/gen/tests/build/services/alt/validation/test_generated_files.py
+# Traditionally we use module name without __tests__ prefix and with .py suffix as yatest "class name":
+#   validation.test_generated_files.py
+def _nodeid_to_class_name(nodeid):
+    nodeid = nodeid.strip()
+    if SEP in nodeid and nodeid.endswith(PY_EXT):
+        mapping = _nodeid_to_display_module_name_mapping()
+        display_module_name = mapping.get(nodeid)
+        if display_module_name is not None:
+            return display_module_name + PY_EXT
+        raise MissingTestModule("Can't find module name for nodeid='{}' among: {}".format(nodeid, mapping))
     else:
-        return path
+        return os.path.basename(nodeid)
 
 
 def colorize_pytest_error(text):

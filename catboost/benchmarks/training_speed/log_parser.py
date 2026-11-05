@@ -185,7 +185,7 @@ def parse_log(algorithm_name, experiment_name, task_type, params_str, file_name,
 
 
 def read_results(results_file):
-    with open(results_file, 'r') as f:
+    with open(results_file, 'r', encoding='utf-8') as f:
         results_json = json.load(f)
 
     results = results_json.values()

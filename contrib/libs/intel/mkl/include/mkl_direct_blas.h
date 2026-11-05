@@ -1,27 +1,20 @@
 /*******************************************************************************
-* Copyright 2014-2017 Intel Corporation All Rights Reserved.
+* Copyright 2014-2022 Intel Corporation.
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+* This software and the related documents are Intel copyrighted  materials,  and
+* your use of  them is  governed by the  express license  under which  they were
+* provided to you (License).  Unless the License provides otherwise, you may not
+* use, modify, copy, publish, distribute,  disclose or transmit this software or
+* the related documents without Intel's prior written permission.
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
+* This software and the related documents  are provided as  is,  with no express
+* or implied  warranties,  other  than those  that are  expressly stated  in the
+* License.
 *******************************************************************************/
 
 /*
 !  Content:
-!      Intel(R) Math Kernel Library (Intel(R) MKL) C functions that can be inlined
+!      Intel(R) oneAPI Math Kernel Library (oneMKL) C functions that can be inlined
 !******************************************************************************/
 #include "mkl_types.h"
 #include "immintrin.h"
@@ -215,9 +208,12 @@ static __inline void mkl_dc_gemm(const char * TRANSA, const char * TRANSB,
             const mkl_dc_type * BETA,
             mkl_dc_type * C, const MKL_INT * LDC)
 {
-	int AisN, AisT, AisC;
-	int BisN, BisT, BisC;
-	mkl_dc_type temp, alpha = *ALPHA, beta = *BETA;
+	int AisN, BisN;
+#ifndef MKL_REAL_DATA_TYPE
+	int AisT, AisC;
+	int BisT, BisC;
+#endif
+	mkl_dc_type alpha = *ALPHA, beta = *BETA;
 	MKL_INT m = *M, n = *N, k = *K;
 	MKL_INT lda = *LDA, ldb = *LDB, ldc = *LDC;
 
@@ -375,16 +371,16 @@ do { \
 	for (j = 0; j < n; j++) { \
         mkl_dc_type temp; \
         for(i = 0; i < m; i++) { \
+            mkl_dc_type a; \
             MKL_DC_MUL(temp, alpha, B[i+j*ldb]); \
             MKL_DC_PRAGMA_VECTOR \
 	        for (k = 0; k <= i-1; k++) { \
-                mkl_dc_type a, temp1; \
-                a = A[k + i * lda]; \
-                MKL_DC_CONJ(a, a); \
-                MKL_DC_MUL(temp1, B[k + j * ldb], a); \
+                mkl_dc_type a1, temp1; \
+                a1 = A[k + i * lda]; \
+                MKL_DC_CONJ(a1, a1); \
+                MKL_DC_MUL(temp1, B[k + j * ldb], a1); \
                 MKL_DC_SUB(temp, temp, temp1); \
             } \
-            mkl_dc_type a; \
             a = A[i + i * lda]; \
             MKL_DC_CONJ(a, a); \
             diag_op( temp, a ); \
@@ -395,16 +391,16 @@ do { \
 	for (j = 0; j < n; j++) { \
         mkl_dc_type temp; \
         for(i = m-1; i >= 0; i--) { \
+            mkl_dc_type a; \
             MKL_DC_MUL(temp, alpha, B[i+j*ldb]); \
             MKL_DC_PRAGMA_VECTOR \
 	        for (k = i+1; k < m; k++) { \
-                mkl_dc_type a, temp1; \
-                a = A[k + i * lda]; \
-                MKL_DC_CONJ(a, a); \
-                MKL_DC_MUL(temp1, B[k + j * ldb], a); \
+                mkl_dc_type a1, temp1; \
+                a1 = A[k + i * lda]; \
+                MKL_DC_CONJ(a1, a1); \
+                MKL_DC_MUL(temp1, B[k + j * ldb], a1); \
                 MKL_DC_SUB(temp, temp, temp1); \
             } \
-            mkl_dc_type a; \
             a = A[i + i * lda]; \
             MKL_DC_CONJ(a, a); \
             diag_op( temp, a ); \
@@ -419,6 +415,7 @@ do { \
 	MKL_INT i, j, k; \
     if ( MKL_DC_MisU(uplo) ) { \
 	for (j = 0; j < n; j++) { \
+        mkl_dc_type temp, one; \
         if ( !(MKL_DC_IS_ONE(alpha)) ) { \
             for(i = 0; i < m; i++) { \
                 MKL_DC_MUL_C( B[i+j*ldb], alpha ); \
@@ -433,7 +430,6 @@ do { \
                 MKL_DC_SUB(B[i + j * ldb], B[i + j * ldb], temp1); \
 	        } \
 	    } \
-        mkl_dc_type temp, one; \
         MKL_DC_SET_ONE(one); \
         MKL_DC_DIV(temp, one, A[j + j * lda]); \
         for ( i = 0; i < m; i++ ) { \
@@ -442,6 +438,7 @@ do { \
 	} \
     } else { \
 	for (j = n-1; j >= 0; j--) { \
+        mkl_dc_type temp, one; \
         if ( !(MKL_DC_IS_ONE(alpha)) ) { \
             for(i = 0; i < m; i++) { \
                 MKL_DC_MUL_C( B[i+j*ldb], alpha ); \
@@ -456,7 +453,6 @@ do { \
                 MKL_DC_SUB(B[i + j * ldb], B[i + j * ldb], temp1); \
 	        } \
 	    } \
-        mkl_dc_type temp, one; \
         MKL_DC_SET_ONE(one); \
         MKL_DC_DIV(temp, one, A[j + j * lda]); \
         for ( i = 0; i < m; i++ ) { \
@@ -718,8 +714,11 @@ static __inline void mkl_dc_trsm(const char * SIDE, const char * UPLO,
             mkl_dc_type * B, const MKL_INT * LDB)
 {
 	int AisN;
-	int lside, noconj, unit, upper;
-	mkl_dc_type temp, alpha = *ALPHA;
+	int lside, unit;
+#ifndef MKL_REAL_DATA_TYPE
+    int noconj;
+#endif
+	mkl_dc_type alpha = *ALPHA;
 	MKL_INT m = *M, n = *N;
 	MKL_INT lda = *LDA, ldb = *LDB;
     char uplo = *UPLO;
@@ -729,9 +728,10 @@ static __inline void mkl_dc_trsm(const char * SIDE, const char * UPLO,
 
 	AisN = MKL_DC_MisN(*TRANSA);
 	lside = MKL_DC_MisL(*SIDE);
-    noconj = MKL_DC_MisT(*TRANSA);
     unit = MKL_DC_MisU(*DIAG);
-    upper = MKL_DC_MisU(*UPLO);
+#ifndef MKL_REAL_DATA_TYPE
+    noconj = MKL_DC_MisT(*TRANSA);
+#endif
 
 	if (MKL_DC_IS_ZERO(alpha)) {
 		MKL_INT i, j;
@@ -844,7 +844,7 @@ static __inline void mkl_dc_syrk(const char * UPLO, const char * TRANS,
             mkl_dc_type * C, const MKL_INT * LDC)
 {
 	int AisN, CisU;
-	mkl_dc_type temp, alpha = *ALPHA, beta = *BETA;
+	mkl_dc_type alpha = *ALPHA, beta = *BETA;
 	MKL_INT n = *N, k = *K;
 	MKL_INT lda = *LDA, ldc = *LDC;
     char uplo = *UPLO;

@@ -2,7 +2,6 @@ import sys
 import subprocess
 import os
 
-
 if __name__ == '__main__':
     env = os.environ.copy()
     env['ASAN_OPTIONS'] = 'detect_leaks=0'

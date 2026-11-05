@@ -22,6 +22,7 @@
 #include <filesystem>
 #include <string_view>
 #include <optional>
+#include <complex>
 
 #if defined(_win_)
     #include <io.h>
@@ -253,6 +254,24 @@ void Out<void*>(IOutputStream& o, void* t) {
     Out<const void*>(o, t);
 }
 
+namespace {
+    template <typename T>
+    void ComplexOutImpl(IOutputStream& o, const T& t) {
+        // similar to operator<<(std::basic_ostream<...>&, const std::complex<...>&)
+        o << "(" << t.real() << "," << t.imag() << ")";
+    }
+} // namespace
+
+template <>
+void Out<std::complex<float>>(IOutputStream& o, const std::complex<float>& t) {
+    ComplexOutImpl(o, t);
+}
+
+template <>
+void Out<std::complex<double>>(IOutputStream& o, const std::complex<double>& t) {
+    ComplexOutImpl(o, t);
+}
+
 using TNullPtr = decltype(nullptr);
 
 template <>
@@ -276,6 +295,9 @@ DEF_OPTIONAL(ui64);
 DEF_OPTIONAL(std::string);
 DEF_OPTIONAL(TString);
 DEF_OPTIONAL(TStringBuf);
+#if defined(_darwin_) and defined(_arm64_)
+DEF_OPTIONAL(std::int64_t);
+#endif
 
 #if defined(_android_)
 namespace {

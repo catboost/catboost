@@ -5,14 +5,12 @@ import numpy as np
 import os
 import pytest
 import re
-import sys   # noqa
 import yatest.common
 import yatest.common.runtime
 
 try:
     import catboost_pytest_lib as lib
 except ImportError:
-    sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
     import lib
 
 append_params_to_cmdline = lib.append_params_to_cmdline

@@ -30,6 +30,7 @@
 #include "absl/functional/function_ref.h"
 #include "absl/hash/hash.h"
 #include "absl/strings/match.h"
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
@@ -87,7 +88,7 @@ const bool* GetSelectedExperiments() {
   ABSL_CONST_INIT static bool by_id[kNumExperiments];
   ABSL_CONST_INIT static absl::once_flag flag;
 
-  absl::base_internal::LowLevelCallOnce(&flag, [&]() {
+  absl::base_internal::LowLevelCallOnce(&flag, [&]() GOOGLE_MALLOC_SECTION {
     const char* test_target = thread_safe_getenv("TEST_TARGET");
     const char* active_experiments = thread_safe_getenv(kExperiments);
     const char* disabled_experiments = thread_safe_getenv(kDisableExperiments);
@@ -122,7 +123,8 @@ void ParseExperiments(absl::string_view labels, F f) {
 
 const bool* SelectExperiments(bool* buffer, absl::string_view test_target,
                               absl::string_view active,
-                              absl::string_view disabled, bool unset) {
+                              absl::string_view disabled,
+                              bool unset) {
   memset(buffer, 0, sizeof(*buffer) * kNumExperiments);
 
   if (active == kEnableAll) {
@@ -191,14 +193,13 @@ const bool* SelectExperiments(bool* buffer, absl::string_view test_target,
           HasBrittleTestFailures(config.id)) {
         continue;
       }
-      TC_CHECK(!buffer[static_cast<int>(config.id)]);
       experiment_id = config.id;
 
       // Enabling is specifically based on the experiment name so that it's
       // stable when experiments are added/removed.
       bool enabled =
           ((target_hash ^ absl::HashOf(config.name)) % kEnableOneOf) == 0;
-      buffer[static_cast<int>(config.id)] = enabled;
+      buffer[static_cast<int>(config.id)] |= enabled;
       num_enabled_experiments += enabled;
     }
     // In case the hash-based selection above did not work out, select the last

@@ -24,7 +24,7 @@ inline TMemoryTagGuard::TMemoryTagGuard(TMemoryTag tag)
     SetCurrentMemoryTag(tag);
 }
 
-inline TMemoryTagGuard::TMemoryTagGuard(TMemoryTagGuard&& other)
+inline TMemoryTagGuard::TMemoryTagGuard(TMemoryTagGuard&& other) noexcept
     : Active_(other.Active_)
     , PreviousTag_(other.PreviousTag_)
 {

@@ -223,6 +223,30 @@ constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...) {
 #endif
 
 /**
+ * @def Y_INITIALIZED
+ *
+ * This function can be used to silence erroneous bugprone-use-after-move warnings from clang-tidy.
+ * (see https://clang.llvm.org/extra/clang-tidy/checks/bugprone/use-after-move.html#silencing-erroneous-warnings)
+ *
+ * @code
+ * void Foo(T value, int i) {
+ *     if (i == 1) {
+ *         DoSomethingWith(std::move(value));
+ *     }
+ *     if (i == 2) {
+ *         Y_INITIALIZED(value);
+ *         DoOtherThingWith(std::move(value));
+ *     }
+ * }
+ */
+#if defined(__cplusplus)
+template <class... Types>
+constexpr Y_FORCE_INLINE int Y_INITIALIZED(Types&...) {
+    return 0; // constexpr void functions are not supported in c++11
+}
+#endif
+
+/**
  * @def Y_ASSUME
  *
  * Macro that tells the compiler that it can generate optimized code
@@ -671,6 +695,18 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 #endif
 
 /**
+ * @def Y_HAS_BUILTIN
+ *
+ * A wrapper around `__has_builtin` that evaluates to zero when the compiler
+ * does not provide the feature-checking macro.
+ */
+#ifdef __has_builtin
+    #define Y_HAS_BUILTIN(x) __has_builtin(x)
+#else
+    #define Y_HAS_BUILTIN(x) 0
+#endif
+
+/**
  * @def Y_HAS_ATTRIBUTE
  *
  * A function-like feature checking macro that is a wrapper around
@@ -812,6 +848,19 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
     #define Y_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 #else
     #define Y_NO_UNIQUE_ADDRESS
+#endif
+
+/**
+ * @def Y_TRIVIAL_ABI
+ *
+ * Indicates that a class or structure can be considered trivial for the purpose of calls.
+ *
+ * @see https://clang.llvm.org/docs/AttributeReference.html#trivial-abi
+ */
+#if Y_HAS_CPP_ATTRIBUTE(clang::trivial_abi)
+    #define Y_TRIVIAL_ABI [[clang::trivial_abi]]
+#else
+    #define Y_TRIVIAL_ABI
 #endif
 
 /**

@@ -4,16 +4,16 @@
 #include <util/generic/yexception.h>
 #include <util/string/cast.h>
 
-static inline TStringBuf StripLeft(const TStringBuf& s) noexcept {
-    const char* b = s.begin();
-    const char* e = s.end();
+static TStringBuf StripLeft(const TStringBuf s Y_LIFETIME_BOUND) noexcept {
+    auto b = s.begin();
+    auto e = s.end();
 
     StripRangeBegin(b, e);
 
     return TStringBuf(b, e);
 }
 
-TParsedHttpRequest::TParsedHttpRequest(const TStringBuf& str) {
+TParsedHttpRequest::TParsedHttpRequest(const TStringBuf str Y_LIFETIME_BOUND) {
     TStringBuf tmp;
 
     if (!StripLeft(str).TrySplit(' ', Method, tmp)) {
@@ -27,6 +27,6 @@ TParsedHttpRequest::TParsedHttpRequest(const TStringBuf& str) {
     Proto = StripLeft(Proto);
 }
 
-TParsedHttpLocation::TParsedHttpLocation(const TStringBuf& req) {
+TParsedHttpLocation::TParsedHttpLocation(const TStringBuf req Y_LIFETIME_BOUND) {
     req.Split('?', Path, Cgi);
 }

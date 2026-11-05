@@ -65,7 +65,7 @@ A vector of formula values for all input objects. The training starts from these
 ### pool_path
 
 #### Description
-The path to the output file that contains the [dataset description](input-data_values-file.md).
+The path to the output file that contains the [dataset](input-data_values-file.md).
 
 **Default value**
 

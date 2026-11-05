@@ -1,3 +1,19 @@
+//////////////////// CythonFunctionShared.module_state_decls ////////////////////
+
+PyTypeObject *__pyx_CyFunctionType;
+
+//////////////////// CythonFunctionShared.module_state_traverse ///////////////////
+
+Py_VISIT(traverse_module_state->__pyx_CyFunctionType);
+
+//////////////////// CythonFunctionShared.module_state_clear ///////////////////
+
+Py_CLEAR(clear_module_state->__pyx_CyFunctionType);
+
+//////////////////// CythonFunctionShared.init //////////////////
+//@substitute: naming
+
+if (likely(__pyx_CyFunction_init($module_cname) == 0)); else
 
 //////////////////// CythonFunctionShared.proto ////////////////////
 
@@ -38,14 +54,15 @@ typedef struct {
     // PEP-573: PyCFunctionObject + mm_class
     PyCMethodObject func;
 #endif
-#if CYTHON_BACKPORT_VECTORCALL || \
-        (CYTHON_COMPILING_IN_LIMITED_API && CYTHON_METH_FASTCALL)
+#if CYTHON_COMPILING_IN_LIMITED_API && CYTHON_METH_FASTCALL
     __pyx_vectorcallfunc func_vectorcall;
 #endif
 #if CYTHON_COMPILING_IN_LIMITED_API
     PyObject *func_weakreflist;
 #endif
+#if PY_VERSION_HEX < 0x030C0000 || CYTHON_COMPILING_IN_LIMITED_API
     PyObject *func_dict;
+#endif
     PyObject *func_name;
     PyObject *func_qualname;
     PyObject *func_doc;
@@ -102,7 +119,7 @@ static PyObject * __Pyx_CyFunction_Vectorcall_NOARGS(PyObject *func, PyObject *c
 static PyObject * __Pyx_CyFunction_Vectorcall_O(PyObject *func, PyObject *const *args, size_t nargsf, PyObject *kwnames);
 static PyObject * __Pyx_CyFunction_Vectorcall_FASTCALL_KEYWORDS(PyObject *func, PyObject *const *args, size_t nargsf, PyObject *kwnames);
 static PyObject * __Pyx_CyFunction_Vectorcall_FASTCALL_KEYWORDS_METHOD(PyObject *func, PyObject *const *args, size_t nargsf, PyObject *kwnames);
-#if CYTHON_BACKPORT_VECTORCALL || CYTHON_COMPILING_IN_LIMITED_API
+#if CYTHON_COMPILING_IN_LIMITED_API
 #define __Pyx_CyFunction_func_vectorcall(f) (((__pyx_CyFunctionObject*)f)->func_vectorcall)
 #else
 #define __Pyx_CyFunction_func_vectorcall(f) (((PyCFunctionObject*)f)->vectorcall)
@@ -117,6 +134,7 @@ static PyObject * __Pyx_CyFunction_Vectorcall_FASTCALL_KEYWORDS_METHOD(PyObject 
 //@requires: ModuleSetupCode.c::IncludeStructmemberH
 //@requires: ObjectHandling.c::PyObjectGetAttrStr
 //@requires: ObjectHandling.c::CachedMethodType
+//@requires: ObjectHandling.c::PyObjectCallOneArg
 //@requires: ExtensionTypes.c::CallTypeTraverse
 //@requires: Synchronization.c::CriticalSections
 //@substitute: naming
@@ -285,9 +303,12 @@ __Pyx_CyFunction_set_qualname(__pyx_CyFunctionObject *op, PyObject *value, void 
     return 0;
 }
 
+#if CYTHON_COMPILING_IN_LIMITED_API && __PYX_LIMITED_VERSION_HEX < 0x030A0000
 static PyObject *
-__Pyx_CyFunction_get_dict_locked(__pyx_CyFunctionObject *op)
+__Pyx_CyFunction_get_dict(__pyx_CyFunctionObject *op, void *context)
 {
+    CYTHON_UNUSED_VAR(context);
+    // PyObject_GenericGetDict is not defined
     if (unlikely(op->func_dict == NULL)) {
         op->func_dict = PyDict_New();
         if (unlikely(op->func_dict == NULL))
@@ -296,38 +317,7 @@ __Pyx_CyFunction_get_dict_locked(__pyx_CyFunctionObject *op)
     Py_INCREF(op->func_dict);
     return op->func_dict;
 }
-
-static PyObject *
-__Pyx_CyFunction_get_dict(__pyx_CyFunctionObject *op, void *context)
-{
-    CYTHON_UNUSED_VAR(context);
-    PyObject *result;
-    __Pyx_BEGIN_CRITICAL_SECTION(op);
-    result = __Pyx_CyFunction_get_dict_locked(op);
-    __Pyx_END_CRITICAL_SECTION();
-    return result;
-}
-
-static int
-__Pyx_CyFunction_set_dict(__pyx_CyFunctionObject *op, PyObject *value, void *context)
-{
-    CYTHON_UNUSED_VAR(context);
-    if (unlikely(value == NULL)) {
-        PyErr_SetString(PyExc_TypeError,
-               "function's dictionary may not be deleted");
-        return -1;
-    }
-    if (unlikely(!PyDict_Check(value))) {
-        PyErr_SetString(PyExc_TypeError,
-               "setting function's dictionary to a non-dict");
-        return -1;
-    }
-    Py_INCREF(value);
-    __Pyx_BEGIN_CRITICAL_SECTION(op);
-    __Pyx_Py_XDECREF_SET(op->func_dict, value);
-    __Pyx_END_CRITICAL_SECTION();
-    return 0;
-}
+#endif
 
 static PyObject *
 __Pyx_CyFunction_get_globals(__pyx_CyFunctionObject *op, void *context)
@@ -472,6 +462,8 @@ __Pyx_CyFunction_get_kwdefaults(__pyx_CyFunctionObject *op, void *context) {
     return result;
 }
 
+static int __Pyx_CyFunction_set_annotate_in_dict_if_exists(PyObject *op_in, PyObject *value); /*proto*/
+
 static int
 __Pyx_CyFunction_set_annotations(__pyx_CyFunctionObject *op, PyObject* value, void *context) {
     CYTHON_UNUSED_VAR(context);
@@ -486,7 +478,57 @@ __Pyx_CyFunction_set_annotations(__pyx_CyFunctionObject *op, PyObject* value, vo
     __Pyx_BEGIN_CRITICAL_SECTION(op);
     __Pyx_Py_XDECREF_SET(op->func_annotations, value);
     __Pyx_END_CRITICAL_SECTION();
+    if (unlikely(__Pyx_CyFunction_set_annotate_in_dict_if_exists((PyObject*) op, Py_None) < 0)) return -1;
     return 0;
+}
+
+static int
+__Pyx_CyFunction_get_dict_if_exists(PyObject *op_in, PyObject **dict) {
+    /* Return 1 if the function dict exists, 0 otherwise.  This cannot fail:
+     * _PyObject_GetDictPtr() may clear errors internally, but never reports them. */
+#if CYTHON_COMPILING_IN_PYPY
+    *dict = PyObject_GenericGetDict(op_in, NULL);
+#elif CYTHON_COMPILING_IN_LIMITED_API || PY_VERSION_HEX < 0x030C0000
+    *dict = ((__pyx_CyFunctionObject*) op_in)->func_dict;
+#else
+    PyObject **dictptr = _PyObject_GetDictPtr(op_in);
+    *dict = likely(dictptr) ? *dictptr : NULL;
+#endif
+    return *dict ? 1 : 0;
+}
+
+static int
+__Pyx_CyFunction_get_annotate_from_dict_if_exists(PyObject *op_in, PyObject **annotate) {
+    PyObject *dict;
+    int dict_found;
+    *annotate = NULL;
+    dict_found = __Pyx_CyFunction_get_dict_if_exists(op_in, &dict);
+    if (!dict_found) return 0;
+    return __Pyx_PyDict_GetItemRef(dict, PYIDENT("__annotate__"), annotate);
+}
+
+static int
+__Pyx_CyFunction_set_annotate_in_dict_if_exists(PyObject *op_in, PyObject *value) {
+    PyObject *dict;
+    int dict_found;
+    dict_found = __Pyx_CyFunction_get_dict_if_exists(op_in, &dict);
+    if (!dict_found) return 0;
+    return PyDict_SetItem(dict, PYIDENT("__annotate__"), value);
+}
+
+static int
+__Pyx_CyFunction_set_annotate_in_dict(PyObject *op_in, PyObject *value) {
+    PyObject *dict;
+    int result;
+#if CYTHON_COMPILING_IN_LIMITED_API && __PYX_LIMITED_VERSION_HEX < 0x030A0000
+    dict = __Pyx_CyFunction_get_dict((__pyx_CyFunctionObject*) op_in, NULL);
+#else
+    dict = PyObject_GenericGetDict(op_in, NULL);
+#endif
+    if (unlikely(!dict)) return -1;
+    result = PyDict_SetItem(dict, PYIDENT("__annotate__"), value);
+    Py_DECREF(dict);
+    return result;
 }
 
 static PyObject *
@@ -502,13 +544,98 @@ __Pyx_CyFunction_get_annotations_locked(__pyx_CyFunctionObject *op) {
 }
 
 static PyObject *
-__Pyx_CyFunction_get_annotations(__pyx_CyFunctionObject *op, void *context) {
-    PyObject *result;
+__Pyx_CyFunction_get_annotations(PyObject *op_in, void *context) {
+    PyObject *annotate = NULL;
+    PyObject *result = NULL;
+    __pyx_CyFunctionObject *op = (__pyx_CyFunctionObject*) op_in;
     CYTHON_UNUSED_VAR(context);
-    __Pyx_BEGIN_CRITICAL_SECTION(op);
-    result = __Pyx_CyFunction_get_annotations_locked(op);
+    __Pyx_BEGIN_CRITICAL_SECTION(op_in);
+    result = __Pyx_XNewRef(op->func_annotations);
+    __Pyx_END_CRITICAL_SECTION();
+    if (result) return result;
+
+    if (unlikely(__Pyx_CyFunction_get_annotate_from_dict_if_exists(op_in, &annotate) < 0)) return NULL;
+    if (!annotate || annotate == Py_None) {
+        Py_XDECREF(annotate);
+        __Pyx_BEGIN_CRITICAL_SECTION(op_in);
+        result = __Pyx_CyFunction_get_annotations_locked(op);
+        __Pyx_END_CRITICAL_SECTION();
+        return result;
+    }
+
+    PyObject *format = PyLong_FromLong(1L);  // annotationlib.Format.VALUE
+    if (likely(format)) {
+        result = __Pyx_PyObject_CallOneArg(annotate, format);
+        Py_DECREF(format);
+    }
+    Py_DECREF(annotate);
+    if (unlikely(!result)) return NULL;
+    if (unlikely(!PyDict_Check(result))) {
+        PyErr_SetString(PyExc_TypeError, "__annotate__ must return a dict");
+        Py_DECREF(result);
+        return NULL;
+    }
+    __Pyx_BEGIN_CRITICAL_SECTION(op_in);
+    __Pyx_Py_XDECREF_SET(op->func_annotations, __Pyx_NewRef(result));
     __Pyx_END_CRITICAL_SECTION();
     return result;
+}
+
+static PyObject *__Pyx_CyFunction_annotate_impl(PyObject *self, PyObject *args) {
+    // The signature of this function is 0 or 1 args, where arg should be an int (if passed).
+    // However, for this basic placeholder implementation, we don't care and don't check it.
+    CYTHON_UNUSED_VAR(args);
+    if (unlikely(!self)) {
+        PyErr_SetString(PyExc_SystemError, "cython __annotate__ called without 'self' argument");
+    }
+    Py_XINCREF(self);
+    return self;
+}
+
+static PyMethodDef __Pyx_CyFunction_annotate_method = {
+    "__annotate__",
+    (PyCFunction)(void (*)(void))__Pyx_CyFunction_annotate_impl,
+    METH_VARARGS,
+    "Placeholder __annotate__ function to allow 'functools.wraps' to work "
+    "on Cython functions."
+};
+
+// We don't yet support PEP649 properly, so __annotate__ is
+// implemented in a minimal way, just so that functools.wraps works.
+static PyObject *
+__Pyx_CyFunction_get_annotate(PyObject *op_in, void *context) {
+    PyObject *annotate = NULL;
+    CYTHON_UNUSED_VAR(context);
+    if (unlikely(__Pyx_CyFunction_get_annotate_from_dict_if_exists(op_in, &annotate) < 0)) return NULL;
+    if (annotate) return annotate;
+
+    PyObject *annotations = __Pyx_CyFunction_get_annotations(op_in, NULL);
+    if (unlikely(!annotations)) return NULL;
+    PyObject *method = PyCFunction_New(
+        &__Pyx_CyFunction_annotate_method,
+        annotations);
+    Py_DECREF(annotations);
+    return method;
+}
+
+static int
+__Pyx_CyFunction_set_annotate(PyObject *op_in, PyObject* value, void *context) {
+    CYTHON_UNUSED_VAR(context);
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "__annotate__ cannot be deleted");
+        return -1;
+    }
+    if (unlikely(value != Py_None && !PyCallable_Check(value))) {
+        PyErr_SetString(PyExc_TypeError, "__annotate__ must be callable or None");
+        return -1;
+    }
+    if (value != Py_None) {
+        __pyx_CyFunctionObject *op = (__pyx_CyFunctionObject*) op_in;
+        __Pyx_BEGIN_CRITICAL_SECTION(op_in);
+        Py_CLEAR(op->func_annotations);
+        __Pyx_END_CRITICAL_SECTION();
+    }
+    return __Pyx_CyFunction_set_annotate_in_dict(op_in, value);
 }
 
 static PyObject *
@@ -523,7 +650,6 @@ __Pyx_CyFunction_get_is_coroutine_value(__pyx_CyFunctionObject *op) {
         PyList_SET_ITEM(fromlist, 0, marker);
 #else
         if (unlikely(PyList_SetItem(fromlist, 0, marker) < 0)) {
-            Py_DECREF(marker);
             Py_DECREF(fromlist);
             return NULL;
         }
@@ -644,8 +770,13 @@ static PyGetSetDef __pyx_CyFunction_getsets[] = {
     {"func_name", (getter)__Pyx_CyFunction_get_name, (setter)__Pyx_CyFunction_set_name, 0, 0},
     {"__name__", (getter)__Pyx_CyFunction_get_name, (setter)__Pyx_CyFunction_set_name, 0, 0},
     {"__qualname__", (getter)__Pyx_CyFunction_get_qualname, (setter)__Pyx_CyFunction_set_qualname, 0, 0},
-    {"func_dict", (getter)__Pyx_CyFunction_get_dict, (setter)__Pyx_CyFunction_set_dict, 0, 0},
-    {"__dict__", (getter)__Pyx_CyFunction_get_dict, (setter)__Pyx_CyFunction_set_dict, 0, 0},
+#if CYTHON_COMPILING_IN_LIMITED_API && __PYX_LIMITED_VERSION_HEX < 0x030A0000
+    {"func_dict", (getter)__Pyx_CyFunction_get_dict, (setter)PyObject_GenericSetDict, 0, 0},
+    {"__dict__", (getter)__Pyx_CyFunction_get_dict, (setter)PyObject_GenericSetDict, 0, 0},
+#else
+    {"func_dict", (getter)PyObject_GenericGetDict, (setter)PyObject_GenericSetDict, 0, 0},
+    {"__dict__", (getter)PyObject_GenericGetDict, (setter)PyObject_GenericSetDict, 0, 0},
+#endif
     {"func_globals", (getter)__Pyx_CyFunction_get_globals, 0, 0, 0},
     {"__globals__", (getter)__Pyx_CyFunction_get_globals, 0, 0, 0},
     {"func_closure", (getter)__Pyx_CyFunction_get_closure, 0, 0, 0},
@@ -656,6 +787,7 @@ static PyGetSetDef __pyx_CyFunction_getsets[] = {
     {"__defaults__", (getter)__Pyx_CyFunction_get_defaults, (setter)__Pyx_CyFunction_set_defaults, 0, 0},
     {"__kwdefaults__", (getter)__Pyx_CyFunction_get_kwdefaults, (setter)__Pyx_CyFunction_set_kwdefaults, 0, 0},
     {"__annotations__", (getter)__Pyx_CyFunction_get_annotations, (setter)__Pyx_CyFunction_set_annotations, 0, 0},
+    {"__annotate__", (getter)__Pyx_CyFunction_get_annotate, (setter)__Pyx_CyFunction_set_annotate, 0, 0},
     {"_is_coroutine", (getter)__Pyx_CyFunction_get_is_coroutine, 0, 0, 0},
 //    {"__signature__", (getter)__Pyx_CyFunction_get_signature, 0, 0, 0},
 #if CYTHON_COMPILING_IN_LIMITED_API
@@ -668,9 +800,11 @@ static PyMemberDef __pyx_CyFunction_members[] = {
 #if !CYTHON_COMPILING_IN_LIMITED_API
     {"__module__", T_OBJECT, offsetof(PyCFunctionObject, m_module), 0, 0},
 #endif
+#if PY_VERSION_HEX < 0x030C0000 || CYTHON_COMPILING_IN_LIMITED_API
     {"__dictoffset__", T_PYSSIZET, offsetof(__pyx_CyFunctionObject, func_dict), READONLY, 0},
+#endif
 #if CYTHON_METH_FASTCALL
-#if CYTHON_BACKPORT_VECTORCALL || CYTHON_COMPILING_IN_LIMITED_API
+#if CYTHON_COMPILING_IN_LIMITED_API
     {"__vectorcalloffset__", T_PYSSIZET, offsetof(__pyx_CyFunctionObject, func_vectorcall), READONLY, 0},
 #else
     {"__vectorcalloffset__", T_PYSSIZET, offsetof(PyCFunctionObject, vectorcall), READONLY, 0},
@@ -733,7 +867,9 @@ static PyObject *__Pyx_CyFunction_Init(__pyx_CyFunctionObject *op, PyMethodDef *
     Py_XINCREF(module);
     cf->m_module = module;
 #endif
+#if PY_VERSION_HEX < 0x030C0000 || CYTHON_COMPILING_IN_LIMITED_API
     op->func_dict = NULL;
+#endif
     op->func_name = NULL;
     Py_INCREF(qualname);
     op->func_qualname = qualname;
@@ -791,14 +927,19 @@ __Pyx_CyFunction_clear(__pyx_CyFunctionObject *m)
 #else
     Py_CLEAR(((PyCFunctionObject*)m)->m_module);
 #endif
+#if PY_VERSION_HEX < 0x030C0000 || CYTHON_COMPILING_IN_LIMITED_API
     Py_CLEAR(m->func_dict);
+#elif PY_VERSION_HEX < 0x030d0000
+    _PyObject_ClearManagedDict((PyObject*)m);
+#else
+    PyObject_ClearManagedDict((PyObject*)m);
+#endif
     Py_CLEAR(m->func_name);
     Py_CLEAR(m->func_qualname);
     Py_CLEAR(m->func_doc);
     Py_CLEAR(m->func_globals);
     Py_CLEAR(m->func_code);
-#if !CYTHON_COMPILING_IN_LIMITED_API
-#if PY_VERSION_HEX < 0x030900B1
+#if PY_VERSION_HEX < 0x030900B1 || CYTHON_COMPILING_IN_LIMITED_API
     Py_CLEAR(__Pyx_CyFunction_GetClassObj(m));
 #else
     {
@@ -806,7 +947,6 @@ __Pyx_CyFunction_clear(__pyx_CyFunctionObject *m)
         ((PyCMethodObject *) (m))->mm_class = NULL;
         Py_XDECREF(cls);
     }
-#endif
 #endif
     Py_CLEAR(m->defaults_tuple);
     Py_CLEAR(m->defaults_kwdict);
@@ -844,18 +984,30 @@ static int __Pyx_CyFunction_traverse(__pyx_CyFunctionObject *m, visitproc visit,
 #else
     Py_VISIT(((PyCFunctionObject*)m)->m_module);
 #endif
+#if PY_VERSION_HEX < 0x030C0000 || CYTHON_COMPILING_IN_LIMITED_API
     Py_VISIT(m->func_dict);
+#else
+    {
+        int e =
+#if PY_VERSION_HEX < 0x030d0000
+            _PyObject_VisitManagedDict
+#else
+            PyObject_VisitManagedDict
+#endif
+                ((PyObject*)m, visit, arg);
+        if (e != 0) return e;
+    }
+#endif
     __Pyx_VISIT_CONST(m->func_name);
     __Pyx_VISIT_CONST(m->func_qualname);
     Py_VISIT(m->func_doc);
     Py_VISIT(m->func_globals);
     // The code objects that we generate only contain plain constants and can never participate in reference cycles.
     __Pyx_VISIT_CONST(m->func_code);
-#if !CYTHON_COMPILING_IN_LIMITED_API
     Py_VISIT(__Pyx_CyFunction_GetClassObj(m));
-#endif
     Py_VISIT(m->defaults_tuple);
     Py_VISIT(m->defaults_kwdict);
+    Py_VISIT(m->func_annotations);
     Py_VISIT(m->func_is_coroutine);
     Py_VISIT(m->defaults);
 
@@ -966,7 +1118,7 @@ static PyObject *__Pyx_CyFunction_CallAsMethod(PyObject *func, PyObject *args, P
     PyObject *result;
     __pyx_CyFunctionObject *cyfunc = (__pyx_CyFunctionObject *) func;
 
-#if CYTHON_METH_FASTCALL && (CYTHON_VECTORCALL || CYTHON_BACKPORT_VECTORCALL)
+#if CYTHON_METH_FASTCALL && CYTHON_VECTORCALL
     // Prefer vectorcall if available. This is not the typical case, as
     // CPython would normally use vectorcall directly instead of tp_call.
      __pyx_vectorcallfunc vc = __Pyx_CyFunction_func_vectorcall(cyfunc);
@@ -1014,7 +1166,7 @@ static PyObject *__Pyx_CyFunction_CallAsMethod(PyObject *func, PyObject *args, P
     return result;
 }
 
-#if CYTHON_METH_FASTCALL && (CYTHON_VECTORCALL || CYTHON_BACKPORT_VECTORCALL)
+#if CYTHON_METH_FASTCALL && CYTHON_VECTORCALL
 // Check that kwnames is empty (if you want to allow keyword arguments,
 // simply pass kwnames=NULL) and figure out what to do with "self".
 // Return value:
@@ -1043,11 +1195,7 @@ static CYTHON_INLINE int __Pyx_CyFunction_Vectorcall_CheckArgs(__pyx_CyFunctionO
 static PyObject * __Pyx_CyFunction_Vectorcall_NOARGS(PyObject *func, PyObject *const *args, size_t nargsf, PyObject *kwnames)
 {
     __pyx_CyFunctionObject *cyfunc = (__pyx_CyFunctionObject *)func;
-#if CYTHON_BACKPORT_VECTORCALL
-    Py_ssize_t nargs = (Py_ssize_t)nargsf;
-#else
     Py_ssize_t nargs = PyVectorcall_NARGS(nargsf);
-#endif
     PyObject *self;
 #if CYTHON_COMPILING_IN_LIMITED_API
     PyCFunction meth = PyCFunction_GetFunction(cyfunc->func);
@@ -1086,11 +1234,7 @@ static PyObject * __Pyx_CyFunction_Vectorcall_NOARGS(PyObject *func, PyObject *c
 static PyObject * __Pyx_CyFunction_Vectorcall_O(PyObject *func, PyObject *const *args, size_t nargsf, PyObject *kwnames)
 {
     __pyx_CyFunctionObject *cyfunc = (__pyx_CyFunctionObject *)func;
-#if CYTHON_BACKPORT_VECTORCALL
-    Py_ssize_t nargs = (Py_ssize_t)nargsf;
-#else
     Py_ssize_t nargs = PyVectorcall_NARGS(nargsf);
-#endif
     PyObject *self;
 #if CYTHON_COMPILING_IN_LIMITED_API
     PyCFunction meth = PyCFunction_GetFunction(cyfunc->func);
@@ -1129,11 +1273,7 @@ static PyObject * __Pyx_CyFunction_Vectorcall_O(PyObject *func, PyObject *const 
 static PyObject * __Pyx_CyFunction_Vectorcall_FASTCALL_KEYWORDS(PyObject *func, PyObject *const *args, size_t nargsf, PyObject *kwnames)
 {
     __pyx_CyFunctionObject *cyfunc = (__pyx_CyFunctionObject *)func;
-#if CYTHON_BACKPORT_VECTORCALL
-    Py_ssize_t nargs = (Py_ssize_t)nargsf;
-#else
     Py_ssize_t nargs = PyVectorcall_NARGS(nargsf);
-#endif
     PyObject *self;
 #if CYTHON_COMPILING_IN_LIMITED_API
     PyCFunction meth = PyCFunction_GetFunction(cyfunc->func);
@@ -1168,11 +1308,7 @@ static PyObject * __Pyx_CyFunction_Vectorcall_FASTCALL_KEYWORDS_METHOD(PyObject 
 {
     __pyx_CyFunctionObject *cyfunc = (__pyx_CyFunctionObject *)func;
     PyTypeObject *cls = (PyTypeObject *) __Pyx_CyFunction_GetClassObj(cyfunc);
-#if CYTHON_BACKPORT_VECTORCALL
-    Py_ssize_t nargs = (Py_ssize_t)nargsf;
-#else
     Py_ssize_t nargs = PyVectorcall_NARGS(nargsf);
-#endif
     PyObject *self;
 #if CYTHON_COMPILING_IN_LIMITED_API
     PyCFunction meth = PyCFunction_GetFunction(cyfunc->func);
@@ -1199,7 +1335,14 @@ static PyObject * __Pyx_CyFunction_Vectorcall_FASTCALL_KEYWORDS_METHOD(PyObject 
         return NULL;
     }
 
-    return ((__Pyx_PyCMethod)(void(*)(void))meth)(self, cls, args, (size_t)nargs, kwnames);
+    #if PY_VERSION_HEX < 0x030e00A6
+    // See https://github.com/python/cpython/pull/131135
+    size_t nargs_value = (size_t) nargs;
+    #else
+    Py_ssize_t nargs_value = nargs;
+    #endif
+
+    return ((__Pyx_PyCMethod)(void(*)(void))meth)(self, cls, args, nargs_value, kwnames);
 }
 #endif
 
@@ -1230,6 +1373,9 @@ static PyType_Spec __pyx_CyFunctionType_spec = {
     _Py_TPFLAGS_HAVE_VECTORCALL |
 #endif
 #endif // CYTHON_METH_FASTCALL
+#if PY_VERSION_HEX >= 0x030C0000 && !CYTHON_COMPILING_IN_LIMITED_API
+    Py_TPFLAGS_MANAGED_DICT |
+#endif
     Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_DISALLOW_INSTANTIATION |
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE, /*tp_flags*/
     __pyx_CyFunctionType_slots
@@ -1325,6 +1471,22 @@ static int __Pyx_CyFunction_InitClassCell(PyObject *cyfunctions, PyObject *class
     return 0;
 }
 
+//////////////////// FusedFunction.module_state_decls ////////////////////
+
+PyTypeObject *__pyx_FusedFunctionType;
+
+//////////////////// FusedFunction.module_state_traverse ///////////////////
+
+Py_VISIT(traverse_module_state->__pyx_FusedFunctionType);
+
+//////////////////// FusedFunction.module_state_clear ///////////////////
+
+Py_CLEAR(clear_module_state->__pyx_FusedFunctionType);
+
+//////////////////// FusedFunction.init //////////////////
+//@substitute: naming
+
+if (likely(__pyx_FusedFunction_init($module_cname) == 0)); else
 
 //////////////////// FusedFunction.proto ////////////////////
 
@@ -1545,10 +1707,7 @@ __pyx_err:;
 
     if (likely(unbound_result_func)) {
         if (self->self) {
-            __pyx_FusedFunctionObject *unbound = (__pyx_FusedFunctionObject *) unbound_result_func;
-
-            // TODO: move this to InitClassCell
-            __Pyx_CyFunction_SetClassObj(unbound, __Pyx_CyFunction_GetClassObj(self));
+            assert(__Pyx_CyFunction_GetClassObj(unbound_result_func) == __Pyx_CyFunction_GetClassObj(self));
 
             result_func = __pyx_FusedFunction_descr_get(unbound_result_func,
                                                         self->self, self->self);
@@ -1646,7 +1805,7 @@ __pyx_FusedFunction_call(PyObject *func, PyObject *args, PyObject *kw)
         if (unlikely(!new_func))
             goto bad;
 
-        __Pyx_CyFunction_SetClassObj(new_func, __Pyx_CyFunction_GetClassObj(binding_func));
+        assert(__Pyx_CyFunction_GetClassObj(new_func) == __Pyx_CyFunction_GetClassObj(binding_func));
 
         func = (PyObject *) new_func;
     }
@@ -1751,8 +1910,12 @@ static PyObject* __Pyx_Method_ClassMethod(PyObject *method) {
             "This is most likely a classmethod in a cdef class method with binding=False. "
             "Try setting 'binding' to True.",
             method);
-#elif CYTHON_COMPILING_IN_GRAAL
+#elif CYTHON_COMPILING_IN_GRAAL && defined(GRAALPY_VERSION_NUM) && GRAALPY_VERSION_NUM > 0x19000000
         // cdef classes
+        PyTypeObject *d_type = GraalPyDescrObject_GetType(method);
+        return PyDescr_NewClassMethod(d_type, GraalPyMethodDescrObject_GetMethod(method));
+#elif CYTHON_COMPILING_IN_GRAAL
+        // Remove when GraalPy 24 goes EOL
         PyTypeObject *d_type = PyDescrObject_GetType(method);
         return PyDescr_NewClassMethod(d_type, PyMethodDescrObject_GetMethod(method));
 #else

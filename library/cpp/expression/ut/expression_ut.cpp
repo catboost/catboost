@@ -329,6 +329,11 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         UNIT_ASSERT_EQUAL(CalcExpression("unknown < 1", m), 1);
         UNIT_ASSERT_EQUAL(CalcExpression("unknown < 0", m), 0);
         UNIT_ASSERT_EQUAL(CalcExpression("unknown < (-1)", m), 0);
+
+        // check if a feature is in the dictionary "m"
+        UNIT_ASSERT_EQUAL(CalcExpression("!unknown", m), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("unknown != \"unknown\"", m), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("small != \"small\"", m), 1);
     }
 
     Y_UNIT_TEST(TestDivZero) {
@@ -345,12 +350,16 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         THashMap<TString, TString> n;
         n["A"] = "a_str";
         n["B"] = "b_str";
+        n["some_feature"] = "some_value";
+        n["some_value"] = "0";
         UNIT_ASSERT_EQUAL(CalcExpression("1 ? 2 : 3", m), 2);
         UNIT_ASSERT_EQUAL(CalcExpression("1 ? 1+1 : 3 + 100", m), 2);
         UNIT_ASSERT_EQUAL(CalcExpression("0 ? 0 : 3", m), 3);
         UNIT_ASSERT_EQUAL(CalcExpression("1 ? \"abc.def\" >? \"abc\" : 0", m), 1);
         UNIT_ASSERT_EQUAL(CalcExpression("1 ? 1 : 0 ? 2 : 3", m), CalcExpression("1 ? 1 : (0 ? 2 : 3)", m));
         UNIT_ASSERT_EQUAL(CalcExpression("1 ? 77 : 2 && 1", m), 77);
+        UNIT_ASSERT_EQUAL(CalcExpression("some_feature!=some_value", n), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("some_feature!=\"some_value\"", n), 0);
         UNIT_ASSERT_EQUAL(CalcExpressionStr("1 ?@ \"one\" : \"two\"", n), TString("one"));
         UNIT_ASSERT_EQUAL(CalcExpressionStr("0 ?@ \"one\" : \"two\"", n), TString("two"));
         UNIT_ASSERT_EQUAL(CalcExpressionStr("1 ?@ A : B", n), TString("a_str"));

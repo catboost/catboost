@@ -93,7 +93,7 @@ public:
      * Initializes this stream with a next chunk extracted from the given zero
      * copy stream.
      *
-     * @param stream                    Zero copy stream to initialize from.
+     * @param[inout] stream             Zero copy stream to initialize from.
      */
     void Fill(IZeroCopyInput* stream) {
         Len_ = stream->Next(&Buf_);

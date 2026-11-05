@@ -73,7 +73,7 @@ namespace NCB {
     };
 
     template <class TSize>
-    static inline IOutputStream& operator<<(IOutputStream& o, const TIndexRange<TSize>& indexRange) {
+    inline IOutputStream& operator<<(IOutputStream& o, const TIndexRange<TSize>& indexRange) {
         o << '[' << indexRange.Begin << ',' << indexRange.End << ')';
         return o;
     }

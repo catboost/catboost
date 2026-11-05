@@ -210,4 +210,38 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
         UNIT_ASSERT_VALUES_EQUAL(ptr1, vector[0].data());
         UNIT_ASSERT_VALUES_EQUAL(ptr2, vector[1].data());
     }
+
+    Y_UNIT_TEST(TestAssignWithCount) {
+        TCompactVector<ui32> vector = {1, 2, 3, 4, 5};
+        UNIT_ASSERT_VALUES_EQUAL(5u, vector.Size());
+
+        vector.assign(3, 42);
+        UNIT_ASSERT_VALUES_EQUAL(3u, vector.Size());
+
+        UNIT_ASSERT_VALUES_EQUAL(42u, vector[0]);
+        UNIT_ASSERT_VALUES_EQUAL(42u, vector[1]);
+        UNIT_ASSERT_VALUES_EQUAL(42u, vector[2]);
+    }
+
+    Y_UNIT_TEST(TestAssignWithZeroCount) {
+        TCompactVector<ui32> vector = {1, 2, 3, 4, 5};
+        UNIT_ASSERT_VALUES_EQUAL(5u, vector.Size());
+
+        vector.assign(0, 42);
+        UNIT_ASSERT_VALUES_EQUAL(0u, vector.Size());
+        UNIT_ASSERT(vector.empty());
+    }
+
+    Y_UNIT_TEST(TestAssignWithString) {
+        TCompactVector<std::string> vector = {"hello", "world"};
+        UNIT_ASSERT_VALUES_EQUAL(2u, vector.Size());
+
+        vector.assign(4, "test");
+        UNIT_ASSERT_VALUES_EQUAL(4u, vector.Size());
+
+        UNIT_ASSERT_VALUES_EQUAL("test", vector[0]);
+        UNIT_ASSERT_VALUES_EQUAL("test", vector[1]);
+        UNIT_ASSERT_VALUES_EQUAL("test", vector[2]);
+        UNIT_ASSERT_VALUES_EQUAL("test", vector[3]);
+    }
 } // Y_UNIT_TEST_SUITE(TCompactVectorTest)

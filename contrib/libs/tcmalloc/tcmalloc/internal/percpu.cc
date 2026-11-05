@@ -116,6 +116,7 @@ int VirtualCpu::Synchronize() {
   }
 
   TC_CHECK_GE(vcpu, kCpuIdInitialized);
+  TC_ASSERT_LT(vcpu, NumCPUs());
   tcmalloc_cached_vcpu = vcpu;
   return vcpu;
 #else   // TCMALLOC_INTERNAL_PERCPU_USE_RSEQ

@@ -17,8 +17,8 @@ TEST(THashTest, NaNSafeHash)
 
 TEST(THashTest, SplitMix64Test)
 {
-    EXPECT_EQ(SplitMix64(0), 0xe220a8397b1dcdafULL);
-    EXPECT_EQ(SplitMix64(12345), 0x22118258a9d111a0ULL);
+    EXPECT_EQ(SplitMix(0), 0xe220a8397b1dcdafULL);
+    EXPECT_EQ(SplitMix(12345), 0x22118258a9d111a0ULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

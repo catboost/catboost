@@ -34,6 +34,7 @@
 #include <util/system/shellcommand.h>
 
 #include <filesystem>
+#include <memory>
 
 #if defined(_win_)
     #include <fcntl.h>
@@ -125,11 +126,11 @@ public:
     inline TTraceWriterProcessor(const char* traceFilePath, EOpenMode mode)
         : PrevTime(TInstant::Now())
     {
-        TraceFile = new TUnbufferedFileOutput(TFile(traceFilePath, mode | WrOnly | Seq));
+        TraceFile.reset(new TUnbufferedFileOutput(TFile(traceFilePath, mode | WrOnly | Seq)));
     }
 
 private:
-    TAutoPtr<TUnbufferedFileOutput> TraceFile;
+    std::unique_ptr<TUnbufferedFileOutput> TraceFile;
     TString TraceFilePath;
     TInstant PrevTime;
     TVector<TString> ErrorMessages;
@@ -144,7 +145,7 @@ private:
 
         json.EndObject();
 
-        json.FlushTo(TraceFile.Get());
+        json.FlushTo(TraceFile.get());
         *TraceFile << "\n";
     }
 
@@ -603,9 +604,10 @@ const char* const TColoredProcessor::ForkCorrectExitMsg = "--END--";
 
 class TEnumeratingProcessor: public ITestSuiteProcessor {
 public:
-    TEnumeratingProcessor(bool verbose, IOutputStream& stream) noexcept
+    TEnumeratingProcessor(bool verbose, IOutputStream& stream, bool isFileOutput = false) noexcept
         : Verbose_(verbose)
         , Stream_(stream)
+        , IsFileOutput_(isFileOutput)
     {
     }
 
@@ -627,18 +629,20 @@ public:
     }
 
     bool CheckAccessTest(TString suite, const char* name, const char* file, int line) override {
-        if (false) {
-            // TODO: YA-3943 будет открыто в следующем PR, активироввать функционал нужно в два шага
-            // if (Verbose_) {
-            NJson::TJsonValue testObj;
-            testObj["test_suite_name"] = suite;
-            testObj["name"] = name;
-            testObj["file"] = file ? file : "";
-            testObj["line"] = line;
-            testObj["nodeid"] = suite + "::" + name;
-
-            NJson::WriteJson(&Stream_, &testObj);
-            Stream_.Write("\n");
+        if (Verbose_) {
+            // If we processing output to file (list-path), we would use JSON, else old plain text format
+            if (IsFileOutput_) {
+                NJson::TJsonValue testObj;
+                testObj["test_suite_name"] = suite;
+                testObj["name"] = name;
+                testObj["file"] = file ? file : "";
+                testObj["line"] = line;
+                testObj["nodeid"] = suite + "::" + name;
+                NJson::WriteJson(&Stream_, &testObj);
+                Stream_.Write("\n");
+            } else {
+                Stream_ << suite << "::" << name << "\n";
+            }
         } else {
             Stream_ << suite << "::" << name << "\n";
         }
@@ -648,6 +652,7 @@ public:
 private:
     bool Verbose_;
     IOutputStream& Stream_;
+    bool IsFileOutput_;
 };
 
 #ifdef _win_
@@ -683,8 +688,8 @@ private:
 static const TWinEnvironment Instance;
 #endif // _win_
 
-static int DoList(bool verbose, IOutputStream& stream) {
-    TEnumeratingProcessor eproc(verbose, stream);
+static int DoList(bool verbose, IOutputStream& stream, bool isFileOutput = false) {
+    TEnumeratingProcessor eproc(verbose, stream, isFileOutput);
     TTestFactory::Instance().SetProcessor(&eproc);
     TTestFactory::Instance().Execute();
     return 0;
@@ -871,7 +876,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
             }
         }
         if (listTests != DONT_LIST) {
-            return DoList(listTests == LIST_VERBOSE, *listStream);
+            return DoList(listTests == LIST_VERBOSE, *listStream, listFile.Get() != nullptr);
         }
 
         if (!hasJUnitProcessor) {

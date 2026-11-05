@@ -4,6 +4,8 @@
 #include <util/string/ascii.h>
 #include <util/string/cstriter.h>
 
+#include <array>
+
 /* note: (x & 0xdf) makes x upper case */
 #define GETXC                                                           \
     do {                                                                \
@@ -177,6 +179,73 @@ static inline It1 Unescape(It1 to, It2 from, It3 end, FromHex fromHex) {
                 *to++ = *from++;
         }
     }
+    *to = 0;
+    return to;
+}
+
+static constexpr auto x2d = [] {
+    std::array<unsigned char, 256> values{};
+    for (auto& value : values) {
+        value = 0xFF;
+    }
+    for (size_t i = 0; i < 10; ++i) {
+        values['0' + i] = i;
+    }
+    for (size_t i = 0; i < 6; ++i) {
+        values['A' + i] = values['a' + i] = i + 10;
+    }
+    return values;
+}();
+
+static inline void UnescapeHelper(char*& to, const char*& from, const char* end) {
+    unsigned char c = *from++;
+    if (c == '%') {
+        if (end - from >= 2) {
+            unsigned char hi = x2d[(unsigned char)from[0]];
+            unsigned char lo = x2d[(unsigned char)from[1]];
+            if ((hi | lo) < 16) {
+                c = (hi << 4) | lo;
+                from += 2;
+            }
+        }
+    } else {
+        c = (c == '+') ? ' ' : c;
+    }
+    *to++ = c;
+}
+
+static inline char* Unescape(char* to, const char* from, const char* end, TFromHexLenLimited) {
+    constexpr size_t BLOCK = 16;
+
+    while (from + BLOCK <= end) {
+        uint32_t unescape_count = 0;
+        for (size_t i = 0; i < BLOCK; ++i) {
+            unescape_count |= (from[i] == '%');
+        }
+
+        if (unescape_count == 0) {
+            unsigned char src[BLOCK];
+            for (size_t i = 0; i < BLOCK; ++i) {
+                src[i] = from[i];
+            }
+            for (size_t i = 0; i < BLOCK; ++i) {
+                unsigned char c = src[i];
+                to[i] = (c == '+') ? ' ' : c;
+            }
+            to += BLOCK;
+            from += BLOCK;
+        } else {
+            const char* blockEnd = from + BLOCK;
+            while (from < blockEnd) {
+                UnescapeHelper(to, from, end);
+            }
+        }
+    }
+
+    while (from != end) {
+        UnescapeHelper(to, from, end);
+    }
+
     *to = 0;
     return to;
 }

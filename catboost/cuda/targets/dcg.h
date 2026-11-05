@@ -8,22 +8,22 @@
 #include <util/generic/utility.h>
 
 namespace NCatboostCuda {
-    // Calculate sum of per-query NDCGs.
-    //
-    // @param sizes             Array of per-query document counts.
-    // @param biasedOffsets     Array of per-query offsets of documents (NOTE: offsets are "biased",
-    //                          you will need to substruct bias to get offset on device)
-    // @param offsetsBias       Offsets bias on each device.
-    // @param weights           Per-document weights (weight for each document withing query is
-    //                          identical; if you have no weights initialize it with ones).
-    // @param targets           Ideal document relevance (e.g. from a dataset)
-    // @param approxes          Predicted document relevance (e.g. from a trained model)
-    // @param type              How to treat relevances, if type is `Exp` relevance will be
-    //                          exponentiated ($$2^relevance - 1$$), otherwise relevance will be
-    //                          keps as-is.
-    //
-    // @return                  Weighted sums of per-query NDCGs
-    //
+    /// Calculate sum of per-query NDCGs.
+    ///
+    /// @param sizes             Array of per-query document counts.
+    /// @param biasedOffsets     Array of per-query offsets of documents (NOTE: offsets are "biased",
+    ///                          you will need to substruct bias to get offset on device)
+    /// @param offsetsBias       Offsets bias on each device.
+    /// @param weights           Per-document weights (weight for each document withing query is
+    ///                          identical; if you have no weights initialize it with ones).
+    /// @param targets           Ideal document relevance (e.g. from a dataset)
+    /// @param approxes          Predicted document relevance (e.g. from a trained model)
+    /// @param type              How to treat relevances, if type is `Exp` relevance will be
+    ///                          exponentiated ($$2^relevance - 1$$), otherwise relevance will be
+    ///                          keps as-is.
+    ///
+    /// @return                  Weighted sums of per-query NDCGs
+    ///
     // NOTE: sum(sizes) == len(targets)
     template <typename TMapping>
     TVector<float> CalculateNdcg(
@@ -37,24 +37,24 @@ namespace NCatboostCuda {
         TConstArrayRef<ui32> topSizes = {},
         ui32 stream = 0);
 
-    // Calculate sum of per-query IDCGs.
-    //
-    // @param sizes             Array of per-query document counts.
-    // @param biasedOffsets     Array of per-query offsets of documents (NOTE: offsets are "biased",
-    //                          you will need to substruct bias to get offset on device)
-    // @param offsetsBias       Offsets bias on each device.
-    // @param weights           Per-document weights (weight for each document withing query is
-    //                          identical; if you have no weights initialize it with ones).
-    // @param targets           Ideal document relevance (e.g. from a dataset)
-    // @param type              How to treat relevances, if type is `Exp` relevance will be
-    //                          exponentiated ($$2^relevance - 1$$), otherwise relevance will be
-    //                          keps as-is.
-    // @param exponentialDecay  If defined instead of a classic decay ($$1/log2(position + 1)$$)
-    //                          will use exponential decay ($$exponentialDecay^(position-1)$$).
-    //
-    // @return                  Weighted sums of per-query IDCGs
-    //
-    // NOTE: sum(sizes) == len(targets)
+    /// Calculate sum of per-query IDCGs.
+    ///
+    /// @param sizes             Array of per-query document counts.
+    /// @param biasedOffsets     Array of per-query offsets of documents (NOTE: offsets are "biased",
+    ///                          you will need to substruct bias to get offset on device)
+    /// @param offsetsBias       Offsets bias on each device.
+    /// @param weights           Per-document weights (weight for each document withing query is
+    ///                          identical; if you have no weights initialize it with ones).
+    /// @param targets           Ideal document relevance (e.g. from a dataset)
+    /// @param type              How to treat relevances, if type is `Exp` relevance will be
+    ///                          exponentiated ($$2^relevance - 1$$), otherwise relevance will be
+    ///                          keps as-is.
+    /// @param exponentialDecay  If defined instead of a classic decay ($$1/log2(position + 1)$$)
+    ///                          will use exponential decay ($$exponentialDecay^(position-1)$$).
+    ///
+    /// @return                  Weighted sums of per-query IDCGs
+    ///
+    /// NOTE: sum(sizes) == len(targets)
     template <typename TMapping>
     TVector<float> CalculateIdcg(
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& sizes,
@@ -67,25 +67,25 @@ namespace NCatboostCuda {
         TConstArrayRef<ui32> topSizes = {},
         ui32 stream = 0);
 
-    // Calculate sum of per-query DCGs.
-    //
-    // @param sizes             Array of per-query document counts.
-    // @param biasedOffsets     Array of per-query offsets of documents (NOTE: offsets are "biased",
-    //                          you will need to substruct bias to get offset on device)
-    // @param offsetsBias       Offsets bias on each device.
-    // @param weights           Per-document weights (weight for each document withing query is
-    //                          identical; if you have no weights initialize it with ones).
-    // @param targets           Ideal document relevance (e.g. from a dataset)
-    // @param approxes          Predicted document relevance (e.g. from a trained model)
-    // @param type              How to treat relevances, if type is `Exp` relevance will be
-    //                          exponentiated ($$2^relevance - 1$$), otherwise relevance will be
-    //                          keps as-is.
-    // @param exponentialDecay  If defined instead of a classic decay ($$1/log2(position + 1)$$)
-    //                          will use exponential decay ($$exponentialDecay^(position-1)$$).
-    //
-    // @return                  Weighted sums of per-query DCGs
-    //
-    // NOTE: sum(sizes) == len(targets)
+    /// Calculate sum of per-query DCGs.
+    ///
+    /// @param sizes             Array of per-query document counts.
+    /// @param biasedOffsets     Array of per-query offsets of documents (NOTE: offsets are "biased",
+    ///                          you will need to substruct bias to get offset on device)
+    /// @param offsetsBias       Offsets bias on each device.
+    /// @param weights           Per-document weights (weight for each document withing query is
+    ///                          identical; if you have no weights initialize it with ones).
+    /// @param targets           Ideal document relevance (e.g. from a dataset)
+    /// @param approxes          Predicted document relevance (e.g. from a trained model)
+    /// @param type              How to treat relevances, if type is `Exp` relevance will be
+    ///                          exponentiated ($$2^relevance - 1$$), otherwise relevance will be
+    ///                          keps as-is.
+    /// @param exponentialDecay  If defined instead of a classic decay ($$1/log2(position + 1)$$)
+    ///                          will use exponential decay ($$exponentialDecay^(position-1)$$).
+    ///
+    /// @return                  Weighted sums of per-query DCGs
+    ///
+    /// NOTE: sum(sizes) == len(targets)
     template <typename TMapping>
     TVector<float> CalculateDcg(
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& sizes,

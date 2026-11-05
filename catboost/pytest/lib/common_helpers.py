@@ -2,9 +2,11 @@ import collections
 import csv
 import json
 import os
+import pathlib
 import random
 import shutil
 import sys
+from typing import Optional
 import pandas as pd
 from copy import deepcopy
 import numpy as np
@@ -31,27 +33,31 @@ __all__ = [
     'test_output_path',
     'compare_with_limited_precision',
     'is_canonical_test_run',
+    'git_repo_root_dir',
 ]
 
-try:
-    from yatest.common import binary_path, test_output_path
-except ImportError:
+
+git_repo_root_dir : Optional[str] = None
+
+if git_repo_root := next((p for p in pathlib.Path(__file__).parents if (p / '.git').exists()), None):
+    git_repo_root_dir = str(git_repo_root.absolute())
     sys.path += [
-        os.environ['CMAKE_SOURCE_DIR'],
-        os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing', 'yatest_common')
+        git_repo_root_dir,
+        os.path.join(git_repo_root_dir, 'library', 'python', 'testing', 'yatest_common')
     ]
-    from yatest.common import binary_path, test_output_path
+
+from yatest.common import binary_path, test_output_path  # noqa: E402
 
 
 def remove_time_from_json(filename):
-    with open(filename) as f:
+    with open(filename, encoding='utf-8') as f:
         log = json.load(f)
     iterations = log['iterations']
     for i, iter_info in enumerate(iterations):
         for key in ['remaining_time', 'passed_time']:
             if key in iter_info.keys():
                 del iter_info[key]
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding='utf-8') as f:
         json.dump(log, f, sort_keys=True)
     return filename
 
@@ -423,7 +429,7 @@ def get_limited_precision_numpy_diff_tool(rtol=None, atol=None):
     if diff_tool[0] is None:
         diff_tool = [
             'python',
-            os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'tools', 'limited_precision_numpy_diff', 'main.py')
+            os.path.join(git_repo_root_dir, 'catboost', 'tools', 'limited_precision_numpy_diff', 'main.py')
         ]
 
     if rtol is not None:

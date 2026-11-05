@@ -13,7 +13,7 @@ namespace NYT {
 //! as opposed to raw collision minimization.
 //! This is also SplitMix64 PRNG.
 //! Cf. |http://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html|, |boost::random::splitmix64|.
-size_t SplitMix64(size_t value);
+size_t SplitMix(size_t value);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -43,7 +43,8 @@ public:
     TRandomizedHash();
     explicit TRandomizedHash(size_t seed);
 
-    size_t operator()(const TElement& element) const;
+    template <class THeterogenousElement>
+    size_t operator()(const THeterogenousElement& element) const;
 
 private:
     size_t Seed_;

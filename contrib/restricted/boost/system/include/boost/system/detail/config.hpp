@@ -38,6 +38,22 @@
 # define BOOST_SYSTEM_CONSTEXPR
 #endif
 
+// BOOST_SYSTEM_HAS_CXX20_CONSTEXPR
+
+#if defined(__cpp_constexpr) && __cpp_constexpr >= 201907L
+# define BOOST_SYSTEM_HAS_CXX20_CONSTEXPR
+#endif
+
+#if BOOST_WORKAROUND(BOOST_CLANG_VERSION, < 110000)
+# undef BOOST_SYSTEM_HAS_CXX20_CONSTEXPR
+#endif
+
+#if defined(BOOST_SYSTEM_HAS_CXX20_CONSTEXPR)
+# define BOOST_SYSTEM_CXX20_CONSTEXPR constexpr
+#else
+# define BOOST_SYSTEM_CXX20_CONSTEXPR
+#endif
+
 // BOOST_SYSTEM_DEPRECATED
 
 #if defined(__clang__)

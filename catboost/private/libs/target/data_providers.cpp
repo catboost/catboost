@@ -836,7 +836,7 @@ namespace NCB {
             if (maybePairs) {
                 std::visit([&](const auto& pairs) { pairsRef = MakeConstArrayRef(pairs); }, *maybePairs);
             } else if (targetCreationOptions.CreatePairs) {
-                CB_ENSURE(rawData.GetTarget(), "Pool labels are not provided. Cannot generate pairs.");
+                CB_ENSURE(rawData.GetTarget(), "Dataset labels are not provided. Cannot generate pairs.");
                 TMaybe<TSharedWeights<float>> autoPairWeight;
                 if (!rawData.IsForceUnitAutoPairWeights()) {
                     autoPairWeight = processedTargetData.Weights.at("");

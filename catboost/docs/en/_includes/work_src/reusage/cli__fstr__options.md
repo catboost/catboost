@@ -71,7 +71,7 @@ Possible values:
 
 ****{{ cli__params-table__title__default }}****
 
-If omitted, it is assumed that the first column in the file with the dataset description defines the label value, and the other columns are the values of numerical features.
+If omitted, it is assumed that the first column in the file with the dataset defines the label value, and the other columns are the values of numerical features.
 
 ### --input-graph
 

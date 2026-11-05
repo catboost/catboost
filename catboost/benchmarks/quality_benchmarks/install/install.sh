@@ -19,7 +19,7 @@ tar -xvzf openmpi-2.1.0.tar.gz && cd openmpi-2.1.0 && ./configure --prefix="/hom
 cd ../ && rm openmpi-2.1.0.tar.gz && rm -rf openmpi-2.1.0
 
 # LightGBM
-git clone --recursive https://github.com/Microsoft/LightGBM
+git clone --recursive https://github.com/lightgbm-org/LightGBM
 cd LightGBM
 git checkout 60c77487c15a69c9451be80fa9b15e987559a995
 mkdir build && cd build && cmake -DUSE_MPI=ON .. && make && cd ../python-package/ && python setup.py install

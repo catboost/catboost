@@ -675,7 +675,7 @@ Y_UNIT_TEST_SUITE(TThreadSafeLRUCacheTest) {
 
     Y_UNIT_TEST(LRUTest) {
         TCallbacks callbacks;
-        TCache cache(callbacks, 3);
+        TCache cache(callbacks, 3, 20);
 
         UNIT_ASSERT_EQUAL(cache.GetMaxSize(), 3);
 

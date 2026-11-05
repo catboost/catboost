@@ -267,14 +267,14 @@ static const char *StateNames[] = {
     {                                                                          \
         if (pa >= thisrun + sp->nruns)                                         \
         {                                                                      \
-            TIFFErrorExtR(tif, module, "Buffer overflow at line %u of %s %u",  \
+            TIFFErrorExtR(tif, module, "Buffer overflow at line %d of %s %u",  \
                           sp->line, isTiled(tif) ? "tile" : "strip",           \
-                          isTiled(tif) ? tif->tif_curtile                      \
-                                       : tif->tif_curstrip);                   \
+                          isTiled(tif) ? tif->tif_dir.td_curtile               \
+                                       : tif->tif_dir.td_curstrip);            \
             return (-1);                                                       \
         }                                                                      \
-        *pa++ = RunLength + (x);                                               \
-        a0 += (x);                                                             \
+        *pa++ = (uint32_t)((uint32_t)RunLength + (uint32_t)(x));               \
+        a0 += (int)(uint32_t)(x);                                              \
         RunLength = 0;                                                         \
     } while (0)
 #endif
@@ -289,30 +289,39 @@ static const char *StateNames[] = {
  * is non-zero then we still need to scan for the final flag
  * bit that is part of the EOL code.
  */
-#define SYNC_EOL(eoflab)                                                       \
+#define SYNC_EOL(eoflab, retrywithouteol)                                      \
     do                                                                         \
     {                                                                          \
-        if (EOLcnt == 0)                                                       \
+        if (!(sp->b.mode & FAXMODE_NOEOL)) /* skip EOL, if not present */      \
         {                                                                      \
+            if (EOLcnt == 0)                                                   \
+            {                                                                  \
+                for (;;)                                                       \
+                {                                                              \
+                    NeedBits16(11, eoflab);                                    \
+                    if (GetBits(11) == 0)                                      \
+                        break; /* EOL found */                                 \
+                    ClrBits(1);                                                \
+                }                                                              \
+            }                                                                  \
+            /* Now move after EOL or detect missing EOL. */                    \
             for (;;)                                                           \
             {                                                                  \
-                NeedBits16(11, eoflab);                                        \
-                if (GetBits(11) == 0)                                          \
+                NeedBits8(8, noEOLFound);                                      \
+                if (GetBits(8))                                                \
                     break;                                                     \
-                ClrBits(1);                                                    \
+                ClrBits(8);                                                    \
             }                                                                  \
+            while (GetBits(1) == 0)                                            \
+                ClrBits(1);                                                    \
+            ClrBits(1); /* EOL bit */                                          \
+            EOLcnt = 0; /* reset EOL counter/flag */                           \
+            break;      /* existing EOL skipped, leave macro */                \
+        noEOLFound:                                                            \
+            sp->b.mode |= FAXMODE_NOEOL;                                       \
+            tryG3WithoutEOL(a0);                                               \
+            goto retrywithouteol;                                              \
         }                                                                      \
-        for (;;)                                                               \
-        {                                                                      \
-            NeedBits8(8, eoflab);                                              \
-            if (GetBits(8))                                                    \
-                break;                                                         \
-            ClrBits(8);                                                        \
-        }                                                                      \
-        while (GetBits(1) == 0)                                                \
-            ClrBits(1);                                                        \
-        ClrBits(1); /* EOL bit */                                              \
-        EOLcnt = 0; /* reset EOL counter/flag */                               \
     } while (0)
 
 /*
@@ -325,20 +334,20 @@ static const char *StateNames[] = {
     {                                                                          \
         if (RunLength)                                                         \
             SETVALUE(0);                                                       \
-        if (a0 != lastx)                                                       \
+        if (a0 != (int)lastx)                                                  \
         {                                                                      \
             badlength(a0, lastx);                                              \
-            while (a0 > lastx && pa > thisrun)                                 \
-                a0 -= *--pa;                                                   \
-            if (a0 < lastx)                                                    \
+            while (a0 > (int)lastx && pa > thisrun)                            \
+                a0 -= (int)*--pa;                                              \
+            if (a0 < (int)lastx)                                               \
             {                                                                  \
                 if (a0 < 0)                                                    \
                     a0 = 0;                                                    \
                 if ((pa - thisrun) & 1)                                        \
                     SETVALUE(0);                                               \
-                SETVALUE(lastx - a0);                                          \
+                SETVALUE((uint32_t)((int)lastx - a0));                         \
             }                                                                  \
-            else if (a0 > lastx)                                               \
+            else if (a0 > (int)lastx)                                          \
             {                                                                  \
                 SETVALUE(lastx);                                               \
                 SETVALUE(0);                                                   \
@@ -376,8 +385,9 @@ static const char *StateNames[] = {
                         goto doneWhite1d;                                      \
                     case S_MakeUpW:                                            \
                     case S_MakeUp:                                             \
-                        a0 += TabEnt->Param;                                   \
-                        RunLength += TabEnt->Param;                            \
+                        a0 = (int)((uint32_t)a0 + TabEnt->Param);              \
+                        RunLength =                                            \
+                            (int)((uint32_t)RunLength + TabEnt->Param);        \
                         break;                                                 \
                     default:                                                   \
                         unexpected("WhiteTable", a0);                          \
@@ -385,7 +395,7 @@ static const char *StateNames[] = {
                 }                                                              \
             }                                                                  \
         doneWhite1d:                                                           \
-            if (a0 >= lastx)                                                   \
+            if (a0 >= (int)lastx)                                              \
                 goto done1d;                                                   \
             for (;;)                                                           \
             {                                                                  \
@@ -400,8 +410,8 @@ static const char *StateNames[] = {
                         goto doneBlack1d;                                      \
                     case S_MakeUpB:                                            \
                     case S_MakeUp:                                             \
-                        a0 += TabEnt->Param;                                   \
-                        RunLength += TabEnt->Param;                            \
+                        a0 += (int)TabEnt->Param;                              \
+                        RunLength += (int)TabEnt->Param;                       \
                         break;                                                 \
                     default:                                                   \
                         unexpected("BlackTable", a0);                          \
@@ -409,7 +419,7 @@ static const char *StateNames[] = {
                 }                                                              \
             }                                                                  \
         doneBlack1d:                                                           \
-            if (a0 >= lastx)                                                   \
+            if (a0 >= (int)lastx)                                              \
                 goto done1d;                                                   \
             if (*(pa - 1) == 0 && *(pa - 2) == 0)                              \
                 pa -= 2;                                                       \
@@ -430,17 +440,18 @@ static const char *StateNames[] = {
     do                                                                         \
     {                                                                          \
         if (pa != thisrun)                                                     \
-            while (b1 <= a0 && b1 < lastx)                                     \
+            while (b1 <= a0 && b1 < (int)lastx)                                \
             {                                                                  \
                 if (pb + 1 >= sp->refruns + sp->nruns)                         \
                 {                                                              \
-                    TIFFErrorExtR(                                             \
-                        tif, module, "Buffer overflow at line %u of %s %u",    \
-                        sp->line, isTiled(tif) ? "tile" : "strip",             \
-                        isTiled(tif) ? tif->tif_curtile : tif->tif_curstrip);  \
+                    TIFFErrorExtR(tif, module,                                 \
+                                  "Buffer overflow at line %d of %s %u",       \
+                                  sp->line, isTiled(tif) ? "tile" : "strip",   \
+                                  isTiled(tif) ? tif->tif_dir.td_curtile       \
+                                               : tif->tif_dir.td_curstrip);    \
                     return (-1);                                               \
                 }                                                              \
-                b1 += pb[0] + pb[1];                                           \
+                b1 += (int)(pb[0] + pb[1]);                                    \
                 pb += 2;                                                       \
             }                                                                  \
     } while (0)
@@ -451,14 +462,15 @@ static const char *StateNames[] = {
 #define EXPAND2D(eoflab)                                                       \
     do                                                                         \
     {                                                                          \
-        while (a0 < lastx)                                                     \
+        while (a0 < (int)lastx)                                                \
         {                                                                      \
             if (pa >= thisrun + sp->nruns)                                     \
             {                                                                  \
-                TIFFErrorExtR(                                                 \
-                    tif, module, "Buffer overflow at line %u of %s %u",        \
-                    sp->line, isTiled(tif) ? "tile" : "strip",                 \
-                    isTiled(tif) ? tif->tif_curtile : tif->tif_curstrip);      \
+                TIFFErrorExtR(tif, module,                                     \
+                              "Buffer overflow at line %d of %s %u", sp->line, \
+                              isTiled(tif) ? "tile" : "strip",                 \
+                              isTiled(tif) ? tif->tif_dir.td_curtile           \
+                                           : tif->tif_dir.td_curstrip);        \
                 return (-1);                                                   \
             }                                                                  \
             LOOKUP8(7, TIFFFaxMainTable, eof2d);                               \
@@ -468,18 +480,19 @@ static const char *StateNames[] = {
                     CHECK_b1;                                                  \
                     if (pb + 1 >= sp->refruns + sp->nruns)                     \
                     {                                                          \
-                        TIFFErrorExtR(tif, module,                             \
-                                      "Buffer overflow at line %u of %s %u",   \
-                                      sp->line,                                \
-                                      isTiled(tif) ? "tile" : "strip",         \
-                                      isTiled(tif) ? tif->tif_curtile          \
-                                                   : tif->tif_curstrip);       \
+                        TIFFErrorExtR(                                         \
+                            tif, module,                                       \
+                            "Buffer overflow at line %d of %s %u", sp->line,   \
+                            isTiled(tif) ? "tile" : "strip",                   \
+                            isTiled(tif) ? tif->tif_dir.td_curtile             \
+                                         : tif->tif_dir.td_curstrip);          \
                         return (-1);                                           \
                     }                                                          \
-                    b1 += *pb++;                                               \
-                    RunLength += b1 - a0;                                      \
+                    b1 = b1 + (int)*pb++;                                      \
+                    RunLength =                                                \
+                        (int)((uint32_t)RunLength + (uint32_t)(b1 - a0));      \
                     a0 = b1;                                                   \
-                    b1 += *pb++;                                               \
+                    b1 = b1 + (int)*pb++;                                      \
                     break;                                                     \
                 case S_Horiz:                                                  \
                     if ((pa - thisrun) & 1)                                    \
@@ -494,8 +507,9 @@ static const char *StateNames[] = {
                                     goto doneWhite2da;                         \
                                 case S_MakeUpB:                                \
                                 case S_MakeUp:                                 \
-                                    a0 += TabEnt->Param;                       \
-                                    RunLength += TabEnt->Param;                \
+                                    a0 = (int)((uint32_t)a0 + TabEnt->Param);  \
+                                    RunLength = (int)((uint32_t)RunLength +    \
+                                                      TabEnt->Param);          \
                                     break;                                     \
                                 default:                                       \
                                     goto badBlack2d;                           \
@@ -512,8 +526,9 @@ static const char *StateNames[] = {
                                     goto doneBlack2da;                         \
                                 case S_MakeUpW:                                \
                                 case S_MakeUp:                                 \
-                                    a0 += TabEnt->Param;                       \
-                                    RunLength += TabEnt->Param;                \
+                                    a0 = (int)((uint32_t)a0 + TabEnt->Param);  \
+                                    RunLength = (int)((uint32_t)RunLength +    \
+                                                      TabEnt->Param);          \
                                     break;                                     \
                                 default:                                       \
                                     goto badWhite2d;                           \
@@ -533,8 +548,9 @@ static const char *StateNames[] = {
                                     goto doneWhite2db;                         \
                                 case S_MakeUpW:                                \
                                 case S_MakeUp:                                 \
-                                    a0 += TabEnt->Param;                       \
-                                    RunLength += TabEnt->Param;                \
+                                    a0 = (int)((uint32_t)a0 + TabEnt->Param);  \
+                                    RunLength = (int)((uint32_t)RunLength +    \
+                                                      TabEnt->Param);          \
                                     break;                                     \
                                 default:                                       \
                                     goto badWhite2d;                           \
@@ -551,8 +567,9 @@ static const char *StateNames[] = {
                                     goto doneBlack2db;                         \
                                 case S_MakeUpB:                                \
                                 case S_MakeUp:                                 \
-                                    a0 += TabEnt->Param;                       \
-                                    RunLength += TabEnt->Param;                \
+                                    a0 = (int)((uint32_t)a0 + TabEnt->Param);  \
+                                    RunLength = (int)((uint32_t)RunLength +    \
+                                                      TabEnt->Param);          \
                                     break;                                     \
                                 default:                                       \
                                     goto badBlack2d;                           \
@@ -567,47 +584,47 @@ static const char *StateNames[] = {
                     SETVALUE(b1 - a0);                                         \
                     if (pb >= sp->refruns + sp->nruns)                         \
                     {                                                          \
-                        TIFFErrorExtR(tif, module,                             \
-                                      "Buffer overflow at line %u of %s %u",   \
-                                      sp->line,                                \
-                                      isTiled(tif) ? "tile" : "strip",         \
-                                      isTiled(tif) ? tif->tif_curtile          \
-                                                   : tif->tif_curstrip);       \
+                        TIFFErrorExtR(                                         \
+                            tif, module,                                       \
+                            "Buffer overflow at line %d of %s %u", sp->line,   \
+                            isTiled(tif) ? "tile" : "strip",                   \
+                            isTiled(tif) ? tif->tif_dir.td_curtile             \
+                                         : tif->tif_dir.td_curstrip);          \
                         return (-1);                                           \
                     }                                                          \
-                    b1 += *pb++;                                               \
+                    b1 = b1 + (int)*pb++;                                      \
                     break;                                                     \
                 case S_VR:                                                     \
                     CHECK_b1;                                                  \
-                    SETVALUE(b1 - a0 + TabEnt->Param);                         \
+                    SETVALUE((int)((uint32_t)(b1 - a0) + TabEnt->Param));      \
                     if (pb >= sp->refruns + sp->nruns)                         \
                     {                                                          \
-                        TIFFErrorExtR(tif, module,                             \
-                                      "Buffer overflow at line %u of %s %u",   \
-                                      sp->line,                                \
-                                      isTiled(tif) ? "tile" : "strip",         \
-                                      isTiled(tif) ? tif->tif_curtile          \
-                                                   : tif->tif_curstrip);       \
+                        TIFFErrorExtR(                                         \
+                            tif, module,                                       \
+                            "Buffer overflow at line %d of %s %u", sp->line,   \
+                            isTiled(tif) ? "tile" : "strip",                   \
+                            isTiled(tif) ? tif->tif_dir.td_curtile             \
+                                         : tif->tif_dir.td_curstrip);          \
                         return (-1);                                           \
                     }                                                          \
-                    b1 += *pb++;                                               \
+                    b1 = b1 + (int)*pb++;                                      \
                     break;                                                     \
                 case S_VL:                                                     \
                     CHECK_b1;                                                  \
-                    if (b1 < (int)(a0 + TabEnt->Param))                        \
+                    if (b1 < (int)((uint32_t)a0 + TabEnt->Param))              \
                     {                                                          \
                         unexpected("VL", a0);                                  \
                         goto eol2d;                                            \
                     }                                                          \
-                    SETVALUE(b1 - a0 - TabEnt->Param);                         \
-                    b1 -= *--pb;                                               \
+                    SETVALUE((int)((uint32_t)(b1 - a0) - TabEnt->Param));      \
+                    b1 = b1 - (int)*--pb;                                      \
                     break;                                                     \
                 case S_Ext:                                                    \
-                    *pa++ = lastx - a0;                                        \
+                    *pa++ = (uint32_t)((int)lastx - a0);                       \
                     extension(a0);                                             \
                     goto eol2d;                                                \
                 case S_EOL:                                                    \
-                    *pa++ = lastx - a0;                                        \
+                    *pa++ = (uint32_t)((int)lastx - a0);                       \
                     NeedBits8(4, eof2d);                                       \
                     if (GetBits(4))                                            \
                         unexpected("EOL", a0);                                 \

@@ -4,22 +4,37 @@
 #include "free_list.h"
 #endif
 
+#include <util/system/sanitizers.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// DCAS is supported in Clang with option -mcx16, is not supported in GCC. See following links.
+namespace NDetail {
+
+#if defined(_64_)
+
+// DCAS is natively supported in Clang with -mcx16 and is not supported in GCC.
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84522
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80878
-
 template <class T1, class T2>
-Y_FORCE_INLINE bool CompareAndSet(
-    TAtomicUint128* atomic,
+Y_FORCE_INLINE bool CasFreeListPackedPair(
+    TFreeListPackedPair* atomic,
     T1& expected1,
     T2& expected2,
     T1 new1,
     T2 new2)
 {
+#if defined(_tsan_enabled_)
+    __tsan_acquire(const_cast<unsigned __int128*>(atomic));
+    __tsan_release(const_cast<unsigned __int128*>(atomic));
+    // NB(sabdenovch): release must happen before cmpxchg to avoid the situation
+    // where producer writes to non-atomic memory does CAS,
+    // sleeps without letting thread sanitizer know about release,
+    // then consumer does CAS, informs thread sanitizer about acquire and reads non-atomic memory.
+    // No real race exists anyway, this is a workaround for TSAN false positives.
+#endif
+
 #if defined(__x86_64__)
     bool success;
     __asm__ __volatile__
@@ -88,13 +103,42 @@ Y_FORCE_INLINE bool CompareAndSet(
             , [dst] "r" (atomic)
             : "memory"
         );
-
     } while (Y_UNLIKELY(fail));
     return true;
 #else
 #    error Unsupported platform
 #endif
 }
+
+#elif defined(_32_)
+
+template <class T1, class T2>
+Y_FORCE_INLINE bool CasFreeListPackedPair(
+    TFreeListPackedPair* atomic,
+    T1& expected1,
+    T2& expected2,
+    T1 new1,
+    T2 new2)
+{
+    auto packedExpected =
+        static_cast<ui64>(reinterpret_cast<ui32>(expected1)) |
+        (static_cast<ui64>(reinterpret_cast<ui32>(expected2)) << 32);
+    auto packedNew =
+        static_cast<ui64>(reinterpret_cast<ui32>(new1)) |
+        (static_cast<ui64>(reinterpret_cast<ui32>(new2)) << 32);
+    if (atomic->compare_exchange_weak(packedExpected, packedNew)) {
+        return true;
+    }
+    expected1 = reinterpret_cast<T1>(static_cast<ui32>(packedExpected));
+    expected2 = reinterpret_cast<T2>(static_cast<ui32>(packedExpected >> 32));
+    return false;
+}
+
+#else
+    #error Unsupported platform
+#endif
+
+} // namespace NDetail
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -109,7 +153,7 @@ TFreeList<TItem>::TFreeList()
 { }
 
 template <class TItem>
-TFreeList<TItem>::TFreeList(TFreeList<TItem>&& other)
+TFreeList<TItem>::TFreeList(TFreeList<TItem>&& other) noexcept
     : Head_(other.ExtractAll())
 { }
 
@@ -121,7 +165,6 @@ TFreeList<TItem>::~TFreeList()
 
 template <class TItem>
 template <class TPredicate>
-Y_NO_SANITIZE("thread")
 bool TFreeList<TItem>::PutIf(TItem* head, TItem* tail, TPredicate predicate)
 {
     auto* current = Head_.Pointer.load(std::memory_order::relaxed);
@@ -129,7 +172,7 @@ bool TFreeList<TItem>::PutIf(TItem* head, TItem* tail, TPredicate predicate)
 
     while (predicate(current)) {
         tail->Next.store(current, std::memory_order::release);
-        if (CompareAndSet(&AtomicHead_, current, epoch, head, epoch + 1)) {
+        if (NDetail::CasFreeListPackedPair(&PackedHead_, current, epoch, head, epoch + 1)) {
             return true;
         }
     }
@@ -139,9 +182,7 @@ bool TFreeList<TItem>::PutIf(TItem* head, TItem* tail, TPredicate predicate)
     return false;
 }
 
-
 template <class TItem>
-Y_NO_SANITIZE("thread")
 void TFreeList<TItem>::Put(TItem* head, TItem* tail)
 {
     auto* current = Head_.Pointer.load(std::memory_order::relaxed);
@@ -149,7 +190,7 @@ void TFreeList<TItem>::Put(TItem* head, TItem* tail)
 
     do {
         tail->Next.store(current, std::memory_order::release);
-    } while (!CompareAndSet(&AtomicHead_, current, epoch, head, epoch + 1));
+    } while (!NDetail::CasFreeListPackedPair(&PackedHead_, current, epoch, head, epoch + 1));
 }
 
 template <class TItem>
@@ -159,7 +200,6 @@ void TFreeList<TItem>::Put(TItem* item)
 }
 
 template <class TItem>
-Y_NO_SANITIZE("thread")
 TItem* TFreeList<TItem>::Extract()
 {
     auto* current = Head_.Pointer.load(std::memory_order::relaxed);
@@ -170,7 +210,7 @@ TItem* TFreeList<TItem>::Extract()
         // there can be any writes at address &current->Next.
         // The only guaranteed thing is that address is valid (memory is not freed).
         auto next = current->Next.load(std::memory_order::acquire);
-        if (CompareAndSet(&AtomicHead_, current, epoch, next, epoch + 1)) {
+        if (NDetail::CasFreeListPackedPair(&PackedHead_, current, epoch, next, epoch + 1)) {
             current->Next.store(nullptr, std::memory_order::release);
             return current;
         }
@@ -186,7 +226,7 @@ TItem* TFreeList<TItem>::ExtractAll()
     auto epoch = Head_.Epoch.load(std::memory_order::relaxed);
 
     while (current) {
-        if (CompareAndSet<TItem*, size_t>(&AtomicHead_, current, epoch, nullptr, epoch + 1)) {
+        if (NDetail::CasFreeListPackedPair<TItem*, TEpoch>(&PackedHead_, current, epoch, nullptr, epoch + 1)) {
             return current;
         }
     }

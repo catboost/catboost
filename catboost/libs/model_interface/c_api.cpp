@@ -231,9 +231,7 @@ CATBOOST_API DataWrapperHandle* DataWrapperCreate(size_t docsCount) {
 }
 
 CATBOOST_API void DataWrapperDelete(DataWrapperHandle* dataWrapperHandle) {
-    if (dataWrapperHandle != nullptr) {
-        delete DATA_WRAPPER_PTR(dataWrapperHandle);
-    }
+    delete DATA_WRAPPER_PTR(dataWrapperHandle);
 }
 
 CATBOOST_API void AddFloatFeatures(DataWrapperHandle* dataWrapperHandle, const float** floatFeatures, size_t floatFeaturesSize) {
@@ -262,7 +260,7 @@ CATBOOST_API DataProviderHandle* BuildDataProvider(DataWrapperHandle* dataWrappe
     return DATA_WRAPPER_PTR(dataWrapperHandle)->BuildDataProvider().Get();
 }
 
-CATBOOST_API ModelCalcerHandle* ModelCalcerCreate() {
+CATBOOST_API ModelCalcerHandle* ModelCalcerCreate(void) {
     try {
         auto* fullModel = new TFullModel;
         return new TModelHandleContent{.FullModel = THolder(fullModel)};
@@ -273,14 +271,12 @@ CATBOOST_API ModelCalcerHandle* ModelCalcerCreate() {
     return nullptr;
 }
 
-CATBOOST_API const char* GetErrorString() {
+CATBOOST_API const char* GetErrorString(void) {
     return ErrorMessageHolder.Get().Message.data();
 }
 
 CATBOOST_API void ModelCalcerDelete(ModelCalcerHandle* modelHandle) {
-    if (modelHandle != nullptr) {
-        delete MODEL_HANDLE_CONTENT_PTR(modelHandle);
-    }
+    delete MODEL_HANDLE_CONTENT_PTR(modelHandle);
 }
 
 CATBOOST_API bool LoadFullModelFromFile(ModelCalcerHandle* modelHandle, const char* filename) {

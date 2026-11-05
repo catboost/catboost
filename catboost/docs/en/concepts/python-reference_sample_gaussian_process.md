@@ -154,13 +154,15 @@ A one-dimensional array of embedding features columns indices.
 
 The random seed used for training.
 
+Possible range is [0, +inf)
+
 **Possible types**
 
 - {{ python-type--int }}
 
 **Default value**
 
-{% include [default-value-none](../_includes/concepts/default-value-none.md) %}
+None. 0 is used in this case.
 
 
 ### samples
@@ -269,7 +271,7 @@ Possible range is \(0, +inf\)
 
 #### Description
 
-Scale of homogenious noise of GP kernel (adjust if target is noisy)
+Scale of homogeneous noise of GP kernel (adjust if target is noisy)
 
 Possible range is \[0, +inf\)
 

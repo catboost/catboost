@@ -405,3 +405,26 @@ Y_UNIT_TEST_SUITE(TWtrBufTest) {
         static_assert(str1 == str2);
     }
 } // Y_UNIT_TEST_SUITE(TWtrBufTest)
+
+#ifdef __cpp_lib_format
+
+    #include <format>
+
+Y_UNIT_TEST_SUITE(TStrBufStdFormatTest) {
+    Y_UNIT_TEST(TestFormatTStringBuf) {
+        TStringBuf buf("hello");
+        UNIT_ASSERT_VALUES_EQUAL(std::format("{}", buf), "hello");
+    }
+
+    Y_UNIT_TEST(TestFormatTStringBufWithWidth) {
+        TStringBuf buf("hi");
+        UNIT_ASSERT_VALUES_EQUAL(std::format("{:>5}", buf), "   hi");
+    }
+
+    Y_UNIT_TEST(TestFormatEmptyTStringBuf) {
+        TStringBuf buf;
+        UNIT_ASSERT_VALUES_EQUAL(std::format("{}", buf), "");
+    }
+} // Y_UNIT_TEST_SUITE(TStrBufStdFormatTest)
+
+#endif

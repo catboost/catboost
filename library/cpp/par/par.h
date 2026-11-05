@@ -3,12 +3,13 @@
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/chromium_trace/interface.h>
 
+#include <util/generic/guid.h>
 #include <util/generic/vector.h>
 #include <util/generic/ptr.h>
 #include <util/generic/hash.h>
 #include <util/ysafeptr.h>
 
-struct TGUID;
+
 namespace NPar {
     struct IUserContext;
     struct IDCResultNotify : virtual public TThrRefBase {
@@ -77,7 +78,7 @@ namespace NPar {
         template <class T>
         inline int AddParam(T* param) {
             CHROMIUM_TRACE_FUNCTION();
-            if (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
+            if constexpr (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
                 TVector<char> tmp;
                 SerializeToMem(&tmp, *param);
                 return AddParamData(&tmp);

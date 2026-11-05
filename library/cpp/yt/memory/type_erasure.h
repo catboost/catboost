@@ -94,7 +94,7 @@ public:
     T& AnyCast() &
     {
         const auto& vtable = GetVTable();
-        if (!vtable.IsValid() || !vtable.template IsCurrentlyStored<T>()) {
+        if (!vtable.IsValid() || !vtable.template HoldsType<T>()) {
             throw TBadAnyCast{};
         }
 
@@ -106,7 +106,7 @@ public:
     const T& AnyCast() const &
     {
         const auto& vtable = Holder_.GetVTable();
-        if (!vtable.IsValid() || !vtable.template IsCurrentlyStored<T>()) {
+        if (!vtable.IsValid() || !vtable.template HoldsType<T>()) {
             throw TBadAnyCast{};
         }
 
@@ -132,7 +132,7 @@ struct TAnyRefPublicHelper
 template <>
 struct TAnyRefPublicHelper<>
 {
-    using T = TAnyRef<false, TTagInvokeTag<NoopCpo>>;
+    using T = TAnyRef<false, NMpl::TTagInvokeTag<NoopCpo>>;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,9 +154,9 @@ struct TRebindVTable
 {
     using TVTable = TVTable<
         TStorage,
-        TTagInvokeTag<Deleter>,
-        TTagInvokeTag<Mover<TStorage>>,
-        TTagInvokeTag<Copier<TStorage>>,
+        NMpl::TTagInvokeTag<Deleter>,
+        NMpl::TTagInvokeTag<Mover<TStorage>>,
+        NMpl::TTagInvokeTag<Copier<TStorage>>,
         TCpos...>;
 };
 
@@ -165,8 +165,8 @@ struct TRebindVTable<false, TStorage, TCpos...>
 {
     using TVTable = TVTable<
         TStorage,
-        TTagInvokeTag<Deleter>,
-        TTagInvokeTag<Mover<TStorage>>,
+        NMpl::TTagInvokeTag<Deleter>,
+        NMpl::TTagInvokeTag<Mover<TStorage>>,
         TCpos...>;
 };
 
@@ -211,7 +211,7 @@ public:
         Set<TConcrete>(std::forward<TArgs>(args)...);
     }
 
-    TAnyObject(TAnyObject&& other)
+    TAnyObject(TAnyObject&& other) noexcept
         : Holder_(other.Holder_)
     {
         if (IsValid()) {
@@ -222,7 +222,7 @@ public:
         }
     }
 
-    TAnyObject& operator=(TAnyObject&& other)
+    TAnyObject& operator=(TAnyObject&& other) noexcept
     {
         if (this == &other) {
             return *this;
@@ -306,7 +306,7 @@ public:
         using TWrapped = TOwningWrapper<TDecayed, TStorage, EnableCopy, TCpos...>;
 
         const auto& vtable = GetVTable();
-        if (!vtable.IsValid() || !vtable.template IsCurrentlyStored<TWrapped>()) {
+        if (!vtable.IsValid() || !vtable.template HoldsType<TWrapped>()) {
             throw TBadAnyCast{};
         }
 
@@ -320,11 +320,21 @@ public:
         using TWrapped = TOwningWrapper<TDecayed, TStorage, EnableCopy, TCpos...>;
 
         const auto& vtable = GetVTable();
-        if (!vtable.IsValid() || !vtable.template IsCurrentlyStored<TWrapped>()) {
+        if (!vtable.IsValid() || !vtable.template HoldsType<TWrapped>()) {
             throw TBadAnyCast{};
         }
 
         return Storage_.template As<TWrapped>().Unwrap();
+    }
+
+    template <class T>
+    Y_FORCE_INLINE bool Holds() const
+    {
+        using TDecayed = std::remove_cvref_t<T>;
+        using TWrapped = TOwningWrapper<TDecayed, TStorage, EnableCopy, TCpos...>;
+
+        const auto& vtable = GetVTable();
+        return vtable.IsValid() && vtable.template HoldsType<TWrapped>();
     }
 
     Y_FORCE_INLINE bool IsValid() const

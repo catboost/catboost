@@ -21,6 +21,8 @@ from __res import importer
 import sys
 import six
 
+import library.python.pytest.module_utils as module_utils
+
 
 def _get_state(config):
     if hasattr(config, '_assertstate'):
@@ -53,7 +55,10 @@ class AssertionRewritingHook(rewrite.AssertionRewritingHook):
         if hasattr(self._rewritten_names, 'add'):
             self._rewritten_names.add(name)
         else:
-            self._rewritten_names[name] = Path(path[0])
+            if path:
+                self._rewritten_names[name] = Path(path[0])
+            else:
+                self._rewritten_names[name] = Path(module_utils.get_proper_module_path(name))
 
         state.trace("rewriting %s" % name)
         co = _rewrite_test(self.config, name)
@@ -73,7 +78,7 @@ class AssertionRewritingHook(rewrite.AssertionRewritingHook):
             )
 
     def _should_rewrite(self, name, fn, state):
-        if name.startswith("__tests__.") or name.endswith(".conftest"):
+        if name.startswith("__tests__.") or name == "conftest" or name.endswith(".conftest"):
             return True
 
         return self._is_marked_for_rewrite(name, state)

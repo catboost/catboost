@@ -40,6 +40,7 @@ target_sources(contrib-libs-jemalloc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/buf_writer.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/cache_bin.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/ckh.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/conf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/counter.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/ctl.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/decay.c
@@ -57,7 +58,9 @@ target_sources(contrib-libs-jemalloc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/fxp.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/hook.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/hpa.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/hpa_central.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/hpa_hooks.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/hpa_utils.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/hpdata.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/inspect.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/jemalloc.c
@@ -71,12 +74,12 @@ target_sources(contrib-libs-jemalloc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/pa_extra.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/pac.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/pages.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/pai.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/peak_event.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/prof.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/prof_data.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/prof_log.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/prof_recent.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/prof_stack_range.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/prof_stats.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/prof_sys.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/psset.c
@@ -91,8 +94,10 @@ target_sources(contrib-libs-jemalloc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/tcache.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/test_hooks.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/thread_event.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/thread_event_registry.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/ticker.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/tsd.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/util.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/witness.c
 )
 
@@ -179,6 +184,14 @@ set_property(
 
 set_property(
   SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/conf.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/counter.c
   APPEND
   PROPERTY
@@ -315,7 +328,23 @@ set_property(
 
 set_property(
   SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/hpa_central.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/hpa_hooks.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/hpa_utils.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -419,14 +448,6 @@ set_property(
 
 set_property(
   SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/pai.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/peak_event.c
   APPEND
   PROPERTY
@@ -460,6 +481,14 @@ set_property(
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/prof_recent.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/prof_stack_range.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -579,6 +608,14 @@ set_property(
 
 set_property(
   SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/thread_event_registry.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/ticker.c
   APPEND
   PROPERTY
@@ -588,6 +625,14 @@ set_property(
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/tsd.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/util.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS

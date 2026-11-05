@@ -36,6 +36,7 @@ static void ExecuteAVX512ERInstruction();
 static void ExecuteAVX512CDInstruction();
 static void ExecuteAVX512BWInstruction();
 static void ExecuteAVX512VLInstruction();
+static void ExecuteAVX512VNNIInstruction();
 static void ExecuteAVX512VBMIInstruction();
 static void ExecutePREFETCHWT1Instruction();
 static void ExecuteSHAInstruction();
@@ -214,6 +215,9 @@ void ExecuteAVX512BWInstruction() {
 void ExecuteAVX512VLInstruction() {
 }
 
+void ExecuteAVX512VNNIInstruction() {
+}
+
 void ExecuteAVX512VBMIInstruction() {
 }
 
@@ -324,6 +328,9 @@ void ExecuteAVX512BWInstruction() {
 void ExecuteAVX512VLInstruction() {
 }
 
+void ExecuteAVX512VNNIInstruction() {
+}
+
 void ExecuteAVX512VBMIInstruction() {
 }
 
@@ -419,6 +426,9 @@ void ExecuteAVX512BWInstruction() {
 }
 
 void ExecuteAVX512VLInstruction() {
+}
+
+void ExecuteAVX512VNNIInstruction() {
 }
 
 void ExecuteAVX512VBMIInstruction() {

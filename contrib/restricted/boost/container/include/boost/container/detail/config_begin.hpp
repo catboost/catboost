@@ -59,3 +59,8 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
 #endif
+
+#if defined(BOOST_CLANG)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"   // ignore some missed optimization warnings
+#endif

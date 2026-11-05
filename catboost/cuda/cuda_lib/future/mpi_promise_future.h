@@ -48,7 +48,7 @@ namespace NCudaLib {
                    int tag) {
             auto& manager = GetMpiManager();
 
-            if (std::is_pod<T>::value) {
+            if constexpr (std::is_pod<T>::value) {
                 Request = manager.ReceivePodAsync(sourceRank, tag, &Result);
                 NeedDeserialization = false;
             } else {

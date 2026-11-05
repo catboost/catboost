@@ -111,12 +111,13 @@ void FormatPointerValue(
     const void* value,
     TStringBuf format)
 {
-    static_assert(sizeof(value) == sizeof(ui64));
+    static_assert(sizeof(value) == sizeof(uintptr_t));
+
     if (format == TStringBuf("p") || format == TStringBuf("v")) {
         builder->AppendString(TStringBuf("0x"));
-        FormatValue(builder, reinterpret_cast<ui64>(value), TStringBuf("x"));
+        FormatValue(builder, reinterpret_cast<uintptr_t>(value), TStringBuf("x"));
     } else if (format == TStringBuf("x") || format == TStringBuf("X")) {
-        FormatValue(builder, reinterpret_cast<ui64>(value), format);
+        FormatValue(builder, reinterpret_cast<uintptr_t>(value), format);
     } else {
         builder->AppendString("<invalid pointer format>");
     }

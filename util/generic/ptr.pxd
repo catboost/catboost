@@ -2,10 +2,14 @@ cdef extern from "<util/generic/ptr.h>" nogil:
     cdef cppclass THolder[T]:
         THolder(...)
         T* Get()
+        T* get()
         void Destroy()
         T* Release()
+        T* release()
         void Reset()
         void Reset(T*)
+        void reset()
+        void reset(T*)
         void Swap(THolder[T])
 
 

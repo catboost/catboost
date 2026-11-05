@@ -102,9 +102,10 @@ class CatBoostRegressor(iterations=None,
 
 ## {{ dl--purpose }} {#purpose}
 
-{% include [catboost-regressor-purpose](../_includes/work_src/reusage-python/purpose.md) %}
+Implementation of [the scikit-learn estimator API](https://scikit-learn.org/stable/developers/develop.html) for CatBoost regression.
 
-{% include [scikit-learn-compatibility](../_includes/work_src/reusage-python/scikit-learn-compatibility.md) %}
+Supports model training, inference and auxiliary calculations like feature importance.
+
 
 ## {{ dl--parameters }} {#parameters}
 
@@ -235,6 +236,21 @@ class CatBoostRegressor(iterations=None,
 
 
 {% include [get_borders-get_borders__desc__div](../_includes/work_src/reusage-python/get_borders__desc__div.md) %}
+
+
+### [get_cat_feature_indices](python-reference_catboostregressor_get_cat_feature_indices.md)
+
+Return the indices of categorical features used by the model.
+
+
+### [get_embedding_feature_indices](python-reference_catboostregressor_get_embedding_feature_indices.md)
+
+Return the indices of embedding features used by the model.
+
+
+### [get_text_feature_indices](python-reference_catboostregressor_get_text_feature_indices.md)
+
+Return the indices of text features used by the model.
 
 
 ### [get_evals_result](python-reference_catboostregressor_get_evals_result.md)

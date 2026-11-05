@@ -1,0 +1,29 @@
+#pragma once
+#ifndef SPIN_LOCK_BASE_INL_H_
+#error "Direct inclusion of this file is not allowed, include spin_lock_base.h"
+// For the sake of sane code completion.
+#include "spin_lock_base.h"
+#endif
+
+namespace NYT {
+
+////////////////////////////////////////////////////////////////////////////////
+
+inline constexpr TSpinLockBase::TSpinLockBase()
+    : Location_({}, -1)
+{ }
+
+inline constexpr TSpinLockBase::TSpinLockBase(const ::TSourceLocation& location)
+    : Location_(location)
+{ }
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TLock, auto LocationLite>
+constexpr TSpinLockInplace<TLock, LocationLite>::TSpinLockInplace()
+    : TLock(::TSourceLocation{LocationLite.FileName, LocationLite.Line})
+{ }
+
+////////////////////////////////////////////////////////////////////////////////
+
+} // namespace NYT

@@ -61,6 +61,7 @@
 #include <atomic>
 #include <cstdint>
 #include <cstring>
+#include <type_traits>
 
 #include "absl/base/attributes.h"
 #include "absl/base/config.h"
@@ -80,6 +81,18 @@ ABSL_NAMESPACE_BEGIN
 
 class Condition;
 struct SynchWaitParams;
+
+namespace synchronization_internal {
+
+template <typename T, typename = void>
+struct HasConstMemberCallOperator : std::false_type {};
+
+template <typename T>
+struct HasConstMemberCallOperator<
+    T, std::void_t<decltype(static_cast<bool (T::*)() const>(&T::operator()))>>
+    : std::true_type {};
+
+}  // namespace synchronization_internal
 
 // -----------------------------------------------------------------------------
 // Mutex
@@ -608,7 +621,7 @@ class ABSL_SCOPED_LOCKABLE MutexLock {
 
   // Calls `mu.lock()` and returns when that call returns. That is, `mu` is
   // guaranteed to be locked when this object is constructed.
-  explicit MutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this))
+  explicit MutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY_THIS)
       ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : mu_(mu) {
     this->mu_.lock();
@@ -625,7 +638,7 @@ class ABSL_SCOPED_LOCKABLE MutexLock {
   // Like above, but calls `mu.LockWhen(cond)` instead. That is, in addition to
   // the above, the condition given by `cond` is also guaranteed to hold when
   // this object is constructed.
-  explicit MutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this),
+  explicit MutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY_THIS,
                      const Condition& cond) ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : mu_(mu) {
     this->mu_.LockWhen(cond);
@@ -654,7 +667,7 @@ class ABSL_SCOPED_LOCKABLE MutexLock {
 // releases a shared lock on a `Mutex` via RAII.
 class ABSL_SCOPED_LOCKABLE ReaderMutexLock {
  public:
-  explicit ReaderMutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this))
+  explicit ReaderMutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY_THIS)
       ABSL_SHARED_LOCK_FUNCTION(mu)
       : mu_(mu) {
     mu.lock_shared();
@@ -665,7 +678,7 @@ class ABSL_SCOPED_LOCKABLE ReaderMutexLock {
   explicit ReaderMutexLock(Mutex* absl_nonnull mu) ABSL_SHARED_LOCK_FUNCTION(mu)
       : ReaderMutexLock(*mu) {}
 
-  explicit ReaderMutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this),
+  explicit ReaderMutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY_THIS,
                            const Condition& cond) ABSL_SHARED_LOCK_FUNCTION(mu)
       : mu_(mu) {
     mu.ReaderLockWhen(cond);
@@ -694,7 +707,7 @@ class ABSL_SCOPED_LOCKABLE ReaderMutexLock {
 // releases a write (exclusive) lock on a `Mutex` via RAII.
 class ABSL_SCOPED_LOCKABLE WriterMutexLock {
  public:
-  explicit WriterMutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this))
+  explicit WriterMutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY_THIS)
       ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : mu_(mu) {
     mu.lock();
@@ -706,7 +719,7 @@ class ABSL_SCOPED_LOCKABLE WriterMutexLock {
       ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : WriterMutexLock(*mu) {}
 
-  explicit WriterMutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this),
+  explicit WriterMutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY_THIS,
                            const Condition& cond)
       ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : mu_(mu) {
@@ -866,10 +879,22 @@ class Condition {
   // Implementation note: The second template parameter ensures that this
   // constructor doesn't participate in overload resolution if T doesn't have
   // `bool operator() const`.
-  template <typename T, typename E = decltype(static_cast<bool (T::*)() const>(
-                            &T::operator()))>
+  template <typename T,
+            std::enable_if_t<
+                synchronization_internal::HasConstMemberCallOperator<T>::value,
+                int> = 0>
   explicit Condition(const T* absl_nonnull obj)
       : Condition(obj, static_cast<bool (T::*)() const>(&T::operator())) {}
+
+  // Constructor for functors that do not match the `bool operator()() const`
+  // signature, such as those using C++23 "deducing this" or static operator().
+  template <
+      typename T,
+      typename = std::enable_if_t<
+          !synchronization_internal::HasConstMemberCallOperator<T>::value &&
+          sizeof(static_cast<bool (*)(const T&)>(&T::operator())) != 0>>
+  explicit Condition(const T* absl_nonnull obj)
+      : Condition(&CallByRef<T>, obj) {}
 
   // A Condition that always returns `true`.
   // kTrue is only useful in a narrow set of circumstances, mostly when
@@ -932,9 +957,14 @@ class Condition {
   template <typename T, typename ConditionMethodPtr>
   static bool CastAndCallMethod(const Condition* absl_nonnull c);
 
+  template <typename T>
+  static bool CallByRef(const T* absl_nonnull self) {
+    return (*self)();
+  }
+
   // Helper methods for storing, validating, and reading callback arguments.
   template <typename T>
-  inline void StoreCallback(T callback) {
+  void StoreCallback(T callback) {
     static_assert(
         sizeof(callback) <= sizeof(callback_),
         "An overlarge pointer was passed as a callback to Condition.");
@@ -942,7 +972,7 @@ class Condition {
   }
 
   template <typename T>
-  inline void ReadCallback(T* absl_nonnull callback) const {
+  void ReadCallback(T* absl_nonnull callback) const {
     std::memcpy(callback, callback_, sizeof(*callback));
   }
 
@@ -1112,8 +1142,9 @@ class ABSL_SCOPED_LOCKABLE MutexLockMaybe {
 // mutex before destruction. `Release()` may be called at most once.
 class ABSL_SCOPED_LOCKABLE ReleasableMutexLock {
  public:
-  explicit ReleasableMutexLock(Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(
-      this)) ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
+  explicit ReleasableMutexLock(
+      Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY_THIS)
+      ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : mu_(&mu) {
     this->mu_->lock();
   }
@@ -1125,7 +1156,7 @@ class ABSL_SCOPED_LOCKABLE ReleasableMutexLock {
       : ReleasableMutexLock(*mu) {}
 
   explicit ReleasableMutexLock(
-      Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this),
+      Mutex& mu ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY_THIS,
       const Condition& cond) ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : mu_(&mu) {
     this->mu_->LockWhen(cond);
@@ -1157,7 +1188,7 @@ inline Mutex::Mutex() : mu_(0) {
   ABSL_TSAN_MUTEX_CREATE(this, __tsan_mutex_not_static);
 }
 
-inline constexpr Mutex::Mutex(absl::ConstInitType) : mu_(0) {}
+constexpr Mutex::Mutex(absl::ConstInitType) : mu_(0) {}
 
 #if !defined(__APPLE__) && !defined(ABSL_BUILD_DLL)
 ABSL_ATTRIBUTE_ALWAYS_INLINE

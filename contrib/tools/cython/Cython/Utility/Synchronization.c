@@ -45,6 +45,7 @@
     #define __pyx_atomic_pointer_load_relaxed(value) atomic_load_explicit(value, memory_order_relaxed)
     #define __pyx_atomic_pointer_load_acquire(value) atomic_load_explicit(value, memory_order_acquire)
     #define __pyx_atomic_pointer_exchange(value, new_value) atomic_exchange(value, (__pyx_nonatomic_ptr_type)new_value)
+    #define __pyx_atomic_pointer_cmp_exchange(value, expected, desired) atomic_compare_exchange_strong(value, expected, desired)
     #if defined(__PYX_DEBUG_ATOMICS) && defined(_MSC_VER)
         #pragma message ("Using standard C atomics")
     #elif defined(__PYX_DEBUG_ATOMICS)
@@ -70,6 +71,7 @@
     #define __pyx_atomic_pointer_load_relaxed(value) std::atomic_load_explicit(value, std::memory_order_relaxed)
     #define __pyx_atomic_pointer_load_acquire(value) std::atomic_load_explicit(value, std::memory_order_acquire)
     #define __pyx_atomic_pointer_exchange(value, new_value) std::atomic_exchange(value, (__pyx_nonatomic_ptr_type)new_value)
+    #define __pyx_atomic_pointer_cmp_exchange(value, expected, desired) std::atomic_compare_exchange_strong(value, expected, desired)
 
     #if defined(__PYX_DEBUG_ATOMICS) && defined(_MSC_VER)
         #pragma message ("Using standard C++ atomics")
@@ -81,6 +83,7 @@
                     (__GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ >= 2))))
     /* gcc >= 4.1.2 */
     #define __pyx_atomic_ptr_type void*
+    #define __pyx_nonatomic_ptr_type void*
     #define __pyx_atomic_incr_relaxed(value) __sync_fetch_and_add(value, 1)
     #define __pyx_atomic_incr_acq_rel(value) __sync_fetch_and_add(value, 1)
     #define __pyx_atomic_decr_acq_rel(value) __sync_fetch_and_sub(value, 1)
@@ -97,6 +100,12 @@
     #define __pyx_atomic_pointer_load_relaxed(value) __sync_fetch_and_add(value, 0)
     #define __pyx_atomic_pointer_load_acquire(value) __sync_fetch_and_add(value, 0)
     #define __pyx_atomic_pointer_exchange(value, new_value) __sync_lock_test_and_set(value, (__pyx_atomic_ptr_type)new_value)
+    static CYTHON_INLINE int __pyx_atomic_pointer_cmp_exchange(__pyx_atomic_ptr_type* value, __pyx_nonatomic_ptr_type* expected, __pyx_nonatomic_ptr_type desired) {
+        __pyx_nonatomic_ptr_type old = __sync_val_compare_and_swap(value, *expected, desired);
+        int result = old == *expected;
+        *expected = old;
+        return result;
+    }
 
     #ifdef __PYX_DEBUG_ATOMICS
         #warning "Using GNU atomics"
@@ -109,6 +118,7 @@
     #define __pyx_atomic_ptr_type void*
     #undef __pyx_nonatomic_int_type
     #define __pyx_nonatomic_int_type long
+    #define __pyx_nonatomic_ptr_type void*
     #pragma intrinsic (_InterlockedExchangeAdd, _InterlockedExchange, _InterlockedCompareExchange, _InterlockedCompareExchangePointer, _InterlockedExchangePointer)
     #define __pyx_atomic_incr_relaxed(value) _InterlockedExchangeAdd(value, 1)
     #define __pyx_atomic_incr_acq_rel(value) _InterlockedExchangeAdd(value, 1)
@@ -129,6 +139,12 @@
     // compare/exchange is probably overkill nonsense, but plain "load" intrinsics are hard to get.
     #define __pyx_atomic_pointer_load_acquire(value) _InterlockedCompareExchangePointer(value, 0, 0)
     #define __pyx_atomic_pointer_exchange(value, new_value) _InterlockedExchangePointer(value, (__pyx_atomic_ptr_type)new_value)
+    static CYTHON_INLINE int __pyx_atomic_pointer_cmp_exchange(__pyx_atomic_ptr_type* value, __pyx_nonatomic_ptr_type* expected, __pyx_nonatomic_ptr_type desired) {
+        __pyx_atomic_ptr_type old = _InterlockedCompareExchangePointer(value, desired, *expected);
+        int result = old == *expected;
+        *expected = old;
+        return result;
+    }
 
     #ifdef __PYX_DEBUG_ATOMICS
         #pragma message ("Using MSVC atomics")
@@ -142,36 +158,33 @@
     #endif
 #endif
 
-#if CYTHON_ATOMICS
-    #define __pyx_add_acquisition_count(memview) \
-             __pyx_atomic_incr_relaxed(__pyx_get_slice_count_pointer(memview))
-    #define __pyx_sub_acquisition_count(memview) \
-            __pyx_atomic_decr_acq_rel(__pyx_get_slice_count_pointer(memview))
-#else
-    #define __pyx_add_acquisition_count(memview) \
-            __pyx_add_acquisition_count_locked(__pyx_get_slice_count_pointer(memview), memview->lock)
-    #define __pyx_sub_acquisition_count(memview) \
-            __pyx_sub_acquisition_count_locked(__pyx_get_slice_count_pointer(memview), memview->lock)
-#endif
 
-
-/////////////////////// CriticalSections.proto /////////////////////
+/////////////////////// CriticalSectionsDefinition.proto /////////////////////
 //@proto_block: utility_code_proto_before_types
 
 #if !CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
 #define __Pyx_PyCriticalSection void*
 #define __Pyx_PyCriticalSection2 void*
-#define __Pyx_PyCriticalSection_Begin1(cs, arg) (void)cs
-#define __Pyx_PyCriticalSection_Begin2(cs, arg1, arg2) (void)cs
-#define __Pyx_PyCriticalSection_End1(cs)
-#define __Pyx_PyCriticalSection_End2(cs)
+#define __Pyx_PyCriticalSection_End(cs)
+#define __Pyx_PyCriticalSection2_End(cs)
 #else
 #define __Pyx_PyCriticalSection PyCriticalSection
 #define __Pyx_PyCriticalSection2 PyCriticalSection2
-#define __Pyx_PyCriticalSection_Begin1 PyCriticalSection_Begin
-#define __Pyx_PyCriticalSection_Begin2 PyCriticalSection2_Begin
-#define __Pyx_PyCriticalSection_End1 PyCriticalSection_End
-#define __Pyx_PyCriticalSection_End2 PyCriticalSection2_End
+#define __Pyx_PyCriticalSection_End PyCriticalSection_End
+#define __Pyx_PyCriticalSection2_End PyCriticalSection2_End
+#endif
+
+
+/////////////////////// CriticalSections.proto /////////////////////
+//@proto_block: utility_code_proto_before_types
+//@requires: CriticalSectionsDefinition
+
+#if !CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
+#define __Pyx_PyCriticalSection_Begin(cs, arg) (void)(cs)
+#define __Pyx_PyCriticalSection2_Begin(cs, arg1, arg2) (void)(cs)
+#else
+#define __Pyx_PyCriticalSection_Begin PyCriticalSection_Begin
+#define __Pyx_PyCriticalSection2_Begin PyCriticalSection2_Begin
 #endif
 
 #if PY_VERSION_HEX < 0x030d0000 || CYTHON_COMPILING_IN_LIMITED_API
@@ -183,15 +196,43 @@
 #endif
 
 
-////////////////////// PyThreadTypeLock.proto //////////
+/////////////////////// CriticalSectionsMutex.proto /////////////////////
+//@requires: CriticalSectionsDefinition
+
+#if !CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
+#define __Pyx_PyCriticalSection_BeginMutex(cs, arg) (void)(cs), (void)(arg)
+#define __Pyx_PyCriticalSection2_BeginMutex(cs, arg1, arg2) (void)(cs), (void)(arg1), (void)(arg2)
+
+#elif PY_VERSION_HEX < 0x030e00C1
+#ifndef Py_BUILD_CORE
+#define Py_BUILD_CORE
+#endif
+#include "internal/pycore_critical_section.h"
+#define __Pyx_PyCriticalSection_BeginMutex _PyCriticalSection_BeginMutex
+#define __Pyx_PyCriticalSection2_BeginMutex _PyCriticalSection2_BeginMutex
+
+#else
+#define __Pyx_PyCriticalSection_BeginMutex PyCriticalSection_BeginMutex
+#define __Pyx_PyCriticalSection2_BeginMutex PyCriticalSection2_BeginMutex
+#endif
+
+
+////////////////////// PyThreadTypeLockDecl.proto //////////
 //@proto_block: utility_code_proto_before_types
 
 // This lock type always uses PyThread_type_lock. The main reason
 // to use it is if you are using the Limited API and want to
 // share locks between modules.
 
+#ifndef __PYX_HAVE_PYX_THREAD_TYPE_LOCK_DECL
+#define __PYX_HAVE_PYX_THREAD_TYPE_LOCK_DECL
 #define __Pyx_Locks_PyThreadTypeLock PyThread_type_lock
 #define __Pyx_Locks_PyThreadTypeLock_DECL NULL
+#endif
+
+
+////////////////////// PyThreadTypeLock.proto //////////////////
+
 #define __Pyx_Locks_PyThreadTypeLock_Init(l) l = PyThread_allocate_lock()
 #define __Pyx_Locks_PyThreadTypeLock_Delete(l) PyThread_free_lock(l)
 #define __Pyx_Locks_PyThreadTypeLock_LockNogil(l) (void)PyThread_acquire_lock(l, WAIT_LOCK)
@@ -208,6 +249,7 @@ static CYTHON_INLINE void __Pyx_Locks_PyThreadTypeLock_LockGil(__Pyx_Locks_PyThr
 
 
 ////////////////////// PyThreadTypeLock ////////////////
+//@requires: PyThreadTypeLockDecl
 
 #if CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM < 0x07031400
 #define PY_LOCK_ACQUIRED 1
@@ -217,19 +259,7 @@ static void __Pyx__Locks_PyThreadTypeLock_LockGil_spin(__Pyx_Locks_PyThreadTypeL
     while (1) {
         int res;
         Py_BEGIN_ALLOW_THREADS
-#if !CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM >= 0x07031400
-        // Don't block indefinitely. This ensures we don't deadlock (forever) on
-        //
-        // with nogil:
-        //   with lock:
-        //     with gil:
-        //       ...
-        //
-        // Arguably that's user error, but it seems better to try to help them out.
-        res = PyThread_acquire_lock_timed(lock, CYTHON_LOCK_AND_GIL_DEADLOCK_AVOIDANCE_TIME, 0);
-#else
         res = PyThread_acquire_lock(lock, WAIT_LOCK);
-#endif
         // Wait on the GIL while holding the lock. But importantly we never do the inverse
         // and wait on the lock while holding the GIL.
         Py_END_ALLOW_THREADS
@@ -270,7 +300,7 @@ static void __Pyx__Locks_PyThreadTypeLock_Lock(__Pyx_Locks_PyThreadTypeLock lock
         PyGILState_Release(state);
         return;
     }
-#elif CYTHON_COMPILING_IN_PYPY || PY_VERSION_HEX < 0x030B0000
+#elif CYTHON_COMPILING_IN_PYPY || PY_VERSION_HEX < 0x030C0000
     has_gil = PyGILState_Check();
 #elif PY_VERSION_HEX < 0x030d0000
     has_gil = _PyThreadState_UncheckedGet() != NULL;
@@ -285,9 +315,9 @@ static void __Pyx__Locks_PyThreadTypeLock_Lock(__Pyx_Locks_PyThreadTypeLock lock
 }
 
 
-////////////////////// PyMutex.proto ////////////////////
+////////////////////// PyMutexDecl.proto ////////////////////
 //@proto_block: utility_code_proto_before_types
-//@requires: PyThreadTypeLock
+//@requires: PyThreadTypeLockDecl
 
 // We support two implementations - a Py3.13+ version using PyMutex and
 // an older version using PyThread_type_lock.
@@ -302,9 +332,25 @@ static void __Pyx__Locks_PyThreadTypeLock_Lock(__Pyx_Locks_PyThreadTypeLock lock
 // CythonLockType in a public way. However, they can use
 // CythonCompatibleLockType which will always be PyThread_type_lock.
 
-#if PY_VERSION_HEX > 0x030d0000 && !CYTHON_COMPILING_IN_LIMITED_API
+#ifndef __PYX_HAVE_PYX_PYMUTEX_DECL
+#define __PYX_HAVE_PYX_PYMUTEX_DECL
+// Not CYTHON_COMPILING_IN_LIMITED_API because this code may be in
+// headers where that isn't available
+#if PY_VERSION_HEX > 0x030d0000 && !defined(Py_LIMITED_API)
 #define __Pyx_Locks_PyMutex PyMutex
 #define __Pyx_Locks_PyMutex_DECL {0}
+#else
+#define __Pyx_Locks_PyMutex __Pyx_Locks_PyThreadTypeLock
+#define __Pyx_Locks_PyMutex_DECL __Pyx_Locks_PyThreadTypeLock_DECL
+#endif
+#endif
+
+
+////////////////// PyMutex.proto ///////////////////////////
+//@requires: PyThreadTypeLock
+//@requires: PyMutexDecl
+
+#if PY_VERSION_HEX > 0x030d0000 && !CYTHON_COMPILING_IN_LIMITED_API
 #define __Pyx_Locks_PyMutex_Init(l) (void)(l)
 #define __Pyx_Locks_PyMutex_Delete(l) (void)(l)
 // Py_Mutex takes care of all GIL handling itself
@@ -315,8 +361,6 @@ static void __Pyx__Locks_PyThreadTypeLock_Lock(__Pyx_Locks_PyThreadTypeLock lock
 
 #else
 
-#define __Pyx_Locks_PyMutex __Pyx_Locks_PyThreadTypeLock
-#define __Pyx_Locks_PyMutex_DECL __Pyx_Locks_PyThreadTypeLock_DECL
 #define __Pyx_Locks_PyMutex_Init(l) __Pyx_Locks_PyThreadTypeLock_Init(l)
 #define __Pyx_Locks_PyMutex_Delete(l) __Pyx_Locks_PyThreadTypeLock_Delete(l)
 #define __Pyx_Locks_PyMutex_Lock(l) __Pyx_Locks_PyThreadTypeLock_Lock(l)

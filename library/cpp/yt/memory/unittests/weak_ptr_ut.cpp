@@ -2,7 +2,8 @@
 
 #include <library/cpp/yt/memory/new.h>
 #include <library/cpp/yt/memory/weak_ptr.h>
-#include <library/cpp/yt/threading/event_count.h>
+
+#include <library/cpp/yt/system/event_count.h>
 
 #include <array>
 #include <thread>
@@ -23,7 +24,7 @@ using ::testing::StrictMock;
 static std::atomic<int> ConstructorShadowState = 0;
 static std::atomic<int> DestructorShadowState = 0;
 
-std::unique_ptr<NThreading::TEvent> DeathEvent;
+std::unique_ptr<TEvent> DeathEvent;
 
 void ResetShadowState()
 {
@@ -62,9 +63,9 @@ public:
 private:
     // Explicitly non-copyable.
     TIntricateObject(const TIntricateObject&);
-    TIntricateObject(TIntricateObject&&);
+    TIntricateObject(TIntricateObject&&) noexcept;
     TIntricateObject& operator=(const TIntricateObject&);
-    TIntricateObject& operator=(TIntricateObject&&);
+    TIntricateObject& operator=(TIntricateObject&&) noexcept;
 };
 
 using TIntricateObjectPtr = TIntrusivePtr<TIntricateObject>;
@@ -308,7 +309,8 @@ TEST_F(TWeakPtrTest, IsEmpty)
 {
     TIntricateObjectWkPtr ptr;
 
-    EXPECT_TRUE(ptr == nullptr);
+    EXPECT_EQ(ptr.Get(), nullptr);
+    EXPECT_TRUE(ptr.IsExpired());
 }
 
 TEST_F(TWeakPtrTest, UpCast)
@@ -350,9 +352,9 @@ public:
 private:
     // Explicitly non-copyable.
     TIntricateObjectVirtual(const TIntricateObjectVirtual&);
-    TIntricateObjectVirtual(TIntricateObjectVirtual&&);
+    TIntricateObjectVirtual(TIntricateObjectVirtual&&) noexcept;
     TIntricateObjectVirtual& operator=(const TIntricateObjectVirtual&);
-    TIntricateObjectVirtual& operator=(TIntricateObjectVirtual&&);
+    TIntricateObjectVirtual& operator=(TIntricateObjectVirtual&&) noexcept;
 };
 
 TEST_F(TWeakPtrTest, VirtualBase)
@@ -396,7 +398,7 @@ static void AsynchronousDeleter(TSlowlyDyingObjectPtr& indirectObject)
 
 TEST_F(TWeakPtrTest, AcquisitionOfSlowlyDyingObject)
 {
-    DeathEvent.reset(new NThreading::TEvent());
+    DeathEvent.reset(new TEvent());
 
     TSlowlyDyingObjectPtr object = New<TSlowlyDyingObject>();
     TSlowlyDyingObjectWkPtr ptr(object);

@@ -1,6 +1,9 @@
 #include "ref.h"
 
 #include "blob.h"
+#include "poison.h"
+
+#include <library/cpp/yt/exception/exception.h>
 
 #include <library/cpp/yt/malloc/malloc.h>
 
@@ -8,8 +11,19 @@
 
 #include <library/cpp/yt/string/format.h>
 
+#include <util/generic/size_literals.h>
+
+#include <util/string/printf.h>
+
 #include <util/system/info.h>
 #include <util/system/align.h>
+
+#ifdef _linux_
+#include <errno.h>
+#include <string.h>
+
+#include <sys/mman.h>
+#endif
 
 namespace NYT {
 
@@ -129,11 +143,18 @@ protected:
 #endif
         if (options.InitializeStorage) {
             ::memset(static_cast<TDerived*>(this)->GetBegin(), 0, Size_);
+        } else {
+            PoisonUninitializedOrFreedMemory(GetRef());
         }
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
         TRefCountedTrackerFacade::AllocateTagInstance(Cookie_);
         TRefCountedTrackerFacade::AllocateSpace(Cookie_, Size_);
 #endif
+    }
+
+    void Finalize()
+    {
+        PoisonUninitializedOrFreedMemory(GetRef());
     }
 };
 
@@ -155,6 +176,11 @@ public:
             }
         }
         Initialize(size, options, cookie);
+    }
+
+    ~TDefaultAllocationHolder()
+    {
+        Finalize();
     }
 
     char* GetBegin()
@@ -188,6 +214,7 @@ public:
 
     ~TCustomAlignedAllocationHolder()
     {
+        Finalize();
         ::free(Begin_);
     }
 
@@ -224,6 +251,7 @@ public:
 
     ~TPageAlignedAllocationHolder()
     {
+        Finalize();
         ::free(Begin_);
     }
 
@@ -241,6 +269,71 @@ public:
 private:
     char* const Begin_;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef _linux_
+
+class TMmapAllocationHolder
+    : public TAllocationHolderBase<TMmapAllocationHolder>
+{
+public:
+    TMmapAllocationHolder(
+        size_t size,
+        TSharedMutableRefAllocateViaMmapOptions options,
+        TRefCountedTypeCookie cookie)
+    {
+        // Round the mapping up to the huge page size when huge pages are
+        // requested so that the whole region can be backed by them.
+        auto alignment = options.UseThp ? TransparentPageSize : GetPageSize();
+        MappedSize_ = AlignUp(size, alignment);
+        auto* ptr = ::mmap(
+            nullptr,
+            MappedSize_,
+            PROT_READ | PROT_WRITE,
+            MAP_PRIVATE | MAP_ANONYMOUS,
+            -1,
+            0);
+        if (ptr == MAP_FAILED) {
+            throw TSimpleException(Sprintf("Failed to mmap %" PRISZT " bytes: %s", MappedSize_, strerror(errno)));
+        }
+        Begin_ = static_cast<char*>(ptr);
+#ifdef MADV_HUGEPAGE
+        if (options.UseThp) {
+            // Hint before the first touch so that faults are served by huge
+            // pages directly rather than relying on khugepaged to collapse
+            // already-populated small pages.
+            YT_VERIFY(::madvise(Begin_, MappedSize_, MADV_HUGEPAGE) == 0);
+        }
+#endif
+        Initialize(size, {.InitializeStorage = options.InitializeStorage}, cookie);
+    }
+
+    ~TMmapAllocationHolder()
+    {
+        Finalize();
+        YT_VERIFY(::munmap(Begin_, MappedSize_) == 0);
+    }
+
+    char* GetBegin()
+    {
+        return Begin_;
+    }
+
+    // TSharedRangeHolder overrides.
+    std::optional<size_t> GetTotalByteSize() const override
+    {
+        return MappedSize_;
+    }
+
+private:
+    static constexpr size_t TransparentPageSize = 2_MB;
+
+    char* Begin_;
+    size_t MappedSize_;
+};
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -285,11 +378,6 @@ TSharedRef TSharedRef::FromStringImpl(TString str, TRefCountedTypeCookie tagCook
     auto holder = New<TStringHolder<TString>>(std::move(str), tagCookie);
     auto ref = TRef::FromString(holder->String());
     return TSharedRef(ref, std::move(holder));
-}
-
-TSharedRef TSharedRef::FromString(const char* str)
-{
-    return FromString(std::string(str));
 }
 
 TSharedRef TSharedRef::FromBlob(TBlob&& blob)
@@ -347,6 +435,21 @@ TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t size, TSharedMut
     auto holder = New<TPageAlignedAllocationHolder>(size, options, tagCookie);
     auto ref = holder->GetRef();
     return TSharedMutableRef(ref, std::move(holder));
+}
+
+TSharedMutableRef TSharedMutableRef::AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options, TRefCountedTypeCookie tagCookie)
+{
+#ifdef _linux_
+    auto holder = New<TMmapAllocationHolder>(size, options, tagCookie);
+    auto ref = holder->GetRef();
+    return TSharedMutableRef(ref, std::move(holder));
+#else
+    // No mmap/huge page support; fall back to a plain page-aligned allocation.
+    return AllocatePageAligned(
+        size,
+        TSharedMutableRefAllocateOptions{.InitializeStorage = options.InitializeStorage},
+        tagCookie);
+#endif
 }
 
 TSharedMutableRef TSharedMutableRef::AllocateAligned(size_t size, size_t alignment, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie tagCookie)

@@ -136,7 +136,7 @@ void NCB::ReadModelAndUpdateParams(
                 EPredictionType type;
                 CB_ENSURE(
                     !TryFromString<EPredictionType>(id, type) || IsUncertaintyPredictionType(type),
-                    "Predicton type " << type << " is incompatible with Uncertainty Prediction Type");
+                    "Prediction type " << type << " is incompatible with Uncertainty Prediction Type");
             }
         }
     }

@@ -193,24 +193,39 @@ public:
     }
 
     /**
-     * Obtains a ref that is a view over the `count` elements of this TArrayRef starting at `offset`.
+     * Obtains a ref that is a view over the elements of this TArrayRef starting at `offset`.
      *
-     * The behavior is undefined in either offset or count is out of range.
+     * The behavior is undefined if `offset` is greater than the size of this TArrayRef.
      */
     TArrayRef subspan(size_t offset) const {
         Y_ASSERT(offset <= size());
         return TArrayRef(data() + offset, size() - offset);
     }
 
+    /**
+     * Obtains a ref that is a view over the `count` elements of this TArrayRef starting at `offset`.
+     *
+     * The behavior is undefined if `offset` + `count` is greater than the size of this TArrayRef.
+     */
     TArrayRef subspan(size_t offset, size_t count) const {
         Y_ASSERT(offset + count <= size());
         return TArrayRef(data() + offset, count);
     }
 
+    /**
+     * Obtains a ref that is a view over the elements of this TArrayRef starting at `offset`.
+     *
+     * The behavior is undefined if `offset` is greater than the size of this TArrayRef.
+     */
     TArrayRef Slice(size_t offset) const {
         return subspan(offset);
     }
 
+    /**
+     * Obtains a ref that is a view over the `size` elements of this TArrayRef starting at `offset`.
+     *
+     * The behavior is undefined if `offset` + `size` is greater than the size of this TArrayRef.
+     */
     TArrayRef Slice(size_t offset, size_t size) const {
         return subspan(offset, size);
     }

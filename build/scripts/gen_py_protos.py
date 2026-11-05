@@ -6,7 +6,6 @@ import tempfile
 import argparse
 import re
 
-
 OUT_DIR_ARG = '--python_out='
 
 

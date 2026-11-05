@@ -2,7 +2,7 @@
 
 ## Load datasets {#load}
 
-Load the [Dataset description in delimiter-separated values format](../concepts/input-data_values-file.md) and the [object descriptions](../concepts/input-data_column-descfile.md) from the `train` and `train.cd` files respectively (both stored in the current directory):
+Load the [Dataset in delimiter-separated values format](../concepts/input-data_values-file.md) and the [object descriptions](../concepts/input-data_column-descfile.md) from the `train` and `train.cd` files respectively (both stored in the current directory):
 ```r
 library(catboost)
 

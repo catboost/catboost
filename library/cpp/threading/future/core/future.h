@@ -19,20 +19,18 @@ namespace NThreading {
     struct TFutureException: public yexception {};
 
     // creates unset promise
-    template <typename T>
+    template <typename T = void>
     TPromise<T> NewPromise();
-    TPromise<void> NewPromise();
 
     // creates preset future
     template <typename T>
     TFuture<T> MakeFuture(const T& value);
     template <typename T>
     TFuture<std::remove_reference_t<T>> MakeFuture(T&& value);
-    template <typename T>
+    template <typename T = void>
     TFuture<T> MakeFuture();
     template <typename T>
     TFuture<T> MakeErrorFuture(std::exception_ptr exception);
-    TFuture<void> MakeFuture();
 
     ////////////////////////////////////////////////////////////////////////////////
 

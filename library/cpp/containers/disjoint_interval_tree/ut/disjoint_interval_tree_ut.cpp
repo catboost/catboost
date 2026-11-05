@@ -288,4 +288,23 @@ Y_UNIT_TEST_SUITE(DisjointIntervalTreeTest) {
             UNIT_ASSERT(!tree.Intersects(15, 18));
         }
     }
+
+    Y_UNIT_TEST(TestI64) {
+        {
+            TDisjointIntervalTree<i64> tree;
+            tree.InsertInterval(-5, 10);
+            UNIT_ASSERT_VALUES_EQUAL(tree.EraseInterval(-2, 4), 6);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumIntervals(), 2);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumElements(), 9);
+
+            UNIT_ASSERT_VALUES_EQUAL(tree.EraseInterval(-5, -2), 3);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumIntervals(), 1);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumElements(), 6);
+
+            UNIT_ASSERT_VALUES_EQUAL(tree.EraseInterval(4, 10), 6);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumIntervals(), 0);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumElements(), 0);
+            UNIT_ASSERT(tree.Empty());
+        }
+    }
 }

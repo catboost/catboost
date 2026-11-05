@@ -87,7 +87,10 @@ public:
     }
 
     ui64 RequestBeginTime() const noexcept {
-        return BeginTime_;
+        return BeginTime_; // in microseconds
+    }
+    TInstant RequestBeginTimestamp() const noexcept {
+        return TInstant::MicroSeconds(BeginTime_);
     }
 
     void SetPath(TString path);

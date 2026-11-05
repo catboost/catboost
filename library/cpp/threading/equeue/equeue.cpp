@@ -6,12 +6,12 @@ TElasticQueue::TElasticQueue(THolder<IThreadPool> slaveQueue)
 }
 
 size_t TElasticQueue::ObjectCount() const {
-    return (size_t)AtomicGet(ObjectCount_);
+    return ObjectCount_.load();
 }
 
 bool TElasticQueue::TryIncCounter() {
-    if ((size_t)AtomicIncrement(GuardCount_) > MaxQueueSize_) {
-        AtomicDecrement(GuardCount_);
+    if (++GuardCount_ > CurrentMaxQueueSize_) {
+        --GuardCount_;
         return false;
     }
 
@@ -26,12 +26,12 @@ public:
         : RealObject_(realObject)
         , Queue_(queue)
     {
-        AtomicIncrement(Queue_->ObjectCount_);
+        ++Queue_->ObjectCount_;
     }
 
     ~TDecrementingWrapper() override {
-        AtomicDecrement(Queue_->ObjectCount_);
-        AtomicDecrement(Queue_->GuardCount_);
+        --Queue_->ObjectCount_;
+        --Queue_->GuardCount_;
     }
 private:
     void Process(void *tsr) override {
@@ -54,7 +54,7 @@ bool TElasticQueue::Add(IObjectInQueue* obj) {
     try {
         wrapper.Reset(new TDecrementingWrapper(obj, this));
     } catch (...) {
-        AtomicDecrement(GuardCount_);
+        --GuardCount_;
         throw;
     }
 
@@ -68,6 +68,7 @@ bool TElasticQueue::Add(IObjectInQueue* obj) {
 
 void TElasticQueue::Start(size_t threadCount, size_t maxQueueSize) {
     MaxQueueSize_ = maxQueueSize;
+    CurrentMaxQueueSize_ = maxQueueSize;
     SlaveQueue_->Start(threadCount, maxQueueSize);
 }
 

@@ -18,7 +18,6 @@ Y_UNIT_TEST_SUITE(TestCalcerCanonization) {
     }
 
     TVector<TEmbeddingsArray> DataSetGenerator(TVector<TVector<float>> means, TVector<ui32> target) {
-        TFastRng<ui32> rng(42);
         TVector<TEmbeddingsArray> result;
         for (auto idx : target) {
             result.push_back(NormalEmbedding(means[idx]));

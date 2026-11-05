@@ -7,6 +7,7 @@ from . import runtime
 def execute_benchmark(path, budget=None, threads=None):
     """
     Run benchmark and return values
+
     :param path: path to benchmark binary
     :param budget: time budget, sec (supported only by ybenchmark)
     :param threads: number of threads to run benchmark (supported only by ybenchmark)

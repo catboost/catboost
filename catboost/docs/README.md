@@ -4,7 +4,7 @@ Welcome to the CatBoost [docs](https://catboost.ai/docs/).
 
 ## About the docs
 
-The documentation is developed using [Yandex Flavored Markdown](https://github.com/yandex-cloud/yfm-docs) (YFM). See [YFM syntax](https://github.com/yandex-cloud/yfm-transform/blob/master/DOCS.md).
+The documentation is developed using [Yandex Flavored Markdown](https://diplodoc.com/docs/en/index-yfm) (YFM). See [YFM syntax](https://diplodoc.com/docs/en/syntax/).
 
 ## Making the CatBoost docs better
 
@@ -12,13 +12,13 @@ If you notice a typo or error in the documentation or want to add any section, c
 
 ## Building the CatBoost docs
 
-Before creating a pull request, build the docs locally for checking your changes. To do this, use the [yfm-docs](https://github.com/yandex-cloud/yfm-docs) tool.
+Before creating a pull request, build the docs locally for checking your changes. To do this, use the [yfm-docs](https://github.com/diplodoc-platform/cli) tool.
 
 1. Install **yfm-docs**:
 
-   `npm i @doc-tools/docs -g`
+   `npm i @diplodoc/cli -g`
 
-   To update the version of **yfm-docs**, use the  `npm i @doc-tools/docs@latest -g` command.
+   To update the version of **yfm-docs**, use the  `npm i @diplodoc/cli@latest -g` command.
 
 1. Build the docs:
 

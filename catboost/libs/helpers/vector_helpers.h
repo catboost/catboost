@@ -113,7 +113,7 @@ inline void AssignRank2(TConstArrayRef<TConstArrayRef<T1>> src, TVector<TVector<
 }
 
 template <typename T, typename T2DArrayLike>
-inline static TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& array) {
+inline TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& array) {
     auto arrayView = TVector<TConstArrayRef<T>>();
     for (const auto& subArray : array) {
         arrayView.emplace_back(subArray);
@@ -122,7 +122,7 @@ inline static TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& a
 }
 
 template <typename T, typename T2DArrayLike>
-inline static TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& array, size_t offset, size_t count) {
+inline TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& array, size_t offset, size_t count) {
     auto arrayView = TVector<TConstArrayRef<T>>();
     for (const auto& subArray : array) {
         arrayView.emplace_back(MakeArrayRef(subArray.begin() + offset, count));

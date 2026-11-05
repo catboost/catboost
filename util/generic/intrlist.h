@@ -126,6 +126,20 @@ public:
         Prev_ = Next_;
     }
 
+    TIntrusiveListItem(TIntrusiveListItem&& rhs) noexcept
+        : Next_(this)
+        , Prev_(Next_)
+    {
+        LinkBeforeNoUnlink(&rhs);
+        rhs.Unlink();
+    }
+
+    TIntrusiveListItem& operator=(TIntrusiveListItem&& rhs) noexcept {
+        LinkBefore(&rhs);
+        rhs.Unlink();
+        return *this;
+    }
+
 private:
     inline TIntrusiveListItem(const TIntrusiveListItem&) = delete;
     inline TIntrusiveListItem& operator=(const TIntrusiveListItem&) = delete;

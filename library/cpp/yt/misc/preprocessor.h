@@ -104,6 +104,12 @@
  */
 #define PP_ELEMENT(seq, index) PP_ELEMENT_IMPL(seq, index)
 
+//! Generates a sequence of integers from first to last, inclusive.
+/*! The bounds must expand to integer literals satisfying 0 <= first <= last <= 300.
+ * For example, \code PP_RANGE(1, 3) == (1)(2)(3) \endcode
+ */
+#define PP_RANGE(first, last) PP_RANGE_IMPL(first, last)
+
 //! Applies the macro to every member of the sequence.
 /*! For example,
  * \code

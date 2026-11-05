@@ -64,12 +64,20 @@ namespace {
             } else if (str.StartsWith("#")) {
                 const TStringBuf tag(str.data() + 1, str.size() - 1);
                 const auto tagIndices = IndicesFromTags.FindPtr(tag);
-                CB_ENSURE(tagIndices, TStringBuf() << "There is no tag '#" << tag << "' in pool metainfo");
+                CB_ENSURE(tagIndices, TStringBuf() << "There is no tag '#" << tag << "' in dataset metainfo");
                 indices->insert(indices->end(), tagIndices->begin(), tagIndices->end());
             } else {
+                {
+                    auto it = IndicesFromNames.find(str);
+                    if (it != IndicesFromNames.end()) {
+                        indices->push_back(it->second);
+                        return;
+                    }
+                }
                 auto left = str;
                 auto right = str;
-                StringSplitter(str).Split('-').TryCollectInto(&left, &right);
+                const bool isRange = StringSplitter(str).Split('-').TryCollectInto(&left, &right);
+                CB_ENSURE(isRange, "String '" + str + "' does not represent a valid feature index, name or a feature range");
                 for (ui32 idx : xrange(ConvertToIndex(left, IndicesFromNames), ConvertToIndex(right, IndicesFromNames) + 1)) {
                     indices->push_back(idx);
                 }

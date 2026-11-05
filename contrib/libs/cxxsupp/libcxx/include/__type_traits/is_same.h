@@ -21,7 +21,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 #if __has_keyword(__is_same) && !defined(__CUDACC__)
 
 template <class _Tp, class _Up>
-struct _LIBCPP_TEMPLATE_VIS _LIBCPP_NO_SPECIALIZATIONS is_same : _BoolConstant<__is_same(_Tp, _Up)> {};
+struct _LIBCPP_NO_SPECIALIZATIONS is_same : _BoolConstant<__is_same(_Tp, _Up)> {};
 
 #if _LIBCPP_STD_VER >= 17
 template <class _Tp, class _Up>
@@ -31,9 +31,9 @@ _LIBCPP_NO_SPECIALIZATIONS inline constexpr bool is_same_v = __is_same(_Tp, _Up)
 #else
 
 template <class _Tp, class _Up>
-struct _LIBCPP_TEMPLATE_VIS is_same : public false_type {};
+struct is_same : public false_type {};
 template <class _Tp>
-struct _LIBCPP_TEMPLATE_VIS is_same<_Tp, _Tp> : public true_type {};
+struct is_same<_Tp, _Tp> : public true_type {};
 
 #  if _LIBCPP_STD_VER > 14
 template <class _Tp, class _Up>

@@ -5,6 +5,7 @@ import sys
 import json
 import subprocess
 import optparse
+import shlex
 import textwrap
 
 # Explicitly enable local imports
@@ -38,6 +39,46 @@ def remove_libs(cmd, libs):
     return flags
 
 
+def with_lld_threads(cmd, arch, threads):
+    """Apply runtime parallelism only to ELF LLD, preserving the graph command."""
+    if threads is None or arch not in ('LINUX', 'ANDROID', 'FREEBSD'):
+        return cmd
+
+    # Inspect response files too: the driver can select a different linker there.
+    args = []
+    for arg in cmd:
+        if pcf.is_cmdfile_arg(arg):
+            content = '\n'.join(pcf.read_from_command_file(pcf.cmdfile_path(arg)))
+            args.extend(shlex.split(content))
+        else:
+            args.append(arg)
+    if any(arg.startswith('@') for arg in args):
+        return cmd
+
+    linker_path = None
+    linker = None
+    for index, arg in enumerate(args):
+        if arg.startswith('--ld-path='):
+            linker_path = arg[len('--ld-path=') :]
+        elif arg == '--ld-path' and index + 1 < len(args):
+            linker_path = args[index + 1]
+        elif arg.startswith('-fuse-ld='):
+            linker = arg[len('-fuse-ld=') :]
+        elif arg == '-fuse-ld' and index + 1 < len(args):
+            linker = args[index + 1]
+
+    if linker_path is not None:
+        if os.path.basename(linker_path) != 'ld.lld':
+            return cmd
+    elif linker != 'lld':
+        return cmd
+
+    threads = int(threads)
+    if threads <= 0:
+        raise ValueError('_YA_LLD_THREADS requires a positive integer')
+    return cmd + ['-Wl,--threads={}'.format(threads)]
+
+
 def parse_args(args):
     parser = optparse.OptionParser()
     parser.disable_interspersed_args()
@@ -64,8 +105,8 @@ if __name__ == '__main__':
     if '--start-plugins' in args:
         ib = args.index('--start-plugins')
         ie = args.index('--end-plugins')
-        plugins = list(sorted(args[ib + 1:ie]))
-        args = args[:ib] + args[ie + 1:]
+        plugins = list(sorted(args[ib + 1 : ie]))
+        args = args[:ib] + args[ie + 1 :]
 
     for p in plugins:
         res = subprocess.check_output([sys.executable, p, sys.argv[0]] + args).decode().strip()
@@ -94,6 +135,7 @@ if __name__ == '__main__':
         stdout = sys.stdout
 
     thinlto_cache.preprocess(opts, cmd)
+    cmd = with_lld_threads(cmd, opts.arch, os.environ.get('_YA_LLD_THREADS'))
     rc = subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=stdout)
     thinlto_cache.postprocess(opts)
 

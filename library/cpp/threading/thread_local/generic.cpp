@@ -14,29 +14,64 @@ namespace {
         NThreading::TThreadLocalValue<TData, NThreading::EThreadLocalImpl::StdThreadLocal> Data_;
     };
 
-    std::atomic<size_t>& DefaultFactoryUsageCounter() {
-        static std::atomic<size_t> v;
-        return v;
-    }
+    class TThreadLocalContext
+        : public NThreading::IGLSContext
+    {
+        bool IsCurrent() const override {
+            return true;
+        }
 
-    auto& genericLocalStorageFactory() {
-        static NThreading::TGenericLocalStorageFactory factory = [] {
-            DefaultFactoryUsageCounter() += 1;
+        THolder<NThreading::IGenericLocalStorage> MakeStorage() const override {
             return MakeHolder<TThreadLocalStorage>();
-        };
+        }
+    };
 
-        return factory;
+    class TContextRegistry {
+    public:
+        TContextRegistry() {
+            Register(MakeHolder<TThreadLocalContext>());
+        }
+
+        size_t Count() const {
+            return Count_.load();
+        }
+
+        const NThreading::IGLSContext& Get(size_t index) const {
+            return *Contexts_[index];
+        }
+
+        void Register(THolder<NThreading::IGLSContext> context) {
+            with_lock (Lock_) {
+                const size_t index = Count_.load();
+                Y_ENSURE(index < NThreading::NDetail::MaxGLSContexts, "Too many generic local contexts registered");
+                Contexts_[index] = std::move(context);
+                Count_.store(index + 1);
+            }
+        }
+    private:
+        TAdaptiveLock Lock_;
+        std::atomic<size_t> Count_ = 0;
+        std::array<THolder<NThreading::IGLSContext>, NThreading::NDetail::MaxGLSContexts> Contexts_ = {};
+    };
+
+    TContextRegistry& Registry() {
+        static TContextRegistry registry;
+        return registry;
     }
 }
 
 namespace NThreading {
-    void SetGenericLocalStorageFactory(TGenericLocalStorageFactory factory) {
-        Y_ENSURE(DefaultFactoryUsageCounter() == 0, "There are some thread local values allocated with default factory");
-
-        genericLocalStorageFactory() = factory;
+    void RegisterGLSContext(THolder<IGLSContext> context) {
+        Registry().Register(std::move(context));
     }
 
-    THolder<IGenericLocalStorage> MakeGenericLocalStorage() {
-        return genericLocalStorageFactory()();
+    namespace NDetail {
+        size_t GLSContextCount() {
+            return Registry().Count();
+        }
+
+        const IGLSContext& GetGLSContext(size_t index) {
+            return Registry().Get(index);
+        }
     }
 }

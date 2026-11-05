@@ -33,7 +33,7 @@
 //    Standalone MinGW and all other known Windows compilers do predefine _WIN32
 //    Compilers that predefine _WIN32 or __MINGW32__ do so for Windows 64-bit builds too.
 
-# if defined(_WIN32) || defined(__CYGWIN__) // Windows default, including MinGW and Cygwin
+# if defined(_WIN32) // Windows default, including MinGW
 #   define BOOST_WINDOWS_API
 # else
 #   define BOOST_POSIX_API 

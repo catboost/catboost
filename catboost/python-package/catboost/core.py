@@ -103,6 +103,14 @@ FLOAT_TYPES = (float, np.floating)
 STRING_TYPES = (string_types,)
 ARRAY_TYPES = (list, np.ndarray, pd.DataFrame, pd.Series, pl.DataFrame, pl.Series)
 
+# names of pandas nullable extension dtypes for numeric and boolean data
+_PANDAS_NULLABLE_NUMERIC_DTYPE_NAMES = frozenset([
+    'Int8', 'Int16', 'Int32', 'Int64',
+    'UInt8', 'UInt16', 'UInt32', 'UInt64',
+    'Float32', 'Float64',
+    'boolean'
+])
+
 if sys.version_info >= (3, 6):
     PATH_TYPES = STRING_TYPES + (os.PathLike,)
 elif sys.version_info >= (3, 4):
@@ -334,6 +342,27 @@ def _get_features_indices(features, feature_names):
                 raise CatBoostError("features parameter contains string value '{}' but feature names "
                                     "for a dataset are not specified".format(f))
     return features
+
+
+def _check_polars_categorical_features_have_no_nulls(data, cat_features):
+    """Raise an informative error for null values in polars Categorical/Enum cat_features.
+
+        Null values in categorical columns are not supported. For a polars.String column
+        (or for pandas) this is reported with a clear message, but for a polars.Enum or
+        polars.Categorical column the nulls used to reach the compiled layer and surface
+        as an opaque ``TypeError: No matching signature found`` (see issue #3106). Detect
+        the nulls here and report them the same way as the other backends.
+    """
+    if (not isinstance(data, pl.DataFrame)) or (not cat_features):
+        return
+    for feature_idx in cat_features:
+        dtype = data.dtypes[feature_idx]
+        if (dtype == pl.Categorical) or isinstance(dtype, pl.Enum):
+            if data.to_series(feature_idx).null_count() > 0:
+                raise CatBoostError(
+                    "Data with nulls is not supported for categorical columns, but categorical "
+                    "column '{}' contains null values".format(data.columns[feature_idx])
+                )
 
 
 def _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
@@ -786,11 +815,11 @@ class Pool(_PoolBase):
                                                    subgroup_id, pairs_weight, baseline, label]):
                         raise CatBoostError(
                             "cat_features, text_features, embedding_features, embedding_features_data, weight, group_id, group_weight, subgroup_id, pairs_weight, "
-                            "baseline, label should have the None type when the pool is read from the file."
+                            "baseline, label should have the None type when the dataset is read from the file."
                         )
                     if (feature_names is not None) and (not isinstance(feature_names, PATH_TYPES)):
                         raise CatBoostError(
-                            "feature_names should have None or string or os.PathLike type when the pool is read from the file."
+                            "feature_names should have None or string or os.PathLike type when the dataset is read from the file."
                         )
                     self._read(data, column_description, pairs, graph, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count)
                 else:
@@ -856,7 +885,7 @@ class Pool(_PoolBase):
 
                     if isinstance(feature_names, PATH_TYPES):
                         raise CatBoostError(
-                            "feature_names must be None or have non-string type when the pool is created from "
+                            "feature_names must be None or have non-string type when the dataset is created from "
                             "python objects."
                         )
 
@@ -1221,7 +1250,7 @@ class Pool(_PoolBase):
 
     def save(self, fname):
         """
-        Save the quantized pool to a file.
+        Save the quantized dataset to a file.
 
         Parameters
         ----------
@@ -1240,13 +1269,10 @@ class Pool(_PoolBase):
                  max_bin=None, feature_border_type=None, sparse_features_conflict_fraction=None,
                  nan_mode=None, input_borders=None, task_type=None, used_ram_limit=None, random_seed=None, **kwargs):
         """
-        Quantize this pool
+        Quantize this dataset
 
         Parameters
         ----------
-        pool : catboost.Pool
-            Dataset to quantize.
-
         ignored_features : list, [default=None]
             Indices or names of features that should be excluded when training.
 
@@ -1331,7 +1357,12 @@ class Pool(_PoolBase):
 
     def _label_if_pandas_to_numpy(self, label):
         if isinstance(label, pd.Series):
-            label = label.values
+            if label.dtype.name in _PANDAS_NULLABLE_NUMERIC_DTYPE_NAMES:
+                # pandas nullable numeric/boolean extension dtypes:
+                # convert to float64 with missing values (pandas.NA) represented as NaN
+                label = label.to_numpy(dtype=np.float64, na_value=np.nan)
+            else:
+                label = label.values
         if isinstance(label, pd.DataFrame):
             label = label.values
         return label
@@ -1474,6 +1505,7 @@ class Pool(_PoolBase):
             cat_features = _get_features_indices(cat_features, feature_names)
             self._check_string_feature_type(cat_features, 'cat_features')
             self._check_string_feature_value(cat_features, features_count, 'cat_features')
+            _check_polars_categorical_features_have_no_nulls(data, cat_features)
         if text_features is not None:
             text_features = _get_features_indices(text_features, feature_names)
             self._check_string_feature_type(text_features, 'text_features')
@@ -1720,11 +1752,37 @@ def _get_loss_function_for_train(params, estimator_type, train_pool):
         if label is None:
             raise CatBoostError('loss function has not been specified and cannot be deduced')
 
+        label_arr = np.asarray(label)
+
+        if label_arr.ndim == 2:
+            if 1 in label_arr.shape:
+                label_arr = label_arr.reshape(-1)
+            else:
+                try:
+                    y = label_arr.astype(np.float64, copy=False)
+                except (TypeError, ValueError):
+                    raise CatBoostError("Can't infer loss for 2D label: non-numeric")
+
+                min_val = y.min()
+                max_val = y.max()
+                if not (np.isfinite(min_val) and np.isfinite(max_val)):
+                    raise CatBoostError("Can't infer loss for 2D label: NaN/inf")
+
+                if 0.0 <= min_val and max_val <= 1.0:
+                    if np.all((y == 0.0) | (y == 1.0)):
+                        return 'MultiLogloss'
+                    return 'MultiCrossEntropy'
+
+                raise CatBoostError("Can't infer loss for 2D label: values not in [0,1]")
+
+        elif label_arr.ndim > 2:
+            raise CatBoostError("Can't infer loss: label must be 1D or 2D")
+
         """
             len(set) is faster than np.unique on Python lists:
              https://bbengfort.github.io/observations/2017/05/02/python-unique-benchmark.html
         """
-        is_multiclass_task = len(set(label)) > 2 and 'target_border' not in params
+        is_multiclass_task = len(set(label_arr)) > 2 and 'target_border' not in params
         return 'MultiClass' if is_multiclass_task else 'Logloss'
     elif estimator_type == 'ranker':
         return 'YetiRank'
@@ -1749,6 +1807,14 @@ class _CatBoostBase(object):
         params_str = ", ".join(f"{key}={val!r}" for key, val in sorted(self._init_params.items()))
         return f"{self.__class__.__name__}({params_str})"
 
+    def __getattr__(self, name: str):
+        # the name check must precede is_fitted(), which itself goes through __getattr__
+        if name in ('n_features_in_', 'feature_names_in_') and self.is_fitted():
+            if name == 'n_features_in_':
+                return getattr(self, '_n_features_in')
+            return np.array(self._object._get_feature_names(), dtype=object)
+        raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, name))
+
     def __getstate__(self):
         params = self._init_params.copy()
         test_evals = self._object._get_test_evals()
@@ -1767,8 +1833,13 @@ class _CatBoostBase(object):
         if '_init_params' not in dict(self.__dict__.items()):
             self._init_params = {}
         if '__model' in state:
-            self._load_from_string(state['__model'])
+            self._load_from_blob(state['__model'])
             del state['__model']
+            # `_load_from_blob` now refreshes `_init_params` from the model, but
+            # pickle round-trips must restore the exact init params captured by
+            # `__getstate__` (which are still in `state` below) — not the
+            # model-derived defaults.
+            self._init_params = {}
         if '_test_eval' in state:
             self._set_test_evals([state['_test_eval']])
             del state['_test_eval']
@@ -1790,6 +1861,12 @@ class _CatBoostBase(object):
         model = self.__class__()
         model.__setstate__(state)
         return model
+
+    def __sklearn_clone__(self):
+        new_obj = type(self)(**{k: deepcopy(v) for k, v in self.get_params(deep=False).items()})
+        if hasattr(self, "_metadata_request"):
+            new_obj._metadata_request = deepcopy(self._metadata_request)
+        return new_obj
 
     def __eq__(self, other):
         return self._is_comparable_to(other) and self._object == other._object
@@ -1942,27 +2019,32 @@ class _CatBoostBase(object):
     def _load_model(self, model_file, format):
         if not isinstance(model_file, PATH_TYPES):
             raise CatBoostError("Invalid fname type={}: must be str or os.PathLike.".format(type(model_file)))
-        self._init_params = {}
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
-        for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
-            self._init_params[key] = value
-        self._canonized_params = None
+        self._refresh_params_from_model()
 
     def _serialize_model(self):
         return self._object._serialize_model()
 
-    def _deserialize_model(self, dump_model_str):
-        assert isinstance(dump_model_str, bytes), "Not bytes passed as argument"
-        self._object._deserialize_model(dump_model_str)
+    def _deserialize_model(self, blob):
+        assert isinstance(blob, (bytes, memoryview)), f"Unsupported 'blob' type '{type(blob)}', expected 'bytes' or 'memoryview'"
+        self._object._deserialize_model(blob)
 
-    def _load_from_string(self, dump_model_str):
-        self._deserialize_model(dump_model_str)
+    def _load_from_blob(self, blob):
+        self._deserialize_model(blob)
         self._set_trained_model_attributes()
+        self._refresh_params_from_model()
 
     def _load_from_stream(self, stream):
         self._object._load_from_stream(stream)
         self._set_trained_model_attributes()
+        self._refresh_params_from_model()
+
+    def _refresh_params_from_model(self):
+        self._init_params = {}
+        for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
+            self._init_params[key] = value
+        self._canonized_params = None
 
     def _sum_models(self, models_base, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
         if weights is None:
@@ -2074,10 +2156,6 @@ class _CatBoostBase(object):
         return getattr(self, '_learning_rate') if self.is_fitted() else None
 
     @property
-    def n_features_in_(self):
-        return getattr(self, '_n_features_in') if self.is_fitted() else None
-
-    @property
     def feature_names_(self):
         return self._object._get_feature_names() if self.is_fitted() else None
 
@@ -2157,7 +2235,7 @@ class _CatBoostBase(object):
 
         Parameters
         ----------
-        feature_names: 1-d array of strings with new feature names in the same order as in pool
+        feature_names: 1-d array of strings with new feature names in the same order as in the training dataset
         '''
         self._object._set_feature_names(feature_names)
 
@@ -2205,9 +2283,6 @@ class _CatBoostBase(object):
             'check_fit2d_predict1d':
                 'TODO: CatBoost API allows to pass 1d array for prediction for a single sample,'
                 ' maybe this behavior should be tunable in the future',
-            'check_n_features_in':
-                'TODO: n_features_in_ must not be defined until fit is called. '
-                'https://github.com/catboost/catboost/issues/3004',
             'check_n_features_in_after_fitting':
                 'TODO: 1) raise ValueError instead of generic CatBoostError.'
                 ' https://github.com/catboost/catboost/issues/2996; '
@@ -2232,6 +2307,9 @@ class _CatBoostBase(object):
             'check_dtype_object':
                 'TODO: raise TypeError instead of generic CatBoostError.'
                 ' https://github.com/catboost/catboost/issues/2998',
+            'check_all_zero_sample_weights_error':
+                'TODO: raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996',
         }
 
         if scikit_learn_version < (1, 6):
@@ -2880,7 +2958,19 @@ class CatBoost(_CatBoostBase):
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -3611,10 +3701,10 @@ class CatBoost(_CatBoostBase):
         Parameters
         ----------
         pool : Pool
-            The pool for which you want to evaluate the object importances.
+            The dataset for which you want to evaluate the object importances.
 
         train_pool : Pool
-            The pool on which the model has been trained.
+            The dataset on which the model has been trained.
 
         top_size : int (default=-1)
             Method returns the result of the top_size most important train objects.
@@ -3635,7 +3725,7 @@ class CatBoost(_CatBoostBase):
         update_method : string, optional (default='SinglePoint')
             Possible values:
                 - SinglePoint
-                - TopKLeaves (It is posible to set top size : TopKLeaves:top=2)
+                - TopKLeaves (It is possible to set top size : TopKLeaves:top=2)
                 - AllPoints
             Description of the update set methods are given in section 3.1.3 of the paper.
 
@@ -3727,7 +3817,7 @@ class CatBoost(_CatBoostBase):
                 * pmml_description : string
                 * pmml_model_version : string
         pool : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or catboost.FeaturesData
-            Training pool.
+            Training dataset.
         """
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
@@ -3759,7 +3849,7 @@ class CatBoost(_CatBoostBase):
         elif stream is not None:
             self._load_from_stream(stream)
         elif blob is not None:
-            self._load_from_string(blob)
+            self._load_from_blob(blob)
         return self
 
     def get_param(self, key):
@@ -4637,7 +4727,7 @@ class CatBoost(_CatBoostBase):
                         logging_level=None, plot=False, plot_file=None, log_cout=None, log_cerr=None,
                         grouping=None, features_tags_for_select=None, num_features_tags_to_select=None):
         """
-        Select best features from pool according to loss value.
+        Select best features from the dataset according to loss value.
 
         Parameters
         ----------
@@ -4838,7 +4928,9 @@ class CatBoost(_CatBoostBase):
 
 class CatBoostClassifier(CatBoost):
     """
-    Implementation of the scikit-learn API for CatBoost classification.
+    Implementation of the scikit-learn estimator API for CatBoost classification.
+
+    Supports model training, inference and auxiliary calculations like feature importance.
 
     Parameters
     ----------
@@ -4900,7 +4992,7 @@ class CatBoostClassifier(CatBoost):
         Number of iterations which overfitting detector will wait after new best error.
     od_type : string, [default=None]
         Type of overfitting detector which will be used in program.
-        Posible values:
+        Possible values:
             - 'IncToDec'
             - 'Iter'
         For 'Iter' type od_pval must not be set.
@@ -5019,7 +5111,7 @@ class CatBoostClassifier(CatBoost):
         the numbers of classes specified by each of them must be equal.
     auto_class_weights : string [default=None]
         Enables automatic class weights calculation. Possible values:
-            - Balanced  # weight = maxSummaryClassWeight / summaryClassWeight, statistics determined from train pool
+            - Balanced  # weight = maxSummaryClassWeight / summaryClassWeight, statistics determined from the train dataset
             - SqrtBalanced  # weight = sqrt(maxSummaryClassWeight / summaryClassWeight)
     class_names: list of strings, [default=None]
         Class names. Allows to redefine the default values for class labels (integer numbers).
@@ -5073,7 +5165,7 @@ class CatBoostClassifier(CatBoost):
         work, because visualisation uses files that are created and updated during training.
     final_ctr_computation_mode : string, [default='Default']
         Possible values:
-            - 'Default' - Compute final ctrs for all pools.
+            - 'Default' - Compute final ctrs for all datasets.
             - 'Skip' - Skip final ctr computation. WARNING: model without ctrs can't be applied.
     approx_on_full_history : bool, [default=False]
         If this flag is set to True, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
@@ -5527,7 +5619,19 @@ class CatBoostClassifier(CatBoost):
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -5923,7 +6027,9 @@ class CatBoostClassifier(CatBoost):
 
 class CatBoostRegressor(CatBoost):
     """
-    Implementation of the scikit-learn API for CatBoost regression.
+    Implementation of the scikit-learn estimator API for CatBoost regression.
+
+    Supports model training, inference and auxiliary calculations like feature importance.
 
     Parameters
     ----------
@@ -6159,7 +6265,19 @@ class CatBoostRegressor(CatBoost):
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -6331,7 +6449,10 @@ class CatBoostRegressor(CatBoost):
 
 class CatBoostRanker(CatBoost):
     """
-    Implementation of the scikit-learn API for CatBoost ranking.
+    Implementation of the scikit-learn estimator API for CatBoost ranking.
+
+    Supports model training, inference and auxiliary calculations like feature importance.
+
     Parameters
     ----------
     Like in CatBoostClassifier, except loss_function, classes_count, class_names and class_weights
@@ -6566,7 +6687,19 @@ class CatBoostRanker(CatBoost):
             Continue training starting from the existing model.
             If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
         callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
+            List of callback objects that are invoked at the end of each iteration.
+            Each callback must implement the `after_iteration(self, info)` method, where `info` has attributes:
+                iteration : int
+                    Number of completed iterations (starts from 1).
+                metrics : dict
+                    Metric values for all completed iterations, in the same format as `get_evals_result()`:
+                    {'learn': {metric_name: [values]}, 'validation': {metric_name: [values]}}.
+                    If several evaluation datasets are passed in `eval_set`, their keys are
+                    'validation_0', 'validation_1', ... instead of 'validation'.
+                    If no evaluation datasets are passed, there are no validation keys, only 'learn'.
+            The method must return True to continue training or False to stop it.
+            Callbacks are invoked in the listed order; the callbacks after the one that returned False are skipped.
+            Supported only for training on CPU.
 
         log_cout: output stream or callback for logging (default=None)
             If None is specified, sys.stdout is used
@@ -6944,79 +7077,82 @@ def sample_gaussian_process(X, y, eval_set=None,
     model_shrink_rate = (random_strength / sigma) ** 2 / N
 
     output_models = []
-    tmp_file = tempfile.NamedTemporaryFile()
-    prior_model_tmp_file = tmp_file.name
+    try:
+        tmp_file = tempfile.NamedTemporaryFile(delete=False)
+        prior_model_tmp_file = tmp_file.name
+        tmp_file.close()
+        for sample in range(samples):
+            prior_y = random_generator.normal(scale=eps, size=N)
+            prior = CatBoostRegressor(
+                random_seed=prior_seeds[sample],
+                iterations=prior_iterations,
+                learning_rate=eps,
+                loss_function='RMSE',
+                bootstrap_type='No',
+                depth=depth,
+                verbose=False,
+                leaf_estimation_backtracking="No",
+                boost_from_average=False,
+                random_strength=1/eps,
+                random_score_type=random_score_type,
+                l2_leaf_reg=0,
+                score_function="L2",
+                boosting_type='Plain'
+            )
+            prior.fit(
+                X,
+                prior_y,
+                cat_features=cat_features,
+                text_features=text_features,
+                embedding_features=embedding_features,
+                use_best_model=False
+            )
 
-    for sample in range(samples):
-        prior_y = random_generator.normal(scale=eps, size=N)
-        prior = CatBoostRegressor(
-            random_seed=prior_seeds[sample],
-            iterations=prior_iterations,
-            learning_rate=eps,
-            loss_function='RMSE',
-            bootstrap_type='No',
-            depth=depth,
-            verbose=False,
-            leaf_estimation_backtracking="No",
-            boost_from_average=False,
-            random_strength=1/eps,
-            random_score_type=random_score_type,
-            l2_leaf_reg=0,
-            score_function="L2",
-            boosting_type='Plain'
-        )
-        prior.fit(
-            X,
-            prior_y,
-            cat_features=cat_features,
-            text_features=text_features,
-            embedding_features=embedding_features,
-            use_best_model=False
-        )
+            prior.save_model(prior_model_tmp_file, format="json", pool=X)
+            with open(prior_model_tmp_file, "r", encoding='utf-8') as prior_file:
+                prior_json = json.load(prior_file)
+            for tree in prior_json["oblivious_trees"]:
+                for ind, (val, weight) in enumerate(zip(tree["leaf_values"], tree["leaf_weights"])):
+                    tree["leaf_values"][ind] = random_generator.normal(scale=np.sqrt(N / np.sqrt(max(1, weight))))
+            with open(prior_model_tmp_file, "w", encoding='utf-8') as prior_file:
+                json.dump(prior_json, prior_file)
+            prior.load_model(prior_model_tmp_file, format="json")
 
-        prior.save_model(prior_model_tmp_file, format="json", pool=X)
-        with open(prior_model_tmp_file, "r", encoding='utf-8') as prior_file:
-            prior_json = json.load(prior_file)
-        for tree in prior_json["oblivious_trees"]:
-            for ind, (val, weight) in enumerate(zip(tree["leaf_values"], tree["leaf_weights"])):
-                tree["leaf_values"][ind] = random_generator.normal(scale=np.sqrt(N / np.sqrt(max(1, weight))))
-        with open(prior_model_tmp_file, "w") as prior_file:
-            json.dump(prior_json, prior_file)
-        prior.load_model(prior_model_tmp_file, format="json")
+            scale, bias = prior.get_scale_and_bias()
+            prior.set_scale_and_bias(scale * sigma / np.sqrt(prior_iterations),  bias * sigma / np.sqrt(prior_iterations))
 
-        scale, bias = prior.get_scale_and_bias()
-        prior.set_scale_and_bias(scale * sigma / np.sqrt(prior_iterations),  bias * sigma / np.sqrt(prior_iterations))
+            posterior_y = y - prior.predict(X) + random_generator.normal(scale=delta, size=N)
+            posterior = CatBoostRegressor(
+                random_seed=posterior_seeds[sample],
+                iterations=posterior_iterations,
+                learning_rate=learning_rate,
+                model_shrink_rate=model_shrink_rate,
+                loss_function='RMSE',
+                bootstrap_type='No',
+                depth=depth,
+                verbose=verbose,
+                leaf_estimation_backtracking="No",
+                boost_from_average=False,
+                random_strength=random_strength,
+                random_score_type=random_score_type,
+                l2_leaf_reg=0,
+                score_function="L2",
+                boosting_type='Plain'
+            )
+            posterior.fit(
+                X,
+                posterior_y,
+                eval_set=eval_set,
+                cat_features=cat_features,
+                text_features=text_features,
+                embedding_features=embedding_features,
+                use_best_model=False
+            )
 
-        posterior_y = y - prior.predict(X) + random_generator.normal(scale=delta, size=N)
-        posterior = CatBoostRegressor(
-            random_seed=posterior_seeds[sample],
-            iterations=posterior_iterations,
-            learning_rate=learning_rate,
-            model_shrink_rate=model_shrink_rate,
-            loss_function='RMSE',
-            bootstrap_type='No',
-            depth=depth,
-            verbose=verbose,
-            leaf_estimation_backtracking="No",
-            boost_from_average=False,
-            random_strength=random_strength,
-            random_score_type=random_score_type,
-            l2_leaf_reg=0,
-            score_function="L2",
-            boosting_type='Plain'
-        )
-        posterior.fit(
-            X,
-            posterior_y,
-            eval_set=eval_set,
-            cat_features=cat_features,
-            text_features=text_features,
-            embedding_features=embedding_features,
-            use_best_model=False
-        )
-
-        output_models.append(sum_models([prior, posterior], weights=[1, 1]))
-
+            output_models.append(sum_models([prior, posterior], weights=[1, 1]))
+    finally:
+        if os.path.exists(prior_model_tmp_file):
+            os.remove(prior_model_tmp_file)
     return output_models
 
 
@@ -7249,7 +7385,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if 'cat_features' in params:
         cat_feature_indices_from_params = _get_features_indices(params['cat_features'], pool.get_feature_names())
         if set(pool.get_cat_feature_indices()) != set(cat_feature_indices_from_params):
-            raise CatBoostError("categorical features indices in params are different from ones in pool "
+            raise CatBoostError("categorical features indices in params are different from ones in the dataset "
                                 + str(cat_feature_indices_from_params) +
                                 " vs " + str(pool.get_cat_feature_indices()))
         del params['cat_features']
@@ -7257,7 +7393,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if 'text_features' in params:
         text_feature_indices_from_params = _get_features_indices(params['text_features'], pool.get_feature_names())
         if set(pool.get_text_feature_indices()) != set(text_feature_indices_from_params):
-            raise CatBoostError("text features indices in params are different from ones in pool "
+            raise CatBoostError("text features indices in params are different from ones in the dataset "
                                 + str(text_feature_indices_from_params) +
                                 " vs " + str(pool.get_text_feature_indices()))
         del params['text_features']
@@ -7265,7 +7401,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if 'embedding_features' in params:
         embedding_feature_indices_from_params = _get_features_indices(params['embedding_features'], pool.get_feature_names())
         if set(pool.get_embedding_feature_indices()) != set(embedding_feature_indices_from_params):
-            raise CatBoostError("embedding features indices in params are different from ones in pool "
+            raise CatBoostError("embedding features indices in params are different from ones in the dataset "
                                 + str(embedding_feature_indices_from_params) +
                                 " vs " + str(pool.get_embedding_feature_indices()))
         del params['embedding_features']
@@ -7343,7 +7479,7 @@ def _calc_feature_statistics_layout(go, xaxis, single_pool):
             'overlaying': 'y2'
         },
         yaxis2={
-            'title': 'Objects per bin' if single_pool else '% pool objects in bin',
+            'title': 'Objects per bin' if single_pool else '% dataset objects in bin',
             'side': 'right',
             'position': 1.0
         },
@@ -7399,7 +7535,7 @@ def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
         if pools_count == 1:
             name_suffix = ''
         else:
-            name_suffix = ', {} pool'.format(pool_names[i])
+            name_suffix = ', {} dataset'.format(pool_names[i])
         trace_1 = go.Scatter(
             y=statistics['mean_target'][order],
             mode='lines+markers',
@@ -7435,7 +7571,7 @@ def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
             trace_4 = go.Bar(
                 y=statistics['objects_per_bin'][order] / float(objects_in_pool),
                 width=bar_width / pools_count,
-                name='% pool objects in bin (total {})'.format(objects_in_pool) + name_suffix,
+                name='% dataset objects in bin (total {})'.format(objects_in_pool) + name_suffix,
                 yaxis='y2',
                 xaxis='x',
                 marker={

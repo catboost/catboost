@@ -19,6 +19,13 @@ endif()
 
 project(CATBOOST LANGUAGES C CXX ASM)
 
+if(" ${PROJECT_SOURCE_DIR}" STREQUAL " ${PROJECT_BINARY_DIR}")
+  message(FATAL_ERROR "
+FATAL: In-source builds are not allowed.
+       You should create a separate directory for build files.
+")
+endif()
+
 set(BUILD_SHARED_LIBS Off)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS Off)

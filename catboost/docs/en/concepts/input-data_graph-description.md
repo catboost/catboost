@@ -1,7 +1,7 @@
 # Graph description
 
 #### {{ input_data__title__contains }}
-A description of graph structure in the edge list format. 
+A description of graph structure in the edge list format.
 
 Graph information is used to calculate the [graph aggregated features](../features/graph-aggregated-features.md).
 
@@ -9,7 +9,7 @@ Graph information is used to calculate the [graph aggregated features](../featu
 
 Only one thing can be passed, either a graph or [pairs description](../concepts/input-data_pairs-description.md).
 
-Can be used only when [dataset description](../concepts/input-data_values-file.md) contains the GroupId column. 
+Can be used only when [dataset](../concepts/input-data_values-file.md) contains the GroupId column.
 
 If graph was used for model training, graph information will be also required for all action on model with dataset (applying, fstr calculation and so on).
 

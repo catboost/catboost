@@ -55,7 +55,7 @@ static int ProofingIntent          = INTENT_PERCEPTUAL;
 static int PrecalcMode             = 1;
 static cmsFloat64Number InkLimit   = 400;
 
-static cmsFloat64Number ObserverAdaptationState  = 1.0;  // According ICC 4.3 this is the default
+static cmsFloat64Number ObserverAdaptationState  = 1.0;  // According ICC 4.4 this is the default
 
 static const char *cInpProf  = NULL;
 static const char *cOutProf  = NULL;
@@ -948,6 +948,9 @@ int TransformImage(TIFF* in, TIFF* out, const char *cDefInpProf)
         }
     }
 
+    if (hIn == NULL)
+        FatalError("No input profile found");
+
     // Take input color space
     wInput = GetInputPixelType(in);
 
@@ -973,15 +976,19 @@ int TransformImage(TIFF* in, TIFF* out, const char *cDefInpProf)
             cmsHPROFILE hProfiles[10];
             int nProfiles = 0;
 
-            hInkLimit = cmsCreateInkLimitingDeviceLink(cmsGetColorSpace(hOut), InkLimit);
+            hInkLimit = cmsCreateInkLimitingDeviceLink(cmsSigCmykData, InkLimit);
 
             hProfiles[nProfiles++] = hIn;
-            if (hProof) {
+
+            if (hProof != NULL) {
                 hProfiles[nProfiles++] = hProof;
                 hProfiles[nProfiles++] = hProof;
             }
 
-            hProfiles[nProfiles++] = hOut;
+            if (hOut != NULL) {
+                hProfiles[nProfiles++] = hOut;
+            }
+
             hProfiles[nProfiles++] = hInkLimit;
 
             xform = cmsCreateMultiprofileTransform(hProfiles, nProfiles, 
@@ -1038,7 +1045,7 @@ void Help(int level)
 {
     UTILS_UNUSED_PARAMETER(level);
 
-    fprintf(stderr, "Little CMS ICC profile applier for TIFF - v8.0 [LittleCMS %2.2f]\n", cmsGetEncodedCMMversion() / 1000.0);
+    fprintf(stderr, "Little CMS ICC profile applier for TIFF - v8.1 [LittleCMS %2.2f]\n", cmsGetEncodedCMMversion() / 1000.0);
     fprintf(stderr, "Copyright (c) 1998-2026 Marti Maria Saguer. See COPYING file for details.\n");
     fflush(stderr);
 

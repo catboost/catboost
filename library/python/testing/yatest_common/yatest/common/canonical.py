@@ -29,6 +29,7 @@ def canonical_file(
 ):
     """
     Create canonical file that can be returned from a test
+
     :param path: path to the file
     :param diff_tool: custom diff tool to use for comparison with the canonical one, if None - default will be used
     :param local: save file locally, otherwise move to sandbox
@@ -90,6 +91,7 @@ def canonical_execute(
 ):
     """
     Shortcut to execute a binary and canonize its stdout
+
     :param binary: absolute path to the binary
     :param args: binary arguments
     :param check_exit_code: will raise ExecutionError if the command exits with non zero code
@@ -158,6 +160,7 @@ def canonical_py_execute(
 ):
     """
     Shortcut to execute a python script and canonize its stdout
+
     :param script_path: path to the script arcadia relative
     :param args: script arguments
     :param check_exit_code: will raise ExecutionError if the command exits with non zero code

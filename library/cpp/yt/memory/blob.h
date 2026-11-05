@@ -3,8 +3,6 @@
 #include "ref.h"
 #include "ref_counted.h"
 
-#include <library/cpp/yt/misc/port.h>
-
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,82 +55,43 @@ public:
     void Resize(size_t newSize, bool initializeStorage = true);
 
     //! Returns the start pointer.
-    Y_FORCE_INLINE const char* Begin() const
-    {
-        return Begin_;
-    }
+    const char* Begin() const;
 
     //! Returns the start pointer.
-    Y_FORCE_INLINE char* Begin()
-    {
-        return Begin_;
-    }
+    char* Begin();
 
     //! Returns the end pointer.
-    Y_FORCE_INLINE const char* End() const
-    {
-        return Begin_ + Size_;
-    }
+    const char* End() const;
 
     //! Returns the end pointer.
-    Y_FORCE_INLINE char* End()
-    {
-        return Begin_ + Size_;
-    }
+    char* End();
 
     //! Returns the size.
-    Y_FORCE_INLINE size_t size() const
-    {
-        return Size_;
-    }
+    size_t size() const;
 
     //! Returns the size.
-    Y_FORCE_INLINE size_t Size() const
-    {
-        return Size_;
-    }
+    size_t Size() const;
 
     //! Returns the capacity.
-    Y_FORCE_INLINE size_t Capacity() const
-    {
-        return Capacity_;
-    }
+    size_t Capacity() const;
 
     //! Returns the TStringBuf instance for the occupied part of the blob.
-    Y_FORCE_INLINE TStringBuf ToStringBuf() const
-    {
-        return TStringBuf(Begin_, Size_);
-    }
+    TStringBuf ToStringBuf() const;
 
     //! Returns the TRef instance for the occupied part of the blob.
-    Y_FORCE_INLINE TRef ToRef() const
-    {
-        return TRef(Begin_, Size_);
-    }
+    TRef ToRef() const;
 
     //! Provides by-value access to the underlying storage.
-    Y_FORCE_INLINE char operator [] (size_t index) const
-    {
-        return Begin_[index];
-    }
+    char operator [] (size_t index) const;
 
     //! Provides by-ref access to the underlying storage.
-    Y_FORCE_INLINE char& operator [] (size_t index)
-    {
-        return Begin_[index];
-    }
+    char& operator [] (size_t index);
 
     //! Clears the instance but does not reclaim the memory.
-    Y_FORCE_INLINE void Clear()
-    {
-        Size_ = 0;
-    }
+    void Clear();
 
     //! Returns |true| if size is zero.
-    Y_FORCE_INLINE bool IsEmpty() const
-    {
-        return Size_ == 0;
-    }
+    bool IsEmpty() const;
 
     //! Overwrites the current instance.
     TBlob& operator = (const TBlob& rhs);
@@ -148,9 +107,6 @@ public:
 
     //! Appends a single char to the end.
     void Append(char ch);
-
-    //! Swaps the current and other instances
-    void Swap(TBlob& other);
 
     friend void swap(TBlob& left, TBlob& right);
 
@@ -181,3 +137,6 @@ void swap(TBlob& left, TBlob& right);
 
 } // namespace NYT
 
+#define BLOB_INL_H_
+#include "blob-inl.h"
+#undef BLOB_INL_H_

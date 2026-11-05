@@ -14,19 +14,16 @@
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
 
-#include <util/string/builder.h>
 
 namespace NCB {
-    ICatboostModelExporter* CreateCatboostModelExporter(const TString& modelFile, const EModelType format, const TString& userParametersJson, bool addFileFormatExtension) {
+    TIntrusivePtr<NCB::ICatboostModelExporter> CreateCatboostModelExporter(const TString& modelFile, const EModelType format, const TString& userParametersJson, bool addFileFormatExtension) {
         switch (format) {
             case EModelType::Cpp:
-                return new TCatboostModelToCppConverter(modelFile, addFileFormatExtension, userParametersJson);
+                return MakeIntrusive<TCatboostModelToCppConverter>(modelFile, addFileFormatExtension, userParametersJson);
             case EModelType::Python:
-                return new TCatboostModelToPythonConverter(modelFile, addFileFormatExtension, userParametersJson);
+                return MakeIntrusive<TCatboostModelToPythonConverter>(modelFile, addFileFormatExtension, userParametersJson);
             default:
-                TStringBuilder err;
-                err << "CreateCatboostModelExporter doesn't support " << format << ".";
-                CB_ENSURE(false, err);
+                CB_ENSURE(false, "CatBoost ModelExporter doesn't support " << format << ".");
         }
     }
 
@@ -65,7 +62,7 @@ namespace NCB {
             NCB::NCoreML::ConfigureMetadata(model, userParameters, pipelineDescription);
             NCB::NCoreML::ConfigurePipelineModelIO(model, pipelineDescription);
 
-            Y_PROTOBUF_SUPPRESS_NODISCARD pipelineModel.SerializeToString(&data);
+            data = pipelineModel.SerializeAsStringOrThrow();
         } else {
             auto description = treeModel.mutable_description();
             NCB::NCoreML::ConfigureMetadata(model, userParameters, description);
@@ -73,7 +70,7 @@ namespace NCB {
 
             NCB::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
 
-            Y_PROTOBUF_SUPPRESS_NODISCARD treeModel.SerializeToString(&data);
+            data = treeModel.SerializeAsStringOrThrow();
         }
 
         TOFStream out(modelFile);
@@ -94,6 +91,14 @@ namespace NCB {
             !model.HasCategoricalFeatures(),
             "ONNX-ML format export does yet not support categorical features"
         );
+        CB_ENSURE(
+            !model.HasTextFeatures(),
+            "ONNX-ML format export does not support text features"
+        );
+        CB_ENSURE(
+            !model.HasEmbeddingFeatures(),
+            "ONNX-ML format export does not support embedding features"
+        );
 
         onnx::ModelProto outModel;
 
@@ -106,8 +111,7 @@ namespace NCB {
 
         NCB::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph());
 
-        TString data;
-        Y_PROTOBUF_SUPPRESS_NODISCARD outModel.SerializeToString(&data);
+        TString data = outModel.SerializeAsStringOrThrow();
         oStream->Write(data);
     }
 
@@ -205,11 +209,6 @@ namespace NCB {
                         userParametersJson,
                         addFileFormatExtension
                     );
-                if (!modelExporter) {
-                    TStringBuilder err;
-                    err << "Export to " << format << " format is not supported";
-                    CB_ENSURE(false, err.c_str());
-                }
                 modelExporter->Write(model, catFeaturesHashToString);
                 break;
         }

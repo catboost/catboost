@@ -25,12 +25,12 @@ using Derivatives = std::pair<TVector<float>, TVector<float>>;
 using CpuResult = std::pair<float, TVector<TDers>>;
 using GpuResult = std::pair<float, Derivatives>;
 
-static inline void GenerateSamples(TRandom & random,
-                                   ui64 size,
-                                   TVector<float>& classes,
-                                   TVector<TVector<float>>& predictions,
-                                   TVector<float>& weights,
-                                   double rate = 0.6) {
+inline void GenerateSamples(TRandom & random,
+                            ui64 size,
+                            TVector<float>& classes,
+                            TVector<TVector<float>>& predictions,
+                            TVector<float>& weights,
+                            double rate = 0.6) {
     classes.resize(size);
     predictions[0].resize(size);
     weights.resize(size, 1.0f);
@@ -48,13 +48,13 @@ static inline void GenerateSamples(TRandom & random,
     }
 }
 
-static inline CpuResult CalculateLossAndDerivativesOnCpu(TVector<float>& targets,
-                                                         TVector<TVector<float>>& cursor,
-                                                         TVector<float>& weights,
-                                                         const ELossFunction& lossFunction,
-                                                         const IDerCalcer& error,
-                                                         double param,
-                                                         TString paramName) {
+inline CpuResult CalculateLossAndDerivativesOnCpu(TVector<float>& targets,
+                                                  TVector<TVector<float>>& cursor,
+                                                  TVector<float>& weights,
+                                                  const ELossFunction& lossFunction,
+                                                  const IDerCalcer& error,
+                                                  double param,
+                                                  TString paramName) {
 
     const auto metric = std::move(CreateSingleTargetMetric(lossFunction,
                                                            TLossParams::FromVector({{paramName, ToString(param)}}),
@@ -84,11 +84,11 @@ static inline CpuResult CalculateLossAndDerivativesOnCpu(TVector<float>& targets
     return std::make_pair(metric->GetFinalError(score), std::move(derivatives));
 }
 
-static inline std::pair<float, Derivatives> CalculateLossAndDerivativesOnGpu(TVector<float>& targets,
-                                                                             TVector<TVector<float>>& cursor,
-                                                                             TVector<float>& weights,
-                                                                             const ELossFunction& lossFunction,
-                                                                             double param) {
+inline std::pair<float, Derivatives> CalculateLossAndDerivativesOnGpu(TVector<float>& targets,
+                                                                      TVector<TVector<float>>& cursor,
+                                                                      TVector<float>& weights,
+                                                                      const ELossFunction& lossFunction,
+                                                                      double param) {
     auto docsMapping = NCudaLib::TSingleMapping(0, targets.size());
     auto targetsGpu = [&]() {
         auto tmp = TVec::Create(docsMapping);
@@ -132,11 +132,11 @@ static inline std::pair<float, Derivatives> CalculateLossAndDerivativesOnGpu(TVe
     return std::make_pair(score, derivatives);
 }
 
-static inline void TestLossFunctionImpl(ui64 seed,
-                                        double param,
-                                        TString paramName,
-                                        const ELossFunction& lossFunction,
-                                        const IDerCalcer& error) {
+inline void TestLossFunctionImpl(ui64 seed,
+                                 double param,
+                                 TString paramName,
+                                 const ELossFunction& lossFunction,
+                                 const IDerCalcer& error) {
     constexpr ui32 SIZE = 100;
 
     TRandom random(seed);

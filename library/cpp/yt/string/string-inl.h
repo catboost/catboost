@@ -36,7 +36,7 @@ void JoinToString(
 }
 
 template <std::forward_iterator TIterator, class TFormatter>
-TString JoinToString(
+std::string JoinToString(
     const TIterator& begin,
     const TIterator& end,
     const TFormatter& formatter,
@@ -49,7 +49,7 @@ TString JoinToString(
 
 //! A handy shortcut with default formatter.
 template <std::forward_iterator TIterator>
-TString JoinToString(
+std::string JoinToString(
     const TIterator& begin,
     const TIterator& end,
     TStringBuf delimiter)
@@ -64,7 +64,7 @@ TString JoinToString(
  *  \param delimiter A delimiter to be inserted between items; ", " by default.
  */
 template <std::ranges::range TCollection, class TFormatter>
-TString JoinToString(
+std::string JoinToString(
     TCollection&& collection,
     const TFormatter& formatter,
     TStringBuf delimiter)
@@ -76,7 +76,7 @@ TString JoinToString(
 
 //! A handy shortcut with the default formatter.
 template <std::ranges::range TCollection>
-TString JoinToString(
+std::string JoinToString(
     TCollection&& collection,
     TStringBuf delimiter)
 {
@@ -85,12 +85,12 @@ TString JoinToString(
 
 //! Concatenates a bunch of TStringBuf-like instances into TString.
 template <class... Ts>
-TString ConcatToString(Ts... args)
+std::string ConcatToString(Ts... args)
 {
     size_t length = 0;
     ((length += args.length()), ...);
 
-    TString result;
+    std::string result;
     result.reserve(length);
     (result.append(args), ...);
 
@@ -99,13 +99,13 @@ TString ConcatToString(Ts... args)
 
 //! Converts a range of items into strings.
 template <std::forward_iterator TIter, class TFormatter>
-std::vector<TString> ConvertToStrings(
+std::vector<std::string> ConvertToStrings(
     const TIter& begin,
     const TIter& end,
     const TFormatter& formatter,
     size_t maxSize)
 {
-    std::vector<TString> result;
+    std::vector<std::string> result;
     for (auto it = begin; it != end; ++it) {
         TStringBuilder builder;
         formatter(&builder, *it);
@@ -119,7 +119,7 @@ std::vector<TString> ConvertToStrings(
 
 //! A handy shortcut with the default formatter.
 template <std::forward_iterator TIter>
-std::vector<TString> ConvertToStrings(
+std::vector<std::string> ConvertToStrings(
     const TIter& begin,
     const TIter& end,
     size_t maxSize)
@@ -134,7 +134,7 @@ std::vector<TString> ConvertToStrings(
  *  \param maxSize Size limit for the resulting vector.
  */
 template <std::ranges::range TCollection, class TFormatter>
-std::vector<TString> ConvertToStrings(
+std::vector<std::string> ConvertToStrings(
     TCollection&& collection,
     const TFormatter& formatter,
     size_t maxSize)
@@ -146,7 +146,7 @@ std::vector<TString> ConvertToStrings(
 
 //! A handy shortcut with default formatter.
 template <std::ranges::range TCollection>
-std::vector<TString> ConvertToStrings(
+std::vector<std::string> ConvertToStrings(
     TCollection&& collection,
     size_t maxSize)
 {

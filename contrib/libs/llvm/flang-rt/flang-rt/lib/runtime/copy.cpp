@@ -1,3 +1,4 @@
+#include <contrib/libs/llvm/flang-rt/flang-rt/lib/runtime/stl-overrides.h>
 //===-- lib/runtime/copy.cpp ------------------------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -168,8 +169,6 @@ RT_API_ATTRS void CopyElement(const Descriptor &to, const SubscriptValue toAt[],
         std::size_t nComponents{componentDesc.Elements()};
         for (std::size_t j{0}; j < nComponents; ++j, ++component) {
           if (component->genre() == typeInfo::Component::Genre::Allocatable ||
-              component->genre() ==
-                  typeInfo::Component::Genre::AllocatableDevice ||
               component->genre() == typeInfo::Component::Genre::Automatic) {
             Descriptor &toDesc{
                 *reinterpret_cast<Descriptor *>(toPtr + component->offset())};

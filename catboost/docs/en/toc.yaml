@@ -198,6 +198,9 @@ items:
           name: Feature calcers and corresponding options
         - href: references/text-processing__test-processing__default-value.md
           hidden: true
+        - href: concepts/python-efstr-type__desc.md
+          hidden: true
+          name: EFStrType
   - when: audience == "internal"
     items:
       - href: yandex_specific/nirvana-operations/catboost__nirvana.md
@@ -306,15 +309,15 @@ items:
             name: get_best_score
           - href: concepts/python-reference_catboost_get_borders.md
             name: get_borders
+          - href: concepts/python-reference_catboost_get_cat_feature_indices.md
+            name: get_cat_feature_indices
+          - href: concepts/python-reference_catboost_get_embedding_feature_indices.md
+            name: get_embedding_feature_indices
+          - href: concepts/python-reference_catboost_get_text_feature_indices.md
+            name: get_text_feature_indices
           - href: concepts/python-reference_catboost_get_evals_result.md
             name: get_evals_result
-          - items:
-              - href: >-
-                  concepts/python-reference_catboost_get_feature_importance.md
-                name: Overview
-              - href: concepts/python-efstr-type__desc.md
-                hidden: true
-                name: EFStrType
+          - href: concepts/python-reference_catboost_get_feature_importance.md
             name: get_feature_importance
           - href: concepts/python-reference_catboost_metadata.md
             name: get_metadata
@@ -370,7 +373,7 @@ items:
             name: predict_proba
           - href: concepts/python-reference_catboostclassifier_attributes.md
             name: Attributes
-          - href: concepts/python-reference_catboost_calc_leaf_indexes.md
+          - href: concepts/python-reference_catboostclassifier_calc_leaf_indexes.md
             name: calc_leaf_indexes
           - href: >-
               concepts/python-reference_catboostclassifier_calc_feature_statistics.md
@@ -390,6 +393,12 @@ items:
             name: get_best_score
           - href: concepts/python-reference_catboostclassifier_get_borders.md
             name: get_borders
+          - href: concepts/python-reference_catboostclassifier_get_cat_feature_indices.md
+            name: get_cat_feature_indices
+          - href: concepts/python-reference_catboostclassifier_get_embedding_feature_indices.md
+            name: get_embedding_feature_indices
+          - href: concepts/python-reference_catboostclassifier_get_text_feature_indices.md
+            name: get_text_feature_indices
           - href: >-
               concepts/python-reference_catboostclassifier_get_evals_result.md
             name: get_evals_result
@@ -479,15 +488,15 @@ items:
             name: get_best_score
           - href: concepts/python-reference_catboostranker_get_borders.md
             name: get_borders
+          - href: concepts/python-reference_catboostranker_get_cat_feature_indices.md
+            name: get_cat_feature_indices
+          - href: concepts/python-reference_catboostranker_get_embedding_feature_indices.md
+            name: get_embedding_feature_indices
+          - href: concepts/python-reference_catboostranker_get_text_feature_indices.md
+            name: get_text_feature_indices
           - href: concepts/python-reference_catboostranker_get_evals_result.md
             name: get_evals_result
-          - items:
-              - href: >-
-                  concepts/python-reference_catboostranker_get_feature_importance.md
-                name: Overview
-              - href: concepts/python-efstr-type__desc.md
-                hidden: true
-                name: EFStrType
+          - href: concepts/python-reference_catboostranker_get_feature_importance.md
             name: get_feature_importance
           - href: concepts/python-reference_catboostranker_metadata.md
             name: get_metadata
@@ -543,7 +552,7 @@ items:
             name: predict
           - href: concepts/python-reference_catboostregressor_attributes.md
             name: Attributes
-          - href: concepts/python-reference_catboost_calc_leaf_indexes.md
+          - href: concepts/python-reference_catboostregressor_calc_leaf_indexes.md
             name: calc_leaf_indexes
           - href: >-
               concepts/python-reference_catboostregressor_calc_feature_statistics.md
@@ -563,6 +572,12 @@ items:
             name: get_best_score
           - href: concepts/python-reference_catboostregressor_get_borders.md
             name: get_borders
+          - href: concepts/python-reference_catboostregressor_get_cat_feature_indices.md
+            name: get_cat_feature_indices
+          - href: concepts/python-reference_catboostregressor_get_embedding_feature_indices.md
+            name: get_embedding_feature_indices
+          - href: concepts/python-reference_catboostregressor_get_text_feature_indices.md
+            name: get_text_feature_indices
           - href: concepts/python-reference_catboostregressor_get_evals_result.md
             name: get_evals_result
           - href: >-
@@ -1010,14 +1025,14 @@ items:
           - href: concepts/input-data_column-descfile.md
             name: Columns description
           - href: concepts/input-data_values-file.md
-            name: Dataset description in delimiter-separated values format
+            name: Dataset in delimiter-separated values format
           - href: concepts/input-data_libsvm.md
-            name: Dataset description in extended libsvm format
+            name: Dataset in extended libsvm format
           - href: yandex_specific/concepts/input-data_yt-col.md
             when: audience == "internal"
-            name: Dataset description in native YT columns format
+            name: Dataset in native YT columns format
           - href: concepts/input-data_pairs-description.md
-            name: Pairs description
+            name: Pairs data
           - href: concepts/input-data_custom-borders.md
             name: Custom quantization borders and missing value modes
           - href: concepts/input-data_group-weights.md
@@ -1025,7 +1040,7 @@ items:
           - href: concepts/input-data_baseline.md
             name: Baseline
           - href: concepts/input-data_graph-description.md
-            name: Graph description
+            name: Graph data
         name: Input data
       - items:
           - href: concepts/output-data.md

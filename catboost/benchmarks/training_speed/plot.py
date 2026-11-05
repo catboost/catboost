@@ -232,7 +232,7 @@ def plot_experiment(tracks, experiment_name, args):
         tracks = filtered_tracks
 
     if args.params_cases:
-        with open(args.params_cases) as f:
+        with open(args.params_cases, encoding='utf-8') as f:
             params_cases = json.load(f)
 
         tracks = filter_tracks(tracks, params_cases)

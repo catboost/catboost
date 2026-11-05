@@ -4,13 +4,14 @@ import collections
 import functools
 import math
 import os
+import pathlib
 import re
 import sys
 
-
-sys.path += [
-    os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing'),
-]
+if git_repo_root := next((p for p in pathlib.Path(__file__).parents if (p / '.git').exists()), None):
+    sys.path += [
+        os.path.join(str(git_repo_root.absolute()), 'library', 'python', 'testing'),
+    ]
 
 import yatest_lib.tools
 

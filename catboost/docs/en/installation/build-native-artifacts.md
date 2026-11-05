@@ -73,6 +73,8 @@ The required options are:
 - `--targets` - List of CMake targets to build (,-separated). See [the list of supported targets](#targets)
 - `--build-root-dir` - CMake build dir (forwarded to `cmake`'s `-B`  option)
 
+{% include [cmake-src-dir-equal-build-dir-warning](../_includes/work_src/reusage-installation/cmake-src-dir-equal-build-dir-warning.md) %}
+
 Importantly, `build_native.py` has `--dry-run` and `--verbose` options so you can examine the commands it is going to run without actually running them.
 
 ### Examples
@@ -105,13 +107,15 @@ Importantly, `build_native.py` has `--dry-run` and `--verbose` options so you ca
 
 {% note info %}
 
-For most common scenarios it is easier to run [`build_native.py` descibed above](#build-build-native).
+For most common scenarios it is easier to run [`build_native.py` described above](#build-build-native).
 
 {% endnote %}
 
 ### Host platform is the same as the target platform (no cross-compilation)
 
 1. Choose some directory as a build root. Prefer short paths on Windows to avoid hitting the path length limit of 260 characters for files in this directory. This directory is referred to as `$CMAKE_BINARY_DIR` later.
+
+    {% include [cmake-src-dir-equal-build-dir-warning](../_includes/work_src/reusage-installation/cmake-src-dir-equal-build-dir-warning.md) %}
 
 1. If you build on Linux for `aarch64` architecture set special compilation flags (will be used in `conan` packages builds):
     ```
@@ -148,6 +152,8 @@ Other important options and definitions for this call are [described below](#cma
     ```
 
 1. Choose some directory as a target platform build root. This directory is referred to as `$CMAKE_TARGET_PLATFORM_BINARY_DIR` later.
+
+    {% include [cmake-src-dir-equal-build-dir-warning](../_includes/work_src/reusage-installation/cmake-src-dir-equal-build-dir-warning.md) %}
 
 1. Build needed conan packages.
 
@@ -204,6 +210,8 @@ Other important options and definitions for this call are [described below](#cma
 
 - [`-B <path-to-build>`](https://cmake.org/cmake/help/latest/manual/cmake.1.html#cmdoption-cmake-B) - path to directory which CMake will use as the root of build directory.
 
+    {% include [cmake-src-dir-equal-build-dir-warning](../_includes/work_src/reusage-installation/cmake-src-dir-equal-build-dir-warning.md) %}
+
 - [`-G <generator-name>`](https://cmake.org/cmake/help/latest/manual/cmake.1.html#cmdoption-cmake-G) - generator name. The recommended generator is ["Ninja"](https://ninja-build.org/).
 
     {% include [cmake-visual-studio-generator](../_includes/work_src/reusage-installation/cmake-visual-studio-generator.md) %}
@@ -217,7 +225,7 @@ build type. Use one of `Debug`, `Release`, `RelWithDebInfo` and `MinSizeRel`.
 - [`-DCMAKE_TOOLCHAIN_FILE=<path>`](https://cmake.org/cmake/help/latest/variable/CMAKE_TOOLCHAIN_FILE.html) - pass toolchain to CMake. On Linux CMake's default configuration will most likely select `gcc` as a C and C++ compiler, but {{ product }} needs to be built with either `clang` (on Linux or macOS) or Microsoft's `cl` compiler on Windows.
 So it is recommended to pass toolchain that will set `clang` and `clang++` as C and C++ compilers on Linux and macOS and also set `clang` as a compiler for host code for CUDA (applicable only on Linux). The default toolchain that does that is [`$CATBOOST_SRC_ROOT/build/toolchains/clang.toolchain`](https://github.com/catboost/catboost/blob/master/build/toolchains/clang.toolchain).
 
-  As {{ product }} requires Clang 12+ to build if the default Clang version available from the command line is less than that then use the modified toolchain where all occurences of `clang` and `clang++` are replaced with `clang-$CLANG_VERSION` and `clang++-$CLANG_VERSION` respectively where `$CLANG_VERSION` is the version of `clang` you want to use like, for example, `12` or `14` (must be already installed).
+  If the default Clang version available from the command line is not supported by {{ product }} (see supported versions [here](build-environment-setup-for-cmake.html#compilers,-linkers-and-related-tools)) then use the modified toolchain where all occurrences of `clang` and `clang++` are replaced with `clang-$CLANG_VERSION` and `clang++-$CLANG_VERSION` respectively where `$CLANG_VERSION` is the version of `clang` you want to use like, for example, `19` or `20` (must be already installed).
 
 - [`-DCMAKE_POSITION_INDEPENDENT_CODE=<On|Off>`](https://cmake.org/cmake/help/latest/variable/CMAKE_POSITION_INDEPENDENT_CODE.html) - Turn on or off [Position-independent code](https://en.wikipedia.org/wiki/Position-independent_code) generation. Required for building shared libraries. Off by default.
 

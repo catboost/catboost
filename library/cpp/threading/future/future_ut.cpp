@@ -86,6 +86,9 @@ namespace {
             promise = NewPromise();
             UNIT_ASSERT(!promise.HasValue());
 
+            promise = NewPromise<void>();
+            UNIT_ASSERT(!promise.HasValue());
+
             TFuture<void> future;
             UNIT_ASSERT(!future.HasValue());
 
@@ -119,6 +122,9 @@ namespace {
             UNIT_ASSERT(future.IsReady());
 
             future = MakeFuture();
+            UNIT_ASSERT(future.HasValue());
+
+            future = MakeFuture<void>();
             UNIT_ASSERT(future.HasValue());
         }
 

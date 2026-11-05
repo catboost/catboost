@@ -14,6 +14,7 @@
 
 #include "absl/synchronization/mutex.h"
 
+
 #ifdef _WIN32
 #include <windows.h>
 #ifdef ERROR
@@ -27,7 +28,6 @@
 #endif
 
 #include <assert.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <thread>  // NOLINT(build/c++11)
@@ -48,16 +49,23 @@
 #include "absl/base/internal/cycleclock.h"
 #include "absl/base/internal/hide_ptr.h"
 #include "absl/base/internal/low_level_alloc.h"
+#include "absl/base/internal/low_level_scheduling.h"
 #include "absl/base/internal/raw_logging.h"
+#include "absl/base/internal/scheduling_mode.h"
 #include "absl/base/internal/spinlock.h"
 #include "absl/base/internal/sysinfo.h"
 #include "absl/base/internal/thread_identity.h"
 #include "absl/base/internal/tsan_mutex_interface.h"
+#include "absl/base/macros.h"
 #include "absl/base/optimization.h"
+#include "absl/base/thread_annotations.h"
 #include "absl/debugging/stacktrace.h"
 #include "absl/debugging/symbolize.h"
+#include "absl/synchronization/internal/create_thread_identity.h"
 #include "absl/synchronization/internal/graphcycles.h"
+#include "absl/synchronization/internal/kernel_timeout.h"
 #include "absl/synchronization/internal/per_thread_sem.h"
+#include "absl/time/clock.h"
 #include "absl/time/time.h"
 
 using absl::base_internal::CurrentThreadIdentityIfPresent;
@@ -2139,6 +2147,8 @@ ABSL_ATTRIBUTE_NOINLINE void Mutex::UnlockSlow(SynchWaitParams* waitp) {
   intptr_t wr_wait = 0;  // set to kMuWrWait if we wake a reader and a
                          // later writer could have acquired the lock
                          // (starvation avoidance)
+  // When non-null, clear its "woken_has_waiters" field before returning.
+  absl::base_internal::ThreadIdentity* clear_waking_des_waker = nullptr;
   ABSL_RAW_CHECK(waitp == nullptr || waitp->thread->waitp == nullptr ||
                      waitp->thread->suppress_fatal_errors,
                  "detected illegal recursion into Mutex code");
@@ -2382,6 +2392,13 @@ ABSL_ATTRIBUTE_NOINLINE void Mutex::UnlockSlow(SynchWaitParams* waitp) {
         h->readers = 0;
         h->maybe_unlocking = false;  // finished unlocking
         nv |= wr_wait | kMuWait | reinterpret_cast<intptr_t>(h);
+
+        // Signal to any Scheduler that we are waking from Mutex Unlock
+        // and there are more waiters left, signaling possible contention.
+        ABSL_TSAN_MUTEX_PRE_DIVERT(this, 0);
+        clear_waking_des_waker = GetOrCreateCurrentThreadIdentity();
+        ABSL_TSAN_MUTEX_POST_DIVERT(this, 0);
+        clear_waking_des_waker->scheduler_state.waking_designated_waker = true;
       }
 
       // release both spinlock & lock
@@ -2416,6 +2433,10 @@ ABSL_ATTRIBUTE_NOINLINE void Mutex::UnlockSlow(SynchWaitParams* waitp) {
       submit_profile_data(total_wait_cycles);
       ABSL_TSAN_MUTEX_POST_DIVERT(this, 0);
     }
+  }
+
+  if (clear_waking_des_waker) {
+    clear_waking_des_waker->scheduler_state.waking_designated_waker = false;
   }
 }
 

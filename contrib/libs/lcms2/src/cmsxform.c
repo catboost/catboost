@@ -499,7 +499,6 @@ void PrecalculatedXFORMGamutCheck(_cmsTRANSFORM* p,
     }
 }
 
-
 // No gamut check, Cache, 16 bits,
 static
 void CachedXFORM(_cmsTRANSFORM* p,
@@ -1442,6 +1441,22 @@ cmsUInt32Number CMSEXPORT cmsGetTransformOutputFormat(cmsHTRANSFORM hTransform)
     return xform->OutputFormat;
 }
 
+// Returns the optimized pipeline (Lut) inside a transform. Read-only; do not free.
+cmsPipeline* CMSEXPORT cmsGetTransformPipeline(cmsHTRANSFORM hTransform)
+{
+    _cmsTRANSFORM* xform = (_cmsTRANSFORM*) hTransform;
+    if (xform == NULL) return NULL;
+    return xform->Lut;
+}
+
+// Returns the gamut-check pipeline inside a transform. Read-only; do not free.
+cmsPipeline* CMSEXPORT cmsGetTransformGamutCheckPipeline(cmsHTRANSFORM hTransform)
+{
+    _cmsTRANSFORM* xform = (_cmsTRANSFORM*) hTransform;
+    if (xform == NULL) return NULL;
+    return xform->GamutCheck;
+}
+
 // For backwards compatibility
 cmsBool CMSEXPORT cmsChangeBuffersFormat(cmsHTRANSFORM hTransform,
                                          cmsUInt32Number InputFormat,
@@ -1472,4 +1487,20 @@ cmsBool CMSEXPORT cmsChangeBuffersFormat(cmsHTRANSFORM hTransform,
     xform ->FromInput    = FromInput;
     xform ->ToOutput     = ToOutput;
     return TRUE;
+}
+
+cmsNAMEDCOLORLIST* CMSEXPORT cmsGetTransformInputColorants(cmsHTRANSFORM hTransform)
+{
+    _cmsTRANSFORM* xform = (_cmsTRANSFORM*)hTransform;
+
+    if (xform == NULL) return NULL;
+    return xform->InputColorant;
+}
+
+cmsNAMEDCOLORLIST* CMSEXPORT cmsGetTransformOutputColorants(cmsHTRANSFORM hTransform)
+{
+    _cmsTRANSFORM* xform = (_cmsTRANSFORM*)hTransform;
+
+    if (xform == NULL) return NULL;
+    return xform->OutputColorant;
 }

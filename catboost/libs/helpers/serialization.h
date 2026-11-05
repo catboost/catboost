@@ -49,7 +49,7 @@ namespace NCB {
     template <class T>
     inline void SaveArrayData(TConstArrayRef<T> data, IBinSaver* binSaver) {
         Y_ASSERT(!binSaver->IsReading());
-        if (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
+        if constexpr (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
             for (const auto& element : data) {
                 binSaver->Add(0, const_cast<T*>(&element));
             }
@@ -66,7 +66,7 @@ namespace NCB {
     template <class T>
     inline void LoadArrayData(TArrayRef<T> data, IBinSaver* binSaver) {
         Y_ASSERT(binSaver->IsReading());
-        if (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
+        if constexpr (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
             for (auto& element : data) {
                 binSaver->Add(0, &element);
             }

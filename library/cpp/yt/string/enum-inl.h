@@ -13,16 +13,27 @@
 #include <util/string/printf.h>
 #include <util/string/strip.h>
 
+#include <span>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace NDetail {
 
+////////////////////////////////////////////////////////////////////////////////
+
+using TEnumSuggestionsCalculator = std::string (*)(
+    TStringBuf value,
+    const std::span<const TStringBuf>& domainNames);
+
+extern "C" TEnumSuggestionsCalculator TryGetEnumSuggestionsCalculator();
+
 [[noreturn]]
 void ThrowMalformedEnumValueException(
     TStringBuf typeName,
-    TStringBuf value);
+    TStringBuf value,
+    const std::span<const TStringBuf>& domainNames = {});
 
 void FormatUnknownEnumValue(
     auto* builder,
@@ -32,7 +43,11 @@ void FormatUnknownEnumValue(
     builder->AppendFormat("%v::unknown-%v", name, ToUnderlying(value));
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NDetail
+
+////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
 std::optional<T> TryParseEnum(TStringBuf str, bool enableUnknown)
@@ -80,7 +95,13 @@ T ParseEnum(TStringBuf str)
     if (auto optionalResult = TryParseEnum<T>(str, /*enableUnkown*/ true)) {
         return *optionalResult;
     }
-    NYT::NDetail::ThrowMalformedEnumValueException(TEnumTraits<T>::GetTypeName(), str);
+
+    std::span<const TStringBuf> domainNames;
+    if constexpr (requires { TEnumTraits<T>::GetDomainNames(); }) {
+        domainNames = TEnumTraits<T>::GetDomainNames();
+    }
+
+    NYT::NDetail::ThrowMalformedEnumValueException(TEnumTraits<T>::GetTypeName(), str, domainNames);
 }
 
 template <class T>
@@ -106,7 +127,7 @@ void FormatEnum(TStringBuilderBase* builder, T value, bool lowerCase)
         TDelimitedStringBuilderWrapper delimitedBuilder(builder, " | ");
 
         T printedValue{};
-        for (auto currentValue : TEnumTraits<T>::GetDomainValues()) {
+        for (auto currentValue : TEnumTraits<T>::template GetDomainValues</*AllowAmbiguousValues*/ true>()) {
             // Check if currentValue is viable and non-redunant.
             if ((value & currentValue) == currentValue && (printedValue | currentValue) != printedValue) {
                 formatLiteral(&delimitedBuilder, *TEnumTraits<T>::FindLiteralByValue(currentValue));

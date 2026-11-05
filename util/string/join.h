@@ -73,6 +73,15 @@ namespace NPrivate {
     size_t GetAppendLength(const TStringBuf delim, const TFirst& f, const TRest&... r) {
         return delim.length() + ::NPrivate::GetLength(f) + ::NPrivate::GetAppendLength(delim, r...);
     }
+
+    template <typename TCharType, typename TTraits, typename... R>
+    inline std::basic_string<TCharType, TTraits> ConcatImpl(const R&... r) {
+        using THelper = TStringJoinHelper<TCharType, TTraits>;
+        std::basic_string<TCharType, TTraits> s;
+        ::ResizeUninitialized(s, THelper::SumLength(r...));
+        THelper::CopyAll((TCharType*)s.data(), r...);
+        return s;
+    }
 } // namespace NPrivate
 
 template <typename TCharType>
@@ -263,4 +272,19 @@ JoinSeq(const TStringBuf delim, const std::initializer_list<T>& data) {
 
 inline TString JoinSeq(const TStringBuf delim, const std::initializer_list<TStringBuf>& data) {
     return JoinRange(delim, data.begin(), data.end());
+}
+
+template <typename TStringType, typename... R>
+#if __cplusplus >= 202002L
+    requires requires(TStringType s) {
+        typename TStringType::value_type;
+        typename TStringType::traits_type;
+        ::ResizeUninitialized(s, size_t());
+    }
+#endif
+TStringType Concat(const R&... r) {
+    using TCharType = typename TStringType::value_type;
+    using TTraits = typename TStringType::traits_type;
+    using THelper = TStringJoinHelper<TCharType, TTraits>;
+    return ::NPrivate::ConcatImpl<TCharType, TTraits>(typename THelper::template TJoinParam<R>(r)...);
 }

@@ -1192,10 +1192,13 @@ cmsBool OptimizeByComputingLinearization(cmsPipeline** Lut, cmsUInt32Number Inte
 
         if (Trans[t]) cmsFreeToneCurve(Trans[t]);
         if (TransReverse[t]) cmsFreeToneCurve(TransReverse[t]);
+
+        Trans[t] = NULL;
+        TransReverse[t] = NULL;
     }
 
     cmsPipelineFree(LutPlusCurves);
-
+    LutPlusCurves = NULL;
 
     OptimizedPrelinCurves = _cmsStageGetPtrToCurveSet(OptimizedPrelinMpe);
     OptimizedPrelinCLUT   = (_cmsStageCLutData*) OptimizedCLUTmpe ->Data;
@@ -1206,7 +1209,7 @@ cmsBool OptimizeByComputingLinearization(cmsPipeline** Lut, cmsUInt32Number Inte
         Prelin8Data* p8 = PrelinOpt8alloc(OptimizedLUT ->ContextID,
                                                 OptimizedPrelinCLUT ->Params,
                                                 OptimizedPrelinCurves);
-        if (p8 == NULL) return FALSE;
+        if (p8 == NULL) goto Error;
 
         _cmsPipelineSetOptimizationParameters(OptimizedLUT, PrelinEval8, (void*) p8, Prelin8free, Prelin8dup);
 
@@ -1216,7 +1219,8 @@ cmsBool OptimizeByComputingLinearization(cmsPipeline** Lut, cmsUInt32Number Inte
         Prelin16Data* p16 = PrelinOpt16alloc(OptimizedLUT ->ContextID,
             OptimizedPrelinCLUT ->Params,
             3, OptimizedPrelinCurves, 3, NULL);
-        if (p16 == NULL) return FALSE;
+
+        if (p16 == NULL) goto Error;
 
         _cmsPipelineSetOptimizationParameters(OptimizedLUT, PrelinEval16, (void*) p16, PrelinOpt16free, Prelin16dup);
 
@@ -1230,7 +1234,7 @@ cmsBool OptimizeByComputingLinearization(cmsPipeline** Lut, cmsUInt32Number Inte
 
         if (!FixWhiteMisalignment(OptimizedLUT, ColorSpace, OutputColorSpace)) {
 
-            return FALSE;
+           goto Error;
         }
     }
 

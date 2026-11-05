@@ -2,8 +2,9 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 #include <util/generic/vector.h>
+#include <util/string/cast.h>
 
-#include <util/stream/output.h>
+#include <util/stream/str.h>
 
 struct TCustomData {
     TVector<int> Ints;
@@ -159,5 +160,10 @@ Y_UNIT_TEST_SUITE(JoinStringTest) {
         // but joined char values are printed as their numeric codes! O_o
         UNIT_ASSERT_EQUAL(Join('a', 'a', 'a'), "97a97");
         UNIT_ASSERT_EQUAL(Join("a", "a", "a"), "aaa");
+    }
+
+    Y_UNIT_TEST(Concat) {
+        UNIT_ASSERT_EQUAL(Concat<std::string>("test", '_', TIntStringBuf(123)), "test_123");
+        UNIT_ASSERT_EQUAL(Concat<TString>("test", '_', TIntStringBuf(123)), "test_123");
     }
 } // Y_UNIT_TEST_SUITE(JoinStringTest)

@@ -13,7 +13,7 @@
              eval_period=1,
              thread_count=-1,
              log_cout=sys.stdout,
-            log_cerr=sys.stderr)
+             log_cerr=sys.stderr)
 ```
 
 ## {{ dl--parameters }} {#parameters}

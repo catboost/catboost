@@ -348,7 +348,8 @@ namespace NCB {
             );
 
             auto collectionPart = flatbuffers::GetRoot<NCatBoostFbs::TCollectionPart>(in->Buf());
-            in->Skip(headerSize);
+            const size_t skipped = in->Skip(headerSize);
+            CB_ENSURE(skipped == headerSize, "Failed to read text processing collection part");
 
             const auto partId = GuidFromFbs(collectionPart->Id());
 

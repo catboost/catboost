@@ -75,6 +75,10 @@ mkdir build
 cd build && cmake ../ && make
 ```
 
+MSVC users must manually set `SNAPPY_HAVE_SSSE3`, `SNAPPY_HAVE_X86_CRC32`,
+`SNAPPY_HAVE_BMI2`, `SNAPPY_HAVE_NEON_CRC32`, and `SNAPPY_HAVE_NEON` due to
+MSVC's incorrect architecture detection, if using pre-`/arch:AVX2`.
+
 Usage
 =====
 
@@ -140,10 +144,10 @@ explicitly supports the following:
 1. C++11
 2. Clang (gcc and MSVC are best-effort).
 3. Low level optimizations (e.g. assembly or equivalent intrinsics) for:
-     - [x86](https://en.wikipedia.org/wiki/X86)
-     - [x86-64](https://en.wikipedia.org/wiki/X86-64)
-     - ARMv7 (32-bit)
-     - ARMv8 (AArch64)
+      - [x86](https://en.wikipedia.org/wiki/X86)
+      - [x86-64](https://en.wikipedia.org/wiki/X86-64)
+      - ARMv7 (32-bit)
+      - ARMv8 (AArch64)
 4. Supports only the Snappy compression scheme as described in
   [format_description.txt](format_description.txt).
 5. CMake for building

@@ -51,8 +51,7 @@ enum class GuardedAllocationsErrorType {
 
 struct GuardedAllocWithStatus {
   void* alloc = nullptr;
-  Profile::Sample::GuardedStatus status =
-      Profile::Sample::GuardedStatus::Unknown;
+  Profile::Sample::GuardedStatus status;
 };
 
 }  // namespace tcmalloc_internal

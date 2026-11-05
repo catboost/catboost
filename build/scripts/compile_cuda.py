@@ -42,6 +42,12 @@ def main():
     except ValueError:
         skip_nocxxinc = False
 
+    try:
+        sys.argv.remove('--y_skip_compressed_debug_info')
+        skip_compressed_debug_info = True
+    except ValueError:
+        skip_compressed_debug_info = False
+
     sanitize = False
     if '--y_sanitize' in sys.argv:
         sanitize = True
@@ -78,6 +84,10 @@ def main():
         cflags += ['-Wno-unused-function', '-Wno-unused-parameter']
         # nvcc format source files and give results to clang
         cflags += ['-Wno-deprecated-literal-operator']
+        # CUDA's math_functions.h redeclares libc++ isinf overloads with
+        # always_inline after their definitions. Clang ignores the late hint;
+        # do not turn it into an error when compiling NVCC-generated host code.
+        cflags += ['-Wno-ignored-attributes']
 
     if not is_clang(command) and '-fopenmp=libomp' in cflags:
         cflags.append('-fopenmp')
@@ -106,6 +116,8 @@ def main():
 
     if skip_nocxxinc:
         skip_list.append('-nostdinc++')
+    if skip_compressed_debug_info:
+        skip_list.append('-gz=zstd')
 
     skip_list = tuple(skip_list)
     cflags = [x for x in cflags if x not in skip_list]

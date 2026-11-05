@@ -47,6 +47,7 @@ target_sources(util-stream-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/stream/length_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/mem_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/multi_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/output_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/printf_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/str_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/tokenizer_ut.cpp

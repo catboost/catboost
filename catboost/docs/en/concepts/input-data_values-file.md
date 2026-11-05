@@ -1,4 +1,4 @@
-# Dataset description in delimiter-separated values format
+# Dataset in delimiter-separated values format
 
 {% if audience == "internal" %}
 
@@ -37,11 +37,11 @@ The column indexed 4 contains arbitrary data.
 
 {% include [reusage-file-with-column-descs](../_includes/work_src/reusage/file-with-column-descs.md) %}
 
-The feature indexed 3 is categorical, so the value in the second column of the description file is set to . The name of this feature is set to <q>wind direction</q> in the third column of the description file.
+The feature indexed 3 is categorical, so the value in the second column of the description file is set to {{ cd-file__col-type__Categ }}. The name of this feature is set to <q>wind direction</q> in the third column of the description file.
 
 Other features are numerical and are omitted from the columns description file.
 
-The dataset description looks like this:
+The dataset file looks like this:
 ```
 1<\t>–10<\t>5<\t>north<\t>Memphis TN<\t>753
 0<\t>30<\t>1<\t>south<\t>Los Angeles CA<\t>760

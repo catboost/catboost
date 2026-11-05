@@ -22,6 +22,7 @@ target_compile_options(cpp-yt-memory PRIVATE
   -Wno-logical-op-parentheses
   -Wno-bitwise-op-parentheses
   -Wswitch
+  -Wreturn-type
 )
 
 target_link_libraries(cpp-yt-memory PUBLIC
@@ -29,7 +30,9 @@ target_link_libraries(cpp-yt-memory PUBLIC
   yutil
   cpp-sanitizer-include
   cpp-yt-assert
+  cpp-yt-exception
   cpp-yt-misc
+  cpp-yt-mpl
   cpp-yt-malloc
   cpp-yt-system
 )

@@ -2,6 +2,8 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <util/generic/vector.h>
+
 Y_UNIT_TEST_SUITE(TCGIEscapeTest) {
     Y_UNIT_TEST(ReturnsEndOfTo) {
         char r[10];
@@ -48,6 +50,91 @@ Y_UNIT_TEST_SUITE(TCGIEscapeTest) {
 }
 
 Y_UNIT_TEST_SUITE(TCGIUnescapeTest) {
+    Y_UNIT_TEST(BlockBoundaries) {
+        const TStringBuf fragments[] = {"%", "%3", "%3g", "%3D", "%00", "%ff", "+", "%%41", "%+1"};
+        for (size_t offset = 0; offset < 48; ++offset) {
+            for (const auto fragment : fragments) {
+                for (size_t tail = 0; tail < 33; ++tail) {
+                    TString input(offset, 'a');
+                    input += fragment;
+                    input += TString(tail, '+');
+                    TString expected(input.size() + 1, '\0');
+                    char* expectedBegin = expected.begin();
+                    expected.resize(CGIUnescape(expectedBegin, input.c_str()) - expectedBegin);
+                    UNIT_ASSERT_VALUES_EQUAL(CGIUnescapeRet(input), expected);
+                    TVector<char> bounded(input.data(), input.data() + input.size());
+                    TString result(input.size() + 1, '\0');
+                    char* resultBegin = result.begin();
+                    char* resultEnd = CGIUnescape(resultBegin, bounded.data(), bounded.size());
+                    UNIT_ASSERT_VALUES_EQUAL(TStringBuf(resultBegin, resultEnd), expected);
+                    UNIT_ASSERT_VALUES_EQUAL(*resultEnd, '\0');
+                    CGIUnescape(input);
+                    UNIT_ASSERT_VALUES_EQUAL(input, expected);
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(AllHexPairsAtBlockBoundary) {
+        const auto hexValue = [](unsigned char c) -> int {
+            if (c >= '0' && c <= '9') {
+                return c - '0';
+            }
+            if (c >= 'A' && c <= 'F') {
+                return c - 'A' + 10;
+            }
+            if (c >= 'a' && c <= 'f') {
+                return c - 'a' + 10;
+            }
+            return -1;
+        };
+        for (size_t offset : {14, 15}) {
+            for (unsigned int first = 0; first < 256; ++first) {
+                for (unsigned int second = 0; second < 256; ++second) {
+                    TString input(offset, 'a');
+                    input += '%';
+                    input += static_cast<char>(first);
+                    input += static_cast<char>(second);
+                    input += TString(32, '+');
+
+                    TString expected(offset, 'a');
+                    const int hi = hexValue(first);
+                    const int lo = hexValue(second);
+                    if (hi >= 0 && lo >= 0) {
+                        expected += static_cast<char>(hi * 16 + lo);
+                    } else {
+                        expected += '%';
+                        expected += first == '+' ? ' ' : static_cast<char>(first);
+                        expected += second == '+' ? ' ' : static_cast<char>(second);
+                    }
+                    expected += TString(32, ' ');
+
+                    UNIT_ASSERT_VALUES_EQUAL(CGIUnescapeRet(input), expected);
+                    CGIUnescape(input);
+                    UNIT_ASSERT_VALUES_EQUAL(input, expected);
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(AllBytesInBlocks) {
+        TString input;
+        for (size_t i = 0; i < 256; ++i) {
+            input += static_cast<char>(i);
+        }
+        TString escaped = CGIEscapeRet(input);
+        UNIT_ASSERT_VALUES_EQUAL(CGIUnescapeRet(escaped), input);
+        CGIUnescape(escaped);
+        UNIT_ASSERT_VALUES_EQUAL(escaped, input);
+
+        // Exercise block copying with embedded zeros and high bytes as well.
+        TString expected = input;
+        expected[static_cast<unsigned char>('+')] = ' ';
+        UNIT_ASSERT_VALUES_EQUAL(CGIUnescapeRet(input), expected);
+        CGIUnescape(input);
+        UNIT_ASSERT_VALUES_EQUAL(input, expected);
+    }
+
     Y_UNIT_TEST(StringBuf) {
         char tmp[100];
 

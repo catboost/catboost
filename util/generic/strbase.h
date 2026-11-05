@@ -71,7 +71,7 @@ public:
     }
 
     /**
-     * @param                           Pointer to character inside the string, or nullptr.
+     * @param ret                       Pointer to character inside the string, or nullptr.
      * @return                          Offset from string beginning (in chars), or npos on nullptr.
      */
     inline size_t off(const TCharType* ret) const noexcept {

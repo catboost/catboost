@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2005-2025 Intel Corporation
+    Copyright (c) 2026 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -139,7 +140,7 @@ namespace r1 {
         const char* str = nullptr;
         // Note: dlerr_t depends on OS: it is char const * on Linux* and macOS*, int on Windows*.
 #if _WIN32
-#if __INTEL_LLVM_COMPILER
+#if __INTEL_LLVM_COMPILER || __clang__
 // Suppress the incorrect warning about the format specifier for the unsigned long long type.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat"

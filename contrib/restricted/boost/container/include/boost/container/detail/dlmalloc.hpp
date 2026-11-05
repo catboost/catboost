@@ -74,10 +74,11 @@ BOOST_CONTAINER_DECL int dlmalloc_malloc_check();
 
 BOOST_CONTAINER_DECL boost_cont_command_ret_t dlmalloc_allocation_command
    ( allocation_type command
-   , size_t sizeof_object
-   , size_t limit_objects
-   , size_t preferred_objects
-   , size_t *received_objects
+   , size_t sizeof_bytes
+   , size_t alignof_bytes
+   , size_t limit_bytess
+   , size_t preferred_bytess
+   , size_t *received_bytess
    , void *reuse_ptr
    );
 

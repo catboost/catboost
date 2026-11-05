@@ -1,8 +1,12 @@
 import ssl
+import os
 
 
 def builtin_ca():
-    return None, None, ssl.builtin_cadata()
+    cafile, capath = os.getenv("SSL_CERT_FILE"), os.getenv("SSL_CERT_DIR")
+    if cafile is None and capath is None:
+        return None, None, ssl.builtin_cadata()
+    return cafile, capath, None
 
 
 # Normally certifi.where() returns a path to a certificate file;

@@ -16,7 +16,6 @@ add_library(brotli-c-enc)
 
 
 target_compile_options(brotli-c-enc PRIVATE
-  -DBROTLI_HAVE_LOG2=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
@@ -50,6 +49,8 @@ target_sources(brotli-c-enc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/memory.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/metablock.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/static_dict.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/static_dict_lut.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/static_init.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/utf8_util.c
 )
 
@@ -209,6 +210,22 @@ set_property(
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/static_dict.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/static_dict_lut.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/static_init.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS

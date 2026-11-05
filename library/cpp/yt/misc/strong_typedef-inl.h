@@ -4,7 +4,7 @@
 #include "strong_typedef.h"
 #endif
 
-#include "wrapper_traits.h"
+#include <library/cpp/yt/mpl/wrapper_traits.h>
 
 #include <util/ysaveload.h>
 
@@ -139,6 +139,8 @@ void FormatValue(TStringBuilderBase* builder, const TStrongTypedef<T, TTag, Opti
 
 ////////////////////////////////////////////////////////////////////////////////
 
+namespace NMpl {
+
 template <class T, class TTag, TStrongTypedefOptions Options>
 struct TBasicWrapperTraits<TStrongTypedef<T, TTag, Options>>
 {
@@ -158,6 +160,17 @@ struct TBasicWrapperTraits<TStrongTypedef<T, TTag, Options>>
         return std::forward<U>(wrapper).Underlying();
     }
 };
+
+} // namespace NMpl
+
+////////////////////////////////////////////////////////////////////////////////
+
+//! Abseil hash support for TStrongTypedef.
+template <class THashState, class T, class TTag, TStrongTypedefOptions Options>
+THashState AbslHashValue(THashState hash, const TStrongTypedef<T, TTag, Options>& value)
+{
+    return THashState::combine(std::move(hash), value.Underlying());
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 

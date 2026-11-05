@@ -24,14 +24,21 @@ TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(
 ) {
     TVector<TBucketStats, TPoolAllocator>* splitStats;
     with_lock(Lock) {
-        if (Stats.contains(splitEnsemble) && Stats[splitEnsemble] != nullptr) {
-            splitStats = Stats[splitEnsemble].Get();
+        decltype(Stats)::insert_ctx statsInsertCtx;
+        auto it = Stats.find(splitEnsemble, statsInsertCtx);
+        if ((it != Stats.end()) && (it->second != nullptr)) {
+            splitStats = it->second.Get();
             Y_ASSERT(splitStats->ysize() >= splitStatsCount);
             *areStatsDirty = false;
         } else {
-            splitStats = new TVector<TBucketStats, TPoolAllocator>(MemoryPool.Get());
-            splitStats->yresize(MaxBodyTailCount * ApproxDimension * splitStatsCount);
-            Stats[splitEnsemble] = THolder<TVector<TBucketStats, TPoolAllocator>>(splitStats);
+            auto holder = MakeHolder<TVector<TBucketStats, TPoolAllocator>>(MemoryPool.Get());
+            holder->yresize(MaxBodyTailCount * ApproxDimension * splitStatsCount);
+            if (it == Stats.end()) {
+                it = Stats.emplace_direct(statsInsertCtx, splitEnsemble, std::move(holder));
+            } else {
+                it->second = std::move(holder);
+            }
+            splitStats = it->second.Get();
             *areStatsDirty = true;
         }
     }

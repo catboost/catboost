@@ -36,7 +36,7 @@ The following types of [feature interaction strength](fstr.md) files are create
     5<\t>Num
     ```
 
-    The input [dataset description](../concepts/input-data_values-file.md) file contains the following line:
+    The input [dataset](../concepts/input-data_values-file.md) file contains the following line:
     ```
     120<\t>80<\t>0.8<\t>rock<\t>some useless information<\t>12
     ```
@@ -85,7 +85,7 @@ The following types of [feature interaction strength](fstr.md) files are create
     5<\t>Num
     ```
 
-    The input [dataset description](../concepts/input-data_values-file.md) file contains the following line:
+    The input [dataset](../concepts/input-data_values-file.md) file contains the following line:
     ```
     120<\t>80<\t>0.8<\t>rock<\t>some useless information<\t>12
     ```

@@ -671,7 +671,7 @@ inline static void UpdateScores(
     };
 
     for (int leaf = 0; leaf < leafCount; ++leaf) {
-        const auto& getBucketStats = [stats, leaf, indexer] (int bucketIdx) {
+        const auto getBucketStats = [stats, leaf, indexer] (int bucketIdx) {
             return stats[indexer.GetIndex(leaf, bucketIdx)];
         };
         CalcScoresForLeaf(

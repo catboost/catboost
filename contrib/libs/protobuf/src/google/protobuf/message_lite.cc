@@ -347,10 +347,10 @@ TProtoStringType NProtoBuf::MessageLite::SerializeAsStringOrThrow() const {
   TProtoStringType s;
   if (!IsInitialized()) {
     //NOTE: SerializeToString (called inside SerializeAsString too) does not perform this check in release build
-    //    so SerializeToString in release build return false only if result size is greater than 2gb
-    //    but in debug build not properly inited message (without required filds) will lead to an exception
-    //    different control flow in debug and build release look like a bug
-    throw FatalException("message_lite.cc", __LINE__, "Some required fileds are not set in message " + GetTypeName());
+    //    so SerializeToString in release build returns false only if the result size is greater than 2gb
+    //    but in debug build not properly inited message (without required fields) will lead to an exception.
+    //    Different control flows in debug and release builds look like a bug.
+    throw FatalException("message_lite.cc", __LINE__, "Some required fields are not set in message " + GetTypeName());
   }
   const bool isOk = SerializeToString(&s);
   if (!isOk) {

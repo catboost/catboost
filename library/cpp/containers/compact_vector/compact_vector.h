@@ -314,6 +314,14 @@ public:
         Clear();
     }
 
+    void assign(size_t count, const T& value) {
+        Clear();
+        Reserve(count);
+        for (size_t i = 0; i < count; ++i) {
+            PushBack(value);
+        }
+    }
+
     void erase(iterator position) {
         Y_ENSURE(position >= begin() && position < end());
         std::move(position + 1, end(), position);

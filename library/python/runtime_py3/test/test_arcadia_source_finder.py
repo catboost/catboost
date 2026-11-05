@@ -7,7 +7,6 @@ from parameterized import parameterized
 
 import __res as res
 
-
 NAMESPACE_PREFIX = b"py/namespace/"
 TEST_SOURCE_ROOT = "/home/arcadia"
 

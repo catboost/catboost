@@ -284,6 +284,7 @@ int boost_cont_malloc_check(void);
 boost_cont_command_ret_t boost_cont_allocation_command
    ( allocation_type command
    , size_t sizeof_object
+   , size_t alignof_object
    , size_t limit_objects
    , size_t preferred_objects
    , size_t *received_objects

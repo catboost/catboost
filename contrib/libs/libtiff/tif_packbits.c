@@ -31,6 +31,8 @@
  */
 #include <stdio.h>
 
+#ifndef PACKBITS_READ_ONLY
+
 static int PackBitsPreEncode(TIFF *tif, uint16_t s)
 {
     (void)s;
@@ -78,7 +80,7 @@ static int PackBitsEncode(TIFF *tif, uint8_t *buf, tmsize_t cc, uint16_t s)
     op = tif->tif_rawcp;
     ep = tif->tif_rawdata + tif->tif_rawdatasize;
     state = BASE;
-    lastliteral = 0;
+    lastliteral = NULL;
     while (cc > 0)
     {
         /*
@@ -192,12 +194,17 @@ static int PackBitsEncode(TIFF *tif, uint8_t *buf, tmsize_t cc, uint16_t s)
                  */
                 if (n == 1 && op[-2] == (uint8_t)-1 && *lastliteral < 126)
                 {
-                    state = (((*lastliteral) += 2) == 127 ? BASE : LITERAL);
+                    state =
+                        (((*lastliteral) = (uint8_t)(*lastliteral + 2)) == 127
+                             ? BASE
+                             : LITERAL);
                     op[-2] = op[-1]; /* replicate */
                 }
                 else
                     state = RUN;
                 goto again;
+            default:
+                break;
         }
     }
     tif->tif_rawcc += (tmsize_t)(op - tif->tif_rawcp);
@@ -230,6 +237,8 @@ static int PackBitsEncodeChunk(TIFF *tif, uint8_t *bp, tmsize_t cc, uint16_t s)
     }
     return (1);
 }
+
+#endif
 
 static int PackBitsDecode(TIFF *tif, uint8_t *op, tmsize_t occ, uint16_t s)
 {
@@ -302,10 +311,20 @@ static int PackBitsDecode(TIFF *tif, uint8_t *op, tmsize_t occ, uint16_t s)
     {
         memset(op, 0, (size_t)occ);
         TIFFErrorExtR(tif, module, "Not enough data for scanline %" PRIu32,
-                      tif->tif_row);
+                      tif->tif_dir.td_row);
         return (0);
     }
     return (1);
+}
+
+static uint64_t PackBitsGetMaxCompressionRatio(TIFF *tif)
+{
+    (void)tif;
+
+    /* See README_for_libtiff_developpers.md for raw data used to estimate
+     * the maximum compression rate. */
+
+    return 64;
 }
 
 int TIFFInitPackBits(TIFF *tif, int scheme)
@@ -314,11 +333,15 @@ int TIFFInitPackBits(TIFF *tif, int scheme)
     tif->tif_decoderow = PackBitsDecode;
     tif->tif_decodestrip = PackBitsDecode;
     tif->tif_decodetile = PackBitsDecode;
+#ifndef PACKBITS_READ_ONLY
     tif->tif_preencode = PackBitsPreEncode;
     tif->tif_postencode = PackBitsPostEncode;
     tif->tif_encoderow = PackBitsEncode;
     tif->tif_encodestrip = PackBitsEncodeChunk;
     tif->tif_encodetile = PackBitsEncodeChunk;
+#endif
+    tif->tif_getmaxcompressionratio = PackBitsGetMaxCompressionRatio;
+
     return (1);
 }
 #endif /* PACKBITS_SUPPORT */

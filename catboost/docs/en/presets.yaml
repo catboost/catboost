@@ -313,9 +313,6 @@ default:
   fit__ostr__importance_values_sign__Negative: Negative
   python-type__bytes: bytes
   python-type__list-of-bytes: list of bytes
-  python-type__catboost-core-CatBoost: catboost.core.CatBoost
-  python-type__catboost-core-CatBoostClassifier: catboost.core.CatBoostClassifier
-  python-type__catboost-core-CatBoostRegressor: catboost.core.CatBoostRegressor
   python-type__list_of_int: list of int
   python-type__list_of_lists: list of lists
   python-type__list_of_float: list of float

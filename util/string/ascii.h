@@ -23,8 +23,45 @@ namespace NPrivate {
         CC_PUNCT = 128,
     };
 
-    extern const unsigned char ASCII_CLASS[256];
-    extern const unsigned char ASCII_LOWER[256];
+    // clang-format off
+    inline constexpr unsigned char ASCII_CLASS[256] = {
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x01, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+        0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+        0x80, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x32, 0x32, 0x32, 0x32, 0x32, 0x32, 0x32, 0x32, 0x32,
+        0x32, 0x32, 0x32, 0x32, 0x32, 0x32, 0x32, 0x32, 0x32, 0x32, 0x32, 0x80, 0x80, 0x80, 0x80, 0x80,
+        0x80, 0x74, 0x74, 0x74, 0x74, 0x74, 0x74, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34,
+        0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x80, 0x80, 0x80, 0x80, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    };
+
+    inline constexpr unsigned char ASCII_LOWER[256] = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+        32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+        48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+        64, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+        112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 91, 92, 93, 94, 95,
+        96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+        112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127,
+        128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143,
+        144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
+        160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175,
+        176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191,
+        192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207,
+        208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223,
+        224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
+        240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255,
+    };
+    // clang-format on
 
     template <class T>
     struct TDereference {
@@ -42,7 +79,7 @@ namespace NPrivate {
     using TDereferenced = typename TDereference<T>::type;
 
     template <class T>
-    bool RangeOk(T c) noexcept {
+    constexpr bool RangeOk(T c) noexcept {
         static_assert(std::is_integral<T>::value, "Integral type character expected");
 
         if (sizeof(T) == 1) {
@@ -64,96 +101,96 @@ constexpr bool IsAscii(const int c) noexcept {
     return !(c & ~0x7f);
 }
 
-inline bool IsAsciiSpace(unsigned char c) {
+constexpr bool IsAsciiSpace(unsigned char c) {
     return ::NPrivate::ASCII_CLASS[c] & ::NPrivate::CC_SPACE;
 }
 
-inline bool IsAsciiUpper(unsigned char c) {
+constexpr bool IsAsciiUpper(unsigned char c) {
     return ::NPrivate::ASCII_CLASS[c] & ::NPrivate::CC_UPPER;
 }
 
-inline bool IsAsciiLower(unsigned char c) {
+constexpr bool IsAsciiLower(unsigned char c) {
     return ::NPrivate::ASCII_CLASS[c] & ::NPrivate::CC_LOWER;
 }
 
-inline bool IsAsciiDigit(unsigned char c) {
+constexpr bool IsAsciiDigit(unsigned char c) {
     return ::NPrivate::ASCII_CLASS[c] & ::NPrivate::CC_DIGIT;
 }
 
-inline bool IsAsciiAlpha(unsigned char c) {
+constexpr bool IsAsciiAlpha(unsigned char c) {
     return ::NPrivate::ASCII_CLASS[c] & ::NPrivate::CC_ALPHA;
 }
 
-inline bool IsAsciiAlnum(unsigned char c) {
+constexpr bool IsAsciiAlnum(unsigned char c) {
     return ::NPrivate::ASCII_CLASS[c] & ::NPrivate::CC_ALNUM;
 }
 
-inline bool IsAsciiHex(unsigned char c) {
+constexpr bool IsAsciiHex(unsigned char c) {
     return ::NPrivate::ASCII_CLASS[c] & ::NPrivate::CC_ISHEX;
 }
 
-inline bool IsAsciiPunct(unsigned char c) {
+constexpr bool IsAsciiPunct(unsigned char c) {
     return ::NPrivate::ASCII_CLASS[c] & ::NPrivate::CC_PUNCT;
 }
 
 // some overloads
 
 template <class T>
-inline bool IsAsciiSpace(T c) {
+constexpr bool IsAsciiSpace(T c) {
     return ::NPrivate::RangeOk(c) && IsAsciiSpace(static_cast<unsigned char>(c));
 }
 
 template <class T>
-inline bool IsAsciiUpper(T c) {
+constexpr bool IsAsciiUpper(T c) {
     return ::NPrivate::RangeOk(c) && IsAsciiUpper(static_cast<unsigned char>(c));
 }
 
 template <class T>
-inline bool IsAsciiLower(T c) {
+constexpr bool IsAsciiLower(T c) {
     return ::NPrivate::RangeOk(c) && IsAsciiLower(static_cast<unsigned char>(c));
 }
 
 template <class T>
-inline bool IsAsciiDigit(T c) {
+constexpr bool IsAsciiDigit(T c) {
     return ::NPrivate::RangeOk(c) && IsAsciiDigit(static_cast<unsigned char>(c));
 }
 
 template <class T>
-inline bool IsAsciiAlpha(T c) {
+constexpr bool IsAsciiAlpha(T c) {
     return ::NPrivate::RangeOk(c) && IsAsciiAlpha(static_cast<unsigned char>(c));
 }
 
 template <class T>
-inline bool IsAsciiAlnum(T c) {
+constexpr bool IsAsciiAlnum(T c) {
     return ::NPrivate::RangeOk(c) && IsAsciiAlnum(static_cast<unsigned char>(c));
 }
 
 template <class T>
-inline bool IsAsciiHex(T c) {
+constexpr bool IsAsciiHex(T c) {
     return ::NPrivate::RangeOk(c) && IsAsciiHex(static_cast<unsigned char>(c));
 }
 
 template <class T>
-inline bool IsAsciiPunct(T c) {
+constexpr bool IsAsciiPunct(T c) {
     return ::NPrivate::RangeOk(c) && IsAsciiPunct(static_cast<unsigned char>(c));
 }
 
 // some extra helpers
-inline ui8 AsciiToLower(ui8 c) noexcept {
+constexpr ui8 AsciiToLower(ui8 c) noexcept {
     return ::NPrivate::ASCII_LOWER[c];
 }
 
-inline char AsciiToLower(char c) noexcept {
+constexpr char AsciiToLower(char c) noexcept {
     return (char)AsciiToLower((ui8)c);
 }
 
 template <class T>
-inline ::NPrivate::TDereferenced<T> AsciiToLower(T c) noexcept {
+constexpr ::NPrivate::TDereferenced<T> AsciiToLower(T c) noexcept {
     return (c >= 0 && c <= 127) ? (::NPrivate::TDereferenced<T>)AsciiToLower((ui8)c) : c;
 }
 
 template <class T>
-inline ::NPrivate::TDereferenced<T> AsciiToUpper(T c) noexcept {
+constexpr ::NPrivate::TDereferenced<T> AsciiToUpper(T c) noexcept {
     return IsAsciiLower(c) ? (c + ('A' - 'a')) : c;
 }
 

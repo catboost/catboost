@@ -80,6 +80,7 @@ TEST(TEnumTest, Domain)
         ESimple::Z
     };
     EXPECT_EQ(v, ToVector(TEnumTraits<ESimple>::GetDomainValues()));
+    EXPECT_EQ(v, ToVector(TEnumTraits<ESimple>::GetUniqueDomainValues()));
     EXPECT_EQ(ESimple::X, TEnumTraits<ESimple>::GetMinValue());
     EXPECT_EQ(ESimple::Z, TEnumTraits<ESimple>::GetMaxValue());
 }
@@ -273,6 +274,29 @@ TEST(TEnumTest, Decompose4)
 
 TEST(TEnumTest, MultipleNames)
 {
+    std::vector<EMultipleNames> domainValues{
+        EMultipleNames::A1,
+        EMultipleNames::A2,
+        EMultipleNames::B,
+        EMultipleNames::C,
+        EMultipleNames::D1,
+        EMultipleNames::D2,
+    };
+    EXPECT_EQ(
+        domainValues,
+        ToVector(TEnumTraits<EMultipleNames>::GetDomainValues</*AllowAmbiguousValues*/ true>()));
+
+    std::vector<EMultipleNames> uniqueValues{
+        EMultipleNames::A1,
+        EMultipleNames::B,
+        EMultipleNames::C,
+        EMultipleNames::D1,
+    };
+    EXPECT_EQ(uniqueValues, ToVector(TEnumTraits<EMultipleNames>::GetUniqueDomainValues()));
+
+    EXPECT_EQ(EMultipleNames::A1, TEnumTraits<EMultipleNames>::GetMinValue());
+    EXPECT_EQ(EMultipleNames::D1, TEnumTraits<EMultipleNames>::GetMaxValue());
+
     EXPECT_EQ(EMultipleNames::A1, TEnumTraits<EMultipleNames>::FromString("A1"));
     EXPECT_EQ(EMultipleNames::A1, TEnumTraits<EMultipleNames>::FromString("A2"));
     EXPECT_EQ(EMultipleNames::B,  TEnumTraits<EMultipleNames>::FromString("B"));

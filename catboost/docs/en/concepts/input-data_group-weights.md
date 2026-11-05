@@ -21,7 +21,7 @@ The weights of groups within the dataset.
 <group id><\t><weight>
 ```
 
-- `group id` is the identifier of a group. Should match one of the values specified in the [Dataset description in delimiter-separated values format](../concepts/input-data_values-file.md).
+- `group id` is the identifier of a group. Should match one of the values specified in the [Dataset in delimiter-separated values format](../concepts/input-data_values-file.md).
 - `weight` is the weight of the corresponding group.
 
 #### {{ input_data__title__peculiarities }}

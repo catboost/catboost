@@ -7,12 +7,12 @@
 
 ```python
 staged_predict(data,
-    prediction_type=None,
-    ntree_start={{ fit--ntree_start }},
-    ntree_end=0,
-    eval_period=1,
-    thread_count=-1,
-    verbose=None)
+               prediction_type=None,
+               ntree_start={{ fit--ntree_start }},
+               ntree_end=0,
+               eval_period=1,
+               thread_count=-1,
+               verbose=None)
 ```
 
 ## {{ dl--parameters }} {#parameters}

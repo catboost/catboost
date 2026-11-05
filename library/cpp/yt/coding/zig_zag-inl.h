@@ -3,7 +3,6 @@
 // For the sake of sane code completion.
 #include "zig_zag.h"
 #endif
-#undef ZIG_ZAG_INL_H_
 
 namespace NYT {
 

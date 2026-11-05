@@ -35,6 +35,12 @@ public:
         return tmp->Obj;
     }
 
+    inline const T& Front() const noexcept {
+        Y_ASSERT(!this->Empty());
+
+        return Queue_.Back()->Obj;
+    }
+
     inline size_t Size() const noexcept {
         return Size_;
     }

@@ -19,6 +19,7 @@ class TTypeListTest: public TTestBase {
     UNIT_TEST(TestSelectBy);
     UNIT_TEST(TestUnique);
     UNIT_TEST(TestUniqueTypeList);
+    UNIT_TEST(TestConcat);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -99,6 +100,23 @@ public:
         UnitAssertTypesEqual<TUniqueTypeList<TSignedInts>, TTypeList<TSignedInts>>();
         UnitAssertTypesEqual<TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts>, TTypeList<TSignedInts>>();
         UnitAssertTypesEqual<TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts>, TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts>>();
+    }
+
+    void TestConcat() {
+        using TFirstListType = TTypeList<TA, TB*>;
+        using TSecondListType = TTypeList<const TC&>;
+        using TThirdListType = TTypeList<int, double, TA>;
+        using TListType = NTL::TConcat<TFirstListType, TSecondListType, TThirdListType>::type;
+
+        UNIT_ASSERT(TListType::THave<TA>::value);
+        UNIT_ASSERT(TListType::THave<TB*>::value);
+        UNIT_ASSERT(TListType::THave<int>::value);
+        UNIT_ASSERT(TListType::THave<double>::value);
+        UNIT_ASSERT(!TListType::THave<std::string>::value);
+        UNIT_ASSERT(!TListType::THave<TB>::value);
+        UNIT_ASSERT(TListType::THave<const TC&>::value);
+        UNIT_ASSERT(!TListType::THave<TC&>::value);
+        UNIT_ASSERT_VALUES_EQUAL(TListType::Length, TFirstListType::Length + TSecondListType::Length + TThirdListType::Length);
     }
 };
 

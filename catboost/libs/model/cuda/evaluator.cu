@@ -6,6 +6,7 @@
 #include <library/cpp/cuda/wrappers/arch.h>
 #include <library/cpp/cuda/wrappers/kernel_helpers.cuh>
 
+#include <util/generic/scope.h>
 #include <util/string/cast.h>
 
 #include <cuda_runtime.h>
@@ -348,6 +349,7 @@ void TGPUCatboostEvaluationContext::EvalQuantizedData(
     TArrayRef<double> result,
     NCB::NModelEvaluation::EPredictionType predictionType
     ) const {
+    EvalDataCache.PrepareCopyBufs(0, data->GetObjectsCount());
     const dim3 treeCalcDimBlock(EvalDocBlockSize, TreeSubBlockWidth);
     const dim3 treeCalcDimGrid(
         NKernel::CeilDivide<unsigned int>(GPUModelData.TreeSizes.Size(), TreeSubBlockWidth * ExtTreeBlockWidth),
@@ -421,8 +423,16 @@ void TGPUCatboostEvaluationContext::EvalData(
     size_t treeEnd,
     TArrayRef<double> result,
     NCB::NModelEvaluation::EPredictionType predictionType) const {
-    TCudaQuantizedData quantizedData;
-    quantizedData.SetDimensions(GPUModelData.FloatFeatureForBucketIdx.Size(), dataInput.ObjectCount);
-    QuantizeData(dataInput, &quantizedData);
-    EvalQuantizedData(&quantizedData, treeStart, treeEnd, result, predictionType);
+    bool completed = false;
+    Y_SCOPE_EXIT(this, &completed) {
+        if (!completed) {
+            // Drain pending copies before callers can reuse host buffers.
+            CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaStreamSynchronize(Stream));
+        }
+    };
+    QuantizedDataCache.SetDimensions(GPUModelData.FloatFeatureForBucketIdx.Size(), dataInput.ObjectCount);
+    QuantizeData(dataInput, &QuantizedDataCache);
+    EvalQuantizedData(&QuantizedDataCache, treeStart, treeEnd, result, predictionType);
+    Stream.Synchronize();
+    completed = true;
 }

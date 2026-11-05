@@ -180,16 +180,25 @@ TSharedRangeHolderPtr MakeSharedRangeHolder(THolders&&... holders)
 template <class T, class TContainer, class... THolders>
 TSharedRange<T> DoMakeSharedRange(TContainer&& elements, THolders&&... holders)
 {
+    using THoldersTuple = std::tuple<typename std::decay_t<THolders>...>;
+
     struct THolder
         : public TSharedRangeHolder
     {
-        typename std::decay<TContainer>::type Elements;
-        std::tuple<typename std::decay<THolders>::type...> Holders;
+        typename std::decay_t<TContainer> Elements;
+        THoldersTuple Holders;
+
+        THolder(
+            std::decay_t<TContainer> elements,
+            THoldersTuple holders)
+            : Elements(std::move(elements))
+            , Holders(std::move(holders))
+        { }
     };
 
-    auto holder = New<THolder>();
-    holder->Holders = std::tuple<THolders...>(std::forward<THolders>(holders)...);
-    holder->Elements = std::forward<TContainer>(elements);
+    auto holder = New<THolder>(
+        std::forward<TContainer>(elements),
+        THoldersTuple(std::forward<THolders>(holders)...));
 
     auto range = TRange<T>(holder->Elements);
 
@@ -197,8 +206,8 @@ TSharedRange<T> DoMakeSharedRange(TContainer&& elements, THolders&&... holders)
 }
 
 //! Constructs a TSharedRange by taking ownership of an std::vector.
-template <class T, class... THolders>
-TSharedRange<T> MakeSharedRange(std::vector<T>&& elements, THolders&&... holders)
+template <class T, class A = std::allocator<T>, class... THolders>
+TSharedRange<T> MakeSharedRange(std::vector<T, A>&& elements, THolders&&... holders)
 {
     return DoMakeSharedRange<T>(std::move(elements), std::forward<THolders>(holders)...);
 }
@@ -211,8 +220,8 @@ TSharedRange<T> MakeSharedRange(TCompactVector<T, N>&& elements, THolders&&... h
 }
 
 //! Constructs a TSharedRange by copying an std::vector.
-template <class T, class... THolders>
-TSharedRange<T> MakeSharedRange(const std::vector<T>& elements, THolders&&... holders)
+template <class T, class A = std::allocator<T>, class... THolders>
+TSharedRange<T> MakeSharedRange(const std::vector<T, A>& elements, THolders&&... holders)
 {
     return DoMakeSharedRange<T>(elements, std::forward<THolders>(holders)...);
 }

@@ -8,14 +8,53 @@
 
 #include <util/system/sanitizers.h>
 
+#ifdef YT_ENABLE_REF_COUNTED_SIGNATURE
+#include <util/system/types.h>
+#endif
+
 #include <stdlib.h>
 
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef YT_ENABLE_REF_COUNTED_SIGNATURE
+
+namespace NDetail {
+
+// A distinctive marker held by a live signature (after address salting).
+constexpr ui64 RefCountedAliveSignatureMagic = 0xa11e0b1ec70a11e0ULL;
+
+// A distinct poison written into the signature once the object is destroyed.
+constexpr ui64 RefCountedDeadSignatureMagic = 0xdeadbeefdeadbeefULL;
+
+//! The alive signature for a signature word living at #address: the magic XOR-ed
+//! with the word's own address.
+//!
+//! The signature is embedded as the first word of every TRefCounter: the ctor
+//! stamps ComputeRefCountedAliveSignature(&signature) and strong-death overwrites
+//! it with RefCountedDeadSignatureMagic. A coredump walker tells a live object
+//! from freed-but-unreclaimed memory: for a word at address S,
+//! *S == ComputeRefCountedAliveSignature(S) means alive,
+//! *S == RefCountedDeadSignatureMagic means freed. The address salt keeps a
+//! signature from validating if copied verbatim elsewhere (it carries the old
+//! address) and makes a chance match of arbitrary memory a ~2^-64 event.
+Y_FORCE_INLINE ui64 ComputeRefCountedAliveSignature(const void* address) noexcept
+{
+    return RefCountedAliveSignatureMagic ^ reinterpret_cast<uintptr_t>(address);
+}
+
+} // namespace NDetail
+
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+
 // TODO(babenko): move to hazard pointers
-void RetireHazardPointer(TPackedPtr packedPtr, void (*reclaimer)(TPackedPtr));
+void RetireHazardPointer(
+    void* protectedPtr,
+    void* reclaimPtr,
+    void (*reclaimer)(void* reclaimPtr));
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -62,12 +101,11 @@ struct TMemoryReleaser<T, std::enable_if_t<T::EnableHazard>>
 {
     static void Do(void* ptr, ui16 offset)
     {
-        // Base pointer is used in HazardPtr as the identity of object.
-        auto packedPtr = TTaggedPtr<char>{static_cast<char*>(ptr) + offset, offset}.Pack();
-        RetireHazardPointer(packedPtr, [] (TPackedPtr packedPtr) {
-            // Base ptr and the beginning of allocated memory region may differ.
-            auto [ptr, offset] = TTaggedPtr<char>::Unpack(packedPtr);
-            TFreeMemory<T>::Do(ptr - offset);
+        RetireHazardPointer(
+            static_cast<char*>(ptr) + offset,
+            ptr,
+            [] (void* reclaimPtr) {
+                TFreeMemory<T>::Do(reclaimPtr);
         });
     }
 };
@@ -86,6 +124,10 @@ Y_FORCE_INLINE void DestroyRefCountedImpl(T* obj)
     // No virtual call when T is final.
     obj->~T();
 
+    // The ref-counter is a base subobject of *obj, so obj->~T() above poisons it
+    // under -fsanitize-memory-use-after-dtor. Unpoison before accessing it.
+    NSan::Unpoison(refCounter, sizeof(TRefCounter));
+
     // Fast path. Weak refs cannot appear if there are neither strong nor weak refs.
     if (refCounter->GetWeakRefCount() == 1) {
         NYT::NDetail::TMemoryReleaser<T>::Do(obj, offset);
@@ -94,6 +136,7 @@ Y_FORCE_INLINE void DestroyRefCountedImpl(T* obj)
 
     YT_ASSERT(offset < (1ULL << PackedPtrTagBits));
 
+    static_assert(sizeof(TRefCountedBase) >= sizeof(TPackedPtr));
     auto* vTablePtr = reinterpret_cast<TPackedPtr*>(basePtr);
     *vTablePtr = TTaggedPtr<void(void*, ui16)>(&NYT::NDetail::TMemoryReleaser<T>::Do, offset).Pack();
 
@@ -167,6 +210,7 @@ struct TRefCountedTraits<T, true>
 
     Y_FORCE_INLINE static void Deallocate(const TRefCountedBase* obj)
     {
+        static_assert(sizeof(TRefCountedBase) >= sizeof(TPackedPtr));
         auto* ptr = reinterpret_cast<TPackedPtr*>(const_cast<TRefCountedBase*>(obj));
         auto [ptrToDeleter, offset] = TTaggedPtr<void(void*, ui16)>::Unpack(*ptr);
 
@@ -185,6 +229,19 @@ Y_FORCE_INLINE int TRefCounter::GetRefCount() const noexcept
 {
     return StrongCount_.load(std::memory_order::acquire);
 }
+
+#ifdef YT_ENABLE_REF_COUNTED_SIGNATURE
+
+Y_FORCE_INLINE TRefCounter::TRefCounter() noexcept
+    : Signature_(NDetail::ComputeRefCountedAliveSignature(this))
+{ }
+
+Y_FORCE_INLINE ui64 TRefCounter::GetSignature() const noexcept
+{
+    return Signature_;
+}
+
+#endif
 
 Y_FORCE_INLINE void TRefCounter::Ref(int n) const noexcept
 {
@@ -234,6 +291,11 @@ Y_FORCE_INLINE bool TRefCounter::Unref(int n) const
     if (oldStrongCount == n) {
         std::atomic_thread_fence(std::memory_order::acquire);
         NSan::Acquire(&StrongCount_);
+#ifdef YT_ENABLE_REF_COUNTED_SIGNATURE
+        // Last strong ref gone: the object is about to be destroyed. Poison now so
+        // a core walker sees freed-but-unreclaimed memory as dead.
+        Signature_ = NDetail::RefCountedDeadSignatureMagic;
+#endif
         return true;
     } else {
         return false;

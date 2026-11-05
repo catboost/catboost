@@ -117,7 +117,7 @@ protected:
     }
 
     //! correct the last token if it contains words and numbers and changes length of multitoken
-    //! @param len      length of multitoken (including all subtokens), for ex. (te - ts)
+    //! @param[inout] len      length of multitoken (including all subtokens), for ex. (te - ts)
     //! @return true if the last token is valid, false - last token is cut off and length is changed
     //! @note in case of '+!abc-...-xyz' length includes '+!', this function doesn't take into account offset of the first subtoken
     //!       if number of subtokens equal to 63 all superfluous subtokens are put into the last subtoken TOKEN_MIXED
@@ -143,10 +143,9 @@ protected:
 
     //! @return result of CheckLastToken()
     //! @note positions of the first subtoken can be non-zero in case: +abc, -!xyz,
-    //!       tokstart in this cases can point to + and - respectively,
+    //!       @p tokstart in this cases can point to + and - respectively,
     //!       SetMultitoken() resets position of the first subtoken to 0
-    //! @param pos      old position value of the first subtoken before resetting it to 0
-    //! @param len      new len of multitoken after cutting off the last subtoken if it is invalid
+    //! @param[out] len new len of multitoken after cutting off the last subtoken if it is invalid
     //! @note in case of '+!abc-efg' returned 'len' includes the prefix operators '+!' and is equal to 9
     bool SetRequestMultitoken(const wchar16* tokstart, const wchar16* tokend, size_t& len) {
         AddLastToken(tokstart, tokend);

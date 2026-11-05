@@ -397,7 +397,7 @@ static inline ::NFormatPrivate::TBaseText<TChar, 2> BinText(const TBasicStringBu
  * stream << HumanReadable(TDuration::Seconds(3672));       // Will output "1h 1m 12s"
  * @endcode
  *
- * @param value                         Value to output.
+ * @param duration                      Value to output.
  */
 static constexpr ::NFormatPrivate::THumanReadableDuration HumanReadable(const TDuration duration) noexcept {
     return ::NFormatPrivate::THumanReadableDuration(duration);
@@ -420,7 +420,7 @@ static constexpr ::NFormatPrivate::THumanReadableDuration HumanReadable(const TD
  * stream << "average usage " << HumanReadableSize(100 / 3., SF_BYTES);     // Will output    "average usage "33.3B""
  * @endcode
  *
- * @param value                         Value to output.
+ * @param size                          Value to output.
  * @param format                        Format to use.
  */
 static constexpr ::NFormatPrivate::THumanReadableSize HumanReadableSize(const double size, ESizeFormat format) noexcept {

@@ -136,7 +136,7 @@ Your directory structure should look like this:
              depcomp, install-sh, mkinstalldirs, test-pngtest.sh, etc.
           contrib
              arm-neon, conftest, examples, gregbook, libtests, pngminim,
-             pngminus, pngsuite, tools, visupng
+             pngminus, pngsuite, tools, visupng, riscv-rvv
           projects
              owatcom, visualc71, vstudio
           scripts
@@ -289,6 +289,7 @@ such as one of
    --enable-mips-msa=yes
    --enable-intel-sse=yes
    --enable-powerpc-vsx=yes
+   --enable-riscv-rvv=yes
 
 or enable them all at once with
 
@@ -301,6 +302,7 @@ or more of
    CPPFLAGS += "-DPNG_MIPS_MSA"
    CPPFLAGS += "-DPNG_INTEL_SSE"
    CPPFLAGS += "-DPNG_POWERPC_VSX"
+   CPPFLAGS += "-DPNG_RISCV_RVV"
 
 See for example scripts/makefile.linux-opt
 
@@ -317,13 +319,15 @@ to disable a particular one,
 or via compiler-command options such as
 
    CPPFLAGS += "-DPNG_ARM_NEON_OPT=0, -DPNG_MIPS_MSA_OPT=0,
-   -DPNG_INTEL_SSE_OPT=0, -DPNG_POWERPC_VSX_OPT=0"
+   -DPNG_INTEL_SSE_OPT=0, -DPNG_POWERPC_VSX_OPT=0,
+   -DPNG_RISCV_RVV_OPT=0"
 
 If you are using cmake, hardware optimizations are "on"
 by default. To disable them, use
 
     cmake . -DPNG_ARM_NEON=no -DPNG_INTEL_SSE=no \
-            -DPNG_MIPS_MSA=no -DPNG_POWERPC_VSX=no
+            -DPNG_MIPS_MSA=no -DPNG_POWERPC_VSX=no \
+            -DPNG_RISCV_RVV=no
 
 or disable them all at once with
 

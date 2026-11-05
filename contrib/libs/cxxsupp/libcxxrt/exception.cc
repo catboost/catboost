@@ -548,11 +548,19 @@ static void free_exception(char *e)
 	free(e);
 }
 #else
+
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+static constexpr size_t emergency_buffer_full_size = 32768;
+static constexpr size_t emergency_single_buffer_size = 2048;
+#else
+static constexpr size_t emergency_buffer_full_size = 16384;
+static constexpr size_t emergency_single_buffer_size = 1024;
+#endif
 /**
  * An emergency allocation reserved for when malloc fails.  This is treated as
  * 16 buffers of 1KB each.
  */
-static char emergency_buffer[16384];
+static char emergency_buffer[emergency_buffer_full_size];
 /**
  * Flag indicating whether each buffer is allocated.
  */
@@ -575,7 +583,7 @@ static pthread_cond_t emergency_malloc_wait = PTHREAD_COND_INITIALIZER;
  */
 static char *emergency_malloc(size_t size)
 {
-	if (size > 1024) { return 0; }
+	if (size > emergency_single_buffer_size) { return 0; }
 
 	__cxa_thread_info *info = thread_info();
 	// Only 4 emergency buffers allowed per thread!
@@ -614,7 +622,7 @@ static char *emergency_malloc(size_t size)
 	}
 	pthread_mutex_unlock(&emergency_malloc_lock);
 	info->emergencyBuffersHeld++;
-	return emergency_buffer + (1024 * buffer);
+	return emergency_buffer + (emergency_single_buffer_size * buffer);
 }
 
 /**
@@ -631,7 +639,7 @@ static void emergency_malloc_free(char *ptr)
 	// Find the buffer corresponding to this pointer.
 	for (int i=0 ; i<16 ; i++)
 	{
-		if (ptr == static_cast<void*>(emergency_buffer + (1024 * i)))
+		if (ptr == static_cast<void*>(emergency_buffer + (emergency_single_buffer_size * i)))
 		{
 			buffer = i;
 			break;
@@ -642,7 +650,7 @@ static void emergency_malloc_free(char *ptr)
 	// emergency_malloc() is expected to return 0-initialized data.  We don't
 	// zero the buffer when allocating it, because the static buffers will
 	// begin life containing 0 values.
-	memset(ptr, 0, 1024);
+	memset(ptr, 0, emergency_single_buffer_size);
 	// Signal the condition variable to wake up any threads that are blocking
 	// waiting for some space in the emergency buffer
 	pthread_mutex_lock(&emergency_malloc_lock);

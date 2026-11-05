@@ -13,10 +13,30 @@
 #include "udp_socket.h"
 #include "socket.h"
 
+#if defined(__clang__)
+#if __has_feature(memory_sanitizer)
+extern "C" void __msan_unpoison(const volatile void* a, size_t size);
+#endif
+#endif
+
 // THESE SMALL FUNCTIONS DEFINED IN HEADER FILE TO ALLOW INLINING THEM!
 
 namespace NNetliba_v12 {
     using namespace NNetlibaSocket::NNetliba_v12;
+
+    inline void UnpoisonForMsan(const void* ptr, size_t len) {
+#if defined(__clang__)
+#if __has_feature(memory_sanitizer)
+        __msan_unpoison(ptr, len);
+#else
+        Y_UNUSED(ptr);
+        Y_UNUSED(len);
+#endif
+#else
+        Y_UNUSED(ptr);
+        Y_UNUSED(len);
+#endif
+    }
 
     enum EMask {
         MASK_CLEAR = 31,
@@ -454,7 +474,7 @@ namespace NNetliba_v12 {
         opt->PacketOpt.SetDisableSharedMemory(true);
         // we always set this flag so that versions supporting XSMALL mtu value
         // would switch to it
-        opt->PacketOpt.SetSmallMtuUseXs(true);
+        opt->PacketOpt.SetSmallMtuUseXs(connection->GetSmallMtuUseXs());
 
         // in "all default" case we don't need this extra byte flags
         WriteBasicPacketHeader(buf, (ui8)cmd);
@@ -606,6 +626,8 @@ namespace NNetliba_v12 {
         WriteInConnectionPacketHeader(&pktData, XS_PING, connection, &opt);
         Write(&pktData, selfNetworkOrderPort);
 
+        UnpoisonForMsan(buf, Y_ARRAY_SIZE(buf));
+
         CheckedSendTo(s, buf, buf + Y_ARRAY_SIZE(buf), connection->GetWinsockAddress(), connection->GetWinsockMyAddress(),
                       tos, FF_DONT_FRAG);
     }
@@ -618,6 +640,8 @@ namespace NNetliba_v12 {
         TOptionsVector opt;
         WriteInConnectionPacketHeader(&pktData, PING, connection, &opt);
         Write(&pktData, selfNetworkOrderPort);
+
+        UnpoisonForMsan(buf, Y_ARRAY_SIZE(buf));
 
         CheckedSendTo(s, buf, buf + Y_ARRAY_SIZE(buf), connection->GetWinsockAddress(), connection->GetWinsockMyAddress(),
                       tos, FF_DONT_FRAG);
@@ -694,7 +718,7 @@ namespace NNetliba_v12 {
     ///////////////////////////////////////////////////////////////////////////////
 
     // grouped acks, first int - packet_id, second int - bit mask for 32 packets preceding packet_id
-    extern const size_t SIZEOF_ACK = 8;
+    static constexpr size_t SIZEOF_ACK = 8;
     inline size_t WriteAck(TUdpInTransfer* xfer, int* dst, const size_t maxAcks) {
         if (xfer->NewPacketsToAck.empty())
             return 0;

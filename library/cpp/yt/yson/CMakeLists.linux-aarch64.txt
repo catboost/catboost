@@ -22,6 +22,7 @@ target_compile_options(cpp-yt-yson PRIVATE
   -Wno-logical-op-parentheses
   -Wno-bitwise-op-parentheses
   -Wswitch
+  -Wreturn-type
 )
 
 target_link_libraries(cpp-yt-yson PUBLIC

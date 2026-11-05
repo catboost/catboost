@@ -25,8 +25,8 @@ def skip_markers(args):
 
 
 def iter_args(
-        args,  # type: list[str]
-        ):
+    args,  # type: list[str]
+):
     for arg in args:
         if not is_cmdfile_arg(arg):
             if arg == '--ya-start-command-file' or arg == '--ya-end-command-file':

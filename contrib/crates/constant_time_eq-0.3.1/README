@@ -1,0 +1,11 @@
+Compares two equal-sized byte strings in constant time.
+
+Inspired by the Linux kernel's crypto_memneq.
+
+Licensed under either of
+
+* Apache License, Version 2.0 (LICENSE-APACHE)
+* MIT No Attribution License (LICENSE-MIT0)
+* CC0 1.0 Universal (LICENSE-CC0)
+
+at your option.

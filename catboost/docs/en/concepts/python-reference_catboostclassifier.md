@@ -108,13 +108,13 @@ class CatBoostClassifier(iterations=None,
 
 ## {{ dl--purpose }} {#purpose}
 
-Training and applying models for the classification problems. Provides compatibility with the scikit-learn tools.
+Implementation of [the scikit-learn estimator API](https://scikit-learn.org/stable/developers/develop.html) for CatBoost classification.
 
-{% include [scikit-learn-compatibility](../_includes/work_src/reusage-python/scikit-learn-compatibility.md) %}
+Supports model training, inference and auxiliary calculations like feature importance.
 
 The default optimized objective depends on various conditions:
-- {{ error-function--Logit }} — The target has only two different values or the `target_border` parameter is not None.
-- {{ error-function--MultiClass }} — The target has more than two different values and the `border_count` parameter is None.
+- {{ error-function--Logit }} — The target has only two different values or the `target_border` parameter is not None.
+- {{ error-function--MultiClass }} — The target has more than two different values and the `target_border` parameter is None.
 
 ## {{ dl--parameters }} {#parameters}
 
@@ -268,6 +268,21 @@ If any elements in this array are specified as names instead of indices, names f
 
 
 {% include [get_borders-get_borders__desc__div](../_includes/work_src/reusage-python/get_borders__desc__div.md) %}
+
+
+### [get_cat_feature_indices](python-reference_catboostclassifier_get_cat_feature_indices.md)
+
+Return the indices of categorical features used by the model.
+
+
+### [get_embedding_feature_indices](python-reference_catboostclassifier_get_embedding_feature_indices.md)
+
+Return the indices of embedding features used by the model.
+
+
+### [get_text_feature_indices](python-reference_catboostclassifier_get_text_feature_indices.md)
+
+Return the indices of text features used by the model.
 
 
 ### [get_evals_result](python-reference_catboostclassifier_get_evals_result.md)

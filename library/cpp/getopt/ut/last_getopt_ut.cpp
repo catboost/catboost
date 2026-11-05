@@ -954,6 +954,53 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         }
     }
 
+    Y_UNIT_TEST(TestMutuallyExclusiveWithFreeArgs) {
+        for (const auto mode : {PERMUTE, REQUIRE_ORDER, RETURN_IN_ORDER}) {
+            TOptsNoDefault opts;
+            opts.ArgPermutation_ = mode;
+            opts.AddLongOption('d', "do").NoArgument();
+            opts.AddLongOption("other").NoArgument();
+            opts.MutuallyExclusiveWithFreeArgs('d');
+
+            const auto parse = [&opts](TVector<const char*> args) {
+                TOptsParser parser(&opts, static_cast<int>(args.size()), args.data());
+                while (parser.Next()) {
+                }
+            };
+
+            UNIT_ASSERT_NO_EXCEPTION(parse({"cmd", "--do", "--"}));
+            UNIT_ASSERT_NO_EXCEPTION(parse({"cmd", "arg"}));
+            UNIT_ASSERT_NO_EXCEPTION(parse({"cmd", "--other", "arg"}));
+            UNIT_ASSERT_NO_EXCEPTION(parse({"cmd", "--", "--do"}));
+            UNIT_ASSERT_EXCEPTION_CONTAINS(
+                parse({"cmd", "-d", "arg"}),
+                TUsageException, "can't appear together with free arguments");
+            UNIT_ASSERT_EXCEPTION(parse({"cmd", "--do", "--", "arg"}), TUsageException);
+
+            if (mode == REQUIRE_ORDER) {
+                UNIT_ASSERT_NO_EXCEPTION(parse({"cmd", "arg", "--do"}));
+            } else {
+                UNIT_ASSERT_EXCEPTION(parse({"cmd", "arg", "--do"}), TUsageException);
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestMutuallyExclusiveWithFreeArgsDefaultValue) {
+        TOptsNoDefault opts;
+        opts.AddLongOption("path").RequiredArgument().DefaultValue("/etc");
+        opts.MutuallyExclusiveWithFreeArgs("path");
+
+        TOptsParseResultTestWrapper result(&opts, {"cmd", "arg"});
+        UNIT_ASSERT(!result.Has("path"));
+        UNIT_ASSERT_VALUES_EQUAL(result.Get("path"), "/etc");
+        UNIT_ASSERT_VALUES_EQUAL(result.GetFreeArgCount(), 1);
+
+        UNIT_ASSERT_NO_EXCEPTION(TOptsParseResultTestWrapper(&opts, {"cmd", "--path", "/tmp"}));
+        UNIT_ASSERT_EXCEPTION_CONTAINS(
+            TOptsParseResultTestWrapper(&opts, {"cmd", "--path", "/tmp", "arg"}),
+            TUsageException, "option --path can't appear together with free arguments");
+    }
+
     Y_UNIT_TEST(TestMutuallyExclusive) {
         // FIXME: somehow MutuallyExclusive() does not work without SetFlag()
         bool flag;

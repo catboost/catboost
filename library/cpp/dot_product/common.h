@@ -18,3 +18,9 @@ enum class ETriWayDotProductComputeMask: unsigned {
     Left = 0b110, // skip computation of R·R
     Right = 0b011, // skip computation of L·L
 };
+
+struct TTriWayDotProductFloatI8 {
+    float LL = 0;
+    float LR = 0;
+    float RR = 0;
+};

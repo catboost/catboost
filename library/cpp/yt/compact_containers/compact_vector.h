@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <type_traits>
 
 namespace NYT {
 
@@ -132,7 +133,7 @@ public:
     TCompactVector& operator=(const TCompactVector& other);
     template <size_t OtherN>
     TCompactVector& operator=(const TCompactVector<T, OtherN>& other);
-    TCompactVector& operator=(TCompactVector&& other);
+    TCompactVector& operator=(TCompactVector&& other) noexcept;
     template <size_t OtherN>
     TCompactVector& operator=(TCompactVector<T, OtherN>&& other);
     TCompactVector& operator=(std::initializer_list<T> list);
@@ -151,6 +152,9 @@ private:
     friend class TCompactVector;
 
     using TOnHeapStorage = TCompactVectorOnHeapStorage<T>;
+
+    static constexpr bool PreferFixedSizeMemoryOperations =
+        sizeof(TCompactVector) <= 8 * sizeof(uintptr_t);
 
     static constexpr size_t ByteSize =
         (sizeof(T) * N + alignof(T) + sizeof(uintptr_t) - 1) &
@@ -189,6 +193,8 @@ private:
     };
 
     bool IsInline() const;
+    void RelocateFrom(TCompactVector& other);
+    void SwapTriviallyCopyable(TCompactVector& other);
     void SetSize(size_t newSize);
     void EnsureOnHeapCapacity(size_t newCapacity, bool incremental);
     template <class TPtr, class F>

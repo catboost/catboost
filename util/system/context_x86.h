@@ -1,10 +1,6 @@
 #pragma once
 
-#if defined(_x86_64_)
-    #include "context_x86_64.h"
-#elif defined(_i386_)
-    #include "context_i686.h"
-#endif
+#include "context_x86_64.h"
 
 #define PROGR_CNT MJB_PC
 #define STACK_CNT MJB_RSP

@@ -653,7 +653,7 @@ TEST(TIntrusivePtrTest, TestConstCast)
     EXPECT_EQ(*ptr, *constPtr);
 }
 
-TEST(TIntrusivePtrTest, TestHeterogeneousLookup)
+TEST(TIntrusivePtrTest, HeterogeneousLookup)
 {
     TIntricateObject object;
     TIntricateObject object2;
@@ -688,6 +688,44 @@ TEST(TIntrusivePtrTest, TestHeterogeneousLookup)
         EXPECT_FALSE(set.contains((TIntricateObject*)0xDEADBEEF));
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef YT_ENABLE_REF_COUNTED_SIGNATURE
+
+TEST(TRefCountedSignatureTest, FinalType)
+{
+    // Final, non-derived type: New lays a TRefCounter right before the object.
+    struct TObject final
+    {
+        ui64 Data = 0;
+    };
+
+    auto obj = New<TObject>();
+    const auto* refCounter = GetRefCounter(obj.Get());
+
+    // The signature is salted purely by the counter's own address.
+    EXPECT_EQ(refCounter->GetSignature(), NDetail::ComputeRefCountedAliveSignature(refCounter));
+    EXPECT_NE(refCounter->GetSignature(), NDetail::RefCountedDeadSignatureMagic);
+}
+
+TEST(TRefCountedSignatureTest, DerivedType)
+{
+    // Polymorphic (TRefCounted-derived) type: the counter is a base subobject.
+    struct TObject
+        : public TRefCounted
+    {
+        ui64 Data = 0;
+    };
+
+    auto obj = New<TObject>();
+    const auto* refCounter = GetRefCounter(obj.Get());
+
+    EXPECT_EQ(refCounter->GetSignature(), NDetail::ComputeRefCountedAliveSignature(refCounter));
+    EXPECT_NE(refCounter->GetSignature(), NDetail::RefCountedDeadSignatureMagic);
+}
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 

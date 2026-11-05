@@ -256,6 +256,12 @@ Perform the following steps to use this API:
 
 A C++ wrapper for the C API interface is also available.
 
+{% note info %}
+
+The C++ wrapper code requires C++11 or later.
+
+{% endnote %}
+
 Refer to the [wrapped_calcer.h](https://github.com/catboost/catboost/blob/master/catboost/libs/model_interface/wrapped_calcer.h) file and the sample [CMake project](https://github.com/catboost/catboost/blob/master/catboost/libs/model_interface/cmake_example/CMakeLists.txt) in the {{ product }} repository for more details.
 
 Usage example:

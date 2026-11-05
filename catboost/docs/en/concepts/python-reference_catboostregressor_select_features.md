@@ -8,8 +8,7 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```python
-model.select_features(
-                X,
+select_features(X,
                 y=None,
                 eval_set=None,
                 features_for_select=None,

@@ -110,37 +110,37 @@ namespace NCB {
                         case (EColumn::Label):
                             CB_ENSURE(
                                 pool.MetaInfo.TargetCount > 0,
-                                "bad output column name " << name << " (No target/label info in pool)"
+                                "bad output column name " << name << " (No target/label info in dataset)"
                             );
                             break;
                         case (EColumn::Baseline):
                             CB_ENSURE(
                                 pool.MetaInfo.BaselineCount > 0,
-                                "bad output column name " << name << " (No baseline info in pool)"
+                                "bad output column name " << name << " (No baseline info in dataset)"
                             );
                             break;
                         case (EColumn::Weight):
                             CB_ENSURE(
                                 pool.MetaInfo.HasWeights,
-                                "bad output column name " << name << " (No Weight info in pool)"
+                                "bad output column name " << name << " (No Weight info in dataset)"
                             );
                             break;
                         case (EColumn::GroupId):
                             CB_ENSURE(
                                 pool.MetaInfo.HasGroupId,
-                                "bad output column name " << name << " (No GroupId info in pool)"
+                                "bad output column name " << name << " (No GroupId info in dataset)"
                             );
                             break;
                         case (EColumn::SubgroupId):
                             CB_ENSURE(
                                 pool.MetaInfo.HasSubgroupIds,
-                                "bad output column name " << name << " (No SubgroupIds info in pool)"
+                                "bad output column name " << name << " (No SubgroupIds info in dataset)"
                             );
                             break;
                         case (EColumn::Timestamp):
                             CB_ENSURE(
                                 pool.MetaInfo.HasTimestamp,
-                                "bad output column name " << name << " (No Timestamp info in pool)"
+                                "bad output column name " << name << " (No Timestamp info in dataset)"
                             );
                             break;
                         default:
@@ -175,13 +175,13 @@ namespace NCB {
                     if (auxiliaryColumnNames.contains(name)) {  // can add by Id
                         continue;
                     }
-                    CB_ENSURE(featureIds.contains(name), "Pool doesn't have a column with name `" << name << "`.");
+                    CB_ENSURE(featureIds.contains(name), "Dataset doesn't have a column with name `" << name << "`.");
                     CB_ENSURE(
                         notQuantizedPool,
-                        "Raw feature values are not available for quantized pools"
+                        "Raw feature values are not available for quantized datasets"
                     );
                 }
-                CB_ENSURE(!cvMode, "can't output pool column in cross validation mode");
+                CB_ENSURE(!cvMode, "can't output dataset column in cross validation mode");
             }
             CB_ENSURE(hasPrediction, "No prediction type chosen in output-column header");
         }
@@ -371,7 +371,7 @@ namespace NCB {
                     const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(pool.ObjectsData.Get());
                     CB_ENSURE(
                         rawObjectsData,
-                        "Raw feature values are not available for quantized pools"
+                        "Raw feature values are not available for quantized datasets"
                     );
 
                     auto internalIdx = pool.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(it->second.Index);

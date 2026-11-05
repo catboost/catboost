@@ -19,6 +19,7 @@
 #include <util/generic/maybe.h>
 #include <util/string/cast.h>
 #include <util/system/compiler.h>
+#include <util/system/type_name.h>
 
 
 
@@ -38,7 +39,8 @@ public:
                 TJsonFieldHelper<T>::Read(srcValue, &dst->Value);
                 dst->IsSetFlag = true;
             } catch (NJson::TJsonException) {
-                ythrow TCatBoostException() << "Can't parse parameter \"" << key << "\" with value: " << srcValue;
+                ythrow TCatBoostException() << "Can't parse parameter \"" << key << "\" with value: " << srcValue
+                                            << " as " << TypeName<T>();
             }
             return true;
         } else {

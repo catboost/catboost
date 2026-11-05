@@ -177,10 +177,6 @@
    END OF TERMS AND CONDITIONS
 
 ====================Apache-2.0====================
-Classifier: License :: OSI Approved :: Apache Software License
-
-
-====================Apache-2.0====================
 Cython, which derives from Pyrex, is licensed under the Apache 2.0
 Software License.  More precisely, all modifications and new code
 

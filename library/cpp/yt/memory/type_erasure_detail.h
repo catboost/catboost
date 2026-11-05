@@ -2,7 +2,7 @@
 
 #include <library/cpp/yt/assert/assert.h>
 
-#include <library/cpp/yt/misc/tag_invoke_cpo.h>
+#include <library/cpp/yt/mpl/tag_invoke_cpo.h>
 
 #include <util/system/compiler.h>
 
@@ -304,7 +304,7 @@ public:
     // NB(arkady-e1ppa): This method may or may not work correctly
     // for dynamically-linked libraries.
     template <class T>
-    Y_FORCE_INLINE bool IsCurrentlyStored() const noexcept
+    Y_FORCE_INLINE bool HoldsType() const noexcept
     {
         return Function_ == &TVTableEntry::StaticInvoke<T>;
     }
@@ -344,7 +344,7 @@ public:
     template <auto C>
     Y_FORCE_INLINE auto GetFunctor() const noexcept
     {
-        return TVTableEntry<TStorage, TTagInvokeTag<C>>::Get();
+        return TVTableEntry<TStorage, NMpl::TTagInvokeTag<C>>::Get();
     }
 
     Y_FORCE_INLINE void Reset() noexcept
@@ -358,9 +358,9 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE bool IsCurrentlyStored() const noexcept
+    Y_FORCE_INLINE bool HoldsType() const noexcept
     {
-        return TVTableEntry<TStorage, TCpo>::template IsCurrentlyStored<T>();
+        return TVTableEntry<TStorage, TCpo>::template HoldsType<T>();
     }
 
 private:
@@ -479,7 +479,7 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 
 struct TDeleter
-    : public TTagInvokeCpoBase<TDeleter>
+    : public NMpl::TTagInvokeCpoBase<TDeleter>
 { };
 
 inline constexpr TOverloadedCpo<TDeleter{}, void(TErasedThis&) noexcept> Deleter = {};
@@ -490,7 +490,7 @@ inline constexpr TOverloadedCpo<TDeleter{}, void(TErasedThis&) noexcept> Deleter
 // and therefore don't adopt reallocating move ctor.
 template <CStorage TStorage>
 struct TMover
-    : public TTagInvokeCpoBase<TMover<TStorage>>
+    : public NMpl::TTagInvokeCpoBase<TMover<TStorage>>
 { };
 
 template <CStorage TStorage>
@@ -500,7 +500,7 @@ inline constexpr TOverloadedCpo<TMover<TStorage>{}, void(TErasedThis&&, TStorage
 
 template <CStorage TStorage>
 struct TCopier
-    : public TTagInvokeCpoBase<TCopier<TStorage>>
+    : public NMpl::TTagInvokeCpoBase<TCopier<TStorage>>
 { };
 
 template <CStorage TStorage>
@@ -643,7 +643,7 @@ struct TUnwrappingTagInvokeBase<TDerived, TOverloadedCpo<Cpo, TRet(TCvThis, TArg
 {
     using TReplaced = TFromThis<TDerived, TCvThis>;
 
-    friend Y_FORCE_INLINE TRet TagInvoke(TTagInvokeTag<Cpo>, TReplaced wrapper, TArgs... args) YT_TYPE_ERASURE_NOEXCEPT(NoExcept)
+    friend Y_FORCE_INLINE TRet TagInvoke(NMpl::TTagInvokeTag<Cpo>, TReplaced wrapper, TArgs... args) YT_TYPE_ERASURE_NOEXCEPT(NoExcept)
     {
         return Cpo(std::forward<TReplaced>(wrapper).Unwrap(), std::forward<TArgs>(args)...);
     }
@@ -708,7 +708,7 @@ struct TAnyFragment<TDerived, TOverloadedCpo<Cpo, TRet(TCvThis, TArgs...) noexce
     using TReplaced = TFromThis<TDerived, TCvThis>;
     using TVTableTag = TOverloadedCpo<Cpo, TRet(TCvThis, TArgs...) noexcept(NoExcept)>;
 
-    friend Y_FORCE_INLINE TRet TagInvoke(TTagInvokeTag<Cpo>, TReplaced any, TArgs... args) YT_TYPE_ERASURE_NOEXCEPT(NoExcept)
+    friend Y_FORCE_INLINE TRet TagInvoke(NMpl::TTagInvokeTag<Cpo>, TReplaced any, TArgs... args) YT_TYPE_ERASURE_NOEXCEPT(NoExcept)
     {
         static_assert(CSomeAnyObject<TDerived>);
 

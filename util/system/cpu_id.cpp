@@ -231,6 +231,10 @@ bool NX86::HaveAVX512VL() noexcept {
     return HaveAVX512F() && ((TX86CpuInfo(0x7, 0).EBX >> 31) & 1u);
 }
 
+bool NX86::HaveAVX512VNNI() noexcept {
+    return HaveAVX512F() && ((TX86CpuInfo(0x7, 0).ECX >> 11) & 1u);
+}
+
 bool NX86::HavePREFETCHWT1() noexcept {
     return TX86CpuInfo(0x0).EAX >= 0x7 && ((TX86CpuInfo(0x7, 0).ECX >> 0) & 1u);
 }

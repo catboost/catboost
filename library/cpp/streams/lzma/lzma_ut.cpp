@@ -10,7 +10,7 @@ class TStrokaByOneByte: public IZeroCopyInput {
 public:
     TStrokaByOneByte(const TString& s)
         : Data(s)
-        , Pos(s.data())
+        , Pos(Data.data())
     {
     }
 

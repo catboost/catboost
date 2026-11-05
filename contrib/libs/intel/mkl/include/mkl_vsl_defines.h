@@ -1,23 +1,16 @@
 /* file: mkl_vsl_defines.h */
 /*******************************************************************************
-* Copyright 2006-2017 Intel Corporation All Rights Reserved.
+* Copyright 2006-2022 Intel Corporation.
 *
-* The source code,  information  and material  ("Material") contained  herein is
-* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
-* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
-* Material  contains  proprietary  information  of  Intel or  its suppliers  and
-* licensors.  The Material is protected by  worldwide copyright  laws and treaty
-* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
-* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
-* in any way without Intel's prior express written permission.  No license under
-* any patent,  copyright or other  intellectual property rights  in the Material
-* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
-* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
-* property rights must be express and approved by Intel in writing.
+* This software and the related documents are Intel copyrighted  materials,  and
+* your use of  them is  governed by the  express license  under which  they were
+* provided to you (License).  Unless the License provides otherwise, you may not
+* use, modify, copy, publish, distribute,  disclose or transmit this software or
+* the related documents without Intel's prior written permission.
 *
-* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
-* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
-* suppliers or licensors in any way.
+* This software and the related documents  are provided as  is,  with no express
+* or implied  warranties,  other  than those  that are  expressly stated  in the
+* License.
 *******************************************************************************/
 
 /*
@@ -58,6 +51,7 @@ extern "C" {
 #define VSL_RNG_ERROR_INVALID_BRNG_INDEX        -1000
 #define VSL_RNG_ERROR_LEAPFROG_UNSUPPORTED      -1002
 #define VSL_RNG_ERROR_SKIPAHEAD_UNSUPPORTED     -1003
+#define VSL_RNG_ERROR_SKIPAHEADEX_UNSUPPORTED   -1004
 #define VSL_RNG_ERROR_BRNGS_INCOMPATIBLE        -1005
 #define VSL_RNG_ERROR_BAD_STREAM                -1006
 #define VSL_RNG_ERROR_BRNG_TABLE_FULL           -1007
@@ -74,12 +68,15 @@ extern "C" {
 #define VSL_RNG_ERROR_NO_NUMBERS                -1121
 #define VSL_RNG_ERROR_INVALID_ABSTRACT_STREAM   -1122
 
-/* non determenistic stream related errors */
+/* non deterministic stream related errors */
 #define VSL_RNG_ERROR_NONDETERM_NOT_SUPPORTED     -1130
 #define VSL_RNG_ERROR_NONDETERM_NRETRIES_EXCEEDED -1131
 
 /* ARS5 stream related errors */
 #define VSL_RNG_ERROR_ARS5_NOT_SUPPORTED        -1140
+
+/* Multinomial distribution probability array related errors */
+#define VSL_DISTR_MULTINOMIAL_BAD_PROBABILITY_ARRAY    -1150
 
 /* read/write stream to file errors */
 #define VSL_RNG_ERROR_FILE_CLOSE                -1100
@@ -119,7 +116,7 @@ extern "C" {
 #define VSL_CC_ERROR_KIND                   (-2110)
 #define VSL_CC_ERROR_MODE                   (-2120)
 #define VSL_CC_ERROR_TYPE                   (-2130)
-#define VSL_CC_ERROR_PRECISION              (-2400)
+#define VSL_CC_ERROR_PRECISION              (-2140)
 #define VSL_CC_ERROR_EXTERNAL_PRECISION     (-2141)
 #define VSL_CC_ERROR_INTERNAL_PRECISION     (-2142)
 #define VSL_CC_ERROR_METHOD                 (-2400)
@@ -375,8 +372,8 @@ extern "C" {
 /*
 //  INITIALIZATION METHODS FOR USER-DESIGNED BASIC RANDOM NUMBER GENERATORS.
 //  Each BRNG must support at least VSL_INIT_METHOD_STANDARD initialization
-//  method. In addition, VSL_INIT_METHOD_LEAPFROG and VSL_INIT_METHOD_SKIPAHEAD
-//  initialization methods can be supported.
+//  method. In addition, VSL_INIT_METHOD_LEAPFROG, VSL_INIT_METHOD_SKIPAHEAD and
+//  VSL_INIT_METHOD_SKIPAHEADEX initialization methods can be supported.
 //
 //  If VSL_INIT_METHOD_LEAPFROG is not supported then initialization routine
 //  must return VSL_RNG_ERROR_LEAPFROG_UNSUPPORTED error code.
@@ -384,13 +381,16 @@ extern "C" {
 //  If VSL_INIT_METHOD_SKIPAHEAD is not supported then initialization routine
 //  must return VSL_RNG_ERROR_SKIPAHEAD_UNSUPPORTED error code.
 //
+//  If VSL_INIT_METHOD_SKIPAHEADEX is not supported then initialization routine
+//  must return VSL_RNG_ERROR_SKIPAHEADEX_UNSUPPORTED error code.
+//
 //  If there is no error during initialization, the initialization routine must
 //  return VSL_ERROR_OK code.
 */
-#define VSL_INIT_METHOD_STANDARD  0
-#define VSL_INIT_METHOD_LEAPFROG  1
-#define VSL_INIT_METHOD_SKIPAHEAD 2
-
+#define VSL_INIT_METHOD_STANDARD    0
+#define VSL_INIT_METHOD_LEAPFROG    1
+#define VSL_INIT_METHOD_SKIPAHEAD   2
+#define VSL_INIT_METHOD_SKIPAHEADEX 3
 
 /*
 //++
@@ -665,6 +665,25 @@ extern "C" {
    VSL_RNG_METHOD_BETA_CJA | VSL_RNG_METHOD_ACCURACY_FLAG
     /* accurate mode of vsl{d,s}RngBeta */
 
+
+/*
+// ChiSquare
+//
+// Comments:
+// v = 1, v = 3               - chi-square distributed random number is
+//                              generated as a sum of squares of v independent
+//                              normal random numbers;
+// v is even and v = 16       - chi-square distributed random number is
+//                              generated using the following formula:
+//                              x = -2*ln(u[0]*...*u[v/2-1]),
+//                              where u[i] - random numbers uniformly
+//                              distributed over the interval (0,1);
+// v > 16, v is odd and v > 3 - chi-square distribution reduces to gamma
+//                              distribution;
+*/
+#define VSL_RNG_METHOD_CHISQUARE_CHI2GAMMA 0 /* vsl{d,s}RngChiSquare */
+
+
 /*
 // Bernoulli
 //
@@ -693,9 +712,17 @@ extern "C" {
 //               * left exponential tail;
 //               * right exponential tail.
 //
-//            othewise table lookup method is used
+//            otherwise table lookup method is used
 */
 #define VSL_RNG_METHOD_BINOMIAL_BTPE 0 /* vsliRngBinomial */
+
+/*
+// Multinomial
+//
+// <Method>    <Short Description>
+// MULTPOISSON Poisson Approximation of Multinomial Distribution method
+*/
+#define VSL_RNG_METHOD_MULTINOMIAL_MULTPOISSON 0 /* vsliRngMultinomial */
 
 /*
 // Hypergeometric
@@ -708,7 +735,7 @@ extern "C" {
 //               * left exponential tail;
 //               * right exponential tail.
 //
-//            othewise table lookup method is used
+//            otherwise table lookup method is used
 */
 #define VSL_RNG_METHOD_HYPERGEOMETRIC_H2PE 0 /* vsliRngHypergeometric */
 
@@ -724,7 +751,7 @@ extern "C" {
 //               * left exponential tail;
 //               * right exponential tail.
 //
-//            othewise table lookup method is used
+//            otherwise table lookup method is used
 //
 // POISNORM   for lambda>=1 method is based on Poisson inverse CDF
 //            approximation by Gaussian inverse CDF; for lambda<1
@@ -755,7 +782,7 @@ extern "C" {
 //               * left exponential tail;
 //               * right exponential tail.
 //
-//            othewise table lookup method is used.
+//            otherwise table lookup method is used.
 */
 #define VSL_RNG_METHOD_NEGBINOMIAL_NBAR 0 /* vsliRngNegbinomial */
 
@@ -826,7 +853,7 @@ extern "C" {
 // (central/raw moments up to 4th order, variance-covariance,
 //  minimum, maximum, skewness/kurtosis) using the following methods
 //  - FAST  - estimates are computed for price of one or two passes over
-//            observations using highly optimized Intel(R) MKL routines
+//            observations using highly optimized oneMKL routines
 //  - 1PASS - estimate is computed for price of one pass of the observations
 //  - FAST_USER_MEAN - estimates are computed for price of one or two passes
 //            over observations given user defined mean for central moments,

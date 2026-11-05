@@ -2,6 +2,7 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <util/generic/algorithm.h>
 #include <util/stream/output.h>
 
 class TListTest: public TTestBase {
@@ -21,6 +22,8 @@ class TListTest: public TTestBase {
     UNIT_TEST(TestListWithAutoDeleteMoveOpEq);
     UNIT_TEST(TestListWithAutoDeleteClear);
     UNIT_TEST(TestSecondTag);
+    UNIT_TEST(TestItemMoveCtor);
+    UNIT_TEST(TestItemMoveAssign);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -39,6 +42,8 @@ private:
     void TestListWithAutoDeleteMoveOpEq();
     void TestListWithAutoDeleteClear();
     void TestSecondTag();
+    void TestItemMoveCtor();
+    void TestItemMoveAssign();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TListTest);
@@ -509,4 +514,118 @@ void TListTest::TestSecondTag() {
     second.Remove(&zero);
     UNIT_ASSERT_EQUAL(*second.Front(), 1);
     UNIT_ASSERT_EQUAL(*first.Back(), 0);
+}
+
+namespace {
+    struct TStringItem: public TIntrusiveListItem<TStringItem> {
+        explicit TStringItem(TString s)
+            : Value(std::move(s))
+        {
+        }
+
+        TString Value;
+
+        friend bool operator<(const TStringItem& lhs, const TStringItem& rhs) noexcept {
+            return lhs.Value < rhs.Value;
+        }
+
+        friend bool operator==(const TStringItem& lhs, const TStringItem& rhs) noexcept {
+            return lhs.Value == rhs.Value;
+        }
+
+        friend bool operator==(const TStringItem& lhs, const TString& rhs) noexcept {
+            return lhs.Value == rhs;
+        }
+    };
+} // namespace
+
+template <>
+void Out<TStringItem>(IOutputStream& out, const TStringItem& item) {
+    out << item.Value;
+}
+
+void TListTest::TestItemMoveCtor() {
+    {
+        TStringItem a("foobar");
+        TIntrusiveList<TStringItem> list;
+        list.PushBack(&a);
+        for (const TStringItem& i : list) {
+            UNIT_ASSERT_VALUES_EQUAL("foobar", i);
+        }
+        TStringItem b(std::move(a));
+        UNIT_ASSERT_VALUES_EQUAL("foobar", b);
+        for (const TStringItem& i : list) {
+            UNIT_ASSERT_VALUES_EQUAL("foobar", i);
+        }
+    }
+
+    {
+        TVector<TStringItem> array;
+        TIntrusiveList<TStringItem> list;
+        for (int i = 0; i < 1000; ++i) {
+            array.emplace_back(TString(i, '-'));
+            list.PushBack(&array.back());
+        }
+
+        int expected = 0;
+        for (const TStringItem& i : list) {
+            UNIT_ASSERT_EQUAL(TString(expected, '-'), i);
+            ++expected;
+        }
+    }
+}
+
+void TListTest::TestItemMoveAssign() {
+    TVector<TStringItem> array;
+    TVector<TString> ref;
+    TIntrusiveList<TStringItem> list;
+
+    for (int i = 0; i < 5000; ++i) {
+        array.emplace_back(ToString(i));
+        ref.emplace_back(ToString(i));
+        list.PushBack(&array.back());
+    }
+
+    UNIT_ASSERT(Equal(array.begin(), array.end(), ref.begin(), ref.end()));
+    UNIT_ASSERT(Equal(array.begin(), array.end(), list.begin(), list.end()));
+    Sort(array);
+    UNIT_ASSERT(!Equal(array.begin(), array.end(), ref.begin(), ref.end())); // array is shuffled
+    UNIT_ASSERT(Equal(ref.begin(), ref.end(), list.begin(), list.end()));    // but list keeps the original order
+    UNIT_ASSERT(!Equal(array.begin(), array.end(), list.begin(), list.end()));
+    SortBy(array, [](const TStringItem& item) { return FromString<int>(item.Value); });
+    UNIT_ASSERT(Equal(array.begin(), array.end(), ref.begin(), ref.end()));
+    UNIT_ASSERT(Equal(ref.begin(), ref.end(), list.begin(), list.end())); // list still keeps the original order
+    UNIT_ASSERT(Equal(array.begin(), array.end(), list.begin(), list.end()));
+
+    {
+        TStringItem a("foo");
+        TStringItem b("bar");
+        TIntrusiveList<TStringItem> list;
+        list.PushBack(&b);
+        a = std::move(b);
+        UNIT_ASSERT_VALUES_EQUAL(a, "bar");
+        for (const TStringItem& i : list) {
+            UNIT_ASSERT_VALUES_EQUAL(i, "bar");
+        }
+        UNIT_ASSERT_VALUES_EQUAL(list.Size(), 1);
+
+        TStringItem& aa = a;
+        aa = std::move(a);
+        UNIT_ASSERT_LE(list.Size(), 1); // self-move assignment results in a valid but unspecified state
+    }
+
+    {
+        TStringItem a("adjacent node 1");
+        TStringItem b("adjacent node 2");
+        TIntrusiveList<TStringItem> list;
+        list.PushBack(&a);
+        list.PushBack(&b);
+        a = std::move(b);
+        UNIT_ASSERT_VALUES_EQUAL(a, "adjacent node 2");
+        for (const TStringItem& i : list) {
+            UNIT_ASSERT_VALUES_EQUAL(i, "adjacent node 2");
+        }
+        UNIT_ASSERT_VALUES_EQUAL(list.Size(), 1);
+        UNIT_ASSERT(b.Empty());
+    }
 }

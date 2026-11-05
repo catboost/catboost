@@ -1,10 +1,13 @@
 #pragma once
 
+#include "constant_evaluation.h"
 #include "ylimits.h"
 #include "typelist.h"
 
 #include <util/system/compiler.h>
 #include <util/system/yassert.h>
+
+#include <type_traits>
 
 #ifdef _MSC_VER
     #include <intrin.h>
@@ -129,7 +132,7 @@ namespace NBitOps {
         }
 
         template <typename T>
-        Y_FORCE_INLINE T RotateBitsRightImpl(T value, const ui8 shift) noexcept {
+        Y_FORCE_INLINE constexpr T RotateBitsRightImpl(T value, const ui8 shift) noexcept {
             constexpr ui8 bits = sizeof(T) * 8;
             constexpr ui8 mask = bits - 1;
             Y_ASSERT(shift <= mask);
@@ -404,9 +407,14 @@ Y_FORCE_INLINE T RotateBitsLeft(T value, const ui8 shift) noexcept {
 /* Rotate bits right. Also known as right circular shift.
  */
 template <typename T>
-Y_FORCE_INLINE T RotateBitsRight(T value, const ui8 shift) noexcept {
+Y_FORCE_INLINE constexpr T RotateBitsRight(T value, const ui8 shift) noexcept {
     static_assert(std::is_unsigned<T>::value, "must be unsigned arithmetic type");
-    return ::NBitOps::NPrivate::RotateBitsRightImpl((TFixedWidthUnsignedInt<T>)value, shift);
+    using TFixedWidth = TFixedWidthUnsignedInt<T>;
+    if (!IsConstantEvaluated()) {
+        return ::NBitOps::NPrivate::RotateBitsRightImpl(static_cast<TFixedWidth>(value), shift);
+    }
+    // Explicit template arguments force the constexpr fallback; runtime overload resolution prefers non-template assembly overloads.
+    return ::NBitOps::NPrivate::RotateBitsRightImpl<TFixedWidth>(static_cast<TFixedWidth>(value), shift);
 }
 
 /* Rotate bits left. Also known as left circular shift.
@@ -423,10 +431,7 @@ constexpr T RotateBitsLeftCT(T value, const ui8 shift) noexcept {
  */
 template <typename T>
 constexpr T RotateBitsRightCT(T value, const ui8 shift) noexcept {
-    static_assert(std::is_unsigned<T>::value, "must be unsigned arithmetic type");
-
-    // do trick with mask to avoid undefined behaviour
-    return (value >> shift) | (value << ((-shift) & (sizeof(T) * 8 - 1)));
+    return RotateBitsRight(value, shift);
 }
 
 /* Remain `size` bits to current `offset` of `value`

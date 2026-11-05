@@ -44,12 +44,12 @@ target_sources(libs-cxxsupp-libcxxabi PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_vector.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_virtual.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/fallback_malloc.cpp
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/private_typeinfo.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/stdlib_exception.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/stdlib_new_delete.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/stdlib_stdexcept.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/stdlib_typeinfo.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_exception.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_personality.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/private_typeinfo.cpp
 )
 

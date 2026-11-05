@@ -12,7 +12,6 @@ namespace {
 
     constexpr size_t MD5_BLOCK_LENGTH = 64;
     constexpr size_t MD5_PADDING_SHIFT = 56;
-    constexpr size_t MD5_HEX_DIGEST_LENGTH = 32;
 
     struct TMd5Stream: public IOutputStream {
         inline TMd5Stream(MD5* md5)

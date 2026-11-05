@@ -73,7 +73,8 @@ void TCtrValueTable::LoadSolid(void* buf, size_t length) {
 void TCtrValueTable::LoadThin(TMemoryInput* in) {
     auto len = LoadSize(in);
     auto ptr = in->Buf();
-    in->Skip(len);
+    const size_t skipped = in->Skip(len);
+    CB_ENSURE(skipped == len, "Failed to read CTR value table in zero-copy model loading");
 
     using namespace  flatbuffers;
     Impl = TThinTable();

@@ -18,7 +18,7 @@ To install {{ product }} from PyPI with pip:
     |--------|-----------------|------------|
     | macOS (versions currently supported by Apple) | x86_64 and arm64 |no|
     | Linux (compatible with [manylinux2014 platform tag](https://peps.python.org/pep-0599/) ) | x86_64 and aarch64 |yes|
-    | Windows 10 and 11 | x86_64 |yes|
+    | Windows (versions 10, 11, Server 2022, Server 2025) | x86_64 |yes|
 
     If the platform where the installation is performed is incompatible with platform tags of the available precompiled wheels then `pip` will try to build {{ product }} python package from source. This approach requires certain [build dependencies and requirements](python-installation-method-build-from-source.md#dependencies-and-requirements) to be set up before the installation.
 

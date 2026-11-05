@@ -7,7 +7,6 @@ This is because this conftest is located in the directory of the test module.
 
 import pytest
 
-
 sessionstart_called = False
 
 

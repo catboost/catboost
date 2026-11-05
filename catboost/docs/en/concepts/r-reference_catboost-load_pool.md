@@ -98,7 +98,7 @@ This parameter is used if the data is input from a file.
 
 **Default value**
 
-NULL, it is assumed that the first column in the file with the dataset description defines the label value, and the other columns are the values of numerical features.
+NULL, it is assumed that the first column in the file with the dataset defines the label value, and the other columns are the values of numerical features.
 
 ### pairs
 
@@ -131,7 +131,7 @@ NULL
 #### Description
 
 
-The delimiter character used to separate the data in the dataset description input file.
+The delimiter character used to separate the data in the dataset input file.
 
 Only single char delimiters are supported. If the specified value contains more than one character, only the first one is used.
 
@@ -148,7 +148,7 @@ Only single char delimiters are supported. If the specified value contains more 
 #### Description
 
 
-Read the column names from the first line of the dataset description file if this parameter is set.
+Read the column names from the first line of the dataset file if this parameter is set.
 
 {% include [libsvm-note-restriction-delimiter-separated-format](../_includes/work_src/reusage-formats/note-restriction-delimiter-separated-format.md) %}
 

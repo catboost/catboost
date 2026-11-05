@@ -3,7 +3,7 @@ import subprocess as sp
 
 
 def _java_cmd_file_quote(s):
-    """ Wrap argument based on https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html#java-command-line-argument-files """
+    """Wrap argument based on https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html#java-command-line-argument-files"""
     if not s:
         return "''"
 
@@ -31,10 +31,7 @@ def call_java_with_command_file(cmd, wrapped_args, **kwargs):
         kwargs['shell'] = True
 
     try:
-        return sp.check_output(
-            args + ["@" + commands_file],
-            **kwargs
-        )
+        return sp.check_output(args + ["@" + commands_file], **kwargs)
     except Exception as e:
         if hasattr(e, "add_note"):
             e.add_note(f"Original command: {cmd} {wrapped_args}")

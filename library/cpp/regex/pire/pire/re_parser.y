@@ -36,23 +36,43 @@
 #endif
 
 #include <stdexcept>
+#include <util/generic/intrlist.h>
 
 #include <library/cpp/regex/pire/pire/fsm.h>
 #include <library/cpp/regex/pire/pire/re_lexer.h>
 #include <library/cpp/regex/pire/pire/any.h>
 #include <library/cpp/regex/pire/pire/stub/stl.h>
 
-#define YYSTYPE Any*
+#define YYSTYPE Pire::Impl::ParserValue*
 #define YYSTYPE_IS_TRIVIAL 0
+
+namespace Pire::Impl {
+class ParserValue: public Any, public TIntrusiveListItem<ParserValue> {
+public:
+    template<class T> explicit ParserValue(const T& value): Any(value) {}
+};
+
+// The C yacc skeleton does not destroy semantic values on C++ exceptions.
+class ParserValues: public TIntrusiveListWithAutoDelete<ParserValue, TDelete> {
+public:
+    template<class T> ParserValue* New(const T& value) {
+        auto* result = new ParserValue(value);
+        PushBack(result);
+        return result;
+    }
+};
+
+}
 
 namespace {
 
 using namespace Pire;
 using Pire::Fsm;
 using Pire::Encoding;
+using Pire::Impl::ParserValues;
 
-int  yylex(YYSTYPE*, Lexer&);
-void yyerror(Pire::Lexer&, const char*);
+int  yylex(YYSTYPE*, Lexer&, ParserValues&);
+void yyerror(Pire::Lexer&, ParserValues&, const char*);
 
 Fsm& ConvertToFSM(const Encoding& encoding, Any* any);
 void AppendRange(const Encoding& encoding, Fsm& a, const Term::CharacterRange& cr);
@@ -60,7 +80,9 @@ void AppendRange(const Encoding& encoding, Fsm& a, const Term::CharacterRange& c
 %}
 
 %parse-param { Pire::Lexer& rlex }
+%parse-param { Pire::Impl::ParserValues& values }
 %lex-param { Pire::Lexer& rlex }
+%lex-param { Pire::Impl::ParserValues& values }
 %define api.pure
 
 // Terminal declarations
@@ -78,7 +100,7 @@ regexp
     : alternative
         {
             ConvertToFSM(rlex.Encoding(), $1);
-            DoSwap(rlex.Retval(), *$1);
+            DoSwap(rlex.Retval(), static_cast<Any&>(*$1));
             delete $1;
             $$ = nullptr;
         }
@@ -100,7 +122,7 @@ negation
     ;
 
 concatenation
-    : { $$ = new Any(Fsm()); }
+    : { $$ = values.New(Fsm()); }
     | concatenation iteration
         {
             Fsm& a = ConvertToFSM(rlex.Encoding(), ($$ = $1));
@@ -119,7 +141,7 @@ iteration
     | term YRE_COUNT
         {
             Fsm& orig = ConvertToFSM(rlex.Encoding(), $1);
-            $$ = new Any(orig);
+            $$ = values.New(orig);
             Fsm& cur = $$->As<Fsm>();
             const Term::RepetitionCount& repc = $2->As<Term::RepetitionCount>();
 
@@ -155,22 +177,24 @@ term
 
 %%
 
-int yylex(YYSTYPE* lval, Pire::Lexer& rlex)
+int yylex(YYSTYPE* lval, Pire::Lexer& rlex, ParserValues& values)
 {
     try {
         Pire::Term term = rlex.Lex();
         if (!term.Value().Empty())
-            *lval = new Any(term.Value());
+            *lval = values.New(term.Value());
         else
             *lval = nullptr;
         return term.Type();
+    } catch (const Pire::BudgetExceeded&) {
+        throw;
     } catch (Pire::Error &e) {
         rlex.SetError(e.what());
         return 0;
     }
 }
 
-void yyerror(Pire::Lexer& rlex, const char* str)
+void yyerror(Pire::Lexer& rlex, ParserValues&, const char* str)
 {
     if (rlex.GetError().length() == 0)
         rlex.SetError(ystring("Regexp parse error: ").append(str));
@@ -237,7 +261,8 @@ namespace Pire {
     namespace Impl {
         int yre_parse(Pire::Lexer& rlex)
         {
-            int rc = yyparse(rlex);
+            ParserValues values;
+            int rc = yyparse(rlex, values);
 
             if (rlex.GetError().length() != 0)
                 throw Error(rlex.GetError());

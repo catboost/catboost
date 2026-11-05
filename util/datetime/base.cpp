@@ -112,7 +112,8 @@ namespace {
         if (GetTimeZoneInformation(&tz) == TIME_ZONE_ID_INVALID) {
             ythrow TSystemError() << "Failed to get the system time zone";
         }
-        i64 utcOffsetInMinutes = -tz.Bias;
+        const LONG seasonalBias = localTime.tm_isdst > 0 ? tz.DaylightBias : tz.StandardBias;
+        i64 utcOffsetInMinutes = -(tz.Bias + seasonalBias);
 #endif
         if (utcOffsetInMinutes == 0) {
             os << 'Z';

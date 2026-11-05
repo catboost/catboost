@@ -21,6 +21,7 @@
 #include "absl/base/attributes.h"
 #include "absl/base/optimization.h"
 #include "absl/base/thread_annotations.h"
+#include "absl/debugging/stacktrace.h"
 #include "absl/types/span.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/internal/allocation_guard.h"
@@ -95,10 +96,22 @@ static void ReportMismatchedSizeClass(void* object, int page_size_class,
       "later point in time and different code location.");
   RecordCrash("GWP-ASan", "mismatched-size-class");
 
-  tc_globals.mismatched_delete_state().Record(object_min_size, object_max_size,
-                                              page_min_size, page_max_size,
-                                              std::nullopt, std::nullopt);
+  tc_globals.gwp_asan_state().RecordMismatch(object_min_size, object_max_size,
+                                             page_min_size, page_max_size,
+                                             std::nullopt, std::nullopt);
   abort();
+}
+
+ABSL_ATTRIBUTE_NORETURN
+ABSL_ATTRIBUTE_NOINLINE
+static void ReportDoubleFree(void* ptr) {
+  static void* stack[kMaxStackDepth];
+  const size_t depth = absl::GetStackTrace(stack, kMaxStackDepth, 1);
+
+  RecordCrash("GWP-ASan", "double-free");
+  tc_globals.gwp_asan_state().RecordDoubleFree(absl::MakeSpan(stack, depth));
+
+  TC_BUG("Possible double free detected of %p", ptr);
 }
 
 void StaticForwarder::MapObjectsToSpans(absl::Span<void*> batch, Span** spans,
@@ -108,7 +121,9 @@ void StaticForwarder::MapObjectsToSpans(absl::Span<void*> batch, Span** spans,
     const PageId p = PageIdContaining(batch[i]);
     auto [span, page_size_class] =
         tc_globals.pagemap().GetExistingDescriptorAndSizeClass(p);
-    TC_ASSERT_NE(span, nullptr);
+    if (ABSL_PREDICT_FALSE(span == nullptr)) {
+      ReportDoubleFree(batch[i]);
+    }
     if (ABSL_PREDICT_FALSE(page_size_class != expected_size_class)) {
       ReportMismatchedSizeClass(span, page_size_class, expected_size_class);
     }

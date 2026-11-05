@@ -13,6 +13,6 @@
 # changes in this file.
 
 add_subdirectory(index)
-add_subdirectory(index_builder)
 add_subdirectory(helpers)
+add_subdirectory(index_builder)
 add_subdirectory(logging)

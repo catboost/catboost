@@ -209,8 +209,11 @@ secondFrac = digit {1,6} >clear_int $update_int @{
 };
 secondFracTail = (digit*);
 
-zoneZ = [Zz] @set_zone_utc;
-zoneOffset = space? . ('+' | '-') >{ Sign = fc == '+' ? 1 : -1; } . int2 @{ DateTimeFields.ZoneOffsetMinutes = Sign * (i32)TDuration::Hours(I).Minutes(); } . (':')? . (int2 @{ DateTimeFields.ZoneOffsetMinutes += I * Sign; })?;
+zoneZ = [Zz] @{ HasExplicitTimeZone_ = true; } @set_zone_utc;
+zoneOffset = space? . ('+' | '-') >{ Sign = fc == '+' ? 1 : -1; } . int2 @{
+    HasExplicitTimeZone_ = true;
+    DateTimeFields.ZoneOffsetMinutes = Sign * (i32)TDuration::Hours(I).Minutes();
+} . (':')? . (int2 @{ DateTimeFields.ZoneOffsetMinutes += I * Sign; })?;
 zone = zoneZ | zoneOffset;
 
 iso8601date = (year . '-' . month . '-' . day) | (year . month . day);

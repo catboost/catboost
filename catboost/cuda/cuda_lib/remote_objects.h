@@ -71,7 +71,7 @@ namespace NCudaLib {
         }
     };
 
-    static inline TObjectByHandleStorage& GetHandleStorage() {
+    inline TObjectByHandleStorage& GetHandleStorage() {
         return *HugeSingleton<TObjectByHandleStorage>();
     }
 
@@ -116,9 +116,7 @@ namespace NCudaLib {
 
         void Reset(T* ptr) {
             T* obj = Get();
-            if (obj != nullptr) {
-                delete obj;
-            }
+            delete obj;
             GetHandleStorage().SetObjectPtrByHandle(Handle, ptr);
         }
 

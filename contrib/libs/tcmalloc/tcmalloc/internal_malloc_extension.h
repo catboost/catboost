@@ -94,6 +94,7 @@ ABSL_ATTRIBUTE_WEAK void
 MallocExtension_Internal_GetSkipSubreleaseShortInterval(absl::Duration* ret);
 ABSL_ATTRIBUTE_WEAK void MallocExtension_Internal_GetSkipSubreleaseLongInterval(
     absl::Duration* ret);
+ABSL_ATTRIBUTE_WEAK bool MallocExtension_Internal_GetCacheDemandBasedRelease();
 ABSL_ATTRIBUTE_WEAK void
 MallocExtension_Internal_GetCacheDemandReleaseShortInterval(
     absl::Duration* ret);
@@ -117,6 +118,8 @@ ABSL_ATTRIBUTE_WEAK void
 MallocExtension_Internal_SetSkipSubreleaseShortInterval(absl::Duration value);
 ABSL_ATTRIBUTE_WEAK void MallocExtension_Internal_SetSkipSubreleaseLongInterval(
     absl::Duration value);
+ABSL_ATTRIBUTE_WEAK void MallocExtension_Internal_SetCacheDemandBasedRelease(
+    bool value);
 ABSL_ATTRIBUTE_WEAK void
 MallocExtension_Internal_SetCacheDemandReleaseShortInterval(
     absl::Duration value);
@@ -129,6 +132,8 @@ MallocExtension_Internal_ReleaseMemoryToSystem(size_t bytes);
 ABSL_ATTRIBUTE_WEAK void MallocExtension_Internal_SetMemoryLimit(
     size_t limit, tcmalloc::MallocExtension::LimitKind limit_kind);
 
+ABSL_ATTRIBUTE_WEAK size_t MallocExtension_Internal_GetEstimatedAllocatedSize(
+    size_t bytes, tcmalloc::hot_cold_t hot_cold);
 ABSL_ATTRIBUTE_WEAK size_t
 MallocExtension_Internal_GetAllocatedSize(const void* ptr);
 ABSL_ATTRIBUTE_WEAK void MallocExtension_Internal_MarkThreadBusy();

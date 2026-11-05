@@ -64,3 +64,26 @@ Y_UNIT_TEST_SUITE(TRelaxedEscaperTest) {
                                  UnescapeC("\\xFFg"));
     }
 }
+
+Y_UNIT_TEST_SUITE(TJsonStringToAsciiEscaperTest) {
+    Y_UNIT_TEST(EscapesUtf8CodePoints) {
+        UNIT_ASSERT_VALUES_EQUAL("\\u041F\\u0440\\u0438\\u0432\\u0435\\u0442", NEscJ::EscapeJsonStringToAscii("Привет"));
+        UNIT_ASSERT_VALUES_EQUAL("\\uD83E\\uDE8F", NEscJ::EscapeJsonStringToAscii("🪏"));
+    }
+
+    Y_UNIT_TEST(EscapesSpecialCharacters) {
+        UNIT_ASSERT_VALUES_EQUAL("\\b\\f\\n\\r\\t\\v\\a\\\\\\\"\\/\\u0000", NEscJ::EscapeJsonStringToAscii(TStringBuf("\b\f\n\r\t\v\a\\\"/\0", 11)));
+    }
+
+    Y_UNIT_TEST(EscapesControlsAndInvalidUtf8) {
+        UNIT_ASSERT_VALUES_EQUAL("\\u0001\\u001F\\u007F", NEscJ::EscapeJsonStringToAscii(TStringBuf("\x01\x1F\x7F", 3)));
+        UNIT_ASSERT_VALUES_EQUAL("\\u00FF\\u00C2", NEscJ::EscapeJsonStringToAscii(TStringBuf("\xFF\xC2", 2)));
+    }
+
+    Y_UNIT_TEST(DiffersFromEscapeJ) {
+        UNIT_ASSERT_VALUES_EQUAL("Привет", (NEscJ::EscapeJ<false, true>("Привет")));
+        UNIT_ASSERT_VALUES_EQUAL("\\u041F\\u0440\\u0438\\u0432\\u0435\\u0442", NEscJ::EscapeJsonStringToAscii("Привет"));
+        UNIT_ASSERT_VALUES_EQUAL("/", (NEscJ::EscapeJ<false, true>("/")));
+        UNIT_ASSERT_VALUES_EQUAL("\\/", NEscJ::EscapeJsonStringToAscii("/"));
+    }
+} // Y_UNIT_TEST_SUITE(TJsonStringToAsciiEscaperTest)

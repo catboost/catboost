@@ -7,8 +7,7 @@ void StartRegisterSaveload() {
 }
 struct SBasicChunkInit {
     ~SBasicChunkInit() {
-        if (pSaverClasses)
-            delete pSaverClasses;
+        delete pSaverClasses;
     }
 } initSaver;
 

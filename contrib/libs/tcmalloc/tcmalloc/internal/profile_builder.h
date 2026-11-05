@@ -62,10 +62,10 @@ class ProfileBuilder {
   absl::Status SetDocURL(absl::string_view url);
 
   // Interns sv in the profile's string table and returns the resulting ID.
-  int InternString(absl::string_view sv);
+  [[nodiscard]] int InternString(absl::string_view sv);
   // Interns a location in the profile's location table and returns the
   // resulting ID.
-  int InternLocation(const void* ptr);
+  [[nodiscard]] int InternLocation(const void* ptr);
 
   // Interns a callstack and adds the IDs to the provided sample.
   void InternCallstack(absl::Span<const void* const> stack,

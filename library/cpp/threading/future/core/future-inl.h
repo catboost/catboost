@@ -970,10 +970,6 @@ namespace NThreading {
         return {new NImpl::TFutureState<T>()};
     }
 
-    inline TPromise<void> NewPromise() {
-        return {new NImpl::TFutureState<void>()};
-    }
-
     template <typename T>
     inline TFuture<T> MakeFuture(const T& value) {
         return {new NImpl::TFutureState<T>(value)};
@@ -1004,7 +1000,8 @@ namespace NThreading {
         return {new NImpl::TFutureState<T>(std::move(exception), NImpl::TError::Error)};
     }
 
-    inline TFuture<void> MakeFuture() {
+    template<>
+    inline TFuture<void> MakeFuture<void>() {
         struct TCache {
             TFuture<void> Instance{new NImpl::TFutureState<void>(true)};
         };

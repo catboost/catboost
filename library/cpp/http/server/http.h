@@ -39,6 +39,10 @@ public:
         virtual void OnException() {
         }
 
+        virtual void OnAcceptException(int /*errorCode*/) {
+            OnException();
+        }
+
         virtual void OnMaxConn() {
         }
 
@@ -141,6 +145,8 @@ private:
         Y_UNUSED(ThreadSpecificResource);
         return true;
     }
+    virtual THolder<THttpServerConn> CreateHttpConnection(const TSocket& s, size_t outputBuffer);
+
     void Process(void* ThreadSpecificResource) override;
 
 public:

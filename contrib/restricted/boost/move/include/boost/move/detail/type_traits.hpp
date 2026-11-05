@@ -1352,6 +1352,82 @@ struct aligned_storage
 }  //namespace move_detail {
 }  //namespace boost {
 
+
+#include <boost/move/detail/std_ns_begin.hpp>
+BOOST_MOVE_STD_NS_BEG
+
+template<class T1, class T2>
+struct pair;
+
+BOOST_MOVE_STD_NS_END
+#include <boost/move/detail/std_ns_end.hpp>
+
+namespace boost {
+namespace move_detail {
+
+template<class A, class B>
+struct is_trivially_copy_assignable<std::pair<A,B> >
+{
+   BOOST_STATIC_CONSTEXPR bool value = boost::move_detail::is_trivially_copy_assignable<A>::value &&
+                                       boost::move_detail::is_trivially_copy_assignable<B>::value;
+};
+
+template<class A, class B>
+struct is_trivially_move_assignable<std::pair<A,B> >
+{
+   BOOST_STATIC_CONSTEXPR bool value = boost::move_detail::is_trivially_move_assignable<A>::value &&
+                                       boost::move_detail::is_trivially_move_assignable<B>::value;
+};
+
+template<class A, class B>
+struct is_trivially_copy_constructible<std::pair<A,B> >
+{
+   BOOST_STATIC_CONSTEXPR bool value = boost::move_detail::is_trivially_copy_constructible<A>::value &&
+                                       boost::move_detail::is_trivially_copy_constructible<B>::value;
+};
+
+template<class A, class B>
+struct is_trivially_move_constructible<std::pair<A,B> >
+{
+   BOOST_STATIC_CONSTEXPR bool value = boost::move_detail::is_trivially_move_constructible<A>::value &&
+                                       boost::move_detail::is_trivially_move_constructible<B>::value;
+};
+
+template<class A, class B>
+struct is_trivially_destructible<std::pair<A,B> >
+{
+   BOOST_STATIC_CONSTEXPR bool value = boost::move_detail::is_trivially_destructible<A>::value &&
+                                       boost::move_detail::is_trivially_destructible<B>::value;
+};
+
+template <class T1, class T2>
+struct is_class< std::pair<T1, T2> >
+//This specialization is needed to avoid instantiation of pair in
+//is_class, and allow recursive maps.
+{
+   BOOST_STATIC_CONSTEXPR bool value = true;
+};
+
+template <class T1, class T2>
+struct is_union< std::pair<T1, T2> >
+//This specialization is needed to avoid instantiation of pair in
+//is_class, and allow recursive maps.
+{
+   BOOST_STATIC_CONSTEXPR bool value = false;
+};
+
+template <class T1, class T2>
+struct is_class_or_union< std::pair<T1, T2> >
+//This specialization is needed to avoid instantiation of pair in
+//is_class, and allow recursive maps.
+{
+   BOOST_STATIC_CONSTEXPR bool value = true;
+};
+
+}  //namespace move_detail {
+}  //namespace boost {
+
+
 #include <boost/move/detail/config_end.hpp>
 
 #endif   //#ifndef BOOST_MOVE_DETAIL_TYPE_TRAITS_HPP

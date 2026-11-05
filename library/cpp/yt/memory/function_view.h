@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/cpp/yt/misc/concepts.h>
+#include <library/cpp/yt/mpl/concepts.h>
 
 namespace NYT {
 
@@ -53,7 +53,7 @@ class TFunctionView;
 // TODO(arkady-e1ppa): Support pointer-to-member-function?
 template <class T, class TSignature>
 concept CTypeErasable =
-    CInvocable<T, TSignature> &&
+    NMpl::CInvocable<T, TSignature> &&
     (!std::same_as<T, TFunctionView<TSignature>>);
 
 ////////////////////////////////////////////////////////////////////////////////

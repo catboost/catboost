@@ -158,6 +158,27 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
         SaveFields(&tree2, option1, option2);
         UNIT_ASSERT_VALUES_EQUAL(ToString<NJson::TJsonValue>(tree2), "{\"option_1\":102}");
     }
+
+    Y_UNIT_TEST(TestWrongTypeErrorMessage) {
+        // https://github.com/catboost/catboost/issues/872
+        // Passing a floating point value for an integer parameter must produce an error message
+        // that mentions both the failing value and the expected type.
+        TStringBuf jsonStr = ""
+                             "{\n"
+                             "  \"leaf_estimation_iterations\": 86.85434834\n"
+                             "}"
+                             "";
+
+        NJson::TJsonValue tree;
+        NJson::ReadJsonTree(jsonStr, &tree);
+        TOption<int> option("leaf_estimation_iterations", 1);
+
+        UNIT_ASSERT_EXCEPTION_CONTAINS(
+            TJsonFieldHelper<decltype(option)>::Read(tree, &option),
+            TCatBoostException,
+            "Can't parse parameter \"leaf_estimation_iterations\" with value: 86.85434834 as int");
+    }
+
         Y_UNIT_TEST(TestPlainAndReversePlainSerialization) {
             TString jsonPlain = ""
                 "{\n"

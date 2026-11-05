@@ -188,7 +188,7 @@ Large labels may cause numerical overflows and/or divergence when training a twe
 
 On CPU, it is recommended to scale labels to range $[0,1000]$.
 
-On GPU, it is recommended to scale lables to range $[0,1]$.
+On GPU, it is recommended to scale labels to range $[0,1]$.
 
 **{{ optimization }}** See [more](#usage-information).
 
@@ -300,7 +300,7 @@ No.
 
 $\displaystyle\sum\limits_{t_i > 0}\left( a_i - \log\sum\limits_{|t_j| \ge t_i} \exp(a_j)\right)$
 
-Labels $t_i > 0$ mean occurence of the event at time $t_i$, and labels $t_i < 0$ mean absence of the event at time $|t_i|$.
+Labels $t_i > 0$ mean occurrence of the event at time $t_i$, and labels $t_i < 0$ mean absence of the event at time $|t_i|$.
 
 Predictions $a_i$ are hazard rates.
 

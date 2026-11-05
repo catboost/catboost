@@ -11,4 +11,4 @@ Format:
 
     If omitted, a dataset in the [Native {{ product }} Delimiter-separated values format](../../../concepts/input-data_values-file.md) is expected.
 
-- `path` defines the path to the dataset description.
+- `path` defines the path to the dataset file.

@@ -6,12 +6,12 @@
 #include <library/cpp/json/json_prettifier.h>
 
 #include <util/generic/maybe.h>
-#include <util/generic/ptr.h>
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
 #include <util/string/subst.h>
 
 #include <array>
+#include <memory>
 
 namespace {
     class TWrapper {
@@ -34,7 +34,7 @@ namespace {
 
     private:
         TString BaseConfigText;
-        THolder<TUnstrictConfig> Config;
+        std::unique_ptr<TUnstrictConfig> Config;
         NJson::TJsonValue JsonPatch;
         TString Prefix;
         TString PatchedConfixText;
@@ -79,7 +79,7 @@ namespace {
         } else {
             parsed = BaseConfigText;
         }
-        Config.Reset(new TUnstrictConfig);
+        Config.reset(new TUnstrictConfig);
         if (!Config->ParseMemory(parsed.data())) {
             TString errors;
             Config->PrintErrors(errors);
