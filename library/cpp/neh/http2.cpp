@@ -1451,6 +1451,10 @@ namespace {
                 }
             }
 
+            void DisableCompression() override {
+                CompressionScheme_.clear();
+            }
+
             static TAtomicBase NextId() {
                 static TAtomic idGenerator = 0;
                 TAtomicBase id = 0;

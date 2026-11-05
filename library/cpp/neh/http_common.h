@@ -36,6 +36,11 @@ namespace NNeh {
         }
 
         virtual void SendError(TResponseError err, const THttpErrorDetails& details) = 0;
+
+        //ask the server not to compress the reply, even if the client accepts it;
+        //works only if called before SendReply() (a hint: the https server ignores it)
+        virtual void DisableCompression() {
+        }
     };
 
     namespace NHttp {

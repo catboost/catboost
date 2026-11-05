@@ -423,6 +423,35 @@ Y_UNIT_TEST_SUITE(NehHttp) {
         UNIT_ASSERT_C(nReadBytes == 0, "connection must be closed, but we did not get 0 as return value from it.");
     }
 
+    /**
+        @brief  Tests that a reply after DisableCompression() goes out as is to a client that accepts gzip.
+     */
+    Y_UNIT_TEST(TDisableCompression) {
+        const TString body(500, 'a'); // gzip shrinks it
+        TServ serv = CreateServices([&body](const IRequestRef& req) {
+            auto* httpReq = dynamic_cast<IHttpRequest*>(req.Get());
+            if (req->Data() == TStringBuf("plain")) {
+                httpReq->DisableCompression();
+            }
+            TData data(body.begin(), body.end());
+            httpReq->SendReply(data);
+        });
+
+        // HTTP/1.0: the server closes the connection after the reply, so the reply is all there is to read
+        auto get = [&serv](TStringBuf cgi) {
+            TSocket s(TNetworkAddress("localhost", serv.ServerPort), TDuration::Seconds(10));
+            s.SetSocketTimeout(10); // use as watchdog
+            TSocketOutput out(s);
+            out << "GET /pipeline?" << cgi << " HTTP/1.0\r\nAccept-Encoding: gzip\r\n\r\n";
+            out.Flush();
+            TSocketInput in(s);
+            return in.ReadAll();
+        };
+
+        UNIT_ASSERT_VALUES_EQUAL(get("plain"), "HTTP/1.0 200 Ok\r\nContent-Length: 500\r\nConnection: close\r\n\r\n" + body);
+        UNIT_ASSERT_STRING_CONTAINS(get("default"), "\r\nContent-Encoding: gzip\r\n");
+    }
+
     Y_UNIT_TEST(TInputOutputDeadline) {
         // InputDeadline test
         {
