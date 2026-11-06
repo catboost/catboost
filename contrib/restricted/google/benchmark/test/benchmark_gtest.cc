@@ -1,8 +1,10 @@
 #include <map>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "../src/benchmark_register.h"
+#include "../src/mutex.h"
 #include "benchmark/benchmark.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -136,7 +138,7 @@ TEST(AddRangeTest, Simple8) {
 }
 
 TEST(AddCustomContext, Simple) {
-  std::map<std::string, std::string> *&global_context = GetGlobalContext();
+  std::map<std::string, std::string>*& global_context = GetGlobalContext();
   EXPECT_THAT(global_context, nullptr);
 
   AddCustomContext("foo", "bar");
@@ -151,7 +153,7 @@ TEST(AddCustomContext, Simple) {
 }
 
 TEST(AddCustomContext, DuplicateKey) {
-  std::map<std::string, std::string> *&global_context = GetGlobalContext();
+  std::map<std::string, std::string>*& global_context = GetGlobalContext();
   EXPECT_THAT(global_context, nullptr);
 
   AddCustomContext("foo", "bar");
@@ -162,6 +164,130 @@ TEST(AddCustomContext, DuplicateKey) {
 
   delete global_context;
   global_context = nullptr;
+}
+
+// PauseTiming() and ResumeTiming() assert when called outside the benchmark
+// loop.
+void BM_pause_before_loop(benchmark::State& state) {
+  state.PauseTiming();
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_pause_before_loop)->Iterations(1);
+
+void BM_resume_before_loop(benchmark::State& state) {
+  state.ResumeTiming();
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_resume_before_loop)->Iterations(1);
+
+void BM_pause_after_loop(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+  state.PauseTiming();
+}
+BENCHMARK(BM_pause_after_loop)->Iterations(1);
+
+void BM_resume_after_loop(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+  state.ResumeTiming();
+}
+BENCHMARK(BM_resume_after_loop)->Iterations(1);
+
+void BM_pause_and_resume_in_loop(benchmark::State& state) {
+  for (auto _ : state) {
+    state.PauseTiming();
+    state.ResumeTiming();
+  }
+}
+BENCHMARK(BM_pause_and_resume_in_loop)->Iterations(1);
+
+class CapturingReporter : public BenchmarkReporter {
+ public:
+  bool ReportContext(const Context& /*context*/) override { return true; }
+  void ReportRuns(const std::vector<Run>& runs) override {
+    runs_.insert(runs_.end(), runs.begin(), runs.end());
+  }
+
+  const std::vector<Run>& runs() const { return runs_; }
+
+ private:
+  std::vector<Run> runs_;
+};
+
+std::vector<BenchmarkReporter::Run> RunOne(const std::string& name) {
+  CapturingReporter reporter;
+  RunSpecifiedBenchmarks(&reporter, name);
+  return reporter.runs();
+}
+
+TEST(TimingDeathTest, PauseBeforeLoop) {
+  ASSERT_DEBUG_DEATH(RunOne("BM_pause_before_loop"), "PauseTiming");
+}
+
+TEST(TimingDeathTest, PauseAfterLoop) {
+  ASSERT_DEBUG_DEATH(RunOne("BM_pause_after_loop"), "PauseTiming");
+}
+
+TEST(TimingDeathTest, ResumeBeforeLoop) {
+  ASSERT_DEBUG_DEATH(RunOne("BM_resume_before_loop"), "ResumeTiming");
+}
+
+TEST(TimingDeathTest, ResumeAfterLoop) {
+  ASSERT_DEBUG_DEATH(RunOne("BM_resume_after_loop"), "ResumeTiming");
+}
+
+TEST(TimingTest, PauseAndResumeInLoopReportSaneTime) {
+  const std::vector<BenchmarkReporter::Run> runs =
+      RunOne("BM_pause_and_resume_in_loop");
+  ASSERT_EQ(runs.size(), 1u);
+  EXPECT_EQ(runs[0].skipped, 0u);
+  // One iteration of an empty loop. A whole second would mean an absolute
+  // clock reading was accumulated instead of a duration.
+  EXPECT_GE(runs[0].real_accumulated_time, 0.0);
+  EXPECT_LT(runs[0].real_accumulated_time, 1.0);
+  EXPECT_GE(runs[0].cpu_accumulated_time, 0.0);
+  EXPECT_LT(runs[0].cpu_accumulated_time, 1.0);
+}
+
+TEST(BarrierTest, SingleThreadedWaitAndTeardown) {
+  for (int i = 0; i < 100; ++i) {
+    auto barrier = std::make_unique<Barrier>(1);
+    EXPECT_TRUE(barrier->wait());
+  }
+}
+
+TEST(BarrierTest, MultiThreadedWaitAndTeardown) {
+  constexpr int kNumThreads = 8;
+  for (int i = 0; i < 100; ++i) {
+    auto barrier = std::make_unique<Barrier>(kNumThreads);
+    std::vector<std::thread> threads;
+    threads.reserve(kNumThreads);
+    for (int t = 0; t < kNumThreads; ++t) {
+      threads.emplace_back([&barrier]() { barrier->wait(); });
+    }
+    for (auto& thread : threads) {
+      thread.join();
+    }
+  }
+}
+
+TEST(BarrierTest, MultiThreadedRemoveThreadAndTeardown) {
+  constexpr int kNumThreads = 4;
+  for (int i = 0; i < 100; ++i) {
+    auto barrier = std::make_unique<Barrier>(kNumThreads);
+    std::vector<std::thread> threads;
+    threads.reserve(kNumThreads);
+    for (int t = 0; t < kNumThreads - 1; ++t) {
+      threads.emplace_back([&barrier]() { barrier->wait(); });
+    }
+    threads.emplace_back([&barrier]() { barrier->removeThread(); });
+    for (auto& thread : threads) {
+      thread.join();
+    }
+  }
 }
 
 }  // namespace
