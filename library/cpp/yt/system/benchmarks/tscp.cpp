@@ -16,15 +16,6 @@ void BM_TscpGet(benchmark::State& state)
 }
 BENCHMARK(BM_TscpGet);
 
-// Cheaper, lower-precision counterpart: rseq fast path + non-serializing rdtsc.
-void BM_TscpGetApproximate(benchmark::State& state)
-{
-    for (auto _ : state) {
-        benchmark::DoNotOptimize(TTscp::GetApproximate());
-    }
-}
-BENCHMARK(BM_TscpGetApproximate);
-
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace

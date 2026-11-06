@@ -4,10 +4,6 @@
 #include "tscp.h"
 #endif
 
-#if defined(__linux__) && (defined(__x86_64__) || defined(__aarch64__))
-#include <library/cpp/yt/rseq/cpu_id.h>
-#endif
-
 #include <util/system/cpu_id.h>
 
 namespace NYT::NProfiling {
@@ -58,18 +54,6 @@ inline TTscp TTscp::Get()
         .Instant = static_cast<TCpuInstant>(t),
         .ProcessorId = static_cast<int>(c) & (MaxProcessorId - 1)
     };
-}
-
-inline TTscp TTscp::GetApproximate()
-{
-#if defined(__linux__) && (defined(__x86_64__) || defined(__aarch64__))
-    return TTscp{
-        .Instant = GetApproximateCpuInstant(),
-        .ProcessorId = NRseq::GetCurrentCpuId() & (MaxProcessorId - 1),
-    };
-#else
-    return Get();
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
