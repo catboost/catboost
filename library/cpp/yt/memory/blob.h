@@ -108,6 +108,9 @@ public:
     //! Appends a single char to the end.
     void Append(char ch);
 
+    //! Nonbinding request to shrink allocated capacity to fit the size.
+    void ShrinkToFit();
+
     friend void swap(TBlob& left, TBlob& right);
 
 private:

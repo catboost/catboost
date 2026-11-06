@@ -382,6 +382,7 @@ TSharedRef TSharedRef::FromStringImpl(TString str, TRefCountedTypeCookie tagCook
 
 TSharedRef TSharedRef::FromBlob(TBlob&& blob)
 {
+    blob.ShrinkToFit();
     auto ref = TRef::FromBlob(blob);
     auto holder = New<TBlobHolder>(std::move(blob));
     return TSharedRef(ref, std::move(holder));
@@ -461,6 +462,7 @@ TSharedMutableRef TSharedMutableRef::AllocateAligned(size_t size, size_t alignme
 
 TSharedMutableRef TSharedMutableRef::FromBlob(TBlob&& blob)
 {
+    blob.ShrinkToFit();
     auto ref = TMutableRef::FromBlob(blob);
     auto holder = New<TBlobHolder>(std::move(blob));
     return TSharedMutableRef(ref, std::move(holder));
