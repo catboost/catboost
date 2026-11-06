@@ -445,6 +445,29 @@ def process_free_args(args, wine, bld_root, mode):
     return pwa.ProcessWholeArchiveOption('WINDOWS', wa_peers, wa_libs).construct_cmd(result)
 
 
+def run_ld_plugins(args):
+    # The same protocol as in fix_msvc_output.py (see LD_PLUGIN in build/ymake.core.conf):
+    # a plugin gets the link arguments and prints the new ones as JSON.
+    plugins = []
+    if '--start-plugins' in args:
+        ib = args.index('--start-plugins')
+        ie = args.index('--end-plugins')
+        plugins = sorted(args[ib + 1 : ie])
+        args = args[:ib] + args[ie + 1 :]
+
+    for p in plugins:
+        res = subprocess.check_output([sys.executable, p, 'link'] + args).decode().strip()
+        if res:
+            args = json.loads(res)[1:]
+
+    # inputs meant for the plugins only, never for the linker
+    if '--start-plugin-inputs' in args:
+        ib = args.index('--start-plugin-inputs')
+        ie = args.index('--end-plugin-inputs')
+        args = args[:ib] + args[ie + 1 :]
+    return args
+
+
 def run_main():
     parser = argparse.ArgumentParser()
     parser.add_argument('wine', action='store')
@@ -471,6 +494,9 @@ def run_main():
     tc_dir = os.path.dirname(os.path.dirname(os.path.dirname(bin_dir)))
     if not incl_paths:
         incl_paths = [tc_dir + '/VC/include', tc_dir + '/include']
+
+    if mode == 'link':
+        free_args = run_ld_plugins(free_args)
 
     cmd_out = find_cmd_out(free_args)
 

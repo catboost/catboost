@@ -54,6 +54,12 @@ if __name__ == '__main__':
         if res:
             args = json.loads(res)
 
+    # inputs meant for the plugins only (see LD_PLUGIN), never for the linker
+    if mode == 'link' and '--start-plugin-inputs' in args:
+        ib = args.index('--start-plugin-inputs')
+        ie = args.index('--end-plugin-inputs')
+        args = args[:ib] + args[ie + 1 :]
+
     args, wa_peers, wa_libs = pwa.get_whole_archive_peers_and_libs(pcf.skip_markers(args[1:]))
     cmd = pwa.ProcessWholeArchiveOption('WINDOWS', wa_peers, wa_libs).construct_cmd(args)
     run = out2err

@@ -114,6 +114,12 @@ if __name__ == '__main__':
         if res:
             args = json.loads(res)[1:]
 
+    # inputs meant for the plugins only (see LD_PLUGIN), never for the linker
+    if '--start-plugin-inputs' in args:
+        ib = args.index('--start-plugin-inputs')
+        ie = args.index('--end-plugin-inputs')
+        args = args[:ib] + args[ie + 1 :]
+
     opts, args = parse_args(args)
     args = pcf.skip_markers(args)
 
