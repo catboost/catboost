@@ -81,6 +81,9 @@ static TJsonValue ToJson(const TModelCtrBase& modelCtrBase) {
     TJsonValue jsonValue;
     jsonValue.InsertValue("type", ToString<ECtrType>(modelCtrBase.CtrType));
     jsonValue.InsertValue("identifier", ToJson(modelCtrBase.Projection));
+    if (modelCtrBase.TargetBorderClassifierIdx != 0) {
+        jsonValue.InsertValue("target_border_classifier_idx", modelCtrBase.TargetBorderClassifierIdx);
+    }
     return jsonValue;
 }
 
@@ -92,6 +95,7 @@ static TModelCtrBase ModelCtrBaseFromJson(const TJsonValue& jsonValue) {
     TModelCtrBase modelCtrBase;
     modelCtrBase.CtrType = FromString<ECtrType>(jsonValue["type"].GetString());
     modelCtrBase.Projection = FeatureCombinationFromJson(jsonValue["identifier"]);
+    modelCtrBase.TargetBorderClassifierIdx = jsonValue["target_border_classifier_idx"].GetInteger();
     return modelCtrBase;
 }
 
@@ -107,6 +111,9 @@ static TJsonValue ToJson(const TCtrFeature& ctrFeature) {
     jsonValue.InsertValue("identifier", ModelCtrBaseToStr(ctrFeature.Ctr.Base));
     jsonValue.InsertValue("elements", ToJson(ctrFeature.Ctr.Base.Projection));
     jsonValue.InsertValue("ctr_type", ToString<ECtrType>(ctrFeature.Ctr.Base.CtrType));
+    if (ctrFeature.Ctr.Base.TargetBorderClassifierIdx != 0) {
+        jsonValue.InsertValue("target_border_classifier_idx", ctrFeature.Ctr.Base.TargetBorderClassifierIdx);
+    }
     jsonValue.InsertValue("prior_numerator", ctrFeature.Ctr.PriorNum);
     jsonValue.InsertValue("prior_denomerator", ctrFeature.Ctr.PriorDenom);
     jsonValue.InsertValue("shift", ctrFeature.Ctr.Shift);
@@ -120,6 +127,7 @@ static TModelCtr ModelCtrFromJson(const TJsonValue& value) {
     TModelCtr modelCtr;
     modelCtr.Base.Projection = FeatureCombinationFromJson(value["elements"]);
     modelCtr.Base.CtrType = FromString<ECtrType>(value["ctr_type"].GetString());
+    modelCtr.Base.TargetBorderClassifierIdx = value["target_border_classifier_idx"].GetInteger();
     modelCtr.TargetBorderIdx = FromJson<int>(value["target_border_idx"]);
     modelCtr.PriorNum = FromJson<float>(value["prior_numerator"]);
     modelCtr.PriorDenom = FromJson<float>(value["prior_denomerator"]);
@@ -435,7 +443,6 @@ static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider
     }
     auto compressedModelCtrs = NCB::CompressModelCtrs(neededCtrs);
     for (size_t idx = 0; idx < compressedModelCtrs.size(); ++idx) {
-        auto& proj = *compressedModelCtrs[idx].Projection;
         for (const auto& ctr: compressedModelCtrs[idx].ModelCtrs) {
             NJson::TJsonValue hashValue;
             auto& learnCtr = ctrProvider->CtrData.LearnCtrs.at(ctr->Base);
@@ -476,10 +483,7 @@ static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider
             hash["hash_map"] = hashValue;
             hash["hash_stride"] =  hashValue.GetArray().ysize() / hashIndexes.size();
             hash["counter_denominator"] = learnCtr.CounterDenominator;
-            TModelCtrBase modelCtrBase;
-            modelCtrBase.Projection = proj;
-            modelCtrBase.CtrType = ctrType;
-            jsonValue.InsertValue(ModelCtrBaseToStr(modelCtrBase), hash);
+            jsonValue.InsertValue(ModelCtrBaseToStr(ctr->Base), hash);
         }
     }
     return jsonValue;
