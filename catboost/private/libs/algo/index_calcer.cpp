@@ -268,6 +268,8 @@ void GetObjectsDataAndIndexing(
         // learn
         if (isEstimated) {
             *columnIndexing = fold.GetLearnPermutationOfflineEstimatedFeaturesSubset().data();
+        } else if (fold.IsLearnPermutationFeaturesSubsetIdentity) {
+            *columnIndexing = nullptr;
         } else {
             *columnIndexing = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
         }

@@ -207,6 +207,11 @@ public:
     NCB::TFeaturesArraySubsetIndexing LearnPermutationFeaturesSubset
         = NCB::TFeaturesArraySubsetIndexing(NCB::TIndexedSubset<ui32>());
 
+    /* true if LearnPermutationFeaturesSubset is the identity mapping (objects are not shuffled
+     * and features buckets arrays are not subsets), so features data can be indexed by object index directly
+     */
+    bool IsLearnPermutationFeaturesSubsetIdentity = false;
+
     /* begin of subset of data in features buckets arrays, used only for permutation block index calculation
      * if (PermutationBlockSize != 1) && (PermutationBlockSize != learnSampleCount))
      */
