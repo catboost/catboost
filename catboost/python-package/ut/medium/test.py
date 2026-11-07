@@ -2145,6 +2145,25 @@ def test_custom_class_labels(loss_function, label_type, class_count, task_type):
         ]
 
 
+@pytest.mark.parametrize('class_labels', [[0, 1], [False, True], ['a', 'b'], [0, 1, 2], ['a', 'b', 'c']])
+@pytest.mark.parametrize('as_list', [False, True])
+def test_classifier_score_column_labels(class_labels, as_list):
+    data = np.repeat(np.arange(len(class_labels)), 3).reshape(-1, 1)
+    labels = np.repeat(class_labels, 3)
+    model = CatBoostClassifier(iterations=10, depth=2, learning_rate=1, verbose=False)
+    model.fit(data, labels.reshape(-1, 1))
+    assert np.array_equal(model.predict(data).reshape(-1), labels)
+
+    test_labels = labels.copy()
+    test_labels[0] = class_labels[1]
+    expected_score = (len(labels) - 1) / len(labels)
+    assert model.score(data, test_labels) == pytest.approx(expected_score)
+    column_labels = test_labels.reshape(-1, 1)
+    if as_list:
+        column_labels = column_labels.tolist()
+    assert model.score(data, column_labels) == pytest.approx(expected_score)
+
+
 def test_multiclass_custom_class_labels_from_files(task_type):
     labels = ['a', 'b', 'c', 'd']
 
