@@ -141,13 +141,6 @@ void TBlob::Append(char ch)
     }
 }
 
-void TBlob::ShrinkToFit()
-{
-    if (Capacity() >= Size() * 2 && Capacity() - Size() >= GetPageSize()) {
-        Reallocate(Size_);
-    }
-}
-
 void TBlob::Reset()
 {
     Begin_ = nullptr;
