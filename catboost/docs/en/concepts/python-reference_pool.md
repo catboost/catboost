@@ -503,6 +503,12 @@ Use only when the dataset is read from an input file.
 
 {% include [get_group_id-get_group_id__desc](../_includes/work_src/reusage-python/get_group_id__desc.md) %}
 
+**Method:** [get_group_weight](python-reference_pool_get_group_weight.md)
+
+#### Description
+
+{% include [get_group_weight-get_group_weight-desc](../_includes/work_src/reusage-python/get_group_weight-desc.md) %}
+
 **Method:** [get_label](python-reference_pool_get_label.md)
 
 #### Description
