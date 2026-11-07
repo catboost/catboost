@@ -9,3 +9,4 @@ bindgen = "~0.59"
 
 [features]
 gpu = []
+static-link = []
