@@ -415,6 +415,13 @@ static void InitPreparedTreesWithoutIndependent(
     ECalcTypeShapValues calcType,
     TShapPreparedTrees* preparedTrees
 ) {
+    CB_ENSURE(
+        model.IsOblivious()
+            || (calcType == ECalcTypeShapValues::Regular)
+            || (calcType == ECalcTypeShapValues::Approximate),
+        "'" << calcType << "' SHAP values calculation type is supported only for symmetric trees"
+    );
+
     const size_t treeCount = model.GetTreeCount();
     preparedTrees->CalcShapValuesByLeafForAllTrees = IsPrepareTreesCalcShapValues(
         model,

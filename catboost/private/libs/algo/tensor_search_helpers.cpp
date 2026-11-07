@@ -42,6 +42,8 @@ TSplit TCandidateInfo::GetSplit(
     const TQuantizedObjectsDataProvider& objectsData,
     ui32 oneHotMaxSize
 ) const {
+    CB_ENSURE_INTERNAL(binId >= 0, "GetSplit: invalid bin id " << binId);
+
     auto getCandidateType = [&] (EFeatureType featureType) {
         if (SplitEnsemble.IsEstimated) {
             return ESplitType::EstimatedFeature;
@@ -726,6 +728,10 @@ void SetBestScore(
     for (size_t subcandidateIdx = 0; subcandidateIdx < allScores.size(); ++subcandidateIdx) {
         double bestScoreInstance = MINIMAL_SCORE;
         auto& subcandidateInfo = (*subcandidates)[subcandidateIdx];
+        // Candidates are reused when scoring different leaves of a non-symmetric tree.
+        // Do not retain a previous leaf's split if no current score is usable.
+        subcandidateInfo.BestBinId = -1;
+        subcandidateInfo.BestScore = TRandomScore();
         const auto& scores = allScores[subcandidateIdx];
 
         auto scoreUpdateFunction = [&] (auto binFeatureIdx) {
