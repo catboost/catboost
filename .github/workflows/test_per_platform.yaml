@@ -336,14 +336,26 @@ jobs:
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark/projects/spark_3.5_2.12
           mvn --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark_core_resources/ -D"prebuilt.native.sources.jar"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark-impl-sources.jar test
 
+      - name: Upload JVM test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jvm-test-diagnostics-${{ inputs.os }}-${{ inputs.machine }}-${{ github.run_attempt }}
+          if-no-files-found: ignore
+          path: |
+            catboost/catboost/**/target/surefire-reports/**
+            catboost/catboost/**/hs_err_pid*.log
+            catboost/catboost/**/replay_pid*.log
+
       - if: inputs.os != 'macos'
         name: Check R package
         shell: pwsh
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
 
-          Rscript -e "install.packages('remotes', Ncpus = parallel::detectCores()); remotes::install_local('catboost_R_package/catboost-R-${{ inputs.os }}-${{ inputs.machine }}.tgz', INSTALL_opts = c('--no-multiarch', '--install-tests'))"
-          Rscript -e "install.packages(c('testthat','caret','tibble'), Ncpus = parallel::detectCores()); testthat::test_package('catboost')"
+          Rscript catboost/ci/install_r_packages.R remotes jsonlite testthat caret tibble
+          Rscript -e "remotes::install_local('catboost_R_package/catboost-R-${{ inputs.os }}-${{ inputs.machine }}.tgz', INSTALL_opts = c('--no-multiarch', '--install-tests'))"
+          Rscript -e "testthat::test_package('catboost')"
 
       - if: inputs.os == 'macos'
         name: Check R package
@@ -351,6 +363,7 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
 
-          Rscript -e "install.packages('remotes', Ncpus = parallel::detectCores()); remotes::install_local('catboost_R_package/catboost-R-darwin-universal2.tgz', INSTALL_opts = c('--no-multiarch', '--no-staged-install', '--install-tests'))"
-          Rscript -e "install.packages(c('testthat','caret','tibble'), Ncpus = parallel::detectCores()); testthat::test_package('catboost')"
+          Rscript catboost/ci/install_r_packages.R remotes jsonlite testthat caret tibble
+          Rscript -e "remotes::install_local('catboost_R_package/catboost-R-darwin-universal2.tgz', INSTALL_opts = c('--no-multiarch', '--no-staged-install', '--install-tests'))"
+          Rscript -e "testthat::test_package('catboost')"
 
