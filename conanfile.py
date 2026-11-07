@@ -21,7 +21,11 @@ class App(ConanFile):
 
     def generate(self):
         CMakeDeps(self).generate()
-        CMakeToolchain(self).generate()
+        toolchain = CMakeToolchain(self)
+        # CPU and CUDA configurations run concurrently from the same source tree.
+        # Keep generated presets in their own build folders, without a shared index.
+        toolchain.user_presets_path = False
+        toolchain.generate()
 
         for dep in self.dependencies.values():
             for bindir in dep.cpp_info.bindirs:
