@@ -22,12 +22,14 @@
 #include <util/generic/ylimits.h>
 #include <util/generic/ymath.h>
 #include <util/string/cast.h>
+#include <util/string/builder.h>
 #include <util/system/compiler.h>
 #include <util/system/unaligned_mem.h>
 
 #include <climits>
 #include <cstring>
 #include <limits>
+#include <stdexcept>
 #include <type_traits>
 
 
@@ -379,6 +381,16 @@ namespace NCB {
         }
     }
 
+    [[noreturn]] static void RethrowArrowColumnError(const ArrowSchema& schema) {
+        // Windows copies exceptions when transporting them through a future.
+        // yexception's TTempBuf has a non-atomic reference count, so its copies
+        // must not be destroyed concurrently by the worker and the caller.
+        // WaitAll converts this thread-safe exception back to TCatBoostException.
+        throw std::runtime_error((TStringBuilder()
+            << "Error while processing column '" << schema.name << "': "
+            << CurrentExceptionMessage()).c_str());
+    }
+
     void AsyncAddArrowNumColumn(
         ui32 flatFeatureIdx,
         PyObject* capsule,
@@ -468,8 +480,7 @@ namespace NCB {
                     builderVisitor->AddFloatFeature(flatFeatureIdx, std::move(result));
 
                 } catch (...) {
-                    ythrow TCatBoostException() << "Error while processing column '" << schema->Data.name << "': "
-                        << CurrentExceptionMessage();
+                    RethrowArrowColumnError(schema->Data);
                 }
             };
 
@@ -663,8 +674,7 @@ namespace NCB {
                         )
                     );
                 } catch (...) {
-                    ythrow TCatBoostException() << "Error while processing column '" << schema->Data.name << "': "
-                        << CurrentExceptionMessage();
+                    RethrowArrowColumnError(schema->Data);
                 }
             };
 
@@ -780,8 +790,7 @@ namespace NCB {
                     );
 
                 } catch (...) {
-                    ythrow TCatBoostException() << "Error while processing column '" << schema->Data.name << "': "
-                        << CurrentExceptionMessage();
+                    RethrowArrowColumnError(schema->Data);
                 }
             };
 
@@ -822,8 +831,7 @@ namespace NCB {
 
                     builderVisitor->AddTextFeature(flatFeatureIdx, result);
                 } catch (...) {
-                    ythrow TCatBoostException() << "Error while processing column '" << schema->Data.name << "': "
-                        << CurrentExceptionMessage();
+                    RethrowArrowColumnError(schema->Data);
                 }
             };
 

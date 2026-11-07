@@ -836,6 +836,30 @@ def test_categorical_column_error_waits_for_workers(invalid_dtype):
     assert _have_equal_features(actual, expected, ignore_cat_features_hash_to_string=True)
 
 
+@pytest.mark.parametrize('feature_type,data_type', [
+    ('categorical', pl.Int8),
+    ('categorical', pl.UInt32),
+    ('categorical', pl.UInt64),
+    ('categorical', pl.Boolean),
+    ('categorical', pl.String),
+    ('text', pl.String),
+])
+def test_null_column_errors_from_multiple_workers(feature_type, data_type):
+    value = 'value' if data_type == pl.String else True if data_type == pl.Boolean else 1
+    data = pl.DataFrame({
+        f'feature_{i}': pl.Series([value, None, value, None, value], dtype=data_type)
+        for i in range(30)
+    }).slice(1)
+    feature_args = {f'{"cat" if feature_type == "categorical" else "text"}_features': data.columns}
+    # Each worker throws. Repeatedly transport all errors back to the caller;
+    # exception copies on Windows must not race on their message storage.
+    for _ in range(100):
+        with pytest.raises(CatBoostError, match='null') as error:
+            Pool(data, thread_count=4, **feature_args)
+        for column in data.columns:
+            assert f"column '{column}'" in str(error.value)
+
+
 text_test_data_types_specs = [
     pl.Int32,
     pl.Float32,
