@@ -54,6 +54,36 @@ target_sources(model_ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/shrink_model_ut.cpp
 )
 
+if (HAVE_METAL)
+  target_sources(model_ut PRIVATE
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/categorical.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/progress_state_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/best_learn_snapshot_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/fixed_splits_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/greedy_simple_snapshot_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/symmetric_simple_snapshot_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/prior_estimator.cpp
+    ${PROJECT_SOURCE_DIR}/contrib/libs/gamma_function_apache_math_port/gamma_function.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctrs.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctrs_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctr_permutations_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctr_random_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/meta_l2_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/langevin_random_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/langevin_snapshot_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/model_based_snapshot_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctr_meta_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/feature_parallel_yeti_random_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/yeti_random_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctr_snapshot_ut.cpp
+    ${PROJECT_SOURCE_DIR}/catboost/metal/train_lib/tree_ctr_tensors_ut.cpp
+  )
+  target_link_libraries(model_ut PRIVATE
+    catboost-metal-native
+    data-ut-lib
+  )
+endif()
+
 
 set_property(
   TARGET
