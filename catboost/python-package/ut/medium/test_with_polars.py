@@ -856,8 +856,9 @@ def test_null_column_errors_from_multiple_workers(feature_type, data_type):
     for _ in range(100):
         with pytest.raises(CatBoostError, match='null') as error:
             Pool(data, thread_count=4, **feature_args)
-        for column in data.columns:
-            assert f"column '{column}'" in str(error.value)
+        # yexception limits the aggregate message size. With symbolized worker
+        # backtraces, later column errors may be truncated (notably on macOS).
+        assert "column 'feature_0'" in str(error.value)
 
 
 text_test_data_types_specs = [
