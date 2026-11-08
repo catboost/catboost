@@ -80,10 +80,6 @@ target_link_libraries(_catboost PUBLIC
   libs-gpu_config-maybe_have_cuda
 )
 
-target_allocator(_catboost
-  cpp-malloc-mimalloc
-)
-
 target_link_options(_catboost PRIVATE
   -headerpad_max_install_names
   -Wl,-platform_version,macos,11.0,11.0
