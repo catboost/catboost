@@ -6,6 +6,7 @@
 #include <util/stream/str.h>
 #include <util/string/join.h>
 #include <util/digest/multi.h>
+#include <util/system/unaligned_mem.h>
 
 Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
     using namespace NBlockCodecs;
@@ -14,6 +15,24 @@ Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
         TBuffer bb;
         bb.Assign(b.data(), b.size());
         return bb;
+    }
+
+    Y_UNIT_TEST(TestLz4SafeRejectsIncorrectDecompressedLength) {
+        const TString data(4096, 'a');
+        for (const auto& name : ListAllCodecs()) {
+            const auto* codec = Codec(name);
+            if (!codec->Name().StartsWith("lz4-") || !codec->Name().EndsWith("-safe")) {
+                continue;
+            }
+
+            const TString encoded = codec->Encode(data);
+            UNIT_ASSERT_VALUES_EQUAL(codec->Decode(encoded), data);
+            for (const ui64 length : {ui64(2048), ui64(32768)}) {
+                TString corrupt = encoded;
+                WriteUnaligned<ui64>(corrupt.begin(), length);
+                UNIT_ASSERT_EXCEPTION(codec->Decode(corrupt), TDataError);
+            }
+        }
     }
 
     void TestAllAtOnce(size_t n, size_t m) {

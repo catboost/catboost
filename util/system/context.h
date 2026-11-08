@@ -3,6 +3,7 @@
 #include "align.h"
 #include "defaults.h"
 #include "compiler.h"
+#include "context_config.h"
 
 #include <util/generic/array_ref.h>
 #include <util/generic/utility.h>
@@ -28,18 +29,6 @@
     #define _XOPEN_SOURCE 700
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
-#if defined(_bionic_) || defined(__IOS__)
-    #define USE_GENERIC_CONT
-#elif defined(_cygwin_)
-    #define USE_UCONTEXT_CONT
-#elif defined(_win_)
-    #define USE_FIBER_CONT
-#elif (defined(_x86_64_) || defined(_arm64_)) && !defined(_k1om_)
-    #define USE_JUMP_CONT
-#else
-    #define USE_UCONTEXT_CONT
 #endif
 
 #if defined(USE_JUMP_CONT)

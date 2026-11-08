@@ -551,7 +551,7 @@ static THolder<TNonSymmetricTreeNode> BuildTree(
     TConstArrayRef<TSplitNode> nodes,
     TConstArrayRef<TVector<double>> leafValues,
     TConstArrayRef<double> leafWeights,
-    std::function<TModelSplit(TSplit)> getModelSplit
+    const std::function<TModelSplit(const TSplit&)>& getModelSplit
 ) {
     auto finalNode = MakeHolder<TNonSymmetricTreeNode>();
     if (nodeIdx < 0) {
@@ -600,7 +600,7 @@ static void SaveModel(
 
     TModelTrees modelTrees;
     THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
-    const std::function<TModelSplit(TSplit)> getModelSplit = [&] (const TSplit& split) {
+    const std::function<TModelSplit(const TSplit&)> getModelSplit = [&] (const TSplit& split) {
         auto modelSplit = split.GetModelSplit(
             ctx,
             perfectHashedToHashedCatValuesMap,
@@ -623,7 +623,8 @@ static void SaveModel(
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             TVector<TModelSplit> modelSplits;
             Y_ASSERT(std::holds_alternative<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]));
-            TVector<TSplit> splits = std::get<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]).Splits;
+            const auto& splits = std::get<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]).Splits;
+            modelSplits.reserve(splits.size());
             for (const auto& split : splits) {
                 modelSplits.push_back(getModelSplit(split));
             }

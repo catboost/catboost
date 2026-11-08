@@ -37,7 +37,100 @@
         }                                                                   \
     }
 
+namespace {
+    template <typename TFrom, typename TTo>
+    constexpr bool TestConstexprConversion() {
+        TBitMap<137, TFrom> source;
+        source.Set(0).Set(7).Set(15).Set(31).Set(63).Set(64).Set(100).Set(136);
+        TBitMap<192, TTo> copy(source);
+        TBitMap<192, TTo> assigned;
+        assigned = source;
+        const TBitMap<192, TFrom> roundTrip(copy);
+        for (size_t bit = 0; bit < 192; ++bit) {
+            if (copy.Get(bit) != source.Get(bit) || assigned.Get(bit) != source.Get(bit) || roundTrip.Get(bit) != source.Get(bit)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template <typename TChunk, typename TExport>
+    constexpr bool TestConstexprExport() {
+        TBitMap<137, TChunk> bits;
+        for (size_t bit = 0; bit < bits.Size(); ++bit) {
+            if (bit % 7 < 3) {
+                bits.Set(bit);
+            }
+        }
+        for (size_t pos = 0; pos < 150; ++pos) {
+            TExport actual = 0;
+            bits.Export(pos, actual);
+            TExport expected = 0;
+            for (size_t bit = 0; bit < 8 * sizeof(TExport); ++bit) {
+                if (bits.Get(pos + bit)) {
+                    expected |= TExport{1} << bit;
+                }
+            }
+            if (actual != expected) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    constexpr bool TestConstexprCompare() {
+        const TBitMap<128> lowByte(0xff);
+        const TBitMap<128> highByte(0x100);
+#if defined(_big_endian_)
+        return lowByte.Compare(highByte) < 0 && highByte.Compare(lowByte) > 0;
+#else
+        return lowByte.Compare(highByte) > 0 && highByte.Compare(lowByte) < 0;
+#endif
+    }
+
+    template <typename TChunk>
+    void CheckConstexprBitMap() {
+        constexpr auto bits = [] {
+            TBitMap<131, TChunk> result;
+            result.Set(0).Set(63).Set(130);
+            result[64] = result[63];
+            result <<= 1;
+            result.Reset(1);
+            return result;
+        }();
+        static_assert(bits == TBitMap<131, TChunk>().Set(64).Set(65));
+        static_assert(THash<TBitMap<131, TChunk>>{}(bits) == bits.Hash());
+
+        static_assert(TestConstexprConversion<TChunk, ui8>());
+        static_assert(TestConstexprConversion<TChunk, ui16>());
+        static_assert(TestConstexprConversion<TChunk, ui32>());
+        static_assert(TestConstexprConversion<TChunk, ui64>());
+        static_assert(TestConstexprExport<TChunk, ui8>());
+        static_assert(TestConstexprExport<TChunk, ui16>());
+        static_assert(TestConstexprExport<TChunk, ui32>());
+        static_assert(TestConstexprExport<TChunk, ui64>());
+
+        UNIT_ASSERT((TestConstexprConversion<TChunk, ui8>()));
+        UNIT_ASSERT((TestConstexprConversion<TChunk, ui16>()));
+        UNIT_ASSERT((TestConstexprConversion<TChunk, ui32>()));
+        UNIT_ASSERT((TestConstexprConversion<TChunk, ui64>()));
+        UNIT_ASSERT((TestConstexprExport<TChunk, ui8>()));
+        UNIT_ASSERT((TestConstexprExport<TChunk, ui16>()));
+        UNIT_ASSERT((TestConstexprExport<TChunk, ui32>()));
+        UNIT_ASSERT((TestConstexprExport<TChunk, ui64>()));
+    }
+} // namespace
+
 Y_UNIT_TEST_SUITE(TBitMapTest) {
+    Y_UNIT_TEST(TestConstexpr) {
+        static_assert(TestConstexprCompare());
+        UNIT_ASSERT(TestConstexprCompare());
+        CheckConstexprBitMap<ui8>();
+        CheckConstexprBitMap<ui16>();
+        CheckConstexprBitMap<ui32>();
+        CheckConstexprBitMap<ui64>();
+    }
+
     Y_UNIT_TEST(TestBitMap) {
         TBitMap<101> bitmap;
 

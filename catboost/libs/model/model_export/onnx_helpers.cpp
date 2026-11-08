@@ -333,6 +333,7 @@ public:
         if (new_attr.name() == #attr) { \
             attr = &new_attr; \
         }
+
         if (isClassifierModel) {
             target_ids = nullptr;
             target_nodeids = nullptr;
@@ -573,7 +574,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
             size_t biasSize = bias.size();
             CB_ENSURE_INTERNAL(
                 biasSize == trees.GetDimensionsCount(),
-            "Inappropraite dimension of bias, should be " << trees.GetDimensionsCount() << " or 0, found " << biasSize);
+            "Inappropriate dimension of bias, should be " << trees.GetDimensionsCount() << " or 0, found " << biasSize);
             for (auto b : bias) {
                 treesAttributes.base_values->add_floats(b);
             }
@@ -599,7 +600,7 @@ static void ConfigureMetaInfo(const onnx::ModelProto& onnxModel, TFullModel* ful
         modelInfo[key] = value;
     }
 
-    fullModel->ModelInfo = modelInfo;
+    fullModel->ModelInfo = std::move(modelInfo);
 }
 
 
@@ -772,6 +773,6 @@ void NCB::NOnnx::ConvertOnnxToCatboostModel(const onnx::ModelProto& onnxModel, T
     //InitMetaData
     ConfigureMetaInfo(onnxModel, fullModel);
 
-    onnx::GraphProto onnxGraph = onnxModel.graph();
+    const onnx::GraphProto& onnxGraph = onnxModel.graph();
     ConfigureSymmetricTrees(onnxGraph, fullModel);
 }

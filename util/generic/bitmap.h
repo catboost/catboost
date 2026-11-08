@@ -3,8 +3,8 @@
 #include "fwd.h"
 #include "ptr.h"
 #include "bitops.h"
-#include "typetraits.h"
-#include "algorithm.h"
+#include "constant_evaluation.h"
+#include "mem_copy.h"
 #include "utility.h"
 
 #include <util/system/yassert.h>
@@ -12,9 +12,11 @@
 #include <util/str_stl.h>
 #include <util/ysaveload.h>
 
+#include <type_traits>
+
 namespace NBitMapPrivate {
     // Returns the number of bits set; result is in the most significant byte
-    inline ui64 ByteSums(ui64 x) {
+    constexpr ui64 ByteSums(ui64 x) {
         ui64 byteSums = x - ((x & 0xAAAAAAAAAAAAAAAAULL) >> 1);
 
         byteSums = (byteSums & 0x3333333333333333ULL) + ((byteSums >> 2) & 0x3333333333333333ULL);
@@ -25,129 +27,69 @@ namespace NBitMapPrivate {
 
     // better than intrinsics without -mpopcnt
     template <typename T>
-    static unsigned CountBitsPrivate(T v) noexcept {
+    static constexpr unsigned CountBitsPrivate(T v) noexcept {
         return static_cast<unsigned>(ByteSums(v) >> 56);
     }
 
-    template <typename TChunkType, size_t ExtraBits>
-    struct TSanitizeMask {
-        static constexpr TChunkType Value = ~((~TChunkType(0)) << ExtraBits);
-    };
-
-    template <typename TChunkType>
-    struct TSanitizeMask<TChunkType, 0> {
-        static constexpr TChunkType Value = (TChunkType)~TChunkType(0u);
-    };
-
     template <typename TTargetChunk, typename TSourceChunk>
-    struct TBigToSmallDataCopier {
-        static_assert(sizeof(TTargetChunk) < sizeof(TSourceChunk), "expect sizeof(TTargetChunk) < sizeof(TSourceChunk)");
-        static_assert(0 == sizeof(TSourceChunk) % sizeof(TTargetChunk), "expect 0 == sizeof(TSourceChunk) % sizeof(TTargetChunk)");
-
-        static constexpr size_t BLOCK_SIZE = sizeof(TSourceChunk) / sizeof(TTargetChunk);
-
-        union TCnv {
-            TSourceChunk BigData;
-            TTargetChunk SmallData[BLOCK_SIZE];
-        };
-
-        static inline void CopyChunk(TTargetChunk* target, TSourceChunk source) {
-            TCnv c;
-            c.BigData = source;
-#if defined(_big_endian_)
-            ::ReverseCopy(c.SmallData, c.SmallData + Y_ARRAY_SIZE(c.SmallData), target);
-#else
-            ::Copy(c.SmallData, c.SmallData + Y_ARRAY_SIZE(c.SmallData), target);
+    Y_FORCE_INLINE constexpr void CopyData(TTargetChunk* target, size_t targetSize, const TSourceChunk* source, size_t sourceSize) {
+        Y_ASSERT(targetSize * sizeof(TTargetChunk) >= sourceSize * sizeof(TSourceChunk));
+#if defined(_little_endian_)
+        if constexpr (sizeof(TTargetChunk) != sizeof(TSourceChunk)) {
+            if (!IsConstantEvaluated()) {
+                // Little-endian chunks have the same byte layout regardless of chunk width.
+                // Keep the runtime copy vectorizable; constant evaluation uses shifts below.
+                const size_t sourceBytes = sourceSize * sizeof(TSourceChunk);
+                const size_t targetBytes = targetSize * sizeof(TTargetChunk);
+                auto* targetData = reinterpret_cast<unsigned char*>(target);
+                MemMove(targetData, reinterpret_cast<const unsigned char*>(source), sourceBytes);
+                if (sourceBytes < targetBytes) {
+                    ::memset(targetData + sourceBytes, 0, targetBytes - sourceBytes);
+                }
+                return;
+            }
+        }
 #endif
-        }
-
-        static inline void Copy(TTargetChunk* target, size_t targetSize, const TSourceChunk* source, size_t sourceSize) {
-            Y_ASSERT(targetSize >= sourceSize * BLOCK_SIZE);
-            if (targetSize > sourceSize * BLOCK_SIZE) {
-                ::Fill(target + sourceSize * BLOCK_SIZE, target + targetSize, 0);
-            }
-            for (size_t i = 0; i < sourceSize; ++i) {
-                CopyChunk(target + i * BLOCK_SIZE, source[i]);
-            }
-        }
-    };
-
-    template <typename TTargetChunk, typename TSourceChunk>
-    struct TSmallToBigDataCopier {
-        static_assert(sizeof(TTargetChunk) > sizeof(TSourceChunk), "expect sizeof(TTargetChunk) > sizeof(TSourceChunk)");
-        static_assert(0 == sizeof(TTargetChunk) % sizeof(TSourceChunk), "expect 0 == sizeof(TTargetChunk) % sizeof(TSourceChunk)");
-
-        static constexpr size_t BLOCK_SIZE = sizeof(TTargetChunk) / sizeof(TSourceChunk);
-
-        union TCnv {
-            TSourceChunk SmallData[BLOCK_SIZE];
-            TTargetChunk BigData;
-        };
-
-        static inline TTargetChunk CopyFullChunk(const TSourceChunk* source) {
-            TCnv c;
-#if defined(_big_endian_)
-            ::ReverseCopy(source, source + BLOCK_SIZE, c.SmallData);
-#else
-            ::Copy(source, source + BLOCK_SIZE, c.SmallData);
-#endif
-            return c.BigData;
-        }
-
-        static inline TTargetChunk CopyPartChunk(const TSourceChunk* source, size_t count) {
-            Y_ASSERT(count <= BLOCK_SIZE);
-            TCnv c;
-            c.BigData = 0;
-#if defined(_big_endian_)
-            ::ReverseCopy(source, source + count, c.SmallData);
-#else
-            ::Copy(source, source + count, c.SmallData);
-#endif
-            return c.BigData;
-        }
-
-        static inline void Copy(TTargetChunk* target, size_t targetSize, const TSourceChunk* source, size_t sourceSize) {
-            Y_ASSERT(targetSize * BLOCK_SIZE >= sourceSize);
-            if (targetSize * BLOCK_SIZE > sourceSize) {
-                ::Fill(target + sourceSize / BLOCK_SIZE, target + targetSize, 0);
-            }
-            size_t i = 0;
-            for (; i < sourceSize / BLOCK_SIZE; ++i) {
-                target[i] = CopyFullChunk(source + i * BLOCK_SIZE);
-            }
-            if (0 != sourceSize % BLOCK_SIZE) {
-                target[i] = CopyPartChunk(source + i * BLOCK_SIZE, sourceSize % BLOCK_SIZE);
-            }
-        }
-    };
-
-    template <typename TChunk>
-    struct TUniformDataCopier {
-        static inline void Copy(TChunk* target, size_t targetSize, const TChunk* source, size_t sourceSize) {
-            Y_ASSERT(targetSize >= sourceSize);
+        if constexpr (sizeof(TTargetChunk) == sizeof(TSourceChunk)) {
             for (size_t i = 0; i < sourceSize; ++i) {
                 target[i] = source[i];
             }
             for (size_t i = sourceSize; i < targetSize; ++i) {
                 target[i] = 0;
             }
+        } else if constexpr (sizeof(TTargetChunk) < sizeof(TSourceChunk)) {
+            constexpr size_t blockSize = sizeof(TSourceChunk) / sizeof(TTargetChunk);
+            for (size_t i = 0; i < sourceSize; ++i) {
+                for (size_t j = 0; j < blockSize; ++j) {
+                    target[i * blockSize + j] = static_cast<TTargetChunk>(source[i] >> (j * 8 * sizeof(TTargetChunk)));
+                }
+            }
+            for (size_t i = sourceSize * blockSize; i < targetSize; ++i) {
+                target[i] = 0;
+            }
+        } else {
+            constexpr size_t blockSize = sizeof(TTargetChunk) / sizeof(TSourceChunk);
+            for (size_t i = 0; i < targetSize; ++i) {
+                TTargetChunk chunk = 0;
+                for (size_t j = 0; j < blockSize && i * blockSize + j < sourceSize; ++j) {
+                    chunk |= static_cast<TTargetChunk>(source[i * blockSize + j]) << (j * 8 * sizeof(TSourceChunk));
+                }
+                target[i] = chunk;
+            }
         }
-    };
+    }
 
-    template <typename TFirst, typename TSecond>
-    struct TIsSmaller {
-        enum {
-            Result = sizeof(TFirst) < sizeof(TSecond)
-        };
-    };
-
-    template <typename TTargetChunk, typename TSourceChunk>
-    struct TDataCopier: public std::conditional_t<std::is_same<TTargetChunk, TSourceChunk>::value, TUniformDataCopier<TTargetChunk>, std::conditional_t<TIsSmaller<TTargetChunk, TSourceChunk>::Result, TBigToSmallDataCopier<TTargetChunk, TSourceChunk>, TSmallToBigDataCopier<TTargetChunk, TSourceChunk>>> {
-    };
-
-    template <typename TTargetChunk, typename TSourceChunk>
-    inline void CopyData(TTargetChunk* target, size_t targetSize, const TSourceChunk* source, size_t sourceSize) {
-        TDataCopier<TTargetChunk, TSourceChunk>::Copy(target, targetSize, source, sourceSize);
+    template <typename T>
+    constexpr unsigned CountTrailingZeroBits(T value) noexcept {
+        if (!IsConstantEvaluated()) {
+            return ::CountTrailingZeroBits(value);
+        }
+        unsigned count = 0;
+        while (!(value & 1)) {
+            value >>= 1;
+            ++count;
+        }
+        return count;
     }
 
     template <size_t BitCount, typename TChunkType>
@@ -156,27 +98,27 @@ namespace NBitMapPrivate {
 
         static constexpr size_t Size = (BitCount + 8 * sizeof(TChunk) - 1) / (8 * sizeof(TChunk));
 
-        TChunk Data[Size];
+        TChunk Data[Size]{};
 
-        TFixedStorage() {
-            Zero(Data);
-        }
-
-        TFixedStorage(const TFixedStorage<BitCount, TChunkType>& st) {
+        constexpr TFixedStorage() = default;
+        // An element-wise copy lets the optimizer combine copying with subsequent bit operations.
+        constexpr TFixedStorage(const TFixedStorage& st) {
             for (size_t i = 0; i < Size; ++i) {
                 Data[i] = st.Data[i];
             }
         }
 
         template <typename TOtherChunk>
-        TFixedStorage(const TOtherChunk* data, size_t size) {
+        Y_FORCE_INLINE constexpr TFixedStorage(const TOtherChunk* data, size_t size) {
             Y_ABORT_UNLESS(Size * sizeof(TChunk) >= size * sizeof(TOtherChunk), "Exceeding bitmap storage capacity");
             CopyData(Data, Size, data, size);
         }
 
-        Y_FORCE_INLINE void Swap(TFixedStorage<BitCount, TChunkType>& st) {
+        Y_FORCE_INLINE constexpr void Swap(TFixedStorage<BitCount, TChunkType>& st) {
             for (size_t i = 0; i < Size; ++i) {
-                DoSwap(Data[i], st.Data[i]);
+                const TChunk tmp = Data[i];
+                Data[i] = st.Data[i];
+                st.Data[i] = tmp;
             }
         }
 
@@ -193,8 +135,11 @@ namespace NBitMapPrivate {
             return bitSize <= BitCount;
         }
 
-        Y_FORCE_INLINE void Sanitize() {
-            Data[Size - 1] &= TSanitizeMask<TChunk, BitCount % (8 * sizeof(TChunk))>::Value;
+        Y_FORCE_INLINE constexpr void Sanitize() {
+            constexpr size_t extraBits = BitCount % (8 * sizeof(TChunk));
+            if constexpr (extraBits != 0) {
+                Data[Size - 1] &= (TChunk{1} << extraBits) - 1;
+            }
         }
     };
 
@@ -284,16 +229,6 @@ namespace NBitMapPrivate {
         }
     };
 
-    template <size_t num>
-    struct TDivCount {
-        static constexpr size_t Value = 1 + TDivCount<(num >> 1)>::Value;
-    };
-
-    template <>
-    struct TDivCount<0> {
-        static constexpr size_t Value = 0;
-    };
-
 } // namespace NBitMapPrivate
 
 template <size_t BitCount, typename TChunkType>
@@ -315,12 +250,12 @@ public:
     using TThis = TBitMapOps<TTraits>;
 
 private:
-    static_assert(std::is_unsigned<TChunk>::value, "expect std::is_unsigned<TChunk>::value");
+    static_assert(std::is_unsigned_v<TChunk>, "expect std::is_unsigned_v<TChunk>");
 
     static constexpr size_t BitsPerChunk = 8 * sizeof(TChunk);
     static constexpr TChunk ModMask = static_cast<TChunk>(BitsPerChunk - 1);
-    static constexpr size_t DivCount = NBitMapPrivate::TDivCount<BitsPerChunk>::Value - 1;
-    static constexpr TChunk FullChunk = (TChunk)~TChunk(0);
+    static constexpr size_t DivCount = MostSignificantBitCT(BitsPerChunk);
+    static constexpr TChunk FullChunk = static_cast<TChunk>(~TChunk{0});
 
     template <class>
     friend class TBitMapOps;
@@ -340,7 +275,7 @@ public:
         TChunk* Chunk;
         size_t Offset;
 
-        TReference(TChunk* c, size_t offset)
+        constexpr TReference(TChunk* c, size_t offset)
             : Chunk(c)
             , Offset(offset)
         {
@@ -349,7 +284,7 @@ public:
     public:
         ~TReference() = default;
 
-        Y_FORCE_INLINE TReference& operator=(bool val) {
+        Y_FORCE_INLINE constexpr TReference& operator=(bool val) {
             if (val) {
                 *Chunk |= static_cast<TChunk>(1) << Offset;
             } else {
@@ -359,25 +294,19 @@ public:
             return *this;
         }
 
-        Y_FORCE_INLINE TReference& operator=(const TReference& ref) {
-            if (ref) {
-                *Chunk |= static_cast<TChunk>(1) << Offset;
-            } else {
-                *Chunk &= ~(static_cast<TChunk>(1) << Offset);
-            }
-
-            return *this;
+        Y_FORCE_INLINE constexpr TReference& operator=(const TReference& ref) {
+            return *this = static_cast<bool>(ref);
         }
 
-        Y_FORCE_INLINE bool operator~() const {
+        Y_FORCE_INLINE constexpr bool operator~() const {
             return 0 == (*Chunk & (static_cast<TChunk>(1) << Offset));
         }
 
-        Y_FORCE_INLINE operator bool() const {
+        Y_FORCE_INLINE constexpr operator bool() const {
             return 0 != (*Chunk & (static_cast<TChunk>(1) << Offset));
         }
 
-        Y_FORCE_INLINE TReference& Flip() {
+        Y_FORCE_INLINE constexpr TReference& Flip() {
             *Chunk ^= static_cast<TChunk>(1) << Offset;
             return *this;
         }
@@ -397,7 +326,7 @@ private:
     };
 
     template <class TUpdateOp>
-    void UpdateRange(size_t start, size_t end) {
+    constexpr void UpdateRange(size_t start, size_t end) {
         const size_t startChunk = start >> DivCount;
         const size_t startBitOffset = start & ModMask;
 
@@ -419,28 +348,28 @@ private:
     }
 
 public:
-    TBitMapOps() = default;
+    constexpr TBitMapOps() = default;
 
-    TBitMapOps(TChunk val) {
+    constexpr TBitMapOps(TChunk val) {
         Mask.Data[0] = val;
         Mask.Sanitize();
     }
 
-    TBitMapOps(const TThis&) = default;
+    constexpr TBitMapOps(const TThis&) = default;
 
     template <class T>
-    TBitMapOps(const TBitMapOps<T>& bitmap)
+    constexpr TBitMapOps(const TBitMapOps<T>& bitmap)
         : Mask(bitmap.Mask.Data, bitmap.Mask.GetChunkCapacity())
     {
         Mask.Sanitize();
     }
 
     template <class T>
-    Y_FORCE_INLINE bool operator==(const TBitMapOps<T>& bitmap) const {
+    Y_FORCE_INLINE constexpr bool operator==(const TBitMapOps<T>& bitmap) const {
         return Equal(bitmap);
     }
 
-    Y_FORCE_INLINE TThis& operator=(const TThis& bitmap) {
+    Y_FORCE_INLINE constexpr TThis& operator=(const TThis& bitmap) {
         if (this != &bitmap) {
             TThis bm(bitmap);
             Swap(bm);
@@ -449,79 +378,79 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE TThis& operator=(const TBitMapOps<T>& bitmap) {
+    Y_FORCE_INLINE constexpr TThis& operator=(const TBitMapOps<T>& bitmap) {
         TThis bm(bitmap);
         Swap(bm);
         return *this;
     }
 
     template <class T>
-    Y_FORCE_INLINE TThis& operator&=(const TBitMapOps<T>& bitmap) {
+    Y_FORCE_INLINE constexpr TThis& operator&=(const TBitMapOps<T>& bitmap) {
         return And(bitmap);
     }
 
-    Y_FORCE_INLINE TThis& operator&=(const TChunk& val) {
+    Y_FORCE_INLINE constexpr TThis& operator&=(const TChunk& val) {
         return And(val);
     }
 
     template <class T>
-    Y_FORCE_INLINE TThis& operator|=(const TBitMapOps<T>& bitmap) {
+    Y_FORCE_INLINE constexpr TThis& operator|=(const TBitMapOps<T>& bitmap) {
         return Or(bitmap);
     }
 
-    Y_FORCE_INLINE TThis& operator|=(const TChunk& val) {
+    Y_FORCE_INLINE constexpr TThis& operator|=(const TChunk& val) {
         return Or(val);
     }
 
     template <class T>
-    Y_FORCE_INLINE TThis& operator^=(const TBitMapOps<T>& bitmap) {
+    Y_FORCE_INLINE constexpr TThis& operator^=(const TBitMapOps<T>& bitmap) {
         return Xor(bitmap);
     }
 
-    Y_FORCE_INLINE TThis& operator^=(const TChunk& val) {
+    Y_FORCE_INLINE constexpr TThis& operator^=(const TChunk& val) {
         return Xor(val);
     }
 
     template <class T>
-    Y_FORCE_INLINE TThis& operator-=(const TBitMapOps<T>& bitmap) {
+    Y_FORCE_INLINE constexpr TThis& operator-=(const TBitMapOps<T>& bitmap) {
         return SetDifference(bitmap);
     }
 
-    Y_FORCE_INLINE TThis& operator-=(const TChunk& val) {
+    Y_FORCE_INLINE constexpr TThis& operator-=(const TChunk& val) {
         return SetDifference(val);
     }
 
-    Y_FORCE_INLINE TThis& operator<<=(size_t pos) {
+    Y_FORCE_INLINE constexpr TThis& operator<<=(size_t pos) {
         return LShift(pos);
     }
 
-    Y_FORCE_INLINE TThis& operator>>=(size_t pos) {
+    Y_FORCE_INLINE constexpr TThis& operator>>=(size_t pos) {
         return RShift(pos);
     }
 
-    Y_FORCE_INLINE TThis operator<<(size_t pos) const {
+    Y_FORCE_INLINE constexpr TThis operator<<(size_t pos) const {
         return TThis(*this).LShift(pos);
     }
 
-    Y_FORCE_INLINE TThis operator>>(size_t pos) const {
+    Y_FORCE_INLINE constexpr TThis operator>>(size_t pos) const {
         return TThis(*this).RShift(pos);
     }
 
-    Y_FORCE_INLINE bool operator[](size_t pos) const {
+    Y_FORCE_INLINE constexpr bool operator[](size_t pos) const {
         return Get(pos);
     }
 
-    Y_FORCE_INLINE TReference operator[](size_t pos) {
+    Y_FORCE_INLINE constexpr TReference operator[](size_t pos) {
         const bool fitStorage = Mask.ExpandBitSize(pos + 1);
         Y_ASSERT(fitStorage);
         return TReference(&Mask.Data[pos >> DivCount], ModMask & pos);
     }
 
-    Y_FORCE_INLINE void Swap(TThis& bitmap) {
-        DoSwap(Mask, bitmap.Mask);
+    Y_FORCE_INLINE constexpr void Swap(TThis& bitmap) {
+        Mask.Swap(bitmap.Mask);
     }
 
-    Y_FORCE_INLINE TThis& Set(size_t pos) {
+    Y_FORCE_INLINE constexpr TThis& Set(size_t pos) {
         const bool fitStorage = Mask.ExpandBitSize(pos + 1);
         Y_ASSERT(fitStorage);
         Mask.Data[pos >> DivCount] |= static_cast<TChunk>(1) << (pos & ModMask);
@@ -529,7 +458,7 @@ public:
     }
 
     // Fills the specified [start, end) bit range by the 1. Other bits are kept unchanged
-    TThis& Set(size_t start, size_t end) {
+    constexpr TThis& Set(size_t start, size_t end) {
         Y_ASSERT(start <= end);
         if (start < end) {
             Reserve(end);
@@ -538,7 +467,7 @@ public:
         return *this;
     }
 
-    Y_FORCE_INLINE TThis& Reset(size_t pos) {
+    Y_FORCE_INLINE constexpr TThis& Reset(size_t pos) {
         if ((pos >> DivCount) < Mask.GetChunkCapacity()) {
             Mask.Data[pos >> DivCount] &= ~(static_cast<TChunk>(1) << (pos & ModMask));
         }
@@ -546,7 +475,7 @@ public:
     }
 
     // Clears the specified [start, end) bit range. Other bits are kept unchanged
-    TThis& Reset(size_t start, size_t end) {
+    constexpr TThis& Reset(size_t start, size_t end) {
         Y_ASSERT(start <= end);
         if (start < end && (start >> DivCount) < Mask.GetChunkCapacity()) {
             UpdateRange<TResetOp>(start, Min(end, Mask.GetBitCapacity()));
@@ -554,14 +483,14 @@ public:
         return *this;
     }
 
-    Y_FORCE_INLINE TThis& Flip(size_t pos) {
+    Y_FORCE_INLINE constexpr TThis& Flip(size_t pos) {
         const bool fitStorage = Mask.ExpandBitSize(pos + 1);
         Y_ASSERT(fitStorage);
         Mask.Data[pos >> DivCount] ^= static_cast<TChunk>(1) << (pos & ModMask);
         return *this;
     }
 
-    Y_FORCE_INLINE bool Get(size_t pos) const {
+    Y_FORCE_INLINE constexpr bool Get(size_t pos) const {
         if ((pos >> DivCount) < Mask.GetChunkCapacity()) {
             return Mask.Data[pos >> DivCount] & (static_cast<TChunk>(1) << (pos & ModMask));
         }
@@ -569,46 +498,36 @@ public:
     }
 
     template <class TTo>
-    void Export(size_t pos, TTo& to) const {
-        static_assert(std::is_unsigned<TTo>::value, "expect std::is_unsigned<TTo>::value");
+    constexpr void Export(size_t pos, TTo& to) const {
+        static_assert(std::is_unsigned_v<TTo>, "expect std::is_unsigned_v<TTo>");
+        using TExport = std::common_type_t<unsigned int, TTo>;
         to = 0;
-        size_t chunkpos = pos >> DivCount;
-        if (chunkpos >= Mask.GetChunkCapacity()) {
-            return;
-        }
-        if ((pos & ModMask) == 0) {
-            if (sizeof(TChunk) >= sizeof(TTo)) {
-                to = (TTo)Mask.Data[chunkpos];
-            } else { // if (sizeof(TChunk) < sizeof(TTo))
-                NBitMapPrivate::CopyData(&to, 1, Mask.Data + chunkpos, Min(((sizeof(TTo) * 8) >> DivCount), Mask.GetChunkCapacity() - chunkpos));
-            }
-        } else if ((pos & (sizeof(TTo) * 8 - 1)) == 0 && sizeof(TChunk) >= 2 * sizeof(TTo)) {
-            to = (TTo)(Mask.Data[chunkpos] >> (pos & ModMask));
-        } else {
-            static constexpr size_t copyToSize = (sizeof(TChunk) >= sizeof(TTo)) ? (sizeof(TChunk) / sizeof(TTo)) + 2 : 3;
-            TTo temp[copyToSize] = {0, 0};
-            // or use non defined by now TBitmap<copyToSize, TTo>::CopyData,RShift(pos & ModMask),Export(0,to)
-            NBitMapPrivate::CopyData(temp, copyToSize, Mask.Data + chunkpos, Min((sizeof(TTo) / sizeof(TChunk)) + 1, Mask.GetChunkCapacity() - chunkpos));
-            to = (temp[0] >> (pos & ModMask)) | (temp[1] << (8 * sizeof(TTo) - (pos & ModMask)));
+        size_t chunk = pos >> DivCount;
+        size_t offset = pos & ModMask;
+        for (size_t written = 0; written < 8 * sizeof(TTo) && chunk < Mask.GetChunkCapacity(); ++chunk) {
+            to |= static_cast<TExport>(Mask.Data[chunk] >> offset) << written;
+            written += Min(BitsPerChunk - offset, 8 * sizeof(TTo) - written);
+            offset = 0;
         }
     }
 
-    Y_FORCE_INLINE bool Test(size_t n) const {
+    Y_FORCE_INLINE constexpr bool Test(size_t n) const {
         return Get(n);
     }
 
-    Y_FORCE_INLINE TThis& Push(bool val) {
+    Y_FORCE_INLINE constexpr TThis& Push(bool val) {
         LShift(1);
         return val ? Set(0) : *this;
     }
 
-    Y_FORCE_INLINE bool Pop() {
+    Y_FORCE_INLINE constexpr bool Pop() {
         bool val = Get(0);
-        return RShift(1), val;
+        RShift(1);
+        return val;
     }
 
     // Clear the entire bitmap. Current capacity is kept unchanged
-    Y_FORCE_INLINE TThis& Clear() {
+    Y_FORCE_INLINE constexpr TThis& Clear() {
         for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] = 0;
         }
@@ -620,21 +539,26 @@ public:
         return Mask.GetBitCapacity();
     }
 
-    Y_FORCE_INLINE void Reserve(size_t bitCount) {
+    Y_FORCE_INLINE constexpr void Reserve(size_t bitCount) {
         Y_ABORT_UNLESS(Mask.ExpandBitSize(bitCount), "Exceeding bitmap storage capacity");
     }
 
-    Y_FORCE_INLINE size_t ValueBitCount() const {
+    Y_FORCE_INLINE constexpr size_t ValueBitCount() const {
         size_t nonZeroChunk = Mask.GetChunkCapacity() - 1;
         while (nonZeroChunk != 0 && !Mask.Data[nonZeroChunk]) {
             --nonZeroChunk;
         }
-        return nonZeroChunk || Mask.Data[nonZeroChunk]
-                   ? nonZeroChunk * BitsPerChunk + GetValueBitCount(TIntType(Mask.Data[nonZeroChunk]))
-                   : 0;
+        const TChunk value = Mask.Data[nonZeroChunk];
+        if (!value) {
+            return 0;
+        }
+        const size_t chunkBits = IsConstantEvaluated()
+                                     ? MostSignificantBitCT(value) + 1
+                                     : GetValueBitCount(static_cast<TIntType>(value));
+        return nonZeroChunk * BitsPerChunk + chunkBits;
     }
 
-    Y_PURE_FUNCTION Y_FORCE_INLINE bool Empty() const {
+    Y_PURE_FUNCTION Y_FORCE_INLINE constexpr bool Empty() const {
         for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i) {
             if (Mask.Data[i]) {
                 return false;
@@ -643,7 +567,7 @@ public:
         return true;
     }
 
-    bool HasAny(const TThis& bitmap) const {
+    constexpr bool HasAny(const TThis& bitmap) const {
         for (size_t i = 0; i < Min(Mask.GetChunkCapacity(), bitmap.Mask.GetChunkCapacity()); ++i) {
             if (0 != (Mask.Data[i] & bitmap.Mask.Data[i])) {
                 return true;
@@ -653,15 +577,15 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE bool HasAny(const TBitMapOps<T>& bitmap) const {
+    Y_FORCE_INLINE constexpr bool HasAny(const TBitMapOps<T>& bitmap) const {
         return HasAny(TThis(bitmap));
     }
 
-    Y_FORCE_INLINE bool HasAny(const TChunk& val) const {
+    Y_FORCE_INLINE constexpr bool HasAny(const TChunk& val) const {
         return 0 != (Mask.Data[0] & val);
     }
 
-    bool HasAll(const TThis& bitmap) const {
+    constexpr bool HasAll(const TThis& bitmap) const {
         for (size_t i = 0; i < Min(Mask.GetChunkCapacity(), bitmap.Mask.GetChunkCapacity()); ++i) {
             if (bitmap.Mask.Data[i] != (Mask.Data[i] & bitmap.Mask.Data[i])) {
                 return false;
@@ -676,15 +600,15 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE bool HasAll(const TBitMapOps<T>& bitmap) const {
+    Y_FORCE_INLINE constexpr bool HasAll(const TBitMapOps<T>& bitmap) const {
         return HasAll(TThis(bitmap));
     }
 
-    Y_FORCE_INLINE bool HasAll(const TChunk& val) const {
+    Y_FORCE_INLINE constexpr bool HasAll(const TChunk& val) const {
         return (Mask.Data[0] & val) == val;
     }
 
-    TThis& And(const TThis& bitmap) {
+    constexpr TThis& And(const TThis& bitmap) {
         // Don't expand capacity here, because resulting bits in positions
         // that are greater than the size of one of these bitmaps will be zero
         for (size_t i = 0; i < Min(bitmap.Mask.GetChunkCapacity(), Mask.GetChunkCapacity()); ++i) {
@@ -698,11 +622,11 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE TThis& And(const TBitMapOps<T>& bitmap) {
+    Y_FORCE_INLINE constexpr TThis& And(const TBitMapOps<T>& bitmap) {
         return And(TThis(bitmap));
     }
 
-    Y_FORCE_INLINE TThis& And(const TChunk& val) {
+    Y_FORCE_INLINE constexpr TThis& And(const TChunk& val) {
         Mask.Data[0] &= val;
         for (size_t i = 1; i < Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] = 0;
@@ -710,7 +634,7 @@ public:
         return *this;
     }
 
-    TThis& Or(const TThis& bitmap) {
+    constexpr TThis& Or(const TThis& bitmap) {
         const size_t valueBitCount = bitmap.ValueBitCount();
         if (valueBitCount) {
             // Memory optimization: expand size only for non-zero bits
@@ -723,17 +647,17 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE TThis& Or(const TBitMapOps<T>& bitmap) {
+    Y_FORCE_INLINE constexpr TThis& Or(const TBitMapOps<T>& bitmap) {
         return Or(TThis(bitmap));
     }
 
-    Y_FORCE_INLINE TThis& Or(const TChunk& val) {
+    Y_FORCE_INLINE constexpr TThis& Or(const TChunk& val) {
         Mask.Data[0] |= val;
         Mask.Sanitize();
         return *this;
     }
 
-    TThis& Xor(const TThis& bitmap) {
+    constexpr TThis& Xor(const TThis& bitmap) {
         Reserve(bitmap.Size());
         for (size_t i = 0; i < bitmap.Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] ^= bitmap.Mask.Data[i];
@@ -742,17 +666,17 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE TThis& Xor(const TBitMapOps<T>& bitmap) {
+    Y_FORCE_INLINE constexpr TThis& Xor(const TBitMapOps<T>& bitmap) {
         return Xor(TThis(bitmap));
     }
 
-    Y_FORCE_INLINE TThis& Xor(const TChunk& val) {
+    Y_FORCE_INLINE constexpr TThis& Xor(const TChunk& val) {
         Mask.Data[0] ^= val;
         Mask.Sanitize();
         return *this;
     }
 
-    TThis& SetDifference(const TThis& bitmap) {
+    constexpr TThis& SetDifference(const TThis& bitmap) {
         for (size_t i = 0; i < Min(bitmap.Mask.GetChunkCapacity(), Mask.GetChunkCapacity()); ++i) {
             Mask.Data[i] &= ~bitmap.Mask.Data[i];
         }
@@ -760,16 +684,16 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE TThis& SetDifference(const TBitMapOps<T>& bitmap) {
+    Y_FORCE_INLINE constexpr TThis& SetDifference(const TBitMapOps<T>& bitmap) {
         return SetDifference(TThis(bitmap));
     }
 
-    Y_FORCE_INLINE TThis& SetDifference(const TChunk& val) {
+    Y_FORCE_INLINE constexpr TThis& SetDifference(const TChunk& val) {
         Mask.Data[0] &= ~val;
         return *this;
     }
 
-    Y_FORCE_INLINE TThis& Flip() {
+    Y_FORCE_INLINE constexpr TThis& Flip() {
         for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] = ~Mask.Data[i];
         }
@@ -777,7 +701,7 @@ public:
         return *this;
     }
 
-    TThis& LShift(size_t shift) {
+    constexpr TThis& LShift(size_t shift) {
         if (shift != 0) {
             const size_t valueBitCount = ValueBitCount();
             // Do nothing for the empty bitmap
@@ -790,8 +714,8 @@ public:
                 Mask.ExpandBitSize(valueBitCount + shift);
 
                 if (offset == 0) {
-                    for (size_t i = Mask.GetChunkCapacity() - 1; i >= eshift; --i) {
-                        Mask.Data[i] = Mask.Data[i - eshift];
+                    for (size_t i = Mask.GetChunkCapacity(); i > eshift; --i) {
+                        Mask.Data[i - 1] = Mask.Data[i - eshift - 1];
                     }
                 } else {
                     for (size_t i = Mask.GetChunkCapacity() - 1; i > eshift; --i) {
@@ -812,7 +736,7 @@ public:
         return *this;
     }
 
-    TThis& RShift(size_t shift) {
+    constexpr TThis& RShift(size_t shift) {
         if (shift != 0) {
             const size_t eshift = shift / BitsPerChunk;
             const size_t offset = shift % BitsPerChunk;
@@ -845,7 +769,7 @@ public:
     // Applies bitmap at the specified offset using OR operator.
     // This method is an optimized combination of Or() and LShift(), which allows reducing memory allocation
     // when combining long dynamic bitmaps.
-    TThis& Or(const TThis& bitmap, size_t offset) {
+    constexpr TThis& Or(const TThis& bitmap, size_t offset) {
         if (0 == offset) {
             return Or(bitmap);
         }
@@ -878,7 +802,7 @@ public:
         return *this;
     }
 
-    bool Equal(const TThis& bitmap) const {
+    constexpr bool Equal(const TThis& bitmap) const {
         if (Mask.GetChunkCapacity() > bitmap.Mask.GetChunkCapacity()) {
             for (size_t i = bitmap.Mask.GetChunkCapacity(); i < Mask.GetChunkCapacity(); ++i) {
                 if (0 != Mask.Data[i]) {
@@ -902,13 +826,28 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE bool Equal(const TBitMapOps<T>& bitmap) const {
+    Y_FORCE_INLINE constexpr bool Equal(const TBitMapOps<T>& bitmap) const {
         return Equal(TThis(bitmap));
     }
 
-    int Compare(const TThis& bitmap) const {
+    constexpr int Compare(const TThis& bitmap) const {
         size_t size = Min(Mask.GetChunkCapacity(), bitmap.Mask.GetChunkCapacity());
-        int res = ::memcmp(Mask.Data, bitmap.Mask.Data, size * sizeof(TChunk));
+        int res = 0;
+        if (IsConstantEvaluated()) {
+            // Preserve memcmp's byte order, including on big-endian platforms.
+            for (size_t i = 0; i < size && res == 0; ++i) {
+                for (size_t byte = 0; byte < sizeof(TChunk) && res == 0; ++byte) {
+#if defined(_big_endian_)
+                    const size_t shift = 8 * (sizeof(TChunk) - byte - 1);
+#else
+                    const size_t shift = 8 * byte;
+#endif
+                    res = int(static_cast<ui8>(Mask.Data[i] >> shift)) - int(static_cast<ui8>(bitmap.Mask.Data[i] >> shift));
+                }
+            }
+        } else {
+            res = ::memcmp(Mask.Data, bitmap.Mask.Data, size * sizeof(TChunk));
+        }
         if (0 != res || Mask.GetChunkCapacity() == bitmap.Mask.GetChunkCapacity()) {
             return res;
         }
@@ -930,20 +869,20 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE int Compare(const TBitMapOps<T>& bitmap) const {
+    Y_FORCE_INLINE constexpr int Compare(const TBitMapOps<T>& bitmap) const {
         return Compare(TThis(bitmap));
     }
 
     // For backward compatibility
-    Y_FORCE_INLINE static int Compare(const TThis& l, const TThis& r) {
+    Y_FORCE_INLINE static constexpr int Compare(const TThis& l, const TThis& r) {
         return l.Compare(r);
     }
 
-    size_t FirstNonZeroBit() const {
+    constexpr size_t FirstNonZeroBit() const {
         for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i) {
             if (Mask.Data[i]) {
                 // CountTrailingZeroBits() expects unsigned types not smaller than unsigned int. So, convert before calling
-                return BitsPerChunk * i + CountTrailingZeroBits(TIntType(Mask.Data[i]));
+                return BitsPerChunk * i + NBitMapPrivate::CountTrailingZeroBits(TIntType(Mask.Data[i]));
             }
         }
         return Size();
@@ -955,16 +894,16 @@ public:
     //     ...
     // }
     // See Y_FOR_EACH_BIT macro definition at the bottom
-    size_t NextNonZeroBit(size_t pos) const {
+    constexpr size_t NextNonZeroBit(size_t pos) const {
         size_t i = (pos + 1) >> DivCount;
         if (i < Mask.GetChunkCapacity()) {
             const size_t offset = (pos + 1) & ModMask;
             // Process the current chunk
             if (offset) {
                 // Zero already iterated trailing bits using mask
-                const TChunk val = Mask.Data[i] & ((~TChunk(0)) << offset);
+                const TChunk val = Mask.Data[i] & (FullChunk << offset);
                 if (val) {
-                    return BitsPerChunk * i + CountTrailingZeroBits(TIntType(val));
+                    return BitsPerChunk * i + NBitMapPrivate::CountTrailingZeroBits(TIntType(val));
                 }
                 // Continue with other chunks
                 ++i;
@@ -972,14 +911,14 @@ public:
 
             for (; i < Mask.GetChunkCapacity(); ++i) {
                 if (Mask.Data[i]) {
-                    return BitsPerChunk * i + CountTrailingZeroBits(TIntType(Mask.Data[i]));
+                    return BitsPerChunk * i + NBitMapPrivate::CountTrailingZeroBits(TIntType(Mask.Data[i]));
                 }
             }
         }
         return Size();
     }
 
-    Y_FORCE_INLINE size_t Count() const {
+    Y_FORCE_INLINE constexpr size_t Count() const {
         size_t count = 0;
         for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i) {
             count += ::NBitMapPrivate::CountBitsPrivate(Mask.Data[i]);
@@ -1015,7 +954,7 @@ public:
         Mask.Sanitize();
     }
 
-    inline size_t Hash() const {
+    constexpr size_t Hash() const {
         THash<TChunk> chunkHasher;
 
         size_t hash = chunkHasher(0);
@@ -1030,7 +969,7 @@ public:
         return hash;
     }
 
-    inline const TChunk* GetChunks() const {
+    constexpr const TChunk* GetChunks() const {
         return Mask.Data;
     }
 
@@ -1040,67 +979,67 @@ public:
 };
 
 template <class X, class Y>
-inline TBitMapOps<X> operator&(const TBitMapOps<X>& x, const TBitMapOps<Y>& y) {
+constexpr TBitMapOps<X> operator&(const TBitMapOps<X>& x, const TBitMapOps<Y>& y) {
     return TBitMapOps<X>(x).And(y);
 }
 
 template <class X>
-inline TBitMapOps<X> operator&(const TBitMapOps<X>& x, const typename TBitMapOps<X>::TChunk& y) {
+constexpr TBitMapOps<X> operator&(const TBitMapOps<X>& x, const typename TBitMapOps<X>::TChunk& y) {
     return TBitMapOps<X>(x).And(y);
 }
 
 template <class X>
-inline TBitMapOps<X> operator&(const typename TBitMapOps<X>::TChunk& x, const TBitMapOps<X>& y) {
+constexpr TBitMapOps<X> operator&(const typename TBitMapOps<X>::TChunk& x, const TBitMapOps<X>& y) {
     return TBitMapOps<X>(x).And(y);
 }
 
 template <class X, class Y>
-inline TBitMapOps<X> operator|(const TBitMapOps<X>& x, const TBitMapOps<Y>& y) {
+constexpr TBitMapOps<X> operator|(const TBitMapOps<X>& x, const TBitMapOps<Y>& y) {
     return TBitMapOps<X>(x).Or(y);
 }
 
 template <class X>
-inline TBitMapOps<X> operator|(const TBitMapOps<X>& x, const typename TBitMapOps<X>::TChunk& y) {
+constexpr TBitMapOps<X> operator|(const TBitMapOps<X>& x, const typename TBitMapOps<X>::TChunk& y) {
     return TBitMapOps<X>(x).Or(y);
 }
 
 template <class X>
-inline TBitMapOps<X> operator|(const typename TBitMapOps<X>::TChunk& x, const TBitMapOps<X>& y) {
+constexpr TBitMapOps<X> operator|(const typename TBitMapOps<X>::TChunk& x, const TBitMapOps<X>& y) {
     return TBitMapOps<X>(x).Or(y);
 }
 
 template <class X, class Y>
-inline TBitMapOps<X> operator^(const TBitMapOps<X>& x, const TBitMapOps<Y>& y) {
+constexpr TBitMapOps<X> operator^(const TBitMapOps<X>& x, const TBitMapOps<Y>& y) {
     return TBitMapOps<X>(x).Xor(y);
 }
 
 template <class X>
-inline TBitMapOps<X> operator^(const TBitMapOps<X>& x, const typename TBitMapOps<X>::TChunk& y) {
+constexpr TBitMapOps<X> operator^(const TBitMapOps<X>& x, const typename TBitMapOps<X>::TChunk& y) {
     return TBitMapOps<X>(x).Xor(y);
 }
 
 template <class X>
-inline TBitMapOps<X> operator^(const typename TBitMapOps<X>::TChunk& x, const TBitMapOps<X>& y) {
+constexpr TBitMapOps<X> operator^(const typename TBitMapOps<X>::TChunk& x, const TBitMapOps<X>& y) {
     return TBitMapOps<X>(x).Xor(y);
 }
 
 template <class X, class Y>
-inline TBitMapOps<X> operator-(const TBitMapOps<X>& x, const TBitMapOps<Y>& y) {
+constexpr TBitMapOps<X> operator-(const TBitMapOps<X>& x, const TBitMapOps<Y>& y) {
     return TBitMapOps<X>(x).SetDifference(y);
 }
 
 template <class X>
-inline TBitMapOps<X> operator-(const TBitMapOps<X>& x, const typename TBitMapOps<X>::TChunk& y) {
+constexpr TBitMapOps<X> operator-(const TBitMapOps<X>& x, const typename TBitMapOps<X>::TChunk& y) {
     return TBitMapOps<X>(x).SetDifference(y);
 }
 
 template <class X>
-inline TBitMapOps<X> operator-(const typename TBitMapOps<X>::TChunk& x, const TBitMapOps<X>& y) {
+constexpr TBitMapOps<X> operator-(const typename TBitMapOps<X>::TChunk& x, const TBitMapOps<X>& y) {
     return TBitMapOps<X>(x).SetDifference(y);
 }
 
 template <class X>
-inline TBitMapOps<X> operator~(const TBitMapOps<X>& x) {
+constexpr TBitMapOps<X> operator~(const TBitMapOps<X>& x) {
     return TBitMapOps<X>(x).Flip();
 }
 
@@ -1112,21 +1051,18 @@ private:
     using TBase = TBitMapOps<TFixedBitMapTraits<BitCount, TChunkType>>;
 
 public:
-    TBitMap()
-        : TBase()
-    {
-    }
+    constexpr TBitMap() = default;
 
-    TBitMap(typename TBase::TChunk val)
+    constexpr TBitMap(typename TBase::TChunk val)
         : TBase(val)
     {
     }
 
-    TBitMap(const TBitMap&) = default;
-    TBitMap& operator=(const TBitMap&) = default;
+    constexpr TBitMap(const TBitMap&) = default;
+    constexpr TBitMap& operator=(const TBitMap&) = default;
 
     template <class T>
-    TBitMap(const TBitMapOps<T>& bitmap)
+    constexpr TBitMap(const TBitMapOps<T>& bitmap)
         : TBase(bitmap)
     {
     }
@@ -1138,7 +1074,11 @@ using TDynBitMap = TBitMapOps<TDynamicBitMapTraits<ui64>>;
 
 template <typename TTraits>
 struct THash<TBitMapOps<TTraits>> {
-    size_t operator()(const TBitMapOps<TTraits>& elem) const {
+    constexpr size_t operator()(const TBitMapOps<TTraits>& elem) const {
         return elem.Hash();
     }
+};
+
+template <size_t BitCount, typename TChunkType>
+struct THash<TBitMap<BitCount, TChunkType>>: THash<TBitMapOps<TFixedBitMapTraits<BitCount, TChunkType>>> {
 };

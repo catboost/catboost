@@ -546,10 +546,10 @@ namespace NTestIntrusiveConvertion {
     void Func(TIntrusivePtr<TB>) {
     }
 
-    void Func(TIntrusiveConstPtr<TA>) {
+    void FuncConst(TIntrusiveConstPtr<TA>) {
     }
 
-    void Func(TIntrusiveConstPtr<TB>) {
+    void FuncConst(TIntrusiveConstPtr<TB>) {
     }
 } // namespace NTestIntrusiveConvertion
 
@@ -567,6 +567,7 @@ void TPointerTest::TestIntrusiveConvertion() {
 
     // test that Func(TIntrusivePtr<TB>) doesn't participate in overload resolution
     Func(aa);
+    FuncConst(aa);
 }
 
 void TPointerTest::TestIntrusiveConstConvertion() {
@@ -582,7 +583,7 @@ void TPointerTest::TestIntrusiveConstConvertion() {
     UNIT_ASSERT_VALUES_EQUAL(a->RefCount(), 1);
 
     // test that Func(TIntrusiveConstPtr<TB>) doesn't participate in overload resolution
-    Func(aa);
+    FuncConst(aa);
 }
 
 void TPointerTest::TestMakeIntrusive() {

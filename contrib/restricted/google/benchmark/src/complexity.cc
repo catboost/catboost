@@ -19,7 +19,9 @@
 
 #include <cmath>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/reporter.h"
+#include "benchmark/statistics.h"
+#include "benchmark/types.h"
 #include "check.h"
 
 namespace benchmark {
@@ -113,7 +115,9 @@ LeastSq MinimalLeastSq(const std::vector<ComplexityN>& n,
 
   // Normalized RMS by the mean of the observed values
   double mean = sigma_time / static_cast<double>(n.size());
-  result.rms = std::sqrt(rms / static_cast<double>(n.size())) / mean;
+  result.rms = std::fpclassify(mean) == FP_ZERO
+                   ? 0.0
+                   : std::sqrt(rms / static_cast<double>(n.size())) / mean;
 
   return result;
 }
@@ -227,6 +231,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   big_o.cpu_accumulated_time = result_cpu.coef;
   big_o.report_big_o = true;
   big_o.complexity = result_cpu.complexity;
+  big_o.time_unit = reports[0].time_unit;
 
   // All the time results are reported after being multiplied by the
   // time unit multiplier. But since RMS is a relative quantity it

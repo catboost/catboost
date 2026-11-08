@@ -26,5 +26,6 @@ target_link_libraries(library-cpp-resource PUBLIC
 target_sources(library-cpp-resource PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/resource/registry.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/resource/resource.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/resource/static_blob_default.cpp
 )
 

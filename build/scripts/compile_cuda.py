@@ -84,6 +84,10 @@ def main():
         cflags += ['-Wno-unused-function', '-Wno-unused-parameter']
         # nvcc format source files and give results to clang
         cflags += ['-Wno-deprecated-literal-operator']
+        # CUDA's math_functions.h redeclares libc++ isinf overloads with
+        # always_inline after their definitions. Clang ignores the late hint;
+        # do not turn it into an error when compiling NVCC-generated host code.
+        cflags += ['-Wno-ignored-attributes']
 
     if not is_clang(command) and '-fopenmp=libomp' in cflags:
         cflags.append('-fopenmp')

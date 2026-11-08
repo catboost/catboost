@@ -12,7 +12,7 @@ jobs:
     # disable as it is not needed when CI in run on Arm64 hosts but don't delete it outright just yet
     if: false
     name: Add MacOS Arm64 extra env to cache
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Install pyenv and python versions and pack to zip file
         run: |

@@ -1,0 +1,11 @@
+comment: off
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0.25%
+
+ignore:
+  - tests/

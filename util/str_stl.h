@@ -39,7 +39,7 @@ namespace NHashPrivate {
     struct THashHelper {
         using is_default_implementation = std::true_type;
 
-        inline size_t operator()(const T& t) const noexcept {
+        constexpr size_t operator()(const T& t) const noexcept {
             return (size_t)t; // If you have a compilation error here, look at explanation below:
             // Probably error is caused by undefined template specialization of THash<T>
             // You can find examples of specialization in this file
