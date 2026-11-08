@@ -4588,15 +4588,22 @@ cdef class _PoolBase:
                 py_builder_visitor
             )
         elif isinstance(data, pl.DataFrame):
-            _set_features_order_data_polars_data_frame(
-                data,
-                embedding_features_data is not None,
-                features_layout,
-                py_builder_visitor,
-                new_data_holders,
-                callbacks,
-                &futures
-            )
+            try:
+                _set_features_order_data_polars_data_frame(
+                    data,
+                    embedding_features_data is not None,
+                    features_layout,
+                    py_builder_visitor,
+                    new_data_holders,
+                    callbacks,
+                    &futures
+                )
+                for callback in callbacks:
+                    callback()
+            finally:
+                # Workers use builder_visitor and data holders. Join them before
+                # Python exception cleanup can release those objects.
+                WaitAll(futures)
         elif isinstance(data, scipy.sparse.spmatrix):
             new_data_holders = _set_features_order_data_scipy_sparse_matrix(
                 data,
@@ -4633,11 +4640,6 @@ cdef class _PoolBase:
             raise CatBoostError(
                 '[Internal error] wrong data type for _init_features_order_layout_pool: ' + type(data)
             )
-
-        for callback in callbacks:
-            callback()
-
-        WaitAll(futures)
 
         if embedding_features_data is not None:
             embedding_data_holders = _set_features_order_embedding_features_data(embedding_features_data, feature_names, features_layout, builder_visitor)
