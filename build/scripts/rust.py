@@ -233,6 +233,9 @@ def compile_crate(args):
         if args.mode == "host":
             linker = env["CARGO_TARGET_" + config["host"].upper().replace("-", "_") + "_LINKER"]
             command += ["-C", "linker=" + linker]
+            if args.kind in ("bin", "proc-macro") and target.endswith("-windows-msvc"):
+                # Build scripts and compiler plugins must not require an installed VC runtime.
+                command += ["-C", "target-feature=+crt-static"]
         if args.kind == "proc-macro":
             command += ["--extern", "proc_macro", "-C", "prefer-dynamic"]
         if args.kind in ("bin", "proc-macro"):
