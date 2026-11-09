@@ -128,7 +128,10 @@ def _rewrite_test(config, name):
         # Let this pop up again in the real import.
         state.trace("failed to parse: %r" % (path,))
         return None
-    rewrite.rewrite_asserts(tree, py.path.local(path), config)
+    if six.PY2:
+        rewrite.rewrite_asserts(tree, py.path.local(path), config)
+    else:
+        rewrite.rewrite_asserts(tree, source.encode("utf-8"), path, config)
     try:
         co = compile(tree, path, "exec", dont_inherit=True)
     except SyntaxError:
