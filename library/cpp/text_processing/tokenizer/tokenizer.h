@@ -18,6 +18,7 @@ namespace NTextProcessing::NTokenizer {
             TVector<ETokenType>* tokenTypes = nullptr
         ) const;
         TVector<TString> Tokenize(TStringBuf inputString) const;
+        TVector<TString> Tokenize(TStringBuf inputString, size_t maxTokens) const;
 
         void TokenizeWithoutCopy(TStringBuf inputString, TVector<TStringBuf>* tokens) const;
         TVector<TStringBuf> TokenizeWithoutCopy(TStringBuf inputString) const;
