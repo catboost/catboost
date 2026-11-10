@@ -1568,7 +1568,7 @@ def _build_train_pool(X, y, cat_features, text_features, embedding_features, pai
         train_pool = Pool(data=X, pairs=pairs, graph=graph, column_description=column_description)
     else:
         if y is None:
-            raise CatBoostError("y has not initialized in fit(): X is not catboost.Pool object, y must be not None in fit().")
+            raise CatBoostError("y has not been initialized in fit(): X is not catboost.Pool object, y must be not None in fit().")
         train_pool = Pool(X, y, cat_features=cat_features, text_features=text_features, embedding_features=embedding_features, pairs=pairs, graph=graph, weight=sample_weight, group_id=group_id,
                           group_weight=group_weight, subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline)
     return train_pool
@@ -5958,7 +5958,7 @@ class CatBoostClassifier(CatBoost):
                 raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
             y = X.get_label()
             if y is None:
-                raise CatBoostError("Label in X has not initialized.")
+                raise CatBoostError("Label in X has not been initialized.")
         if isinstance(y, pd.DataFrame):
             if len(y.columns) != 1:
                 raise CatBoostError("y is pandas.DataFrame and has {} columns, but must have exactly one.".format(len(y.columns)))
@@ -6404,7 +6404,7 @@ class CatBoostRegressor(CatBoost):
                 raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
             y = X.get_label()
             if y is None:
-                raise CatBoostError("Label in X has not initialized.")
+                raise CatBoostError("Label in X has not been initialized.")
         elif y is None:
             raise CatBoostError("y should be specified.")
         y = np.array(y, dtype=np.float64)
