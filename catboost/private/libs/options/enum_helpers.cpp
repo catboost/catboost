@@ -150,6 +150,7 @@ MakeRegister(LossInfos,
     ),
     Registree(MultiRMSEWithMissingValues,
         EMetricAttribute::IsMultiRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(SurvivalAft,
         EMetricAttribute::IsSurvivalRegression
