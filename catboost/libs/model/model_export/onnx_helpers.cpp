@@ -230,9 +230,10 @@ static void AddClassLabelsAttribute(
 
     if (!classLabelsInt64.empty()) {
         AddAttribute("classlabels_int64s", classLabelsInt64, node);
-    } else {
+    } else if (!classLabelsString.empty()) {
         AddAttribute("classlabels_strings", classLabelsString, node);
     }
+    // If both vectors are empty (e.g., for regression models), no attribute is added.
 }
 
 static void InitProbabilitiesOutput(
