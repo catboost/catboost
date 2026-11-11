@@ -836,6 +836,7 @@ bool IsSecondOrderScoreFunction(EScoreFunction function) {
     case EScoreFunction::Cosine:
     case EScoreFunction::SolarL2:
     case EScoreFunction::LOOL2:
+    case EScoreFunction::SatL2:
     case EScoreFunction::L2: {
         return false;
     }

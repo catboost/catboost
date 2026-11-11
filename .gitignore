@@ -51,6 +51,7 @@ catboost/jvm-packages/catboost4j-prediction/target/
 catboost/jvm-packages/common/target/
 
 # Python package build artifacts
+/catboost_info/
 catboost/python-package/build/
 catboost/python-package/catboost.egg-info/
 catboost/python-package/dist/
