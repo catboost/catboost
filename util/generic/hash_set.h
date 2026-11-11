@@ -6,6 +6,7 @@
 #include <util/system/compiler.h>
 
 #include <initializer_list>
+#include <type_traits>
 #include <utility>
 
 #undef value_type
@@ -162,6 +163,14 @@ public:
         std::pair<mutable_iterator, bool> p = rep.insert_unique(obj);
         return std::pair<iterator, bool>(p.first, p.second);
     }
+    std::pair<iterator, bool> insert(value_type&& obj) {
+        std::pair<mutable_iterator, bool> p = rep.insert_unique(std::move(obj));
+        return std::pair<iterator, bool>(p.first, p.second);
+    }
+    template <class TValue, typename std::enable_if_t<std::is_constructible_v<value_type, TValue> && !std::is_same_v<std::decay_t<TValue>, value_type> && !std::is_integral_v<std::decay_t<TValue>> && !std::is_enum_v<std::decay_t<TValue>>, int> = 0>
+    std::pair<iterator, bool> insert(TValue&& obj) {
+        return insert(value_type(std::forward<TValue>(obj)));
+    }
     template <typename... Args>
     std::pair<iterator, bool> emplace(Args&&... args) {
         std::pair<mutable_iterator, bool> p = rep.emplace_unique(std::forward<Args>(args)...);
@@ -172,10 +181,22 @@ public:
         std::pair<mutable_iterator, bool> p = rep.insert_unique(obj);
         return p.first;
     }
+    iterator insert(const_iterator, value_type&& obj) { // insert_hint
+        std::pair<mutable_iterator, bool> p = rep.insert_unique(std::move(obj));
+        return p.first;
+    }
 
     std::pair<iterator, bool> insert_noresize(const value_type& obj) {
         std::pair<mutable_iterator, bool> p = rep.insert_unique_noresize(obj);
         return std::pair<iterator, bool>(p.first, p.second);
+    }
+    std::pair<iterator, bool> insert_noresize(value_type&& obj) {
+        std::pair<mutable_iterator, bool> p = rep.insert_unique_noresize(std::move(obj));
+        return std::pair<iterator, bool>(p.first, p.second);
+    }
+    template <class TValue, typename std::enable_if_t<std::is_constructible_v<value_type, TValue> && !std::is_same_v<std::decay_t<TValue>, value_type> && !std::is_integral_v<std::decay_t<TValue>> && !std::is_enum_v<std::decay_t<TValue>>, int> = 0>
+    std::pair<iterator, bool> insert_noresize(TValue&& obj) {
+        return insert_noresize(value_type(std::forward<TValue>(obj)));
     }
     template <typename... Args>
     std::pair<iterator, bool> emplace_noresize(Args&&... args) {
@@ -184,8 +205,8 @@ public:
     }
 
     template <class TheObj>
-    iterator insert_direct(const TheObj& obj, const insert_ctx& ins) {
-        return rep.insert_direct(obj, ins);
+    iterator insert_direct(TheObj&& obj, const insert_ctx& ins) {
+        return rep.insert_direct(std::forward<TheObj>(obj), ins);
     }
     template <typename... Args>
     iterator emplace_direct(const insert_ctx& ins, Args&&... args) {
@@ -402,6 +423,13 @@ public:
     iterator insert(const value_type& obj) {
         return rep.insert_equal(obj);
     }
+    iterator insert(value_type&& obj) {
+        return rep.insert_equal(std::move(obj));
+    }
+    template <class TValue, typename std::enable_if_t<std::is_constructible_v<value_type, TValue> && !std::is_same_v<std::decay_t<TValue>, value_type> && !std::is_integral_v<std::decay_t<TValue>> && !std::is_enum_v<std::decay_t<TValue>>, int> = 0>
+    iterator insert(TValue&& obj) {
+        return insert(value_type(std::forward<TValue>(obj)));
+    }
     template <typename... Args>
     iterator emplace(Args&&... args) {
         return rep.emplace_equal(std::forward<Args>(args)...);
@@ -411,7 +439,14 @@ public:
         rep.insert_equal(f, l);
     }
     iterator insert_noresize(const value_type& obj) {
-        return rep.insert_equal_noresize(obj);
+        return rep.emplace_equal_noresize(obj);
+    }
+    iterator insert_noresize(value_type&& obj) {
+        return rep.emplace_equal_noresize(std::move(obj));
+    }
+    template <class TValue, typename std::enable_if_t<std::is_constructible_v<value_type, TValue> && !std::is_same_v<std::decay_t<TValue>, value_type> && !std::is_integral_v<std::decay_t<TValue>> && !std::is_enum_v<std::decay_t<TValue>>, int> = 0>
+    iterator insert_noresize(TValue&& obj) {
+        return insert_noresize(value_type(std::forward<TValue>(obj)));
     }
 
     template <class TKey>

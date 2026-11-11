@@ -154,6 +154,13 @@ public:
     std::pair<iterator, bool> insert(const value_type& obj) {
         return rep.insert_unique(obj);
     }
+    std::pair<iterator, bool> insert(value_type&& obj) {
+        return rep.insert_unique(std::move(obj));
+    }
+    template <class TValue, typename std::enable_if_t<std::is_constructible_v<value_type, TValue> && !std::is_same_v<std::decay_t<TValue>, value_type> && !std::is_integral_v<std::decay_t<TValue>> && !std::is_enum_v<std::decay_t<TValue>>, int> = 0>
+    std::pair<iterator, bool> insert(TValue&& obj) {
+        return insert(value_type(std::forward<TValue>(obj)));
+    }
 
     template <class M>
     std::pair<iterator, bool> insert_or_assign(const Key& k, M&& value) {
@@ -181,6 +188,13 @@ public:
     std::pair<iterator, bool> insert_noresize(const value_type& obj) {
         return rep.insert_unique_noresize(obj);
     }
+    std::pair<iterator, bool> insert_noresize(value_type&& obj) {
+        return rep.insert_unique_noresize(std::move(obj));
+    }
+    template <class TValue, typename std::enable_if_t<std::is_constructible_v<value_type, TValue> && !std::is_same_v<std::decay_t<TValue>, value_type> && !std::is_integral_v<std::decay_t<TValue>> && !std::is_enum_v<std::decay_t<TValue>>, int> = 0>
+    std::pair<iterator, bool> insert_noresize(TValue&& obj) {
+        return insert_noresize(value_type(std::forward<TValue>(obj)));
+    }
 
     template <typename... Args>
     std::pair<iterator, bool> emplace_noresize(Args&&... args) {
@@ -188,8 +202,8 @@ public:
     }
 
     template <class TheObj>
-    iterator insert_direct(const TheObj& obj, const insert_ctx& ins) {
-        return rep.insert_direct(obj, ins);
+    iterator insert_direct(TheObj&& obj, const insert_ctx& ins) {
+        return rep.insert_direct(std::forward<TheObj>(obj), ins);
     }
 
     template <typename... Args>
@@ -238,16 +252,17 @@ public:
         return rep.find_i(key, ins) != rep.end();
     }
 
-    template <class TKey>
-    T& operator[](const TKey& key) {
-        insert_ctx ctx = nullptr;
-        iterator it = find(key, ctx);
+    T& operator[](const key_type& key) {
+        return try_emplace(key).first->second;
+    }
 
-        if (it != end()) {
-            return it->second;
-        }
+    T& operator[](key_type&& key) {
+        return try_emplace(std::move(key)).first->second;
+    }
 
-        return rep.emplace_direct(ctx, std::piecewise_construct, std::forward_as_tuple(key), std::forward_as_tuple())->second;
+    template <class TKey, typename std::enable_if_t<!std::is_integral_v<std::decay_t<TKey>> && !std::is_enum_v<std::decay_t<TKey>>, int> = 0>
+    T& operator[](TKey&& key) {
+        return try_emplace(std::forward<TKey>(key)).first->second;
     }
 
     template <class TheKey>

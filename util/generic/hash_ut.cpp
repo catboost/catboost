@@ -64,6 +64,16 @@ class THashTest: public TTestBase {
     UNIT_TEST(TestHMapInitializerList);
     UNIT_TEST(TestHMMapInitializerList);
     UNIT_TEST(TestHMapStringKeyTransparency);
+    UNIT_TEST(TestTryEmplaceIsCopyFree);
+    UNIT_TEST(TestOperatorSquareIsCopyFree);
+    UNIT_TEST(TestMapInsertRvalueIsCopyFree);
+    UNIT_TEST(TestSetInsertRvalueIsCopyFree);
+    UNIT_TEST(TestMultiMapInsertRvalueIsCopyFree);
+    UNIT_TEST(TestMultiSetInsertRvalueIsCopyFree);
+    UNIT_TEST(TestHeterogeneousLookup);
+    UNIT_TEST(TestBitFieldKey);
+    UNIT_TEST(TestConvertibleKeyType);
+    UNIT_TEST(TestRangeInsert);
     UNIT_TEST(TestHSetInitializerList);
     UNIT_TEST(TestHMSetInitializerList);
     UNIT_TEST(TestHSetInsertInitializerList);
@@ -123,6 +133,16 @@ protected:
     void TestHMapInitializerList();
     void TestHMMapInitializerList();
     void TestHMapStringKeyTransparency();
+    void TestTryEmplaceIsCopyFree();
+    void TestOperatorSquareIsCopyFree();
+    void TestMapInsertRvalueIsCopyFree();
+    void TestSetInsertRvalueIsCopyFree();
+    void TestMultiMapInsertRvalueIsCopyFree();
+    void TestMultiSetInsertRvalueIsCopyFree();
+    void TestHeterogeneousLookup();
+    void TestBitFieldKey();
+    void TestConvertibleKeyType();
+    void TestRangeInsert();
     void TestHSetInitializerList();
     void TestHMSetInitializerList();
     void TestHSetInsertInitializerList();
@@ -1468,4 +1488,522 @@ void THashTest::TestFloatingPointHash() {
     TestFloatingPointHashImpl<float>();
     TestFloatingPointHashImpl<double>();
     // TestFloatingPointHashImpl<long double>();
+}
+
+// Copy-accounting value type: every special member of key/value objects is
+// counted globally, so a test can assert exactly how many copies, moves and
+// constructions a given container operation performs.
+namespace NHmOpCounts {
+    struct TOpStats {
+        size_t DefaultCtors = 0;
+        size_t CopyCtors = 0;
+        size_t MoveCtors = 0;
+        size_t CopyAssigns = 0;
+        size_t MoveAssigns = 0;
+        size_t Dtors = 0;
+
+        void Reset() {
+            *this = TOpStats{};
+        }
+
+        size_t AllCtors() const {
+            return DefaultCtors + CopyCtors + MoveCtors;
+        }
+
+        size_t AllCopies() const {
+            return CopyCtors + CopyAssigns;
+        }
+    };
+
+    TOpStats& Stats() {
+        static TOpStats stats;
+        return stats;
+    }
+
+    struct TCounted {
+        int Value = 0;
+
+        TCounted() {
+            ++Stats().DefaultCtors;
+        }
+
+        explicit TCounted(int value)
+            : Value(value)
+        {
+            ++Stats().DefaultCtors;
+        }
+
+        TCounted(const TCounted& other)
+            : Value(other.Value)
+        {
+            ++Stats().CopyCtors;
+        }
+
+        TCounted(TCounted&& other) noexcept
+            : Value(other.Value)
+        {
+            ++Stats().MoveCtors;
+        }
+
+        TCounted& operator=(const TCounted& other) {
+            Value = other.Value;
+            ++Stats().CopyAssigns;
+            return *this;
+        }
+
+        TCounted& operator=(TCounted&& other) noexcept {
+            Value = other.Value;
+            ++Stats().MoveAssigns;
+            return *this;
+        }
+
+        ~TCounted() {
+            ++Stats().Dtors;
+        }
+
+        bool operator==(const TCounted& other) const {
+            return Value == other.Value;
+        }
+    };
+
+    struct TCountedHash {
+        size_t operator()(const TCounted& value) const {
+            return THash<int>{}(value.Value);
+        }
+    };
+
+    using TCountedMap = THashMap<TCounted, TCounted, TCountedHash, TEqualTo<TCounted>>;
+    using TCountedSet = THashSet<TCounted, TCountedHash, TEqualTo<TCounted>>;
+    using TCountedMultiMap = THashMultiMap<TCounted, TCounted, TCountedHash, TEqualTo<TCounted>>;
+    using TCountedMultiSet = THashMultiSet<TCounted, TCountedHash, TEqualTo<TCounted>>;
+} // namespace NHmOpCounts
+
+void THashTest::TestTryEmplaceIsCopyFree() {
+    using namespace NHmOpCounts;
+    TCountedMap hash;
+
+    // Fresh insertion of an rvalue key and value: both are moved, nothing is copied.
+    {
+        TCounted key(1);
+        TCounted value(2);
+        Stats().Reset();
+        auto res = hash.try_emplace(std::move(key), std::move(value));
+        UNIT_ASSERT(res.second);
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 2);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().Dtors, 0);
+    }
+
+    // Fresh insertion of an lvalue key and value: exactly one copy each, no extra.
+    {
+        TCounted key(3);
+        TCounted value(4);
+        Stats().Reset();
+        auto res = hash.try_emplace(key, value);
+        UNIT_ASSERT(res.second);
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().Dtors, 0);
+    }
+
+    // A duplicate constructs nothing, touches no arguments and keeps the stored value.
+    {
+        TCounted dupKey(1);
+        TCounted dupValue(5);
+        Stats().Reset();
+        auto res = hash.try_emplace(std::move(dupKey), std::move(dupValue));
+        UNIT_ASSERT(!res.second);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCtors(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().Dtors, 0);
+        // try_emplace must leave the arguments intact when the key already exists
+        UNIT_ASSERT_VALUES_EQUAL(dupKey.Value, 1);
+        UNIT_ASSERT_VALUES_EQUAL(dupValue.Value, 5);
+        // and the stored pair is not overwritten
+        UNIT_ASSERT_VALUES_EQUAL(res.first->second.Value, 2);
+    }
+}
+
+void THashTest::TestOperatorSquareIsCopyFree() {
+    using namespace NHmOpCounts;
+    TCountedMap hash;
+
+    TCounted key(1);
+    TCounted value(2);
+    UNIT_ASSERT(hash.try_emplace(std::move(key), std::move(value)).second);
+
+    // A duplicate lookup constructs nothing.
+    {
+        TCounted probe(1);
+        Stats().Reset();
+        TCounted& mapped = hash[probe];
+        UNIT_ASSERT_VALUES_EQUAL(mapped.Value, 2);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCtors(), 0);
+    }
+
+    // Fresh insertion of an rvalue key: the key must be moved, not copied.
+    {
+        TCounted rvalueKey(3);
+        Stats().Reset();
+        TCounted& mapped = hash[std::move(rvalueKey)];
+        UNIT_ASSERT_VALUES_EQUAL(mapped.Value, 0);
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 0);
+    }
+
+    // Fresh insertion of an lvalue key: exactly one key copy, which is unavoidable.
+    {
+        TCounted lvalueKey(4);
+        Stats().Reset();
+        TCounted& mapped = hash[lvalueKey];
+        UNIT_ASSERT_VALUES_EQUAL(mapped.Value, 0);
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 3);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(lvalueKey.Value, 4);
+    }
+}
+
+void THashTest::TestHeterogeneousLookup() {
+    THashMap<TString, ui64> m;
+
+    // operator[] with a heterogeneous key creates...
+    UNIT_ASSERT_VALUES_EQUAL(m["aaa"], 0);
+    // ...and then every lookup flavor finds the element by a literal or a TStringBuf
+    UNIT_ASSERT(m.find("aaa") != m.end());
+    UNIT_ASSERT(m.find(TStringBuf("aaa")) != m.end());
+    UNIT_ASSERT(m.contains(TStringBuf("aaa")));
+    UNIT_ASSERT(m.contains("aaa"));
+    UNIT_ASSERT_VALUES_EQUAL(m.count(TStringBuf("aaa")), 1);
+    UNIT_ASSERT_VALUES_EQUAL(m.at("aaa"), 0);
+    UNIT_ASSERT_VALUES_EQUAL(m.at(TStringBuf("aaa")), 0);
+
+    // try_emplace: a fresh heterogeneous key is inserted, a duplicate is not,
+    // and the stored value survives the duplicate attempt
+    auto r1 = m.try_emplace("bbb", 2);
+    UNIT_ASSERT(r1.second);
+    auto r2 = m.try_emplace(TStringBuf("bbb"), 3);
+    UNIT_ASSERT(!r2.second);
+    UNIT_ASSERT_VALUES_EQUAL(m["bbb"], 2);
+    UNIT_ASSERT_VALUES_EQUAL(m.size(), 2);
+
+    // operator[] with a heterogeneous key also finds an existing element
+    m[TStringBuf("aaa")] = 9;
+    UNIT_ASSERT_VALUES_EQUAL(m["aaa"], 9);
+
+    // erase by a heterogeneous key
+    UNIT_ASSERT_VALUES_EQUAL(m.erase(TStringBuf("bbb")), 1);
+    UNIT_ASSERT_VALUES_EQUAL(m.size(), 1);
+
+    // heterogeneous lookup in sets
+    THashSet<TString> s;
+    s.insert(TString("x"));
+    UNIT_ASSERT(s.find(TStringBuf("x")) != s.end());
+    UNIT_ASSERT(s.contains("x"));
+    UNIT_ASSERT_VALUES_EQUAL(s.count(TStringBuf("x")), 1);
+}
+
+void THashTest::TestMapInsertRvalueIsCopyFree() {
+    using namespace NHmOpCounts;
+    TCountedMap hash;
+
+    // Inserting an rvalue pair: the const key cannot be moved and is copied once,
+    // the mapped value must be moved, not copied.
+    {
+        TCountedMap::value_type elem(1, 2);
+        Stats().Reset();
+        auto res = hash.insert(std::move(elem));
+        UNIT_ASSERT(res.second);
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 1);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().Dtors, 0);
+    }
+
+    // A duplicate is detected by probing first: nothing is constructed or copied.
+    {
+        TCountedMap::value_type elem(1, 2);
+        Stats().Reset();
+        auto res = hash.insert(std::move(elem));
+        UNIT_ASSERT(!res.second);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCtors(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().Dtors, 0);
+    }
+
+    // Inserting an lvalue pair: exactly one copy of each member, and the
+    // source pair is untouched.
+    {
+        TCountedMap::value_type elem(3, 4);
+        Stats().Reset();
+        auto res = hash.insert(elem);
+        UNIT_ASSERT(res.second);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(elem.first.Value, 3);
+        UNIT_ASSERT_VALUES_EQUAL(elem.second.Value, 4);
+    }
+
+    // insert_noresize keeps the same guarantees for rvalues.
+    {
+        TCountedMap::value_type elem(5, 6);
+        Stats().Reset();
+        auto res = hash.insert_noresize(std::move(elem));
+        UNIT_ASSERT(res.second);
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 3);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 1);
+    }
+}
+
+void THashTest::TestSetInsertRvalueIsCopyFree() {
+    using namespace NHmOpCounts;
+    TCountedSet set;
+
+    // Inserting an rvalue element: it must be moved, not copied.
+    {
+        TCounted elem(1);
+        Stats().Reset();
+        auto res = set.insert(std::move(elem));
+        UNIT_ASSERT(res.second);
+        UNIT_ASSERT_VALUES_EQUAL(set.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 1);
+    }
+
+    // A duplicate is detected by probing first: nothing is constructed or copied.
+    {
+        TCounted elem(1);
+        Stats().Reset();
+        auto res = set.insert(std::move(elem));
+        UNIT_ASSERT(!res.second);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCtors(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 0);
+    }
+
+    // Inserting an lvalue element: exactly one copy, source untouched.
+    {
+        TCounted elem(2);
+        Stats().Reset();
+        auto res = set.insert(elem);
+        UNIT_ASSERT(res.second);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(elem.Value, 2);
+    }
+
+    // insert_noresize and the hint overload keep the same guarantees for rvalues.
+    {
+        TCounted elem(3);
+        Stats().Reset();
+        auto res = set.insert_noresize(std::move(elem));
+        UNIT_ASSERT(res.second);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 1);
+    }
+    {
+        TCounted elem(4);
+        Stats().Reset();
+        set.insert(set.cend(), std::move(elem));
+        UNIT_ASSERT_VALUES_EQUAL(set.size(), 4);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 1);
+    }
+}
+
+void THashTest::TestMultiMapInsertRvalueIsCopyFree() {
+    using namespace NHmOpCounts;
+    TCountedMultiMap hash;
+
+    // Inserting an rvalue pair: the const key is copied once, the value is moved.
+    {
+        TCountedMultiMap::value_type elem(1, 2);
+        Stats().Reset();
+        auto it = hash.insert(std::move(elem));
+        UNIT_ASSERT(it != hash.end());
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 1);
+    }
+
+    // Inserting an lvalue pair: exactly one copy of each member, source untouched.
+    {
+        TCountedMultiMap::value_type elem(1, 2);
+        Stats().Reset();
+        auto it = hash.insert(elem);
+        UNIT_ASSERT(it != hash.end());
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(elem.first.Value, 1);
+        UNIT_ASSERT_VALUES_EQUAL(elem.second.Value, 2);
+    }
+
+    // insert_noresize keeps the same guarantees for rvalues.
+    {
+        TCountedMultiMap::value_type elem(2, 3);
+        Stats().Reset();
+        auto it = hash.insert_noresize(std::move(elem));
+        UNIT_ASSERT(it != hash.end());
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 3);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 1);
+    }
+}
+
+void THashTest::TestMultiSetInsertRvalueIsCopyFree() {
+    using namespace NHmOpCounts;
+    TCountedMultiSet hash;
+
+    // Inserting an rvalue element: it must be moved, not copied.
+    {
+        TCounted elem(1);
+        Stats().Reset();
+        auto it = hash.insert(std::move(elem));
+        UNIT_ASSERT(it != hash.end());
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 1);
+    }
+
+    // Inserting an lvalue element: exactly one copy, source untouched.
+    {
+        TCounted elem(1);
+        Stats().Reset();
+        auto it = hash.insert(elem);
+        UNIT_ASSERT(it != hash.end());
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(elem.Value, 1);
+    }
+
+    // insert_noresize keeps the same guarantees for rvalues.
+    {
+        TCounted elem(2);
+        Stats().Reset();
+        auto it = hash.insert_noresize(std::move(elem));
+        UNIT_ASSERT(it != hash.end());
+        UNIT_ASSERT_VALUES_EQUAL(hash.size(), 3);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().AllCopies(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(Stats().MoveCtors, 1);
+    }
+}
+
+void THashTest::TestBitFieldKey() {
+    struct TBitFieldCarrier {
+        ui32 GlobalId : 32;
+        ui32 SmallId : 3;
+    };
+
+    const TBitFieldCarrier carrier{15, 5};
+
+    // A bit-field cannot bind to a reference parameter, so operator[] must
+    // accept it through the const key_type& overload (a temporary key is
+    // materialized from the bit-field).
+    THashMap<ui32, ui32> hashMap;
+    hashMap[carrier.GlobalId] = 1;
+    UNIT_ASSERT_VALUES_EQUAL(hashMap.size(), 1);
+    UNIT_ASSERT_VALUES_EQUAL(hashMap[carrier.GlobalId], 1);
+    hashMap[carrier.GlobalId] += 1;
+    UNIT_ASSERT_VALUES_EQUAL(hashMap[carrier.GlobalId], 2);
+    UNIT_ASSERT_VALUES_EQUAL(hashMap[carrier.SmallId], 0);
+    UNIT_ASSERT_VALUES_EQUAL(hashMap.size(), 2);
+
+    // insert() must accept bit-fields as well.
+    THashSet<ui32> hashSet;
+    UNIT_ASSERT(hashSet.insert(carrier.GlobalId).second);
+    UNIT_ASSERT(!hashSet.insert(carrier.GlobalId).second);
+    UNIT_ASSERT(hashSet.insert(carrier.SmallId).second);
+    UNIT_ASSERT_VALUES_EQUAL(hashSet.size(), 2);
+
+    THashMultiSet<ui32> hashMultiSet;
+    hashMultiSet.insert(carrier.GlobalId);
+    hashMultiSet.insert(carrier.GlobalId);
+    UNIT_ASSERT_VALUES_EQUAL(hashMultiSet.count(15u), 2);
+}
+
+void THashTest::TestConvertibleKeyType() {
+    // A key type may expose separate conversion operators for lvalue and rvalue
+    // contexts (like TStrongKeyType with its operator const T&() const& and
+    // operator T&&() &&). With only insert(const value_type&) and
+    // insert(value_type&&) the call would be ambiguous: each overload is
+    // reachable only through a different user-defined conversion. The
+    // constrained insert(TValue&&) overload takes over such arguments.
+    struct TAdapter {
+        ui64 Value = 0;
+
+        operator const ui64&() const& {
+            return Value;
+        }
+
+        operator ui64&&() && {
+            return static_cast<ui64&&>(Value);
+        }
+    };
+
+    THashSet<ui64> hashSet;
+    UNIT_ASSERT(hashSet.insert(TAdapter{1}).second);
+    UNIT_ASSERT(!hashSet.insert(TAdapter{1}).second);
+    UNIT_ASSERT_VALUES_EQUAL(hashSet.size(), 1);
+
+    THashMultiSet<ui64> hashMultiSet;
+    hashMultiSet.insert(TAdapter{2});
+    hashMultiSet.insert(TAdapter{2});
+    UNIT_ASSERT_VALUES_EQUAL(hashMultiSet.count(2u), 2);
+
+    THashMap<ui64, ui64> hashMap;
+    hashMap[TAdapter{3}] = 4;
+    UNIT_ASSERT_VALUES_EQUAL(hashMap.size(), 1);
+    UNIT_ASSERT_VALUES_EQUAL(hashMap[TAdapter{3}], 4);
+    TAdapter lvalue{5};
+    hashMap[lvalue] = 6;
+    UNIT_ASSERT_VALUES_EQUAL(hashMap[5u], 6);
+
+    // A pair convertible into value_type is another user-defined conversion
+    // case; it goes through the same overload (std's insert(P&&) equivalent).
+    THashMap<ui64, ui64> pairMap;
+    UNIT_ASSERT(pairMap.insert(std::make_pair(ui64(7), ui64(8))).second);
+    UNIT_ASSERT_VALUES_EQUAL(pairMap[7u], 8);
+
+    THashSet<TString> stringSet;
+    stringSet.insert("literal");
+    UNIT_ASSERT(stringSet.contains(TStringBuf("literal")));
+}
+
+namespace {
+    // A value type constructible from anything (e.g. via a variadic constructor):
+    // it must not make range insert ambiguous with the hint overload.
+    struct TGreedy {
+        int Value = 0;
+
+        TGreedy() = default;
+
+        template <typename T, typename... TArgs>
+        TGreedy(const T&, const TArgs&...) {
+        }
+
+        operator size_t() const {
+            return Value;
+        }
+
+        bool operator==(const TGreedy& other) const {
+            return Value == other.Value;
+        }
+    };
+} // namespace
+
+void THashTest::TestRangeInsert() {
+    TGreedy first;
+    first.Value = 1;
+    TGreedy second;
+    second.Value = 2;
+
+    THashSet<TGreedy> source;
+    source.insert(first);
+    source.insert(second);
+
+    THashSet<TGreedy> target;
+    target.insert(source.begin(), source.end());
+    UNIT_ASSERT_VALUES_EQUAL(target.size(), 2);
+
+    target.insert(target.cend(), TGreedy{});
+    UNIT_ASSERT_VALUES_EQUAL(target.size(), 3);
 }

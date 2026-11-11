@@ -1,6 +1,8 @@
 #pragma once
 
 #include "fwd.h"
+
+#include <type_traits>
 #include "hash_table.h"
 
 template <class Key, class T, class HashFcn, class EqualKey, class Alloc>
@@ -146,6 +148,13 @@ public:
     iterator insert(const value_type& obj) {
         return rep.insert_equal(obj);
     }
+    iterator insert(value_type&& obj) {
+        return rep.insert_equal(std::move(obj));
+    }
+    template <class TValue, typename std::enable_if_t<std::is_constructible_v<value_type, TValue> && !std::is_same_v<std::decay_t<TValue>, value_type> && !std::is_integral_v<std::decay_t<TValue>> && !std::is_enum_v<std::decay_t<TValue>>, int> = 0>
+    iterator insert(TValue&& obj) {
+        return insert(value_type(std::forward<TValue>(obj)));
+    }
 
     template <typename... Args>
     iterator emplace(Args&&... args) {
@@ -155,6 +164,13 @@ public:
     iterator insert_noresize(const value_type& obj) {
         return rep.emplace_equal_noresize(obj);
     }
+    iterator insert_noresize(value_type&& obj) {
+        return rep.emplace_equal_noresize(std::move(obj));
+    }
+    template <class TValue, typename std::enable_if_t<std::is_constructible_v<value_type, TValue> && !std::is_same_v<std::decay_t<TValue>, value_type> && !std::is_integral_v<std::decay_t<TValue>> && !std::is_enum_v<std::decay_t<TValue>>, int> = 0>
+    iterator insert_noresize(TValue&& obj) {
+        return insert_noresize(value_type(std::forward<TValue>(obj)));
+    }
 
     template <typename... Args>
     iterator emplace_noresize(Args&&... args) {
@@ -162,8 +178,8 @@ public:
     }
 
     template <class TheObj>
-    iterator insert_direct(const TheObj& obj, const insert_ctx& ins) {
-        return rep.insert_direct(obj, ins);
+    iterator insert_direct(TheObj&& obj, const insert_ctx& ins) {
+        return rep.insert_direct(std::forward<TheObj>(obj), ins);
     }
 
     template <typename... Args>
