@@ -10272,6 +10272,30 @@ def test_feature_tags_interface():
         Pool(data, feature_tags={"tag2": {"features": ["num_3", "num_4"]}})
 
 
+def test_feature_tags_not_modified_by_pool():
+    data = np.random.RandomState(0).rand(200, 8)
+    label = np.arange(200) % 2
+    tags = {
+        "tag1": {"features": np.array([0, 1]), "cost": "3"},
+        "tag2": {"features": ["f_2", "f_3"]},
+    }
+    expected = deepcopy(tags)
+    pool1 = Pool(data, label=label, feature_names=["f_%d" % i for i in range(8)], feature_tags=tags)
+    assert tags.keys() == expected.keys()
+    assert np.array_equal(tags["tag1"]["features"], expected["tag1"]["features"])
+    assert tags["tag1"]["cost"] == "3"
+    assert tags["tag2"] == {"features": ["f_2", "f_3"]}
+
+    # the same dict can be reused with a different feature order
+    reversed_names = ["f_%d" % i for i in reversed(range(8))]
+    pool2 = Pool(data, label=label, feature_names=reversed_names, feature_tags=tags)
+    model = CatBoostClassifier(iterations=5, ignored_features=["#tag2"], verbose=False)
+    model.fit(pool1)
+    assert np.array_equal(np.where(model.feature_importances_ == 0)[0], [2, 3])
+    model.fit(pool2)
+    assert np.array_equal(np.where(model.feature_importances_ == 0)[0], [4, 5])
+
+
 def test_first_feature_use_penalties_work():
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
     most_important_feature_index = 3
