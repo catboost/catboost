@@ -17,11 +17,17 @@ try:
 except ImportError:
     pass
 
+import __res
 from __res import importer
+import marshal
 import sys
 import six
 
+import _pytest
 import library.python.pytest.module_utils as module_utils
+
+if six.PY3:
+    _PREBUILT_HEADER = importlib.util.MAGIC_NUMBER + b'pytest-' + _pytest.__version__.encode() + b'\n'
 
 
 def _get_state(config):
@@ -112,9 +118,21 @@ class AssertionRewritingHook(rewrite.AssertionRewritingHook):
                 super(AssertionRewritingHook, self).exec_module(module)
 
 
+def _prebuilt_code(config, name):
+    if not six.PY3 or config.getini("enable_assertion_pass_hook") or __res.resfs_resolve(importer.get_filename(name)):
+        return None
+    data = __res.resfs_read(__res.mod_path(name) + b'.yapyc3ar', builtin=True)
+    if data and data.startswith(_PREBUILT_HEADER):
+        return marshal.loads(data[len(_PREBUILT_HEADER) :])
+
+
 def _rewrite_test(config, name):
     """Try to read and rewrite *fn* and return the code object."""
     state = _get_state(config)
+
+    co = _prebuilt_code(config, name)
+    if co is not None:
+        return co
 
     source = importer.get_source(name)
     if source is None:
