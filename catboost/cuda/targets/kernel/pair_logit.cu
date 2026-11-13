@@ -104,7 +104,7 @@ namespace NKernel {
         }
         if (numBlocks)
         {
-            PairLogitPointwiseTargetImpl<blockSize> << <numBlocks, blockSize, 0, stream >> > (point, pairs, pairWeights, writeMap, pairCount, pairShift, functionValue, der, der2);
+            PairLogitPointwiseTargetImpl<blockSize> <<<numBlocks, blockSize, 0, stream >>> (point, pairs, pairWeights, writeMap, pairCount, pairShift, functionValue, der, der2);
         }
 
     }
@@ -175,7 +175,7 @@ namespace NKernel {
             FillBuffer(value, 1.0f, 1, stream);
         }
         if (numBlocks) {
-            PairLogitPairwiseImpl<blockSize> << <numBlocks, blockSize, 0, stream >> > (point, pairs, pairWeights, pairCount, scatterDerIndices,  value, pointDer, pairDer2);
+            PairLogitPairwiseImpl<blockSize> <<<numBlocks, blockSize, 0, stream >>> (point, pairs, pairWeights, pairCount, scatterDerIndices,  value, pointDer, pairDer2);
         }
     }
 

@@ -200,9 +200,9 @@ namespace NKernel {
         const ui32 numBlocks = CeilDivide(size, blockSize);
         if (numBlocks) {
             if (startSegment) {
-                ExtractBorderMasksStartImpl << < numBlocks, blockSize, 0, stream >> > (indices, dst, size);
+                ExtractBorderMasksStartImpl <<< numBlocks, blockSize, 0, stream >>> (indices, dst, size);
             } else {
-                ExtractBorderMasksEndImpl << < numBlocks, blockSize, 0, stream >> > (indices, dst, size);
+                ExtractBorderMasksEndImpl <<< numBlocks, blockSize, 0, stream >>> (indices, dst, size);
             }
         }
     }
@@ -245,9 +245,9 @@ namespace NKernel {
         const ui32 numBlocks = CeilDivide(size, N * blockSize);
         if (numBlocks) {
             if (borders) {
-                FillBinarizedTargetsStatsImpl<true, N> << < numBlocks, blockSize, 0, stream >> >(sample, sampleWeights, sums, size, binIndex);
+                FillBinarizedTargetsStatsImpl<true, N> <<< numBlocks, blockSize, 0, stream >>>(sample, sampleWeights, sums, size, binIndex);
             } else {
-                FillBinarizedTargetsStatsImpl<false, N> << < numBlocks, blockSize, 0, stream >> >(sample, sampleWeights, sums, size, binIndex);
+                FillBinarizedTargetsStatsImpl<false, N> <<< numBlocks, blockSize, 0, stream >>>(sample, sampleWeights, sums, size, binIndex);
             }
         }
     }
