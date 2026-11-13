@@ -1,8 +1,12 @@
 #include "map.h"
 
 #include <library/cpp/testing/unittest/registar.h>
+#include <util/generic/strbuf.h>
 #include <util/memory/pool.h>
 #include <algorithm>
+#include <functional>
+#include <stdexcept>
+#include <util/system/types.h>
 
 Y_UNIT_TEST_SUITE(TYMapTest) {
     template <typename TAlloc>
@@ -492,5 +496,79 @@ Y_UNIT_TEST_SUITE(TYMapTest) {
 
         UNIT_ASSERT(movedM.contains(0));
         UNIT_ASSERT_VALUES_EQUAL(1, movedM[0]);
+    }
+
+    Y_UNIT_TEST(TestHeterogeneousLookup) {
+        TMap<TString, ui32> map;
+        map["aaa"] = 1;
+        map[TStringBuf("bbb")] = 2;
+        UNIT_ASSERT_VALUES_EQUAL(map.size(), 2);
+
+        // at() accepts literals and TStringBuf without materializing a TString
+        UNIT_ASSERT_VALUES_EQUAL(map.at("aaa"), 1);
+        UNIT_ASSERT_VALUES_EQUAL(map.at(TStringBuf("bbb")), 2);
+        const auto& constMap = map;
+        UNIT_ASSERT_VALUES_EQUAL(constMap.at("aaa"), 1);
+        UNIT_ASSERT_EXCEPTION(constMap.at("nope"), std::out_of_range);
+
+        // operator[] probes with the heterogeneous key and creates only on miss
+        UNIT_ASSERT_VALUES_EQUAL(map["aaa"], 1);
+        map[TStringBuf("aaa")] = 5;
+        UNIT_ASSERT_VALUES_EQUAL(map.at("aaa"), 5);
+        UNIT_ASSERT_VALUES_EQUAL(map[TStringBuf("ccc")], 0);
+        UNIT_ASSERT_VALUES_EQUAL(map.size(), 3);
+
+        // try_emplace: inserts on miss, keeps the stored value on a duplicate
+        UNIT_ASSERT(map.try_emplace("ddd", 4).second);
+        UNIT_ASSERT(!map.try_emplace(TStringBuf("ddd"), 7).second);
+        UNIT_ASSERT_VALUES_EQUAL(map.at("ddd"), 4);
+
+        // insert_or_assign: assigns on hit, inserts on miss
+        UNIT_ASSERT(!map.insert_or_assign(TStringBuf("ddd"), 8).second);
+        UNIT_ASSERT_VALUES_EQUAL(map.at("ddd"), 8);
+        UNIT_ASSERT(map.insert_or_assign("eee", 9).second);
+        UNIT_ASSERT_VALUES_EQUAL(map.at("eee"), 9);
+
+        // erase by a heterogeneous key
+        UNIT_ASSERT_VALUES_EQUAL(map.erase(TStringBuf("bbb")), 1);
+        UNIT_ASSERT_VALUES_EQUAL(map.erase("nope"), 0);
+        UNIT_ASSERT(!map.contains("bbb"));
+
+        // Bit-field keys still go through the inherited non-template overloads
+        // (a bit-field cannot bind to a reference parameter).
+        struct TBitFieldCarrier {
+            ui32 GlobalId : 32;
+        };
+        TMap<ui32, ui32> bitFieldMap;
+        const TBitFieldCarrier carrier{7};
+        bitFieldMap[carrier.GlobalId] = 1;
+        UNIT_ASSERT_VALUES_EQUAL(bitFieldMap.at(carrier.GlobalId), 1);
+        UNIT_ASSERT_VALUES_EQUAL(bitFieldMap.erase(carrier.GlobalId), 1);
+
+        // A type convertible to key_type (TString) but not to the transparent
+        // lookup type (TStringBuf), like TUuid: the heterogeneous overloads must
+        // not take over, the inherited key_type overloads materialize the key.
+        struct TKeyConvertible {
+            operator TString() const {
+                return "convertible";
+            }
+        };
+
+        TMap<TString, ui32> convertibleKeyMap;
+        convertibleKeyMap[TKeyConvertible{}] = 1;
+        UNIT_ASSERT_VALUES_EQUAL(convertibleKeyMap.at("convertible"), 1);
+        UNIT_ASSERT(!convertibleKeyMap.try_emplace(TKeyConvertible{}, 2).second);
+        UNIT_ASSERT_VALUES_EQUAL(convertibleKeyMap.at("convertible"), 1);
+        UNIT_ASSERT(!convertibleKeyMap.insert_or_assign(TKeyConvertible{}, 3).second);
+        UNIT_ASSERT_VALUES_EQUAL(convertibleKeyMap.at("convertible"), 3);
+        UNIT_ASSERT_VALUES_EQUAL(convertibleKeyMap.erase(TKeyConvertible{}), 1);
+        UNIT_ASSERT(convertibleKeyMap.empty());
+
+        // Transparent but integral keys also keep the inherited overloads.
+        TMap<ui64, ui32, std::less<>> transparentIntMap;
+        transparentIntMap[42u] = 1;
+        UNIT_ASSERT_VALUES_EQUAL(transparentIntMap.at(42u), 1);
+        UNIT_ASSERT_VALUES_EQUAL(transparentIntMap.erase(42u), 1);
+        UNIT_ASSERT(transparentIntMap.empty());
     }
 } // Y_UNIT_TEST_SUITE(TYMapTest)
