@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.11] - 2026-06-22
+### Fixed
+- Fix unchecked pointer arithmatic in `advice_range`, `unchecked_advise_range`, `flush_range` and `flush_async_range`.
+### Changed
+- Bump the MSRV from 1.63 to 1.65.
+
 ## [0.9.10] - 2026-02-15
 ### Fixed
 - Fix compilation on AIX targets.

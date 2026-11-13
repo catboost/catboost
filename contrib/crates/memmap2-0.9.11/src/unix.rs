@@ -1,8 +1,8 @@
 use std::fs::File;
+use std::io;
 use std::mem::ManuallyDrop;
 use std::os::unix::io::{FromRawFd, RawFd};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::{io, ptr};
 
 #[cfg(any(
     all(target_os = "linux", not(target_arch = "mips")),
@@ -95,21 +95,25 @@ impl MmapInner {
 
         let (map_len, map_offset) = Self::adjust_mmap_params(len, alignment as usize)?;
 
-        unsafe {
-            let ptr = mmap(
-                ptr::null_mut(),
+        // SAFETY: creating a new memory map with a nullptr as address hint is always sound:
+        // it does not modify any existing mapping or memory contents.
+        let ptr = unsafe {
+            mmap(
+                std::ptr::null_mut(),
                 map_len as libc::size_t,
                 prot,
                 flags,
                 file,
                 aligned_offset as off_t,
-            );
+            )
+        };
 
-            if ptr == libc::MAP_FAILED {
-                Err(io::Error::last_os_error())
-            } else {
-                Ok(Self::from_raw_parts(ptr, len, map_offset))
-            }
+        if ptr == libc::MAP_FAILED {
+            Err(io::Error::last_os_error())
+        } else {
+            // SAFETY: The ptr and len have been checked,
+            // and the offset has been calculated as required.
+            Ok(unsafe { Self::from_raw_parts(ptr, len, map_offset) })
         }
     }
 
@@ -211,7 +215,11 @@ impl MmapInner {
         if len == 0 {
             (self.ptr, 1, 0)
         } else {
-            (unsafe { self.ptr.offset(-(offset as isize)) }, len, offset)
+            let offset = self.ptr as usize % page_size();
+            // SAFETY: MmapInner guarantees that rounding `self.ptr` down to a page boundary gives the real address of the memory map.
+            // This means that it points into the same allocation as `self.ptr`.
+            let ptr = unsafe { self.ptr.sub(offset) };
+            (ptr, len, offset)
         }
     }
 
@@ -229,7 +237,7 @@ impl MmapInner {
         debug_assert!(offset < page_size(), "offset larger than page size");
 
         Self {
-            ptr: ptr.add(offset),
+            ptr: unsafe { ptr.add(offset) },
             len,
         }
     }
@@ -355,10 +363,14 @@ impl MmapInner {
     }
 
     pub fn flush(&self, offset: usize, len: usize) -> io::Result<()> {
+        if offset > self.len || len > self.len - offset {
+            return Err(io::ErrorKind::InvalidInput.into());
+        }
         let alignment = (self.ptr as usize + offset) % page_size();
         let offset = offset as isize - alignment as isize;
         let len = len + alignment;
         let result =
+            // SAFETY: We've checked that offset and len fall within the mapped region.
             unsafe { libc::msync(self.ptr.offset(offset), len as libc::size_t, libc::MS_SYNC) };
         if result == 0 {
             Ok(())
@@ -368,10 +380,14 @@ impl MmapInner {
     }
 
     pub fn flush_async(&self, offset: usize, len: usize) -> io::Result<()> {
+        if offset > self.len || len > self.len - offset {
+            return Err(io::ErrorKind::InvalidInput.into());
+        }
         let alignment = (self.ptr as usize + offset) % page_size();
         let offset = offset as isize - alignment as isize;
         let len = len + alignment;
         let result =
+            // SAFETY: We've checked that offset and len fall within the mapped region.
             unsafe { libc::msync(self.ptr.offset(offset), len as libc::size_t, libc::MS_ASYNC) };
         if result == 0 {
             Ok(())
@@ -381,16 +397,17 @@ impl MmapInner {
     }
 
     fn mprotect(&mut self, prot: libc::c_int) -> io::Result<()> {
-        unsafe {
-            let alignment = self.ptr as usize % page_size();
-            let ptr = self.ptr.offset(-(alignment as isize));
-            let len = self.len + alignment;
-            let len = len.max(1);
-            if libc::mprotect(ptr, len, prot) == 0 {
-                Ok(())
-            } else {
-                Err(io::Error::last_os_error())
-            }
+        let alignment = self.ptr as usize % page_size();
+        // SAFETY: rounding self.ptr down to the previous page boundary gives the pointer of the actual memory map.
+        let ptr = unsafe { self.ptr.sub(alignment) };
+        let len = self.len + alignment;
+        let len = len.max(1);
+
+        // SAFETY: the contract of MmapInner guarantees ptr and len are valid.
+        if unsafe { libc::mprotect(ptr, len, prot) } == 0 {
+            Ok(())
+        } else {
+            Err(io::Error::last_os_error())
         }
     }
 
@@ -421,29 +438,34 @@ impl MmapInner {
         self.len
     }
 
-    pub fn advise(&self, advice: libc::c_int, offset: usize, len: usize) -> io::Result<()> {
+    /// Perform an `madvise()`.
+    ///
+    /// # Safety
+    ///
+    /// Some `advise` values can be unsound depending on the situation.
+    /// It is up to the caller to only perform sound madvise() calls on the memory range.
+    pub unsafe fn advise(&self, advice: libc::c_int, offset: usize, len: usize) -> io::Result<()> {
+        if offset > self.len || len > self.len {
+            return Err(std::io::ErrorKind::InvalidInput.into());
+        }
         let alignment = (self.ptr as usize + offset) % page_size();
         let offset = offset as isize - alignment as isize;
         let len = len + alignment;
-        unsafe {
-            let ptr = {
-                // The AIX signature of 'madvise()' differs from the POSIX
-                // specification, which expects 'void *' as the type of the
-                // 'addr' argument, whereas AIX uses 'caddr_t' (i.e., 'char *').
-                #[cfg(target_os = "aix")]
-                {
-                    self.ptr.offset(offset) as *mut u8
-                }
-                #[cfg(not(target_os = "aix"))]
-                {
-                    self.ptr.offset(offset)
-                }
-            };
-            if libc::madvise(ptr, len, advice) != 0 {
-                Err(io::Error::last_os_error())
-            } else {
-                Ok(())
-            }
+
+        // SAFETY: We've checked that offset is within the mapped region.
+        let ptr = unsafe { self.ptr.offset(offset) };
+
+        // The AIX signature of 'madvise()' differs from the POSIX
+        // specification, which expects 'void *' as the type of the
+        // 'addr' argument, whereas AIX uses 'caddr_t' (i.e., 'char *').
+        #[cfg(target_os = "aix")]
+        let ptr = self.ptr.offset(offset).cast();
+
+        // SAFETY: ptr and len are valid. The burden of giving a safe `advice` value is on the caller.
+        if unsafe { libc::madvise(ptr, len, advice) } != 0 {
+            Err(io::Error::last_os_error())
+        } else {
+            Ok(())
         }
     }
 
@@ -452,16 +474,19 @@ impl MmapInner {
         let (old_ptr, old_len, offset) = self.as_mmap_params();
         let (map_len, offset) = Self::adjust_mmap_params(new_len, offset)?;
 
-        unsafe {
-            let new_ptr = libc::mremap(old_ptr, old_len, map_len, options.into_flags());
+        // SAFETY: we hold a mutable reference to self, so we can adjust the location and size of the mapping.
+        let new_ptr = unsafe { libc::mremap(old_ptr, old_len, map_len, options.into_flags()) };
 
-            if new_ptr == libc::MAP_FAILED {
-                Err(io::Error::last_os_error())
-            } else {
-                // We explicitly don't drop self since the pointer within is no longer valid.
-                ptr::write(self, Self::from_raw_parts(new_ptr, new_len, offset));
-                Ok(())
-            }
+        if new_ptr == libc::MAP_FAILED {
+            Err(io::Error::last_os_error())
+        } else {
+            // SAFETY: The pointer and length passed to `from_raw_parts` have just been obtained from a real map, so they must be valid.
+            let new_map = unsafe { Self::from_raw_parts(new_ptr, new_len, offset) };
+            // We explicitly don't drop self since the pointer within is no longer valid.
+            // Instead, swap the new map into `self` and forget the old one.
+            let old_map = std::mem::replace(self, new_map);
+            std::mem::forget(old_map);
+            Ok(())
         }
     }
 

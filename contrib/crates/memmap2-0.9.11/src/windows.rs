@@ -160,7 +160,7 @@ impl MmapInner {
         copy: bool,
     ) -> io::Result<MmapInner> {
         let alignment = offset % allocation_granularity() as u64;
-        let aligned_offset = offset - alignment as u64;
+        let aligned_offset = offset - alignment;
         let aligned_len = len + alignment as usize;
         if aligned_len == 0 {
             // `CreateFileMappingW` documents:
@@ -179,27 +179,30 @@ impl MmapInner {
             });
         }
 
-        unsafe {
-            let mapping = CreateFileMappingW(handle, ptr::null_mut(), protect, 0, 0, ptr::null());
-            if mapping.is_null() {
-                return Err(io::Error::last_os_error());
-            }
+        let mapping =
+            unsafe { CreateFileMappingW(handle, ptr::null_mut(), protect, 0, 0, ptr::null()) };
+        if mapping.is_null() {
+            return Err(io::Error::last_os_error());
+        }
 
-            let ptr = MapViewOfFile(
+        let ptr = unsafe {
+            MapViewOfFile(
                 mapping,
                 access,
                 (aligned_offset >> 16 >> 16) as DWORD,
                 (aligned_offset & 0xffffffff) as DWORD,
                 aligned_len as SIZE_T,
-            );
-            CloseHandle(mapping);
-            if ptr.is_null() {
-                return Err(io::Error::last_os_error());
-            }
+            )
+        };
+        unsafe { CloseHandle(mapping) };
+        if ptr.is_null() {
+            return Err(io::Error::last_os_error());
+        }
 
-            let mut new_handle = 0 as RawHandle;
-            let cur_proc = GetCurrentProcess();
-            let ok = DuplicateHandle(
+        let mut new_handle = 0 as RawHandle;
+        let cur_proc = unsafe { GetCurrentProcess() };
+        let ok = unsafe {
+            DuplicateHandle(
                 cur_proc,
                 handle,
                 cur_proc,
@@ -207,19 +210,22 @@ impl MmapInner {
                 0,
                 0,
                 DUPLICATE_SAME_ACCESS,
-            );
-            if ok == 0 {
-                UnmapViewOfFile(ptr);
-                return Err(io::Error::last_os_error());
-            }
-
-            Ok(MmapInner {
-                handle: Some(new_handle),
-                ptr: ptr.offset(alignment as isize),
-                len,
-                copy,
-            })
+            )
+        };
+        if ok == 0 {
+            unsafe { UnmapViewOfFile(ptr) };
+            return Err(io::Error::last_os_error());
         }
+
+        // SAFETY: The mapping is guaranteed to contain at-least `alignment` bytes.
+        let ptr = unsafe { ptr.add(alignment as usize) };
+
+        Ok(MmapInner {
+            handle: Some(new_handle),
+            ptr,
+            len,
+            copy,
+        })
     }
 
     pub fn map(
@@ -411,10 +417,17 @@ impl MmapInner {
     }
 
     pub fn flush_async(&self, offset: usize, len: usize) -> io::Result<()> {
+        if offset > self.len || len > self.len - offset {
+            return Err(io::ErrorKind::InvalidInput.into());
+        }
         if self.ptr == empty_slice_ptr() {
             return Ok(());
         }
-        let result = unsafe { FlushViewOfFile(self.ptr.add(offset), len as SIZE_T) };
+        // SAFETY: We've checked that offset and offset + len fall within the mapped region.
+        let result = unsafe {
+            let ptr = self.ptr.add(offset);
+            FlushViewOfFile(ptr, len as SIZE_T)
+        };
         if result != 0 {
             Ok(())
         } else {
@@ -426,19 +439,19 @@ impl MmapInner {
         if self.ptr == empty_slice_ptr() {
             return Ok(());
         }
-        unsafe {
-            let alignment = self.ptr as usize % allocation_granularity();
-            let ptr = self.ptr.offset(-(alignment as isize));
-            let aligned_len = self.len as SIZE_T + alignment as SIZE_T;
+        let alignment = self.ptr as usize % allocation_granularity();
+        // SAFETY: self.ptr rounded down to `allocation_granularity()` is the real start of the memory map.
+        // So it lies within the same allocation as `self.ptr`.
+        let ptr = unsafe { self.ptr.sub(alignment) };
+        let aligned_len = self.len as SIZE_T + alignment as SIZE_T;
 
-            let mut old = 0;
-            let result = VirtualProtect(ptr, aligned_len, protect, &mut old);
+        let mut old = 0;
+        let result = unsafe { VirtualProtect(ptr, aligned_len, protect, &mut old) };
 
-            if result != 0 {
-                Ok(())
-            } else {
-                Err(io::Error::last_os_error())
-            }
+        if result != 0 {
+            Ok(())
+        } else {
+            Err(io::Error::last_os_error())
         }
     }
 
@@ -484,11 +497,13 @@ impl Drop for MmapInner {
             return;
         }
         let alignment = self.ptr as usize % allocation_granularity();
+        // SAFETY: self.ptr rounded down to `allocation_granularity()` is the real start of the memory map.
+        // So it lies within the same allocation as `self.ptr`.
+        let ptr = unsafe { self.ptr.sub(alignment) };
         // Any errors during unmapping/closing are ignored as the only way
         // to report them would be through panicking which is highly discouraged
         // in Drop impls, c.f. https://github.com/rust-lang/lang-team/issues/97
         unsafe {
-            let ptr = self.ptr.offset(-(alignment as isize));
             UnmapViewOfFile(ptr);
 
             if let Some(handle) = self.handle {
