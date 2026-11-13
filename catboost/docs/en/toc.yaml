@@ -693,6 +693,8 @@ items:
             name: get_features
           - href: concepts/python-reference_pool_get_group_id.md
             name: get_group_id
+          - href: concepts/python-reference_pool_get_group_weight.md
+            name: get_group_weight
           - href: concepts/python-reference_pool_get_label.md
             name: get_label
           - href: concepts/python-reference_pool_get_text_feature_indices.md
