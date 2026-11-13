@@ -40,6 +40,16 @@ TEST(TTimingTest, DurationVSCpuDuration)
     EXPECT_LE(DiffMS(duration1, duration2), 10);
 }
 
+#if defined(_arm64_) && defined(_linux_)
+TEST(TTimingTest, TicksPerSecondFromCntfrq)
+{
+    ui64 frequency;
+    __asm__ __volatile__("mrs %0, cntfrq_el0" : "=r"(frequency));
+    ASSERT_NE(frequency, 0u);
+    EXPECT_NEAR(DurationToCpuDuration(TDuration::Seconds(1)), static_cast<TCpuDuration>(frequency), 1);
+}
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace

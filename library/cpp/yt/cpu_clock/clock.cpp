@@ -222,6 +222,13 @@ std::optional<double> TryMeasureTicksPerSecond()
     return std::nullopt;
 }
 
+#elif defined(_arm64_) && defined(_linux_)
+
+bool IsSaneTicksPerSecond(double ticksPerSecond)
+{
+    return ticksPerSecond >= 1e6 && ticksPerSecond <= 2e9;
+}
+
 #endif
 
 double ComputeTicksPerSecond()
@@ -247,6 +254,12 @@ double ComputeTicksPerSecond()
     }
     if (auto ticksPerSecond = TryMeasureTicksPerSecond()) {
         return *ticksPerSecond;
+    }
+#elif defined(_arm64_) && defined(_linux_)
+    ui64 frequency;
+    __asm__ __volatile__("mrs %0, cntfrq_el0" : "=r"(frequency));
+    if (IsSaneTicksPerSecond(frequency)) {
+        return static_cast<double>(frequency);
     }
 #endif
     return NHPTimer::GetCyclesPerSecond();
