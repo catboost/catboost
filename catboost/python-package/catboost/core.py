@@ -1115,6 +1115,7 @@ class Pool(_PoolBase):
     def _check_transform_tags(self, tags, feature_names):
         if not isinstance(tags, dict):
             raise CatBoostError("Invalid feature_tags type={}: must be dict like.".format(type(tags)))
+        tags = deepcopy(tags)
         for tag_name, tag_features in tags.items():
             if not isinstance(tag_features, dict):
                 raise CatBoostError("Invalid type of value in feature_tags by key {}, value type is {}: must be dict like.".format(tag_name, type(tag_features)))
