@@ -1,3 +1,6 @@
+#include <catboost/private/libs/algo/tensor_search_helpers.h>
+#include <catboost/libs/fstr/shap_prepared_trees.h>
+#include <catboost/libs/model/ut/lib/model_test_helpers.h>
 #include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
@@ -8,6 +11,8 @@
 #include <util/random/fast.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
+
+#include <limits>
 
 
 using namespace NCB;
@@ -139,6 +144,78 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
                     *((**rawObjectsData.GetFloatFeature(j)).ExtractValues(&NPar::LocalExecutor())),
                     features[j]
                 )
+            );
+        }
+    }
+}
+
+
+Y_UNIT_TEST_SUITE(TSplitSelectionRegressionTest) {
+    Y_UNIT_TEST(ResetBestSplitForUnusableScores) {
+        TCandidatesContext context;
+        context.OneHotMaxSize = 2;
+        context.PerBinaryPackMasks = {3};
+        TVector<TExclusiveFeaturesBundle> bundles(1);
+        bundles[0].Add(TExclusiveBundlePart(EFeatureType::Float, 0, TBoundsInBundle(0, 2)));
+        context.BundlesMetaData = bundles;
+        context.SelectedFeaturesInBundles = {{0}};
+        TVector<TFeaturesGroup> groups(1);
+        groups[0].Add(TFeaturesGroupPart(EFeatureType::Float, 0, 3));
+        context.FeaturesGroupsMetaData = groups;
+        context.SelectedFeaturesInGroups = {{0}};
+
+        for (const auto type : {ESplitEnsembleType::OneFeature, ESplitEnsembleType::BinarySplits,
+                               ESplitEnsembleType::ExclusiveBundle, ESplitEnsembleType::FeaturesGroup}) {
+            for (const auto distribution : {ERandomScoreDistribution::Normal, ERandomScoreDistribution::Gumbel}) {
+                TVector<TCandidateInfo> candidates(1);
+                candidates[0].SplitEnsemble.Type = type;
+                candidates[0].SplitEnsemble.BinarySplitsPackRef.PackIdx = 0;
+                candidates[0].SplitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx = 0;
+                candidates[0].SplitEnsemble.FeaturesGroupRef.GroupIdx = 0;
+                for (const auto unusable : {std::numeric_limits<double>::quiet_NaN(),
+                                           -std::numeric_limits<double>::infinity(), MINIMAL_SCORE}) {
+                    SetBestScore(0, {{1.0, 2.0}}, distribution, 0, context, &candidates);
+                    UNIT_ASSERT(candidates[0].HasBestSplit());
+                    UNIT_ASSERT_VALUES_EQUAL(candidates[0].BestBinId, 1);
+
+                    // The same candidates are scored again for another leaf.
+                    SetBestScore(0, {{unusable, unusable}}, distribution, 0, context, &candidates);
+                    UNIT_ASSERT(!candidates[0].HasBestSplit());
+                    UNIT_ASSERT_VALUES_EQUAL(candidates[0].BestScore.Val, MINIMAL_SCORE);
+
+                    SetBestScore(0, {{unusable, 3.0}}, distribution, 0, context, &candidates);
+                    UNIT_ASSERT_VALUES_EQUAL(candidates[0].BestBinId, 1);
+                    UNIT_ASSERT_VALUES_EQUAL(candidates[0].BestScore.Val, 3.0);
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(ResetBestSplitForMaskedCandidates) {
+        TCandidatesContext context;
+        context.PerBinaryPackMasks = {1};
+        TVector<TCandidateInfo> candidates(1);
+        candidates[0].SplitEnsemble.Type = ESplitEnsembleType::BinarySplits;
+        candidates[0].SplitEnsemble.BinarySplitsPackRef.PackIdx = 0;
+        SetBestScore(0, {{1.0, 2.0}}, ERandomScoreDistribution::Normal, 0, context, &candidates);
+        UNIT_ASSERT_VALUES_EQUAL(candidates[0].BestBinId, 0);
+        context.PerBinaryPackMasks = {0};
+        SetBestScore(0, {{1.0, 2.0}}, ERandomScoreDistribution::Normal, 0, context, &candidates);
+        UNIT_ASSERT(!candidates[0].HasBestSplit());
+        UNIT_ASSERT_VALUES_EQUAL(candidates[0].BestScore.Val, MINIMAL_SCORE);
+    }
+}
+
+Y_UNIT_TEST_SUITE(TShapPreparationRegressionTest) {
+    Y_UNIT_TEST(RejectUnsupportedShapTypeWithoutDataset) {
+        const auto model = SimpleAsymmetricModel();
+        const TVector<double> leafWeights(model.ModelTrees->GetModelTreeData()->GetLeafValues().size(), 1.0);
+        for (const auto calcType : {ECalcTypeShapValues::Exact, ECalcTypeShapValues::Independent}) {
+            UNIT_ASSERT_EXCEPTION_CONTAINS(
+                PrepareTreesWithoutIndependent(model, 10, false, leafWeights,
+                                               EPreCalcShapValues::Auto, false, calcType),
+                TCatBoostException,
+                "supported only for symmetric trees"
             );
         }
     }

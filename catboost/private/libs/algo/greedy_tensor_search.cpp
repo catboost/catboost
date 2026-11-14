@@ -949,6 +949,10 @@ static void SelectBestCandidate(
     for (const auto& candidatesContext : candidatesContexts) {
         for (const auto& subList : candidatesContext.CandidateList) {
             for (const auto& candidate : subList.Candidates) {
+                if (!candidate.HasBestSplit()) {
+                    // all scores of the candidate are NaN or -inf, there is no split to select
+                    continue;
+                }
                 double score = candidate.BestScore.GetInstance(ctx.LearnProgress->Rand);
                 score *= GetCatFeatureWeight(candidate, ctx, fold, maxFeatureValueCount);
 
