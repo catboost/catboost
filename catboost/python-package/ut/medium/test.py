@@ -1659,6 +1659,29 @@ def test_convert_model_to_json(task_type, pool, parameters):
     return compare_canonical_models(converted_model_path)
 
 
+@pytest.mark.parametrize('format', ['cbm', 'json'])
+def test_multiregression_model_round_trip_with_cat_features(format):
+    features = [[value] for value in 'abcd']
+    pool = Pool(features * 3, label=[[0, 0], [0, 2], [2, 0], [2, 2]] * 3, cat_features=[0])
+    model = CatBoostRegressor(
+        iterations=1,
+        depth=2,
+        learning_rate=1.0,
+        loss_function='MultiRMSE',
+        random_seed=0,
+        thread_count=1,
+        verbose=False,
+        allow_writing_files=False,
+    ).fit(pool)
+    predictions = model.predict(features, thread_count=1)
+    model_path = test_output_path('model.' + format)
+    model.save_model(model_path, format=format, pool=pool)
+    restored_model = CatBoostRegressor().load_model(model_path, format=format)
+    np.testing.assert_allclose(
+        restored_model.predict(features, thread_count=1), predictions, rtol=0, atol=1e-12
+    )
+
+
 def test_coreml_cbm_import_export(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
