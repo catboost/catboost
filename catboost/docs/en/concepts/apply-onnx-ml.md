@@ -23,7 +23,7 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 
 ### Model input parameters
 
-#### features
+#### features / num_features
 
 The numerical input features.
 
@@ -31,9 +31,9 @@ Possible types: Tensor of shape [N_examples, number_of_numerical_features] and t
 
 If the model does not use categorical features, columns use their original training feature indices. Use the input tensor's declared width; unused columns, including unused categorical features, can be filled with zeros.
 
-If the model uses categorical features, the tensor must contain only the numerical features retained in the model (in the order of the training dataset columns). This includes unused numerical features unless `drop_unused_features()` was called. Categorical features are passed as separate inputs.
+If the model uses categorical features, this input is named `num_features` and contains only the numerical features retained in the model (in the order of the training dataset columns). This includes unused numerical features unless `drop_unused_features()` was called. Categorical features are passed as separate inputs.
 
-If the model uses categorical features and retains no numerical features, pass an empty numerical tensor of shape `[N_examples, 0]`.
+If the model uses categorical features and retains no numerical features, there is no numerical input. Pass only the categorical inputs.
 
 #### Categorical features
 
@@ -43,7 +43,7 @@ Each categorical feature used by the model is exported as a separate input with 
 
 Categorical features that are not used by the model do not have corresponding inputs. Use the ONNX model's inputs list to get the actual set of inputs.
 
-Input names must be unique and must not conflict with another feature's encoded name (`<input_name>_encoded`) or the reserved graph names `features`, `all_features`, `label`, `probability_tensor`, `probabilities`, and `predictions`.
+Input names must be unique and must not conflict with another feature's encoded name (`<input_name>_encoded`) or the reserved graph names `num_features`, `trees_input`, `label`, `probability_tensor`, `probabilities`, and `predictions`.
 
 Possible types: Tensor of shape [N_examples, 1] and type {{ python-type--string }}
 
@@ -54,6 +54,8 @@ The exported graph maps string values to numbers with [LabelEncoder](https://onn
 #### Importing a model with categorical features
 
 When loading the exported model back into {{ product }}, its feature order follows the tree ensemble input: numerical features first, followed by the exported categorical features in their ONNX input order. Categorical features unused by the original model are omitted. Reorder prediction data accordingly and obtain categorical column indices with `get_cat_feature_indices()`.
+
+Categorical splits must refer to inputs preprocessed by a `LabelEncoder` with a string-to-float mapping. Equality splits on numerical inputs without this mapping are not supported.
 
 Import supports string-to-float `LabelEncoder` mappings with unique 32-bit integer encoded values and a non-NaN default value different from every encoded value. A feature cannot participate in both categorical equality comparisons and numerical ordered comparisons.
 
@@ -292,12 +294,12 @@ import onnxruntime as rt
 
 sess = rt.InferenceSession('regression_with_cat.onnx')
 
-# 'features' contains only numerical features,
+# 'num_features' contains only numerical features,
 # categorical features are passed as separate string inputs
 predictions = sess.run(
     ['predictions'],
     {
-        'features': np.array([[1.0], [2.0], [3.0], [4.0]], dtype=np.float32),
+        'num_features': np.array([[1.0], [2.0], [3.0], [4.0]], dtype=np.float32),
         'cat_feature_0': np.array([['a'], ['b'], ['a'], ['b']]),
         'cat_feature_1': np.array([['x'], ['y'], ['y'], ['x']])
     }

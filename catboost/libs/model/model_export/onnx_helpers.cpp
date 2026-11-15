@@ -56,7 +56,8 @@ void NCB::NOnnx::InitMetadata(
     opset->set_version(2);
 
     if (!model.ModelTrees->GetOneHotFeatures().empty()) {
-        // Concat belongs to the standard ONNX operator set.
+        // Concat belongs to the standard ONNX operator set. ONNX Runtime guarantees
+        // backward compatibility starting at standard-domain opset 7.
         auto* standardOpset = onnxModel->add_opset_import();
         standardOpset->set_domain("");
         standardOpset->set_version(7);
@@ -273,27 +274,27 @@ static void InitProbabilitiesOutput(
 
 struct TTreesAttributes {
     // TreeEnsembleClassifier only
-    onnx::AttributeProto* class_ids = nullptr;
-    onnx::AttributeProto* class_nodeids = nullptr;
-    onnx::AttributeProto* class_treeids = nullptr;
-    onnx::AttributeProto* class_weights = nullptr;
+    onnx::AttributeProto* class_ids;
+    onnx::AttributeProto* class_nodeids;
+    onnx::AttributeProto* class_treeids;
+    onnx::AttributeProto* class_weights;
 
     // TreeEnsembleRegressor only
-    onnx::AttributeProto* target_ids = nullptr;
-    onnx::AttributeProto* target_nodeids = nullptr;
-    onnx::AttributeProto* target_treeids = nullptr;
-    onnx::AttributeProto* target_weights = nullptr;
+    onnx::AttributeProto* target_ids;
+    onnx::AttributeProto* target_nodeids;
+    onnx::AttributeProto* target_treeids;
+    onnx::AttributeProto* target_weights;
 
-    onnx::AttributeProto* base_values = nullptr;  // can be nullptr if model has no bias.
-    onnx::AttributeProto* nodes_falsenodeids = nullptr;
-    onnx::AttributeProto* nodes_featureids = nullptr;
-    onnx::AttributeProto* nodes_hitrates = nullptr;
-    onnx::AttributeProto* nodes_missing_value_tracks_true = nullptr;
-    onnx::AttributeProto* nodes_modes = nullptr;
-    onnx::AttributeProto* nodes_nodeids = nullptr;
-    onnx::AttributeProto* nodes_treeids = nullptr;
-    onnx::AttributeProto* nodes_truenodeids = nullptr;
-    onnx::AttributeProto* nodes_values = nullptr;
+    onnx::AttributeProto* base_values;  // can be nullptr if model has no bias.
+    onnx::AttributeProto* nodes_falsenodeids;
+    onnx::AttributeProto* nodes_featureids;
+    onnx::AttributeProto* nodes_hitrates;
+    onnx::AttributeProto* nodes_missing_value_tracks_true;
+    onnx::AttributeProto* nodes_modes;
+    onnx::AttributeProto* nodes_nodeids;
+    onnx::AttributeProto* nodes_treeids;
+    onnx::AttributeProto* nodes_truenodeids;
+    onnx::AttributeProto* nodes_values;
 
 public:
     TTreesAttributes(
@@ -348,69 +349,49 @@ public:
         const bool isClassifierModel,
         google::protobuf::RepeatedPtrField<onnx::AttributeProto>& attributes) {
 
-#define SET_ATTR(attr, attr_type_suffix) \
-        if (attribute.name() == #attr) { \
-            CB_ENSURE(!attr, "Duplicate ONNX attribute " << #attr); \
-            CB_ENSURE(attribute.type() == onnx::AttributeProto_AttributeType_##attr_type_suffix, \
-                "Invalid type of ONNX attribute " << #attr); \
-            attr = &attribute; \
+#define SET_ATTR(attr, new_attr) \
+        if (new_attr.name() == #attr) { \
+            attr = &new_attr; \
         }
+
+        if (isClassifierModel) {
+            target_ids = nullptr;
+            target_nodeids = nullptr;
+            target_treeids = nullptr;
+            target_weights = nullptr;
+        } else {
+            class_ids = nullptr;
+            class_nodeids = nullptr;
+            class_treeids = nullptr;
+            class_weights = nullptr;
+        }
+        base_values = nullptr;
 
         for (auto& attribute : attributes) {
             if (isClassifierModel) {
-                SET_ATTR(class_ids, INTS);
-                SET_ATTR(class_nodeids, INTS);
-                SET_ATTR(class_treeids, INTS);
-                SET_ATTR(class_weights, FLOATS);
+                SET_ATTR(class_ids, attribute);
+                SET_ATTR(class_nodeids, attribute);
+                SET_ATTR(class_treeids, attribute);
+                SET_ATTR(class_weights, attribute);
             } else {
-                SET_ATTR(target_ids, INTS);
-                SET_ATTR(target_nodeids, INTS);
-                SET_ATTR(target_treeids, INTS);
-                SET_ATTR(target_weights, FLOATS);
+                SET_ATTR(target_ids, attribute);
+                SET_ATTR(target_nodeids, attribute);
+                SET_ATTR(target_treeids, attribute);
+                SET_ATTR(target_weights, attribute);
             }
 
-            SET_ATTR(base_values, FLOATS);
-            SET_ATTR(nodes_falsenodeids, INTS);
-            SET_ATTR(nodes_featureids, INTS);
-            SET_ATTR(nodes_hitrates, FLOATS);
-            SET_ATTR(nodes_missing_value_tracks_true, INTS);
-            SET_ATTR(nodes_modes, STRINGS);
-            SET_ATTR(nodes_nodeids, INTS);
-            SET_ATTR(nodes_treeids, INTS);
-            SET_ATTR(nodes_truenodeids, INTS);
-            SET_ATTR(nodes_values, FLOATS);
+            SET_ATTR(base_values, attribute);
+            SET_ATTR(nodes_falsenodeids, attribute);
+            SET_ATTR(nodes_featureids, attribute);
+            SET_ATTR(nodes_hitrates, attribute);
+            SET_ATTR(nodes_missing_value_tracks_true, attribute);
+            SET_ATTR(nodes_modes, attribute);
+            SET_ATTR(nodes_nodeids, attribute);
+            SET_ATTR(nodes_treeids, attribute);
+            SET_ATTR(nodes_truenodeids, attribute);
+            SET_ATTR(nodes_values, attribute);
         }
 #undef SET_ATTR
-
-        CB_ENSURE(nodes_treeids && nodes_treeids->ints_size() > 0, "ONNX nodes_treeids must not be empty");
-        const int nodeCount = nodes_treeids->ints_size();
-#define CHECK_ATTR_SIZE(attr, field, size) \
-        CB_ENSURE(attr, "Missing ONNX attribute " << #attr); \
-        CB_ENSURE(attr->field##_size() == size, "Invalid size of ONNX attribute " << #attr);
-
-        CHECK_ATTR_SIZE(nodes_nodeids, ints, nodeCount);
-        CHECK_ATTR_SIZE(nodes_featureids, ints, nodeCount);
-        CHECK_ATTR_SIZE(nodes_falsenodeids, ints, nodeCount);
-        CHECK_ATTR_SIZE(nodes_truenodeids, ints, nodeCount);
-        CHECK_ATTR_SIZE(nodes_modes, strings, nodeCount);
-        CHECK_ATTR_SIZE(nodes_values, floats, nodeCount);
-        if (nodes_missing_value_tracks_true && nodes_missing_value_tracks_true->ints_size() > 0) {
-            CHECK_ATTR_SIZE(nodes_missing_value_tracks_true, ints, nodeCount);
-        }
-        if (isClassifierModel) {
-            CB_ENSURE(class_treeids && class_treeids->ints_size() > 0, "ONNX class_treeids must not be empty");
-            const int weightCount = class_treeids->ints_size();
-            CHECK_ATTR_SIZE(class_nodeids, ints, weightCount);
-            CHECK_ATTR_SIZE(class_ids, ints, weightCount);
-            CHECK_ATTR_SIZE(class_weights, floats, weightCount);
-        } else {
-            CB_ENSURE(target_treeids && target_treeids->ints_size() > 0, "ONNX target_treeids must not be empty");
-            const int weightCount = target_treeids->ints_size();
-            CHECK_ATTR_SIZE(target_nodeids, ints, weightCount);
-            CHECK_ATTR_SIZE(target_ids, ints, weightCount);
-            CHECK_ATTR_SIZE(target_weights, floats, weightCount);
-        }
-#undef CHECK_ATTR_SIZE
     }
 };
 
@@ -427,7 +408,7 @@ public:
  *    (numerical features first), its output is the input of the TreeEnsemble* node.
  *
  * Feature indices in TreeEnsemble* nodes are:
- *  - index among float features for float features (the "features" input contains only float features
+ *  - index among float features for float features (the "num_features" input contains only float features
  *    in this case);
  *  - (float features count + position among exported categorical features) for categorical features.
  *
@@ -496,16 +477,18 @@ static TOnnxFeaturesLayout InitInputs(
 
     const int floatFeaturesCount = (int)trees.GetFloatFeatures().size();
 
-    InitValueInfo(
-        "features",
-        onnx::TensorProto_DataType_FLOAT,
-        floatFeaturesCount,
-        onnxGraph->add_input());
-
-    TVector<TString> concatInputs = {"features"};
+    TVector<TString> concatInputs;
+    if (floatFeaturesCount > 0) {
+        InitValueInfo(
+            "num_features",
+            onnx::TensorProto_DataType_FLOAT,
+            floatFeaturesCount,
+            onnxGraph->add_input());
+        concatInputs.push_back("num_features");
+    }
 
     THashSet<TString> usedNames = {
-        "features", "all_features", "label", "probability_tensor", "probabilities", "predictions"
+        "num_features", "trees_input", "label", "probability_tensor", "probabilities", "predictions"
     };
 
     THashMap<int, const TCatFeature*> catFeaturesByIndex;
@@ -535,6 +518,8 @@ static TOnnxFeaturesLayout InitInputs(
 
         TVector<TString> keysStrings;
         TVector<float> valuesFloats;
+        keysStrings.reserve(oneHotFeature.Values.size());
+        valuesFloats.reserve(oneHotFeature.Values.size());
         auto& catInput = layout.CatInputs[catFeatureIdx];
         catInput.Index = floatFeaturesCount + exportedCatFeaturesCount;
         for (auto i : xrange(oneHotFeature.Values.size())) {
@@ -564,7 +549,7 @@ static TOnnxFeaturesLayout InitInputs(
         ++exportedCatFeaturesCount;
     }
 
-    layout.TreesInputName = "all_features";
+    layout.TreesInputName = "trees_input";
     // ONNX requires nodes to be in topological order: encoders must precede Concat.
     onnx::NodeProto* concatNode = onnxGraph->add_node();
     concatNode->set_op_type("Concat");
@@ -582,7 +567,6 @@ static void AddTree(
     const TModelTrees& trees,
     i64 treeIdx,
     bool isClassifierModel,
-    double binaryClassifierBias,
     const TOnnxFeaturesLayout& layout,
     TTreesAttributes* treesAttributes) {
 
@@ -610,8 +594,6 @@ static void AddTree(
             const auto& catInput = layout.CatInputs.at(split.OneHotFeature.CatFeatureIdx);
             splitFeatureIdx = catInput.Index;
             nodeMode = TModeNode::BRANCH_EQ;
-            // NaN can't be a value of a string tensor
-            missingValueTracksTrue = 0;
             splitValue = (float)catInput.ValuesToIdx.at(split.OneHotFeature.Value);
         } else {
             CB_ENSURE(
@@ -668,16 +650,15 @@ static void AddTree(
                     ++leafValue;
                 }
             } else {
-                const float value = (float)(*leafValue + binaryClassifierBias);
                 treesAttributes->class_treeids->add_ints(treeIdx);
                 treesAttributes->class_nodeids->add_ints(nodeIdx);
                 treesAttributes->class_ids->add_ints(0);
-                treesAttributes->class_weights->add_floats(-value);
+                treesAttributes->class_weights->add_floats(-(float)*leafValue);
 
                 treesAttributes->class_treeids->add_ints(treeIdx);
                 treesAttributes->class_nodeids->add_ints(nodeIdx);
                 treesAttributes->class_ids->add_ints(1);
-                treesAttributes->class_weights->add_floats(value);
+                treesAttributes->class_weights->add_floats((float)*leafValue);
 
                 ++leafValue;
             }
@@ -766,20 +747,15 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         InitValueInfo(
             "predictions",
             onnx::TensorProto_DataType_FLOAT,
-            // Keep the legacy numerical-only metadata; new categorical graphs use the ONNX [N, 1] shape.
-            /*secondDim*/ trees.GetOneHotFeatures().empty() ? Nothing() : TMaybe<google::protobuf::int64>(1),
+            /*secondDim*/ Nothing(),
             onnxGraph->add_output()
         );
         treesNode->add_output("predictions");
     }
     auto scaleAndBias = model.GetScaleAndBias();
-    // ONNX Runtime's binary classifier handling of two base_values uses the first class's
-    // score for the second class. Folding the bias into one tree avoids that ambiguity.
-    const bool foldBinaryBias = isClassifierModel && trees.GetDimensionsCount() == 1 && trees.GetTreeCount() > 0;
-    TTreesAttributes treesAttributes(
-        isClassifierModel, !scaleAndBias.IsZeroBias() && !foldBinaryBias, treesNode->mutable_attribute());
+    TTreesAttributes treesAttributes(isClassifierModel, !scaleAndBias.IsZeroBias(), treesNode->mutable_attribute());
 
-    if (!scaleAndBias.IsZeroBias() && !foldBinaryBias) {
+    if (!scaleAndBias.IsZeroBias()) {
         if (isClassifierModel && (trees.GetDimensionsCount() == 1)) {
             const float bias = float(scaleAndBias.GetOneDimensionalBias());
             treesAttributes.base_values->add_floats(-bias);
@@ -796,8 +772,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         }
     }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
-        const double binaryClassifierBias = foldBinaryBias && treeIdx == 0 ? scaleAndBias.GetOneDimensionalBiasOrZero() : 0.0;
-        AddTree(trees, treeIdx, isClassifierModel, binaryClassifierBias, layout, &treesAttributes);
+        AddTree(trees, treeIdx, isClassifierModel, layout, &treesAttributes);
     }
 }
 
@@ -835,7 +810,7 @@ struct TOnnxTreesInputInfo {
 };
 
 
-static i64 GetSecondDim(const onnx::ValueInfoProto& valueInfo) {
+static int GetSecondDim(const onnx::ValueInfoProto& valueInfo) {
     const auto& shape = valueInfo.type().tensor_type().shape();
     CB_ENSURE(
         shape.dim_size() == 2,
@@ -846,7 +821,7 @@ static i64 GetSecondDim(const onnx::ValueInfoProto& valueInfo) {
         shape.dim(1).dim_value() >= 0 && shape.dim(1).dim_value() <= Max<int>(),
         "Invalid feature count for input \"" << valueInfo.name() << "\""
     );
-    return shape.dim(1).dim_value();
+    return (int)shape.dim(1).dim_value();
 }
 
 
@@ -932,7 +907,7 @@ static TOnnxTreesInputInfo GetTreesInputInfo(const onnx::GraphProto& onnxGraph, 
     TOnnxTreesInputInfo result;
 
     if (const auto* graphInput = graphInputs.Value(treesInputName, nullptr)) {
-        result.FeaturesCount = (int)GetSecondDim(*graphInput);
+        result.FeaturesCount = GetSecondDim(*graphInput);
         return result;
     }
 
@@ -952,11 +927,12 @@ static TOnnxTreesInputInfo GetTreesInputInfo(const onnx::GraphProto& onnxGraph, 
 
     for (const auto& concatInputName : concatNode->input()) {
         if (const auto* graphInput = graphInputs.Value(concatInputName, nullptr)) {
+            const int featureCount = GetSecondDim(*graphInput);
             CB_ENSURE(
-                GetSecondDim(*graphInput) <= Max<int>() - result.FeaturesCount,
+                featureCount <= Max<int>() - result.FeaturesCount,
                 "Too many features in Concat inputs"
             );
-            result.FeaturesCount += (int)GetSecondDim(*graphInput);
+            result.FeaturesCount += featureCount;
             continue;
         }
 
@@ -995,8 +971,8 @@ static bool IsFloatFeatureNodeMode(const TString& nodeMode) {
 
 
 /*
- * Features used in BRANCH_EQ/BRANCH_NEQ nodes and features preprocessed with LabelEncoder are considered
- * categorical, all other features are considered float.
+ * Features preprocessed with LabelEncoder are categorical and may only be used in BRANCH_EQ/BRANCH_NEQ
+ * nodes. Other features are numerical and may only be used in ordered comparisons.
  * All columns of the input tensor are added to the features (even if unused in the model) to preserve
  * the input layout.
  */
@@ -1025,18 +1001,19 @@ static void PrepareFeatures(
             "ONNX node feature index " << flatFeatureIdx << " is outside the input tensor"
         );
         if (IsCatFeatureNodeMode(nodeMode)) {
+            CB_ENSURE(
+                !floatFeatureFlatIndices.contains(flatFeatureIdx),
+                "ONNX feature " << flatFeatureIdx << " cannot be used in both categorical and numerical splits"
+            );
             catFeatureFlatIndices.insert(flatFeatureIdx);
         } else {
             CB_ENSURE(IsFloatFeatureNodeMode(nodeMode), "Undefined mode of node " << nodeMode);
+            CB_ENSURE(
+                !catFeatureFlatIndices.contains(flatFeatureIdx),
+                "ONNX feature " << flatFeatureIdx << " cannot be used in both categorical and numerical splits"
+            );
             floatFeatureFlatIndices.insert(flatFeatureIdx);
         }
-    }
-
-    for (const int flatFeatureIdx : catFeatureFlatIndices) {
-        CB_ENSURE(
-            !floatFeatureFlatIndices.contains(flatFeatureIdx),
-            "ONNX feature " << flatFeatureIdx << " cannot be used in both categorical and numerical splits"
-        );
     }
 
     floatFeatures->clear();
@@ -1047,9 +1024,11 @@ static void PrepareFeatures(
         if (catFeatureFlatIndices.contains(flatFeatureIdx)) {
             TCatFeature catFeature;
             catFeature.Position = TFeaturePosition((int)catFeatures->size(), flatFeatureIdx);
-            if (const auto* catFeatureInput = treesInputInfo.CatFeatureInputs.FindPtr(flatFeatureIdx)) {
-                catFeature.FeatureId = catFeatureInput->Name;
-            }
+            CB_ENSURE(
+                treesInputInfo.CatFeatureInputs.contains(flatFeatureIdx),
+                "Categorical feature " << flatFeatureIdx << " must have a LabelEncoder input"
+            );
+            catFeature.FeatureId = treesInputInfo.CatFeatureInputs.at(flatFeatureIdx).Name;
             (*flatFeatureIndexToPerTypeIndex)[flatFeatureIdx] = catFeature.Position.Index;
             catFeatures->push_back(std::move(catFeature));
         } else {
@@ -1069,20 +1048,14 @@ static int GetCatFeatureValue(
 ) {
     const int encodedValue = GetIntegerCatFeatureValue(onnxValue);
 
-    TString stringValue;
-    if (const auto* catFeatureInput = treesInputInfo.CatFeatureInputs.FindPtr(flatFeatureIdx)) {
-        const TString* mappedValue = catFeatureInput->EncodedValueToString.FindPtr(encodedValue);
-        CB_ENSURE(
-            mappedValue,
-            "Categorical feature " << flatFeatureIdx << " split value " << encodedValue
-            << " is not found in LabelEncoder mapping"
-        );
-        stringValue = *mappedValue;
-    } else {
-        // CatBoost treats all categorical values as strings
-        stringValue = ToString(encodedValue);
-    }
-    return CalcCatFeatureHash(stringValue);
+    const auto& catFeatureInput = treesInputInfo.CatFeatureInputs.at(flatFeatureIdx);
+    const TString* mappedValue = catFeatureInput.EncodedValueToString.FindPtr(encodedValue);
+    CB_ENSURE(
+        mappedValue,
+        "Categorical feature " << flatFeatureIdx << " split value " << encodedValue
+        << " is not found in LabelEncoder mapping"
+    );
+    return CalcCatFeatureHash(*mappedValue);
 }
 
 
@@ -1142,9 +1115,7 @@ static void PrepareTrees(
                 split.FloatFeature.Split = treesAttributes.nodes_values->floats(idx);
 
                 //update floatFeatures
-                if (treesAttributes.nodes_missing_value_tracks_true &&
-                    treesAttributes.nodes_missing_value_tracks_true->ints_size() > 0 &&
-                    treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1) {
+                if (treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1) {
                     (*floatFeatures)[split.FloatFeature.FloatFeature].NanValueTreatment =
                     ENanValueTreatment::AsTrue;
                 }
@@ -1248,49 +1219,6 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
         &catFeatures
     );
 
-    TVector<double> bias;
-    if (treesAttributes.base_values != nullptr) {
-        for (const float value : treesAttributes.base_values->floats()) {
-            bias.push_back(value);
-        }
-    }
-
-    bool isBinaryLogistic = false;
-    if (isClassifierModel && approxDimension == 2) {
-        for (const auto& attribute : treesNode->attribute()) {
-            if (attribute.name() == "post_transform" && attribute.s() == "LOGISTIC") {
-                isBinaryLogistic = true;
-            }
-        }
-    }
-    if (isBinaryLogistic) {
-        // CatBoost exports a binary logit as [-logit, logit] with LOGISTIC applied
-        // to each class. Keeping two dimensions would apply softmax after import
-        // and double the logit, changing probabilities even when labels agree.
-        for (auto idx : xrange(treesAttributes.class_ids->ints_size())) {
-            CB_ENSURE(
-                treesAttributes.class_ids->ints(idx) == idx % 2,
-                "Binary LOGISTIC class weights must be ordered by class 0, then class 1"
-            );
-        }
-        for (auto& tree : trees) {
-            for (auto& [nodeId, node] : tree) {
-                if (node.Type == EType::Leaf) {
-                    CB_ENSURE(
-                        node.Values.size() == 2 && node.Values[0] == -node.Values[1],
-                        "Binary LOGISTIC class weights must be opposite"
-                    );
-                    node.Values = {node.Values[1]};
-                }
-            }
-        }
-        if (!bias.empty()) {
-            CB_ENSURE(bias.size() == 2 && bias[0] == -bias[1], "Binary LOGISTIC base values must be opposite");
-            bias = {bias[1]};
-        }
-        approxDimension = 1;
-    }
-
     TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, catFeatures, {}, {}, approxDimension);
 
     for (const auto& tree : trees) {
@@ -1298,7 +1226,11 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     }
 
     treeBuilder.Build(fullModel->ModelTrees.GetMutable());
-    if (!bias.empty()) {
+    if (treesAttributes.base_values != nullptr) {
+        TVector<double> bias;
+        for (size_t idx: xrange(treesAttributes.base_values->floats_size())) {
+            bias.push_back(treesAttributes.base_values->floats(idx));
+        }
         fullModel->SetScaleAndBias({1., bias});
     }
 
