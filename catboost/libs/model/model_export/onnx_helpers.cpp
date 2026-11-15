@@ -724,6 +724,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         );
         treesNode->add_output("probability_tensor");
 
+
         onnx::NodeProto* zipMapNode = onnxGraph->add_node();
         zipMapNode->set_domain(onnx::AI_ONNX_ML_DOMAIN);
         zipMapNode->set_op_type("ZipMap");
