@@ -758,7 +758,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         InitValueInfo(
             "predictions",
             onnx::TensorProto_DataType_FLOAT,
-            /*secondDim*/ Nothing(),
+            /*secondDim*/ 1,
             onnxGraph->add_output()
         );
         treesNode->add_output("predictions");
