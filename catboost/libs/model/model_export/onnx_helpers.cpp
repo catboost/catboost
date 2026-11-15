@@ -1014,14 +1014,14 @@ static void PrepareFeatures(
         if (IsCatFeatureNodeMode(nodeMode)) {
             CB_ENSURE(
                 !floatFeatureFlatIndices.contains(flatFeatureIdx),
-                "ONNX feature " << flatFeatureIdx << " cannot be used in both categorical and numerical splits"
+                "ONNX feature # " << flatFeatureIdx << " cannot be used in both categorical and numerical splits"
             );
             catFeatureFlatIndices.insert(flatFeatureIdx);
         } else {
             CB_ENSURE(IsFloatFeatureNodeMode(nodeMode), "Undefined mode of node " << nodeMode);
             CB_ENSURE(
                 !catFeatureFlatIndices.contains(flatFeatureIdx),
-                "ONNX feature " << flatFeatureIdx << " cannot be used in both categorical and numerical splits"
+                "ONNX feature # " << flatFeatureIdx << " cannot be used in both categorical and numerical splits"
             );
             floatFeatureFlatIndices.insert(flatFeatureIdx);
         }
@@ -1037,7 +1037,7 @@ static void PrepareFeatures(
             catFeature.Position = TFeaturePosition((int)catFeatures->size(), flatFeatureIdx);
             CB_ENSURE(
                 treesInputInfo.CatFeatureInputs.contains(flatFeatureIdx),
-                "Categorical feature " << flatFeatureIdx << " must have a LabelEncoder input"
+                "Categorical feature # " << flatFeatureIdx << " must have a LabelEncoder input"
             );
             catFeature.FeatureId = treesInputInfo.CatFeatureInputs.at(flatFeatureIdx).Name;
             (*flatFeatureIndexToPerTypeIndex)[flatFeatureIdx] = catFeature.Position.Index;
