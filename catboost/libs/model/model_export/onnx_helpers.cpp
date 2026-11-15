@@ -28,6 +28,7 @@
 #include <util/system/yassert.h>
 
 #include <cmath>
+#include <limits>
 #include <numeric>
 
 
@@ -496,6 +497,9 @@ static TOnnxFeaturesLayout InitInputs(
         catFeaturesByIndex.emplace(catFeature.Position.Index, &catFeature);
     }
 
+    // maximum integer that can be represented as float w/o loss
+    constexpr size_t MAX_EXACT_FLOAT_INT = size_t(1) << std::numeric_limits<float>::digits;
+
     int exportedCatFeaturesCount = 0;
     for (const auto& oneHotFeature : trees.GetOneHotFeatures()) {
         const int catFeatureIdx = oneHotFeature.CatFeatureIndex;
@@ -509,6 +513,12 @@ static TOnnxFeaturesLayout InitInputs(
                 "Cannot export model to ONNX-ML: feature name \"" << name << "\" is not unique"
             );
         }
+
+        CB_ENSURE(
+            oneHotFeature.Values.size() < MAX_EXACT_FLOAT_INT,
+            "Cannot export model to ONNX-ML: categorical feature \"" << inputName << "\" has too many unique"
+            " values to be represented as 32 bit float in LabedEncoder node values_floats"
+        );
 
         InitValueInfo(
             inputName,
