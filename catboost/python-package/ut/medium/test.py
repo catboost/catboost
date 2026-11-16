@@ -2109,7 +2109,7 @@ def test_onnx_export_with_categorical_features_without_pool():
         model.save_model(test_output_path(OUTPUT_ONNX_MODEL_PATH), format="onnx")
 
 
-def test_onnx_import_with_categorical_features():
+def test_onnx_import_with_only_categorical_features():
     # Use categorical-only features because ONNX export reorders features
     # (float features first, then categorical), which changes the expected
     # feature layout for mixed-feature models.
