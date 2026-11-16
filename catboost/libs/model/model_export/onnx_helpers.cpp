@@ -419,20 +419,20 @@ public:
 
 struct TOnnxFeaturesLayout {
     struct TFloatInput {
-        int Index;
+        int Index;  // flat index in ONNX model
         bool MissingValueTracksTrue;
     };
 
     struct TCatInput {
-        int Index;
+        int Index;  // flat index in ONNX model
         THashMap<int, ui32> ValuesToIdx; // hashed value -> index in TOneHotFeature::Values
     };
 
     TString TreesInputName;
 
     // Per-type indices can have gaps after DropUnusedFeatures().
-    THashMap<int, TFloatInput> FloatInputs;
-    THashMap<int, TCatInput> CatInputs;
+    THashMap<int, TFloatInput> FloatInputs;     // [floatFeatureIdx]
+    THashMap<int, TCatInput> CatInputs;         // [catFeatureIdx]
 };
 
 
