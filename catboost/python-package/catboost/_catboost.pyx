@@ -2209,6 +2209,32 @@ def _get_cat_feature_hash(value):
     return <i32>CalcCatFeatureHash(text)
 
 
+def _get_cat_feature_hashes(values):
+    cdef object objects = values if isinstance(values, np.ndarray) else np.asarray(values, dtype=object)
+    cdef object flat = objects.ravel()
+    cdef np.ndarray[np.int64_t, ndim=1] result = np.empty(flat.size, dtype=np.int64)
+    cdef TString text
+    cdef Py_ssize_t i, start
+    cdef list batch
+    if objects.dtype.kind not in ('b', 'i', 'O', 'S', 'U'):
+        # Keep NumPy unsigned scalars: Python int conversion uses the signed
+        # Pool path and would reject valid uint64 values above INT64_MAX.
+        # Other dtypes also retain scalar validation (e.g. datetime64 must not
+        # silently become an integer category through tolist()).
+        for i in range(flat.size):
+            get_id_object_bytes_string_representation(flat[i], &text)
+            result[i] = <i32>CalcCatFeatureHash(text)
+    else:
+        # NumPy converts strings to Python objects in bulk. Bound temporary
+        # allocations and avoid constructing a NumPy scalar for every item.
+        for start in range(0, flat.size, 4096):
+            batch = flat[start:start + 4096].tolist()
+            for i in range(len(batch)):
+                get_id_object_bytes_string_representation(batch[i], &text)
+                result[start + i] = <i32>CalcCatFeatureHash(text)
+    return result.reshape(objects.shape)
+
+
 cdef inline ui64 get_timestamp_value(object obj) except *:
     if isinstance(obj, numbers.Integral) and not isinstance(obj, bool):
         return <ui64>obj

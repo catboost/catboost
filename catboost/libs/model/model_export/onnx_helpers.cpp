@@ -29,7 +29,6 @@
 #include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
-#include <array>
 #include <cmath>
 #include <limits>
 #include <numeric>
@@ -66,10 +65,10 @@ void NCB::NOnnx::InitMetadata(
     if (hashedInputs || !model.ModelTrees->GetOneHotFeatures().empty() || HasNonDefaultBinaryThreshold(model)) {
         // Concat belongs to the standard ONNX operator set. ONNX Runtime guarantees
         // backward compatibility starting at standard-domain opset 7. Hashed
-        // CTR inputs also need Mod, introduced in opset 10.
+        // CTR inference also uses GatherElements, introduced in opset 11.
         auto* standardOpset = onnxModel->add_opset_import();
         standardOpset->set_domain("");
-        standardOpset->set_version(hashedInputs ? 10 : 7);
+        standardOpset->set_version(hashedInputs ? 11 : 7);
     }
 
     onnxModel->set_producer_name("CatBoost");
@@ -718,13 +717,11 @@ static TOnnxFeaturesLayout InitInputs(
 }
 
 
-// Only bounded int64 arithmetic is used below: ONNX has no portable uint64
-// multiplication. Four base-2^16 digits implement CatBoost's modulo-2^64 hash
-// without signed overflow or conversion of hashes to floating point.
+// CTR projection keys are evaluated modulo 2^64 using unsigned ONNX arithmetic.
+// Dividing both saved keys and runtime hashes by the common odd multiplier M^2
+// preserves every key and collision, and makes single-category lookup direct.
 class TOnnxCtrGraphBuilder {
 public:
-    using TDigits = std::array<TString, 4>;
-
     explicit TOnnxCtrGraphBuilder(onnx::GraphProto* graph)
         : Graph(graph)
     {
@@ -789,59 +786,37 @@ public:
     }
 
     TString FloatColumn(int index) {
+        if (const auto* cached = FloatColumns.FindPtr(index)) {
+            return *cached;
+        }
         onnx::TensorProto indices;
         indices.set_data_type(onnx::TensorProto_DataType_INT64);
         indices.add_dims(1);
         indices.add_int64_data(index);
-        const auto result = Node("Gather", {"num_features", Constant(indices)});
-        AddAttribute("axis", i64(1), LastNode());
+        const auto result = Node("ArrayFeatureExtractor", {"num_features", Constant(indices)});
+        LastNode()->set_domain(onnx::AI_ONNX_ML_DOMAIN);
+        FloatColumns.emplace(index, result);
         return result;
     }
 
-    TDigits Category(const TString& value) {
-        const auto base = Int(65536);
-        const auto low = Node("Mod", {value, base});
-        const auto high = Node("Mod", {Node("Div", {Node("Sub", {value, low}), base}), base});
-        const auto sign = Node("Mul", {CastToInt(Node("Less", {value, Int(0)})), Int(65535)});
-        return {low, high, sign, sign};
-    }
-
-    TDigits Condition(const TString& value) {
-        return {CastToInt(value), Int(0), Int(0), Int(0)};
-    }
-
-    TString Projection(const TVector<TDigits>& terms) {
+    TString Projection(const TVector<TString>& terms) {
         CB_ENSURE(!terms.empty(), "Cannot export an empty CTR projection to ONNX");
-        // h <- M * (h + M * x), hence coefficients are M^(n+1), ..., M^2.
-        constexpr ui64 multiplier = 0x4906ba494954cb65ULL;
-        ui64 coefficient = multiplier;
-        TDigits sum = {Int(0), Int(0), Int(0), Int(0)};
-        for (size_t term = terms.size(); term > 0; --term) {
-            coefficient *= multiplier; // unsigned wraparound is intentional
-            TDigits product;
-            auto carry = Int(0);
-            for (size_t digit = 0; digit < 4; ++digit) {
-                auto total = carry;
-                for (size_t j = 0; j <= digit; ++j) {
-                    const auto factor = Int((coefficient >> (16 * (digit - j))) & 65535);
-                    total = Node("Add", {total, Node("Mul", {terms[term - 1][j], factor})});
-                }
-                product[digit] = Node("Mod", {total, Int(65536)});
-                carry = Node("Div", {total, Int(65536)});
-            }
-            carry = Int(0);
-            for (size_t digit = 0; digit < 4; ++digit) {
-                const auto total = Node("Add", {Node("Add", {sum[digit], product[digit]}), carry});
-                sum[digit] = Node("Mod", {total, Int(65536)});
-                carry = Node("Div", {total, Int(65536)});
+        if (terms.size() == 1) {
+            return terms.front();
+        }
+        // Native h <- M * (h + M * x). Factoring out M^2 gives k <- M * k + x.
+        auto result = ToUnsigned(terms.front());
+        for (size_t i = 1; i < terms.size(); ++i) {
+            const auto key = std::make_pair(result, terms[i]);
+            if (const auto* cached = ProjectionPrefixes.FindPtr(key)) {
+                result = *cached;
+            } else {
+                const auto product = Node("Mul", {result, HashMultiplier()});
+                result = Node("Add", {product, ToUnsigned(terms[i])});
+                ProjectionPrefixes.emplace(key, result);
             }
         }
-        const auto sign = CastToInt(Node("Greater", {sum[3], Int(32767)}));
-        auto result = Node("Mul", {Node("Sub", {sum[3], Node("Mul", {sign, Int(65536)})}), Int(i64(1) << 48)});
-        for (int digit = 2; digit >= 0; --digit) {
-            result = Node("Add", {result, Node("Mul", {sum[digit], Int(i64(1) << (16 * digit))})});
-        }
-        return result;
+        return CastToInt(result);
     }
 
     TString Lookup(const TString& input, const TVector<i64>& keys, const TVector<float>& values, float missing) {
@@ -867,6 +842,26 @@ public:
     }
 
 private:
+    TString ToUnsigned(const TString& input) {
+        if (const auto* cached = UnsignedInputs.FindPtr(input)) {
+            return *cached;
+        }
+        const auto result = Node("Cast", {input});
+        AddAttribute("to", i64(onnx::TensorProto_DataType_UINT64), LastNode());
+        UnsignedInputs.emplace(input, result);
+        return result;
+    }
+
+    TString HashMultiplier() {
+        if (Multiplier.empty()) {
+            onnx::TensorProto tensor;
+            tensor.set_data_type(onnx::TensorProto_DataType_UINT64);
+            tensor.add_uint64_data(CalcHash(1, 0));
+            Multiplier = Constant(tensor);
+        }
+        return Multiplier;
+    }
+
     TString NewName() {
         TString name;
         do {
@@ -878,14 +873,20 @@ private:
     onnx::GraphProto* Graph;
     THashSet<TString> Names;
     THashMap<i64, TString> IntConstants;
+    THashMap<int, TString> FloatColumns;
+    THashMap<TString, TString> UnsignedInputs;
+    THashMap<std::pair<TString, TString>, TString> ProjectionPrefixes;
+    TString Multiplier;
     size_t NextName = 0;
 };
 
-static TString ExportCtrLookup(
-    const TModelCtr& ctr,
-    const TCtrValueTable& table,
-    const TString& hash,
-    TOnnxCtrGraphBuilder* builder) {
+struct TCtrLookupValues {
+    TVector<i64> Keys;
+    TVector<float> Values;
+    float Missing;
+};
+
+static TCtrLookupValues GetCtrLookupValues(const TModelCtr& ctr, const TCtrValueTable& table) {
 
     TVector<std::pair<ui64, ui64>> entries;
     for (const auto& bucket : table.GetIndexHashViewer().GetBuckets()) {
@@ -911,13 +912,21 @@ static TString ExportCtrLookup(
             bucketCount /= table.TargetClassesCount;
         }
     }
+    // M^2 is odd, so its inverse exists modulo 2^64. Newton iteration doubles
+    // the number of correct bits each step, starting with one correct bit.
+    const ui64 factor = CalcHash(0, 1);
+    ui64 inverse = 1;
+    for (int i = 0; i < 6; ++i) {
+        inverse *= 2 - factor * inverse;
+    }
     TVector<i64> keys;
     TVector<ui64> buckets;
     keys.reserve(entries.size());
     buckets.reserve(entries.size() + 1);
     for (const auto& [key, bucket] : entries) {
         CB_ENSURE(bucket < bucketCount, "Invalid CTR table bucket index");
-        keys.push_back(key <= ui64(std::numeric_limits<i64>::max()) ? i64(key) : -1 - i64(~key));
+        const ui64 normalized = key * inverse;
+        keys.push_back(normalized <= ui64(std::numeric_limits<i64>::max()) ? i64(normalized) : -1 - i64(~normalized));
         buckets.push_back(bucket);
     }
     buckets.push_back(NCatboost::TDenseIndexHashView::NotFoundIndex);
@@ -925,7 +934,17 @@ static TString ExportCtrLookup(
     CalcCtrValues(ctr, table, buckets, values);
     const float missing = values.back();
     values.pop_back();
-    return builder->Lookup(hash, keys, values, missing);
+    return {std::move(keys), std::move(values), missing};
+}
+
+static TString ExportCtrLookup(
+    const TModelCtr& ctr,
+    const TCtrValueTable& table,
+    const TString& hash,
+    TOnnxCtrGraphBuilder* builder) {
+
+    const auto values = GetCtrLookupValues(ctr, table);
+    return builder->Lookup(hash, values.Keys, values.Values, values.Missing);
 }
 
 static TOnnxFeaturesLayout InitHashedInputs(const TFullModel& model, onnx::GraphProto* graph) {
@@ -953,7 +972,7 @@ static TOnnxFeaturesLayout InitHashedInputs(const TFullModel& model, onnx::Graph
             catInputs.emplace(feature.Position.Index, name);
             auto* input = graph->add_input();
             InitValueInfo(name, onnx::TensorProto_DataType_INT64, 1, input);
-            input->set_doc_string("Signed 32-bit CatBoost category hashes stored as int64; use catboost.utils.get_cat_feature_hash.");
+            input->set_doc_string("Signed 32-bit CatBoost category hashes stored as int64; use catboost.utils.get_cat_feature_hashes.");
         }
     }
     TOnnxCtrGraphBuilder builder(graph);
@@ -973,30 +992,36 @@ static TOnnxFeaturesLayout InitHashedInputs(const TFullModel& model, onnx::Graph
     const auto* provider = dynamic_cast<const TStaticCtrProvider*>(model.CtrProvider.Get());
     CB_ENSURE(trees.GetCtrFeatures().empty() || provider, "ONNX CTR export requires a static CTR provider with saved tables");
     THashMap<TFeatureCombination, TString> projectionHashes;
-    THashMap<int, TOnnxCtrGraphBuilder::TDigits> categoryDigits;
+    THashMap<TFloatSplit, TString> floatConditions;
+    THashMap<TOneHotSplit, TString> oneHotConditions;
     for (const auto& feature : trees.GetCtrFeatures()) {
         const auto& ctr = feature.Ctr;
         const auto& projection = ctr.Base.Projection;
         auto* hash = projectionHashes.FindPtr(projection);
         if (!hash) {
-            TVector<TOnnxCtrGraphBuilder::TDigits> terms;
+            TVector<TString> terms;
+            terms.reserve(projection.CatFeatures.size() + projection.BinFeatures.size() + projection.OneHotFeatures.size());
             for (int cat : projection.CatFeatures) {
-                if (!categoryDigits.contains(cat)) {
-                    categoryDigits.emplace(cat, builder.Category(catInputs.at(cat)));
-                }
-                terms.push_back(categoryDigits.at(cat));
+                terms.push_back(catInputs.at(cat));
             }
             for (const auto& split : projection.BinFeatures) {
-                const auto& input = layout.FloatInputs.at(split.FloatFeature);
-                const auto column = builder.FloatColumn(input.Index);
-                auto condition = builder.Node("Greater", {column, builder.Float(split.Split)});
-                if (input.MissingValueTracksTrue) {
-                    condition = builder.Node("Or", {condition, builder.Node("IsNaN", {column})});
+                if (!floatConditions.contains(split)) {
+                    const auto& input = layout.FloatInputs.at(split.FloatFeature);
+                    const auto column = builder.FloatColumn(input.Index);
+                    auto condition = builder.Node("Greater", {column, builder.Float(split.Split)});
+                    if (input.MissingValueTracksTrue && split.Split < std::numeric_limits<float>::infinity()) {
+                        condition = builder.Node("Or", {condition, builder.Node("IsNaN", {column})});
+                    }
+                    floatConditions.emplace(split, builder.CastToInt(condition));
                 }
-                terms.push_back(builder.Condition(condition));
+                terms.push_back(floatConditions.at(split));
             }
             for (const auto& split : projection.OneHotFeatures) {
-                terms.push_back(builder.Condition(builder.Node("Equal", {catInputs.at(split.CatFeatureIdx), builder.Int(split.Value)})));
+                if (!oneHotConditions.contains(split)) {
+                    oneHotConditions.emplace(split, builder.CastToInt(
+                        builder.Node("Equal", {catInputs.at(split.CatFeatureIdx), builder.Int(split.Value)})));
+                }
+                terms.push_back(oneHotConditions.at(split));
             }
             hash = &projectionHashes.emplace(projection, builder.Projection(terms)).first->second;
         }
@@ -1132,6 +1157,283 @@ static void AddTree(
 }
 
 
+// With one categorical input and simple projections, all values absent from
+// the saved tables take the same path. Compose the tables and forest at export
+// time, keeping native prediction semantics (including collisions and bias).
+static TMaybe<TString> TryExportSingleCategoryMargin(const TFullModel& model, onnx::GraphProto* graph) {
+    const auto& trees = *model.ModelTrees;
+    if (!trees.GetFloatFeatures().empty() || trees.GetCatFeatures().size() != 1) {
+        return Nothing();
+    }
+    const auto& category = trees.GetCatFeatures().front();
+    for (const auto& feature : trees.GetCtrFeatures()) {
+        const auto& projection = feature.Ctr.Base.Projection;
+        if (!projection.IsSingleCatFeature() || projection.CatFeatures.front() != category.Position.Index) {
+            return Nothing();
+        }
+    }
+    const auto* provider = dynamic_cast<const TStaticCtrProvider*>(model.CtrProvider.Get());
+    CB_ENSURE(trees.GetCtrFeatures().empty() || provider, "ONNX CTR export requires a static CTR provider with saved tables");
+    THashSet<i64> categories;
+    for (const auto& feature : trees.GetCtrFeatures()) {
+        const auto* table = provider->CtrData.LearnCtrs.FindPtr(feature.Ctr.Base);
+        CB_ENSURE(table, "ONNX CTR export requires all saved CTR tables");
+        // Validate the table before calling the native evaluator.
+        for (i64 key : GetCtrLookupValues(feature.Ctr, *table).Keys) {
+            if (key >= std::numeric_limits<i32>::min() && key <= std::numeric_limits<i32>::max()) {
+                categories.insert(key);
+            }
+        }
+    }
+    for (const auto& feature : trees.GetOneHotFeatures()) {
+        categories.insert(feature.Values.begin(), feature.Values.end());
+    }
+    TVector<i64> keys(categories.begin(), categories.end());
+    Sort(keys);
+    i64 unknown = std::numeric_limits<i32>::min();
+    while (categories.contains(unknown)) {
+        ++unknown;
+    }
+    CB_ENSURE(unknown <= std::numeric_limits<i32>::max(), "Too many categorical values for ONNX lookup export");
+    keys.push_back(unknown);
+    TVector<float> predictions;
+    predictions.reserve(keys.size());
+    auto evaluator = NCB::NModelEvaluation::CreateEvaluator(EFormulaEvaluatorType::CPU, model);
+    evaluator->SetPredictionType(NCB::NModelEvaluation::EPredictionType::RawFormulaVal);
+    const size_t catWidth = category.Position.Index + 1;
+    const size_t blockSize = Max(size_t(1), size_t(65536) / catWidth);
+    for (size_t start = 0; start < keys.size(); start += blockSize) {
+        const size_t count = Min(blockSize, keys.size() - start);
+        TVector<int> inputs(count * catWidth, 0);
+        TVector<TConstArrayRef<int>> rows;
+        rows.reserve(count);
+        for (size_t i = 0; i < count; ++i) {
+            inputs[i * catWidth + category.Position.Index] = keys[start + i];
+            rows.emplace_back(inputs.data() + i * catWidth, catWidth);
+        }
+        TVector<double> results(count);
+        evaluator->Calc({}, rows, 0, model.GetTreeCount(), results, nullptr);
+        for (double value : results) {
+            predictions.push_back(value);
+        }
+    }
+    const float missing = predictions.back();
+    predictions.pop_back();
+    keys.pop_back();
+    const auto name = GetCatFeatureInputName(category);
+    for (const TString reserved : {"num_features", "trees_input", "predictions", "label", "probabilities"}) {
+        CB_ENSURE(name != reserved, "Cannot export model to ONNX-ML: feature name \"" << name << "\" is not unique");
+    }
+    auto* input = graph->add_input();
+    InitValueInfo(name, onnx::TensorProto_DataType_INT64, 1, input);
+    input->set_doc_string("Signed 32-bit CatBoost category hashes stored as int64; use catboost.utils.get_cat_feature_hashes.");
+    TOnnxCtrGraphBuilder builder(graph);
+    return builder.Lookup(name, keys, predictions, missing);
+}
+
+static TString AddIntVector(TConstArrayRef<i64> values, TOnnxCtrGraphBuilder* builder) {
+    onnx::TensorProto tensor;
+    tensor.set_data_type(onnx::TensorProto_DataType_INT64);
+    tensor.add_dims(values.size());
+    for (auto value : values) {
+        tensor.add_int64_data(value);
+    }
+    return builder->Constant(tensor);
+}
+
+static TString AddFloatTensor(TConstArrayRef<float> values, TConstArrayRef<i64> shape, TOnnxCtrGraphBuilder* builder) {
+    onnx::TensorProto tensor;
+    tensor.set_data_type(onnx::TensorProto_DataType_FLOAT);
+    for (auto dimension : shape) {
+        tensor.add_dims(dimension);
+    }
+    for (auto value : values) {
+        tensor.add_float_data(value);
+    }
+    return builder->Constant(tensor);
+}
+
+static TString AddBoolVector(TConstArrayRef<int> values, TOnnxCtrGraphBuilder* builder) {
+    onnx::TensorProto tensor;
+    tensor.set_data_type(onnx::TensorProto_DataType_BOOL);
+    tensor.add_dims(values.size());
+    for (auto value : values) {
+        tensor.add_int32_data(value);
+    }
+    return builder->Constant(tensor);
+}
+
+// Every tree is oblivious: the truth values of its splits are the bits of its
+// leaf index. Small blocks bound the dense matrices and temporary batch storage.
+static TString ExportObliviousTreeMargin(
+    const TFullModel& model,
+    const TOnnxFeaturesLayout& layout,
+    TOnnxCtrGraphBuilder* builder) {
+
+    const auto& trees = *model.ModelTrees;
+    const auto& data = trees.GetModelTreeData();
+    const auto applyData = trees.GetApplyData();
+    for (int depth : data->GetTreeSizes()) {
+        if (depth > 24) {
+            // Float indices cease to be exact beyond 24 bits. Retain the generic
+            // tree operator for these exceptionally large trees.
+            const auto result = builder->Node("TreeEnsembleRegressor", {layout.TreesInputName});
+            auto* node = builder->LastNode();
+            node->set_domain(onnx::AI_ONNX_ML_DOMAIN);
+            AddAttribute("post_transform", "NONE", node);
+            AddAttribute("n_targets", i64(1), node);
+            const auto scaleAndBias = model.GetScaleAndBias();
+            TTreesAttributes attributes(false, !scaleAndBias.IsZeroBias(), node->mutable_attribute());
+            if (!scaleAndBias.IsZeroBias()) {
+                attributes.base_values->add_floats(scaleAndBias.GetOneDimensionalBias());
+            }
+            for (auto tree : xrange(trees.GetTreeCount())) {
+                AddTree(trees, tree, false, layout, &attributes);
+            }
+            return result;
+        }
+    }
+    TVector<TVector<size_t>> treesByDepth(25);
+    double bias = model.GetScaleAndBias().GetOneDimensionalBias();
+    for (size_t tree = 0; tree < trees.GetTreeCount(); ++tree) {
+        const int depth = data->GetTreeSizes()[tree];
+        CB_ENSURE(depth <= 24, "Tensor ONNX export supports tree depth up to 24");
+        if (depth == 0) {
+            bias += data->GetLeafValues()[applyData->TreeFirstLeafOffsets[tree]];
+        } else {
+            treesByDepth[depth].push_back(tree);
+        }
+    }
+    TVector<TString> contributions;
+    for (size_t depth = 1; depth < treesByDepth.size(); ++depth) {
+        const auto& group = treesByDepth[depth];
+        const size_t leavesPerTree = size_t(1) << depth;
+        const size_t blockSize = Min(size_t(32), Max(size_t(1), (size_t(1) << 20) / leavesPerTree));
+        for (size_t start = 0; start < group.size(); start += blockSize) {
+            const size_t treeCount = Min(blockSize, group.size() - start);
+            THashMap<int, size_t> splitColumns;
+            TVector<int> splits;
+            for (size_t t = 0; t < treeCount; ++t) {
+                const auto offset = data->GetTreeStartOffsets()[group[start + t]];
+                for (size_t d = 0; d < depth; ++d) {
+                    const int split = data->GetTreeSplits()[offset + d];
+                    if (splitColumns.emplace(split, splits.size()).second) {
+                        splits.push_back(split);
+                    }
+                }
+            }
+            TVector<i64> features;
+            TVector<float> thresholds;
+            TVector<int> equal, missingTrue;
+            features.reserve(splits.size());
+            thresholds.reserve(splits.size());
+            equal.reserve(splits.size());
+            missingTrue.reserve(splits.size());
+            bool hasEqual = false;
+            bool hasMissingTrue = false;
+            for (int index : splits) {
+                const auto& split = trees.GetBinFeatures()[index];
+                int feature;
+                float threshold;
+                bool isEqual = false;
+                bool missing = false;
+                if (split.Type == ESplitType::FloatFeature) {
+                    const auto& input = layout.FloatInputs.at(split.FloatFeature.FloatFeature);
+                    feature = input.Index;
+                    threshold = split.FloatFeature.Split;
+                    missing = input.MissingValueTracksTrue && threshold < std::numeric_limits<float>::infinity();
+                } else if (split.Type == ESplitType::OneHotFeature) {
+                    const auto& input = layout.CatInputs.at(split.OneHotFeature.CatFeatureIdx);
+                    feature = input.Index;
+                    threshold = input.ValuesToIdx.at(split.OneHotFeature.Value);
+                    isEqual = true;
+                } else {
+                    CB_ENSURE(split.Type == ESplitType::OnlineCtr, "Unsupported split in ONNX CTR export");
+                    feature = layout.CtrInputs.at(split.OnlineCtr.Ctr);
+                    threshold = split.OnlineCtr.Border;
+                }
+                features.push_back(feature);
+                thresholds.push_back(threshold);
+                equal.push_back(isEqual);
+                missingTrue.push_back(missing);
+                hasEqual |= isEqual;
+                hasMissingTrue |= missing;
+            }
+            const auto values = builder->Node("ArrayFeatureExtractor", {layout.TreesInputName, AddIntVector(features, builder)});
+            builder->LastNode()->set_domain(onnx::AI_ONNX_ML_DOMAIN);
+            const auto borders = AddFloatTensor(thresholds, {i64(splits.size())}, builder);
+            auto decisions = builder->Node("Greater", {values, borders});
+            if (hasEqual) {
+                const auto mask = AddBoolVector(equal, builder);
+                decisions = builder->Node("Or", {
+                    builder->Node("And", {mask, builder->Node("Equal", {values, borders})}),
+                    builder->Node("And", {builder->Node("Not", {mask}), decisions})});
+            }
+            if (hasMissingTrue) {
+                decisions = builder->Node("Or", {decisions, builder->Node("And", {
+                    builder->Node("IsNaN", {values}), AddBoolVector(missingTrue, builder)})});
+            }
+            auto bits = builder->Node("Cast", {decisions});
+            AddAttribute("to", i64(onnx::TensorProto_DataType_FLOAT), builder->LastNode());
+            bits = builder->Node("Transpose", {bits});
+            AddAttribute("perm", TVector<i64>{1, 0}, builder->LastNode());
+            TString indices;
+            // Ten-bit chunks keep even coefficients for repeated splits exact in
+            // TF32 matmul. All partial sums and final indices are exact float32 integers.
+            for (size_t bitStart = 0; bitStart < depth; bitStart += 10) {
+                TVector<float> weights(treeCount * splits.size(), 0.f);
+                for (size_t t = 0; t < treeCount; ++t) {
+                    const auto offset = data->GetTreeStartOffsets()[group[start + t]];
+                    for (size_t d = bitStart; d < Min(bitStart + 10, depth); ++d) {
+                        const int split = data->GetTreeSplits()[offset + d];
+                        weights[t * splits.size() + splitColumns.at(split)] += size_t(1) << (d - bitStart);
+                    }
+                }
+                auto part = builder->Node("MatMul", {
+                    AddFloatTensor(weights, {i64(treeCount), i64(splits.size())}, builder), bits});
+                if (bitStart) {
+                    part = builder->Node("Mul", {part, builder->Float(size_t(1) << bitStart)});
+                }
+                indices = indices.empty() ? part : builder->Node("Add", {indices, part});
+            }
+            indices = builder->Node("Cast", {indices});
+            AddAttribute("to", i64(onnx::TensorProto_DataType_INT32), builder->LastNode());
+            TVector<float> leaves;
+            leaves.reserve(treeCount * leavesPerTree);
+            for (size_t t = 0; t < treeCount; ++t) {
+                const auto offset = applyData->TreeFirstLeafOffsets[group[start + t]];
+                for (size_t i = 0; i < leavesPerTree; ++i) {
+                    leaves.push_back(data->GetLeafValues()[offset + i]);
+                }
+            }
+            const auto predictions = builder->Node("GatherElements", {
+                AddFloatTensor(leaves, {i64(treeCount), i64(leavesPerTree)}, builder), indices});
+            AddAttribute("axis", i64(1), builder->LastNode());
+            auto sum = builder->Node("ReduceSum", {predictions});
+            AddAttribute("axes", TVector<i64>{0}, builder->LastNode());
+            AddAttribute("keepdims", i64(0), builder->LastNode());
+            sum = builder->Node("Unsqueeze", {sum});
+            AddAttribute("axes", TVector<i64>{1}, builder->LastNode());
+            contributions.push_back(sum);
+        }
+    }
+    if (contributions.empty()) {
+        const auto column = builder->Node("ArrayFeatureExtractor", {layout.TreesInputName, AddIntVector({0}, builder)});
+        builder->LastNode()->set_domain(onnx::AI_ONNX_ML_DOMAIN);
+        return builder->Lookup(column, {}, {}, bias);
+    }
+    auto result = contributions.front();
+    // Binary Add also handles empty batches on CUDA; the variadic Sum kernel
+    // in ORT 1.24 does not support that case for three or more inputs.
+    for (size_t i = 1; i < contributions.size(); ++i) {
+        result = builder->Node("Add", {result, contributions[i]});
+    }
+    if (bias != 0.) {
+        result = builder->Node("Add", {result, builder->Float(bias)});
+    }
+    return result;
+}
+
 static void ConvertHashedCatTreeToOnnxGraph(const TFullModel& model, onnx::GraphProto* graph) {
     const auto& trees = *model.ModelTrees;
     const TString loss = model.GetLossFunctionName();
@@ -1145,22 +1447,15 @@ static void ConvertHashedCatTreeToOnnxGraph(const TFullModel& model, onnx::Graph
         GetClassLabels(model, &labelsInt, &labelsString);
         CB_ENSURE(labelsInt.size() + labelsString.size() == 2, "ONNX hashed categorical export requires exactly two class labels");
     }
-    const auto layout = InitHashedInputs(model, graph);
+    auto singleCategoryMargin = TryExportSingleCategoryMargin(model, graph);
+    TOnnxFeaturesLayout layout;
+    if (!singleCategoryMargin) {
+        layout = InitHashedInputs(model, graph);
+    }
     TOnnxCtrGraphBuilder builder(graph);
-    const auto margin = builder.Node("TreeEnsembleRegressor", {layout.TreesInputName}, classifier ? TString() : TString("predictions"));
-    auto* node = builder.LastNode();
-    node->set_domain(onnx::AI_ONNX_ML_DOMAIN);
-    AddAttribute("post_transform", "NONE", node);
-    AddAttribute("n_targets", i64(1), node);
-    const auto scaleAndBias = model.GetScaleAndBias();
-    TTreesAttributes attributes(false, !scaleAndBias.IsZeroBias(), node->mutable_attribute());
-    if (!scaleAndBias.IsZeroBias()) {
-        attributes.base_values->add_floats(scaleAndBias.GetOneDimensionalBias());
-    }
-    for (auto tree : xrange(trees.GetTreeCount())) {
-        AddTree(trees, tree, false, layout, &attributes);
-    }
+    const auto margin = singleCategoryMargin ? *singleCategoryMargin : ExportObliviousTreeMargin(model, layout, &builder);
     if (!classifier) {
+        builder.Node("Identity", {margin}, "predictions");
         InitValueInfo("predictions", onnx::TensorProto_DataType_FLOAT, 1, graph->add_output());
         return;
     }

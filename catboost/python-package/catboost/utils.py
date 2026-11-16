@@ -725,6 +725,15 @@ def get_cat_feature_hash(value):
     return _catboost._get_cat_feature_hash(value)
 
 
+def get_cat_feature_hashes(values):
+    """Hash an array of categories for ONNX inference, preserving its shape.
+
+    Returns an int64 NumPy array containing signed 32-bit CatBoost hashes. Each
+    element follows the same string/integer conversion rules as get_cat_feature_hash.
+    """
+    return _catboost._get_cat_feature_hashes(values)
+
+
 def convert_to_onnx_object(model, export_parameters=None, data=None, **kwargs):
     """
     Convert given CatBoost model to ONNX-ML model.
@@ -750,10 +759,11 @@ def convert_to_onnx_object(model, export_parameters=None, data=None, **kwargs):
                 'hashed' also supports CTRs for binary classification and scalar
                 regression with symmetric trees. Each used categorical feature
                 is a separate int64 input of shape (N, 1), containing signed
-                32-bit hashes from get_cat_feature_hash. Original strings are
+                32-bit hashes from get_cat_feature_hashes (or the scalar helper
+                get_cat_feature_hash). Original strings are
                 not accepted by that graph. Numerical inputs are packed in
                 num_features in the model's numerical-feature order.
-                Uses standard ONNX opset 10 and ONNX-ML opset 2. Importing the
+                Uses standard ONNX opset 11 and ONNX-ML opset 2. Importing the
                 resulting CTR graph back into CatBoost is not supported.
                 Regression returns raw scores of shape (N, 1); apply any
                 objective-specific output transform (e.g. exp for Poisson)

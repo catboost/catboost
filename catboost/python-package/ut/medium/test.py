@@ -12753,7 +12753,7 @@ def test_onnx_binary_threshold_default_graph_unchanged():
 ONNX_CTR_EXPORT_PARAMETERS = {'onnx_cat_features_input_type': 'hashed'}
 
 
-def _onnx_ctr_session(model):
+def _onnx_ctr_session(model, execution_provider='CPUExecutionProvider'):
     onnx = pytest.importorskip('onnx')
     ort = pytest.importorskip('onnxruntime')
     from catboost.utils import convert_to_onnx_object
@@ -12761,7 +12761,12 @@ def _onnx_ctr_session(model):
     onnx.checker.check_model(proto)
     options = ort.SessionOptions()
     options.intra_op_num_threads = 2
-    return proto, ort.InferenceSession(proto.SerializeToString(), options, providers=['CPUExecutionProvider'])
+    if execution_provider not in ort.get_available_providers():
+        pytest.skip(execution_provider + ' is unavailable')
+    providers = [execution_provider] if execution_provider == 'CPUExecutionProvider' else [execution_provider, 'CPUExecutionProvider']
+    session = ort.InferenceSession(proto.SerializeToString(), options, providers=providers)
+    assert session.get_providers()[0] == execution_provider
+    return proto, session
 
 
 def _onnx_ctr_feed(session, model, data):
@@ -12809,6 +12814,10 @@ def test_onnx_ctr_predictions(task_type, cat_count, loss, ctr_kind):
     model.set_scale_and_bias(1, 0.7)
     proto, session = _onnx_ctr_session(model)
     assert any(node.op_type == 'LabelEncoder' for node in proto.graph.node)
+    if cat_count == 1:
+        # Compose the saved statistics and forest into a single final-score lookup.
+        assert sum(node.op_type == 'LabelEncoder' for node in proto.graph.node) == 1
+        assert not any(node.op_type in ('TreeEnsembleRegressor', 'MatMul', 'GatherElements') for node in proto.graph.node)
     # Export from a reloaded CBM needs neither the training Pool nor its string vocabulary.
     path = test_output_path('ctr.cbm')
     model.save_model(path)
@@ -12846,7 +12855,8 @@ def test_onnx_ctr_binary_labels_and_bias(label_kind, bias, threshold):
 
 
 @pytest.mark.parametrize('nan_mode', ['Min', 'Max'])
-def test_onnx_ctr_mixed_inputs_and_nan(nan_mode):
+@pytest.mark.parametrize('execution_provider', ['CPUExecutionProvider', 'CUDAExecutionProvider'])
+def test_onnx_ctr_mixed_inputs_and_nan(nan_mode, execution_provider):
     rng = np.random.RandomState(7)
     cats = rng.randint(0, 6, size=500)
     binary = rng.randint(0, 2, size=500)
@@ -12858,7 +12868,7 @@ def test_onnx_ctr_mixed_inputs_and_nan(nan_mode):
     model = CatBoostRegressor(iterations=30, depth=5, one_hot_max_size=2, max_ctr_complexity=3,
                              nan_mode=nan_mode, verbose=False, thread_count=4)
     model.fit(Pool(data, target, cat_features=[0, 1], feature_names=['category', '__catboost_ctr_0', 'number']))
-    proto, session = _onnx_ctr_session(model)
+    proto, session = _onnx_ctr_session(model, execution_provider)
     assert any(node.op_type == 'LabelEncoder' and node.input[0] == '__catboost_ctr_0' for node in proto.graph.node)
     test_data = data[:20].copy()
     test_data[0, :2] = ['new category', 'new one-hot value']
@@ -12975,15 +12985,47 @@ def test_onnx_ctr_saved_statistics_and_empty_table(ctr_type, empty):
 
 
 @pytest.mark.parametrize('nan_mode', ['AsFalse', 'AsTrue'])
-def test_onnx_ctr_projection_conditions(nan_mode):
+@pytest.mark.parametrize('execution_provider', ['CPUExecutionProvider', 'CUDAExecutionProvider'])
+def test_onnx_ctr_projection_conditions(nan_mode, execution_provider):
     model = _onnx_ctr_synthetic_model(cat_count=3, conditions=True, nan_mode=nan_mode)
-    _, session = _onnx_ctr_session(model)
+    _, session = _onnx_ctr_session(model, execution_provider)
     data = np.array([['a', 'b', 'c', 1.], ['a', 'b', 'c', 0.5], ['a', 'b', 'c', np.nan],
                      ['unknown', 'b', 'c', 1.], ['a', 'unknown', 'c', 1.], ['a', 'b', 'unknown', 1.]], dtype=object)
     _check_onnx_ctr_predictions(model, session, data)
     predictions = model.predict(data)
     assert predictions[0] != predictions[1]
     assert predictions[2] == predictions[0 if nan_mode == 'AsTrue' else 1]
+
+
+@pytest.mark.parametrize('border', [-1e300, 1e300])
+@pytest.mark.parametrize('nan_mode', ['AsFalse', 'AsTrue'])
+@pytest.mark.parametrize('execution_provider', ['CPUExecutionProvider', 'CUDAExecutionProvider'])
+def test_onnx_ctr_infinite_float_border(border, nan_mode, execution_provider):
+    # Finite JSON doubles overflow to infinities in the model's float32 borders.
+    _onnx_ctr_synthetic_model(conditions=True, nan_mode=nan_mode)
+    path = test_output_path('synthetic_ctr.json')
+    with open(path) as src:
+        model_json = json.load(src)
+    model_json['features_info']['float_features'][0]['borders'] = [border]
+    ctr = model_json['features_info']['ctrs'][0]
+    old_identifier = ctr['identifier']
+    identifier = json.loads(old_identifier)
+    identifier['identifier'][1]['border'] = border
+    ctr['elements'][1]['border'] = border
+    ctr['identifier'] = json.dumps(identifier, separators=(',', ':'))
+    model_json['ctr_data'][ctr['identifier']] = model_json['ctr_data'].pop(old_identifier)
+    # Check both a projection condition and an ordinary numerical tree split.
+    model_json['oblivious_trees'].append({
+        'splits': [{'split_type': 'FloatFeature', 'border': border, 'float_feature_index': 0, 'split_index': 0}],
+        'leaf_values': [-10, 10], 'leaf_weights': [1, 1],
+    })
+    with open(path, 'w') as out:
+        json.dump(model_json, out)
+    model = CatBoostRegressor().load_model(path, format='json')
+    _, session = _onnx_ctr_session(model, execution_provider)
+    _check_onnx_ctr_predictions(model, session, np.array([
+        ['a', -np.inf], ['a', 0.], ['a', np.inf], ['a', np.nan], ['unseen', np.nan],
+    ], dtype=object))
 
 
 @pytest.mark.parametrize('cat_count', [1, 2, 3, 8])
@@ -12996,8 +13038,7 @@ def test_onnx_ctr_projection_hash_exact_int64(cat_count, conditions, execution_p
         pytest.skip(execution_provider + ' is unavailable')
     model = _onnx_ctr_synthetic_model(cat_count=cat_count, conditions=conditions)
     proto, _ = _onnx_ctr_session(model)
-    input_names = {value.name for value in proto.graph.input}
-    encoder = next(node for node in proto.graph.node if node.op_type == 'LabelEncoder' and node.input[0] not in input_names)
+    encoder = [node for node in proto.graph.node if node.op_type == 'LabelEncoder'][-1]
     hash_output = encoder.input[0]
     proto.graph.output.append(onnx.helper.make_tensor_value_info(hash_output, onnx.TensorProto.INT64, [None, 1]))
     onnx.checker.check_model(proto)
@@ -13014,7 +13055,8 @@ def test_onnx_ctr_projection_hash_exact_int64(cat_count, conditions, execution_p
         numbers = np.resize(np.array([-np.inf, 0.5, 1., np.inf, np.nan], dtype=np.float32), len(values))
         feed['num_features'] = numbers.reshape(-1, 1)
         terms = np.column_stack([values, numbers > 0.5, values[:, 0] == get_cat_feature_hash('a')])
-    expected = [_onnx_ctr_projection_hash(row) for row in terms]
+    inverse = pow(0x4906ba494954cb65 ** 2, -1, 2**64)
+    expected = [(_onnx_ctr_projection_hash(row) * inverse) % 2**64 for row in terms]
     expected = np.array([value if value < 2**63 else value - 2**64 for value in expected], dtype=np.int64)
     # Both optimized and unoptimized execution must preserve every bit, including the sign bit.
     for optimization in [ort.GraphOptimizationLevel.ORT_DISABLE_ALL, ort.GraphOptimizationLevel.ORT_ENABLE_ALL]:
@@ -13123,10 +13165,111 @@ def test_onnx_ctr_rejects_nonsymmetric_trees():
         convert_to_onnx_object(model, ONNX_CTR_EXPORT_PARAMETERS)
 
 
-def test_onnx_ctr_constant_categorical_model():
+@pytest.mark.parametrize('cat_count', [1, 3])
+def test_onnx_ctr_constant_categorical_model(cat_count):
     model = CatBoostRegressor(iterations=3, one_hot_max_size=1, allow_const_label=True,
                              verbose=False, thread_count=2)
-    model.fit([['a'], ['b'], ['c']] * 10, [3.5] * 30, cat_features=[0])
+    model.fit([['a'] * cat_count, ['b'] * cat_count, ['c'] * cat_count] * 10,
+              [3.5] * 30, cat_features=list(range(cat_count)))
     _, session = _onnx_ctr_session(model)
-    _check_onnx_ctr_predictions(model, session, np.array([['a'], ['unseen']], dtype=object))
+    _check_onnx_ctr_predictions(model, session, np.array([['a'] * cat_count, ['unseen'] * cat_count], dtype=object))
     assert session.run(None, {'cat_feature_0': np.empty((0, 1), dtype=np.int64)})[0].shape == (0, 1)
+
+
+def test_onnx_ctr_single_category_with_index_gaps():
+    _onnx_ctr_synthetic_model()
+    path = test_output_path('synthetic_ctr.json')
+    with open(path) as src:
+        model_json = json.load(src)
+    feature = model_json['features_info']['categorical_features'][0]
+    feature['feature_index'] = 2
+    feature['flat_feature_index'] = 3
+    ctr = model_json['features_info']['ctrs'][0]
+    old_identifier = ctr['identifier']
+    identifier = json.loads(old_identifier)
+    identifier['identifier'][0]['cat_feature_index'] = 2
+    ctr['elements'][0]['cat_feature_index'] = 2
+    ctr['identifier'] = json.dumps(identifier, separators=(',', ':'))
+    model_json['ctr_data'][ctr['identifier']] = model_json['ctr_data'].pop(old_identifier)
+    with open(path, 'w') as out:
+        json.dump(model_json, out)
+    model = CatBoostRegressor().load_model(path, format='json')
+    proto, session = _onnx_ctr_session(model)
+    assert [node.op_type for node in proto.graph.node] == ['LabelEncoder', 'Identity']
+    _check_onnx_ctr_predictions(model, session, np.array([[0, 0, 0, 'a'], [0, 0, 0, 'unseen']], dtype=object))
+
+
+@pytest.mark.parametrize('values', [
+    [['a', 'b'], ['категория', '🙂']],
+    np.array([[-1, 0, 42], [1, 2, 3]], dtype=np.int64),
+    np.array([0, 2**64 - 1], dtype=np.uint64),
+    np.array([b'abc', b'\x00', b''], dtype=object),
+    np.array(['a', 'b', 'c', 'd'])[::2],
+    np.empty((0, 3), dtype=object),
+    np.array('single'),
+    np.arange(9000).astype(str).reshape(3000, 3)[:, ::2],
+])
+def test_onnx_ctr_batch_hashing(values):
+    from catboost.utils import get_cat_feature_hash, get_cat_feature_hashes
+    objects = np.asarray(values, dtype=object)
+    # Preserve uint64 scalars when checking the existing scalar conversion contract.
+    if isinstance(values, np.ndarray) and values.dtype == np.uint64:
+        expected = np.array([get_cat_feature_hash(v) for v in values], dtype=np.int64)
+    else:
+        expected = np.array([get_cat_feature_hash(v) for v in objects.ravel()], dtype=np.int64).reshape(objects.shape)
+    actual = get_cat_feature_hashes(values)
+    assert actual.dtype == np.int64
+    np.testing.assert_array_equal(actual, expected)
+
+
+@pytest.mark.parametrize('values', [
+    ['a', None], [1, 1.5], [float('nan')], [2**63], np.array([1], dtype='datetime64[ns]'),
+])
+def test_onnx_ctr_batch_hashing_invalid_values(values):
+    from catboost.utils import get_cat_feature_hashes
+    with pytest.raises((CatBoostError, TypeError, OverflowError)):
+        get_cat_feature_hashes(values)
+
+
+@pytest.mark.parametrize('depth', [1, 6, 12, 16])
+@pytest.mark.parametrize('execution_provider', ['CPUExecutionProvider', 'CUDAExecutionProvider'])
+def test_onnx_ctr_tensor_leaf_indices(depth, execution_provider):
+    onnx = pytest.importorskip('onnx')
+    ort = pytest.importorskip('onnxruntime')
+    from catboost.utils import get_cat_feature_hash
+    if execution_provider not in ort.get_available_providers():
+        pytest.skip(execution_provider + ' is unavailable')
+    _onnx_ctr_synthetic_model(cat_count=2)
+    path = test_output_path('synthetic_ctr.json')
+    with open(path) as src:
+        model_json = json.load(src)
+    ctr = model_json['features_info']['ctrs'][0]
+    ctr['borders'] = [2., 4.]
+    table = next(iter(model_json['ctr_data'].values()))
+    key = _onnx_ctr_projection_hash([get_cat_feature_hash('c'), get_cat_feature_hash('d')])
+    table['hash_map'].extend([str(key), 20])
+    # Repeating a split at bits 0 and 11 produces coefficient 2049, which would
+    # be rounded by a single TF32 matmul. Chunked bit weights must remain exact.
+    splits = [{'split_type': 'OnlineCtr', 'border': 2. if i in (0, depth - 1) else 4.,
+               'ctr_target_border_idx': 0, 'split_index': 0 if i in (0, depth - 1) else 1} for i in range(depth)]
+    model_json['oblivious_trees'] = [{'splits': splits, 'leaf_values': list(range(2**depth)),
+                                      'leaf_weights': [1] * 2**depth}] * 35
+    with open(path, 'w') as out:
+        json.dump(model_json, out)
+    model = CatBoostRegressor().load_model(path, format='json')
+    proto, _ = _onnx_ctr_session(model)
+    gathers = [node for node in proto.graph.node if node.op_type == 'GatherElements']
+    assert len(gathers) >= 2
+    indices = gathers[0].input[1]
+    proto.graph.output.append(onnx.helper.make_tensor_value_info(indices, onnx.TensorProto.INT32, [None, None]))
+    options = ort.SessionOptions()
+    options.intra_op_num_threads = 2
+    providers = ['CPUExecutionProvider'] if execution_provider == 'CPUExecutionProvider' else [('CUDAExecutionProvider', {'use_tf32': '1'}), 'CPUExecutionProvider']
+    session = ort.InferenceSession(proto.SerializeToString(), options, providers=providers)
+    assert session.get_providers()[0] == execution_provider
+    data = np.array([['a', 'b'], ['c', 'd'], ['unseen', 'unseen']], dtype=object)
+    _check_onnx_ctr_predictions(model, session, data)
+    actual = session.run([indices], _onnx_ctr_feed(session, model, data))[0]
+    expected = np.array([(1 << (depth - 1)) | 1, (1 << depth) - 1, 0], dtype=np.int32)
+    np.testing.assert_array_equal(actual, np.broadcast_to(expected, actual.shape))
+    assert session.run(['predictions'], _onnx_ctr_feed(session, model, data[:0]))[0].shape == (0, 1)

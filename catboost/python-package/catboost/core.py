@@ -3817,7 +3817,7 @@ class CatBoost(_CatBoostBase):
                 * onnx_cat_features_input_type : 'string' (default) or 'hashed'.
                   'hashed' supports CTRs for binary classification and scalar
                   regression. Categorical inputs have shape (N, 1) and dtype int64,
-                  and contain signed 32-bit hashes from utils.get_cat_feature_hash.
+                  and contain signed 32-bit hashes from utils.get_cat_feature_hashes.
                   This mode does not require pool. See utils.convert_to_onnx_object.
             Parameters for PMML export:
                 * pmml_copyright : string
