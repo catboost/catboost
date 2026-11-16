@@ -1244,14 +1244,20 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     }
 
     bool isBinaryLogistic = false;
+    int classCount = 0;
     if (isClassifierModel && approxDimension == 2) {
         for (const auto& attribute : treesNode->attribute()) {
             if (attribute.name() == "post_transform" && attribute.s() == "LOGISTIC") {
                 isBinaryLogistic = true;
+            } else if (attribute.name() == "classlabels_int64s") {
+                classCount += attribute.ints_size();
+            } else if (attribute.name() == "classlabels_strings") {
+                classCount += attribute.strings_size();
             }
         }
     }
     if (isBinaryLogistic) {
+        CB_ENSURE(classCount == 2, "Binary LOGISTIC model must have exactly two class labels");
         // CatBoost exports a binary logit as [-logit, logit] with LOGISTIC applied
         // to each class. Keeping two dimensions would apply softmax after import
         // and double the logit, changing probabilities even when labels agree.

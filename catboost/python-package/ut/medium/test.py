@@ -2230,6 +2230,7 @@ def test_onnx_import_binary_class_weight_order(order):
 
 @pytest.mark.parametrize('mutation, message', [
     ('class_ids', 'class id'), ('class_weights', 'class weights'), ('base_values', 'base values'),
+    ('class_labels', 'two class labels'),
 ])
 def test_onnx_import_invalid_binary_scores(mutation, message):
     onnx = pytest.importorskip('onnx')
@@ -2244,6 +2245,8 @@ def test_onnx_import_invalid_binary_scores(mutation, message):
         attributes[mutation].ints[0] = 2
     elif mutation == 'class_weights':
         attributes[mutation].floats[0] += 1.0
+    elif mutation == 'class_labels':
+        attributes['classlabels_int64s'].ints.append(2)
     else:
         tree.attribute.append(onnx.helper.make_attribute('base_values', [1.0, 1.0]))
     onnx.save(proto, path)
