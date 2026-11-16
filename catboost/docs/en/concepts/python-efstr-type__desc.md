@@ -10,3 +10,5 @@ The following values are supported:
 
 - {{ title__predictiondiff }}: A vector with contributions of each feature to the {{ prediction-type--RawFormulaVal }} difference for each pair of objects.
 
+- SageValues: A vector with SAGE values for every feature.
+
