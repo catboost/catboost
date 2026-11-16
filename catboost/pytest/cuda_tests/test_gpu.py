@@ -3547,10 +3547,13 @@ def test_mvs_bootstrap_nonsymmetric(grow_policy, loss_function, score_function):
         assert np.all(np.isfinite(read_eval(eval_path)))
 
 
-@pytest.mark.parametrize('grow_policy', NONSYMMETRIC + ['Region'])
-@pytest.mark.parametrize('score_function', ['Cosine', 'NewtonL2'])
+@pytest.mark.parametrize('grow_policy,boosting_type,score_function', [
+    (grow_policy, 'Plain', score_function)
+    for grow_policy in ['SymmetricTree'] + NONSYMMETRIC + ['Region']
+    for score_function in ['Cosine', 'NewtonL2']
+] + [('SymmetricTree', 'Ordered', 'Cosine')])
 @pytest.mark.parametrize('constant_target', [False, True])
-def test_mvs_bootstrap_nonsymmetric_full_sample(grow_policy, score_function, constant_target):
+def test_mvs_bootstrap_full_sample(grow_policy, boosting_type, score_function, constant_target):
     random = np.random.RandomState(42)
     features = random.normal(size=(128, 4))
     target = np.full(len(features), 3.0) if constant_target else 2 * features[:, 0] - features[:, 1]
@@ -3561,6 +3564,7 @@ def test_mvs_bootstrap_nonsymmetric_full_sample(grow_policy, score_function, con
         task_type='GPU',
         devices='0',
         grow_policy=grow_policy,
+        boosting_type=boosting_type,
         score_function=score_function,
         random_strength=0,
         random_seed=0,
@@ -3577,9 +3581,42 @@ def test_mvs_bootstrap_nonsymmetric_full_sample(grow_policy, score_function, con
     np.testing.assert_allclose(model.predict(pool), reference.predict(pool), rtol=1e-6, atol=1e-6, equal_nan=False)
 
 
+@pytest.mark.parametrize('boosting_type,score_function', [
+    ('Plain', 'Cosine'), ('Plain', 'NewtonL2'), ('Ordered', 'Cosine'),
+])
+def test_mvs_bootstrap_feature_parallel_uses_derivatives(boosting_type, score_function):
+    random = np.random.RandomState(42)
+    features = random.normal(size=(513, 5))
+    target = 2 * features[:, 0] - features[:, 1]
+    predictions = []
+    for mvs_reg in (0, 100):
+        model = catboost.CatBoostRegressor(
+            iterations=10,
+            depth=3,
+            learning_rate=0.1,
+            task_type='GPU',
+            devices='0',
+            data_partition='FeatureParallel',
+            boosting_type=boosting_type,
+            score_function=score_function,
+            bootstrap_type='MVS',
+            subsample=0.5,
+            mvs_reg=mvs_reg,
+            random_strength=0,
+            random_seed=42,
+            allow_writing_files=False,
+            verbose=False,
+        ).fit(features, target)
+        prediction = model.predict(features)
+        assert np.all(np.isfinite(prediction))
+        predictions.append(prediction)
+    # RMSE weights are constant, but its gradients are not: mvs_reg must affect sampling.
+    assert not np.allclose(predictions[0], predictions[1], rtol=1e-5, atol=1e-5)
+
+
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC + ['Region'])
 @pytest.mark.parametrize('score_function', ['Cosine', 'NewtonL2'])
-@pytest.mark.parametrize('sample_count', [257, 8193])
+@pytest.mark.parametrize('sample_count', [257, 8193, 16385])
 def test_mvs_bootstrap_nonsymmetric_weighted(grow_policy, score_function, sample_count):
     # Exercise partial sampling, including a tail beyond the MVS kernel's 8192-object block.
     random = np.random.RandomState(42)
