@@ -1770,7 +1770,6 @@ def test_onnx_export(problem_type, boost_from_average):
             'iterations': 5,
             'depth': 4,
 
-            # onnx format export does not yet support categorical features so ignore them
             'ignored_features': train_pool.get_cat_feature_indices(),
             'boost_from_average': boost_from_average
         }
@@ -1880,6 +1879,284 @@ def test_onnx_import(problem_type, boost_from_average):
             # TODO(akhropov): remove when MLTOOLS-4924 is fixed
             loaded_pred = np.array([value[0] for value in loaded_pred])
         assert np.all(canon_pred == loaded_pred)
+
+
+@pytest.mark.parametrize('with_feature_names', [False, True], ids=['with_feature_names=False', 'with_feature_names=True'])
+@pytest.mark.parametrize('with_float_features', [False, True])
+@pytest.mark.parametrize('loss_function,boost_from_average', [
+    ('RMSE', False), ('RMSE', True), ('Logloss', False), ('Logloss', True), ('MultiClass', False),
+])
+def test_onnx_export_with_categorical_features(task_type, with_feature_names, with_float_features, loss_function, boost_from_average):
+    onnx = pytest.importorskip("onnx")
+    onnxruntime = pytest.importorskip("onnxruntime")
+    from catboost.utils import convert_to_onnx_object
+
+    cat_features = [0, 1]
+    feature_names = ['color', 'shape', 'size'] if with_feature_names else None
+    X = np.array([
+        ['a', 'x', 1.0],
+        ['b', 'y', 2.0],
+        ['a', 'y', 3.0],
+        ['b', 'x', 4.0],
+        ['a', 'x', 5.0],
+        ['b', 'y', 6.0],
+        ['a', 'y', 7.0],
+        ['b', 'x', 8.0],
+    ], dtype=object)
+    y = np.array([1.0, 2.0, 1.5, 2.5, 1.2, 2.2, 1.8, 2.8])
+    if loss_function == 'Logloss':
+        # Keep this categorical-layout test independent of binary bias handling.
+        y = (y >= 2.0).astype(int)
+    elif loss_function == 'MultiClass':
+        y = np.array([0, 2, 1, 2, 0, 2, 1, 2])
+
+    # contains categorical values unseen during training
+    X_test = np.array([
+        ['a', 'x', 1.5],
+        ['c', 'y', 2.5],
+        ['b', 'z', 3.5],
+        ['c', 'z', 4.5],
+    ], dtype=object)
+
+    if not with_float_features:
+        X = X[:, :2]
+        X_test = X_test[:, :2]
+        if feature_names is not None:
+            feature_names = feature_names[:2]
+
+    train_pool = Pool(X, y, cat_features=cat_features, feature_names=feature_names)
+    test_pool = Pool(X_test, cat_features=cat_features, feature_names=feature_names)
+
+    model_class = CatBoostRegressor if loss_function == 'RMSE' else CatBoostClassifier
+    model = model_class(
+        loss_function=loss_function,
+        iterations=5,
+        depth=3,
+        learning_rate=0.5,
+        one_hot_max_size=255,
+        verbose=False,
+        task_type=task_type,
+        boost_from_average=boost_from_average
+    )
+    model.fit(train_pool)
+
+    output_onnx_model_path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    export_parameters = {
+        'onnx_domain': 'ai.catboost',
+        'onnx_model_version': 1,
+        'onnx_doc_string': 'test model with categorical features',
+        'onnx_graph_name': 'CatBoostModel_cat_features'
+    }
+    model.save_model(
+        output_onnx_model_path,
+        format="onnx",
+        pool=train_pool,
+        export_parameters=export_parameters
+    )
+
+    onnx_model = onnx.load(output_onnx_model_path)
+    onnx.checker.check_model(onnx_model)
+    assert onnx_model == convert_to_onnx_object(model, export_parameters=export_parameters, data=train_pool)
+
+    session = onnxruntime.InferenceSession(output_onnx_model_path, providers=['CPUExecutionProvider'])
+    input_names = [inp.name for inp in session.get_inputs()]
+    if with_feature_names:
+        cat_input_names = ['color', 'shape']
+    else:
+        cat_input_names = ['cat_feature_0', 'cat_feature_1']
+    assert ('num_features' in input_names) == with_float_features
+    assert set(input_names) <= {'num_features', *cat_input_names}
+    assert set(input_names) & set(cat_input_names)
+
+    imported_model = model_class().load_model(output_onnx_model_path, format='onnx')
+    for pool, data in [(train_pool, X), (test_pool, X_test)]:
+        feed = {'num_features': data[:, 2:3].astype(np.float32)} if with_float_features else {}
+        for cat_feature_idx, cat_input_name in zip(cat_features, cat_input_names):
+            if cat_input_name in input_names:
+                feed[cat_input_name] = data[:, cat_feature_idx:cat_feature_idx + 1].astype(str)
+
+        if loss_function == 'RMSE':
+            onnx_pred = session.run(['predictions'], feed)[0].flatten()
+            cb_pred = model.predict(pool)
+        else:
+            probabilities = session.run(['probabilities'], feed)[0]
+            onnx_pred = [[row[label] for label in model.classes_] for row in probabilities]
+            cb_pred = model.predict_proba(pool)
+        assert np.allclose(cb_pred, onnx_pred, atol=1e-4)
+
+        # Import follows the Concat input order and omits unused categorical features.
+        imported_data = np.column_stack([feed[name] for name in input_names])
+        imported_pool = Pool(imported_data, cat_features=imported_model.get_cat_feature_indices())
+        if loss_function == 'Logloss':
+            # The existing importer can retain two opposite class scores. Check
+            # the categorical splits through the margin; probabilities are fixed separately.
+            imported_raw = imported_model.predict(imported_pool, prediction_type='RawFormulaVal')
+            if imported_raw.ndim == 2:
+                assert imported_raw.shape[1] == 2
+                assert np.allclose(imported_raw[:, 0], -imported_raw[:, 1], atol=1e-4)
+                imported_raw = imported_raw[:, 1]
+            assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), imported_raw, atol=1e-4)
+            assert np.array_equal(model.predict(pool).flatten(), imported_model.predict(imported_pool).flatten())
+            continue
+        if loss_function == 'RMSE':
+            imported_pred = imported_model.predict(imported_pool)
+        else:
+            imported_pred = imported_model.predict_proba(imported_pool)
+            assert np.array_equal(model.predict(pool).flatten(), imported_model.predict(imported_pool).flatten())
+        assert np.allclose(cb_pred, imported_pred, atol=1e-4)
+
+
+@pytest.mark.parametrize('feature_name', [
+    'num_features', 'trees_input', 'label', 'probability_tensor', 'probabilities', 'predictions',
+])
+def test_onnx_export_reserved_categorical_feature_name(feature_name):
+    train_pool = Pool([['a'], ['b'], ['a'], ['b']], [0, 1, 0, 1], cat_features=[0], feature_names=[feature_name])
+    model = CatBoostRegressor(iterations=2, depth=1, one_hot_max_size=10, verbose=False).fit(train_pool)
+    with pytest.raises(CatBoostError, match='is not unique'):
+        model.save_model(test_output_path(OUTPUT_ONNX_MODEL_PATH), format='onnx', pool=train_pool)
+
+
+@pytest.mark.parametrize('feature_name', ['category', 'features', 'all_features'])
+def test_onnx_export_single_categorical_input(feature_name):
+    onnx = pytest.importorskip('onnx')
+    onnxruntime = pytest.importorskip('onnxruntime')
+    from catboost.utils import convert_to_onnx_object
+
+    pool = Pool([['a'], ['b'], ['a'], ['b']], [0., 1., 0., 1.],
+                cat_features=[0], feature_names=[feature_name])
+    model = CatBoostRegressor(iterations=3, depth=1, one_hot_max_size=10, verbose=False).fit(pool)
+    proto = convert_to_onnx_object(model, data=pool)
+    onnx.checker.check_model(proto)
+    assert [value.name for value in proto.graph.input] == [feature_name]
+    concat = next(node for node in proto.graph.node if node.op_type == 'Concat')
+    assert list(concat.input) == [feature_name + '_encoded']
+    session = onnxruntime.InferenceSession(proto.SerializeToString(), providers=['CPUExecutionProvider'])
+    data = [['a'], ['b'], ['unseen']]
+    expected = model.predict(data)
+    assert np.allclose(session.run(['predictions'], {feature_name: np.array(data)})[0].ravel(), expected)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    onnx.save(proto, path)
+    imported = CatBoostRegressor().load_model(path, format='onnx')
+    assert imported.feature_names_ == [feature_name]
+    assert np.allclose(imported.predict(data), expected)
+
+
+@pytest.mark.parametrize('modes', [('BRANCH_GT', 'BRANCH_EQ'), ('BRANCH_EQ', 'BRANCH_GT')])
+def test_onnx_import_conflicting_feature_types(modes):
+    onnx = pytest.importorskip('onnx')
+    tree = onnx.helper.make_node(
+        'TreeEnsembleRegressor', ['features'], ['predictions'], domain='ai.onnx.ml',
+        n_targets=1, post_transform='NONE',
+        nodes_treeids=[0] * 5, nodes_nodeids=list(range(5)), nodes_featureids=[0] * 5,
+        nodes_modes=list(modes) + ['LEAF'] * 3, nodes_values=[1., 1., 0., 0., 0.],
+        nodes_truenodeids=[2, 4, 0, 0, 0], nodes_falsenodeids=[1, 3, 0, 0, 0],
+        nodes_missing_value_tracks_true=[0] * 5, nodes_hitrates=[1.] * 5,
+        target_treeids=[0] * 3, target_nodeids=[2, 3, 4], target_ids=[0] * 3, target_weights=[1., 2., 3.],
+    )
+    graph = onnx.helper.make_graph(
+        [tree], 'conflicting_features',
+        [onnx.helper.make_tensor_value_info('features', onnx.TensorProto.FLOAT, [None, 1])],
+        [onnx.helper.make_tensor_value_info('predictions', onnx.TensorProto.FLOAT, [None, 1])],
+    )
+    proto = onnx.helper.make_model(graph, opset_imports=[onnx.helper.make_opsetid('ai.onnx.ml', 2)], ir_version=3)
+    onnx.checker.check_model(proto)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    onnx.save(proto, path)
+    with pytest.raises(CatBoostError, match='both categorical and numerical splits'):
+        CatBoostRegressor().load_model(path, format='onnx')
+
+
+@pytest.mark.parametrize('mode', ['BRANCH_EQ', 'BRANCH_NEQ'])
+@pytest.mark.parametrize('value', [-2147483648, 42])
+def test_onnx_import_categorical_split_without_encoder(mode, value):
+    onnx = pytest.importorskip('onnx')
+    tree = onnx.helper.make_node(
+        'TreeEnsembleRegressor', ['features'], ['predictions'], domain='ai.onnx.ml',
+        n_targets=1, post_transform='NONE',
+        nodes_treeids=[0, 0, 0], nodes_nodeids=[0, 1, 2], nodes_featureids=[0, 0, 0],
+        nodes_modes=[mode, 'LEAF', 'LEAF'], nodes_values=[float(value), 0., 0.],
+        nodes_truenodeids=[2, 0, 0], nodes_falsenodeids=[1, 0, 0],
+        nodes_missing_value_tracks_true=[0, 0, 0], nodes_hitrates=[1., 1., 1.],
+        target_treeids=[0, 0], target_nodeids=[1, 2], target_ids=[0, 0], target_weights=[1., 2.],
+    )
+    graph = onnx.helper.make_graph(
+        [tree], 'integer_category',
+        [onnx.helper.make_tensor_value_info('features', onnx.TensorProto.FLOAT, [None, 1])],
+        [onnx.helper.make_tensor_value_info('predictions', onnx.TensorProto.FLOAT, [None, 1])],
+    )
+    proto = onnx.helper.make_model(graph, opset_imports=[onnx.helper.make_opsetid('ai.onnx.ml', 2)], ir_version=3)
+    onnx.checker.check_model(proto)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    onnx.save(proto, path)
+    with pytest.raises(CatBoostError, match='must have a LabelEncoder input'):
+        CatBoostRegressor().load_model(path, format='onnx')
+
+
+def test_onnx_export_with_categorical_features_without_pool():
+    X = np.array([
+        ['a', 1.0],
+        ['b', 2.0],
+        ['a', 3.0],
+        ['b', 4.0],
+    ], dtype=object)
+    y = np.array([1.0, 2.0, 1.5, 2.5])
+    train_pool = Pool(X, y, cat_features=[0])
+
+    model = CatBoostRegressor(iterations=5, depth=2, one_hot_max_size=255, verbose=False, task_type='CPU')
+    model.fit(train_pool)
+
+    with pytest.raises(CatBoostError):
+        model.save_model(test_output_path(OUTPUT_ONNX_MODEL_PATH), format="onnx")
+
+
+def test_onnx_import_with_only_categorical_features():
+    # Use categorical-only features because ONNX export reorders features
+    # (float features first, then categorical), which changes the expected
+    # feature layout for mixed-feature models.
+    X = np.array([
+        ['a', 'x'],
+        ['b', 'y'],
+        ['a', 'y'],
+        ['b', 'x'],
+        ['a', 'x'],
+        ['b', 'y'],
+        ['a', 'y'],
+        ['b', 'x'],
+    ], dtype=object)
+    y = np.array([1.0, 2.0, 1.5, 2.5, 1.2, 2.2, 1.8, 2.8])
+
+    train_pool = Pool(X, y, cat_features=[0, 1])
+
+    model = CatBoostRegressor(
+        iterations=5,
+        depth=3,
+        learning_rate=0.5,
+        one_hot_max_size=255,
+        verbose=False,
+        task_type='CPU'
+    )
+    model.fit(train_pool)
+
+    cb_pred = model.predict(train_pool)
+
+    output_onnx_model_path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(
+        output_onnx_model_path,
+        format="onnx",
+        pool=train_pool,
+        export_parameters={
+            'onnx_domain': 'ai.catboost',
+            'onnx_model_version': 1,
+            'onnx_doc_string': 'test model with categorical features',
+            'onnx_graph_name': 'CatBoostModel_cat_features'
+        }
+    )
+
+    loaded_model = CatBoostRegressor()
+    loaded_model.load_model(output_onnx_model_path, format='onnx')
+    loaded_pred = loaded_model.predict(train_pool)
+
+    assert np.allclose(cb_pred, loaded_pred, atol=1e-4)
 
 
 def test_onnx_export_lightgbm_import_catboost():
