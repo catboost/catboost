@@ -12841,15 +12841,13 @@ def test_onnx_ctr_predictions(task_type, cat_count, loss, ctr_kind):
 
 @pytest.mark.parametrize('label_kind', ['integer', 'string', 'boolean'])
 @pytest.mark.parametrize('bias', [-3., 0., 3.])
-@pytest.mark.parametrize('threshold', [0.2, 0.5, 0.8])
-def test_onnx_ctr_binary_labels_and_bias(label_kind, bias, threshold):
+def test_onnx_ctr_binary_labels_and_bias(label_kind, bias):
     data = np.array([['a'], ['b'], ['c'], ['d']] * 20, dtype=object)
     labels = {'integer': [-7, 19], 'string': ['negative', 'positive'], 'boolean': [False, True]}[label_kind]
     target = np.array([labels[0], labels[1], labels[0], labels[1]] * 20)
     model = CatBoostClassifier(iterations=8, depth=3, one_hot_max_size=1, verbose=False, thread_count=2)
     model.fit(data, target, cat_features=[0])
     model.set_scale_and_bias(1, bias)
-    model.set_probability_threshold(threshold)
     _, session = _onnx_ctr_session(model)
     _check_onnx_ctr_predictions(model, session, np.array([['a'], ['d'], ['unknown']], dtype=object))
 
@@ -13273,3 +13271,15 @@ def test_onnx_ctr_tensor_leaf_indices(depth, execution_provider):
     expected = np.array([(1 << (depth - 1)) | 1, (1 << depth) - 1, 0], dtype=np.int32)
     np.testing.assert_array_equal(actual, np.broadcast_to(expected, actual.shape))
     assert session.run(['predictions'], _onnx_ctr_feed(session, model, data[:0]))[0].shape == (0, 1)
+
+
+@pytest.mark.parametrize('execution_provider', ['CPUExecutionProvider', 'CUDAExecutionProvider'])
+def test_onnx_ctr_shared_binary_threshold(execution_provider):
+    # Threshold semantics are tested by the generic ONNX suite. Check that the
+    # optimized CTR graph uses that same binary-output implementation.
+    data = np.array([['a'], ['b'], ['c'], ['d']] * 20, dtype=object)
+    model = CatBoostClassifier(iterations=8, depth=3, one_hot_max_size=1, verbose=False, thread_count=2)
+    model.fit(data, [0, 1, 0, 1] * 20, cat_features=[0])
+    model.set_probability_threshold(0.9)
+    _, session = _onnx_ctr_session(model, execution_provider)
+    _check_onnx_ctr_predictions(model, session, np.array([['a'], ['d'], ['unseen']], dtype=object))

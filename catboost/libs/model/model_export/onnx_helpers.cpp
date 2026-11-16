@@ -720,47 +720,9 @@ static TOnnxFeaturesLayout InitInputs(
 // CTR projection keys are evaluated modulo 2^64 using unsigned ONNX arithmetic.
 // Dividing both saved keys and runtime hashes by the common odd multiplier M^2
 // preserves every key and collision, and makes single-category lookup direct.
-class TOnnxCtrGraphBuilder {
+class TOnnxCtrGraphBuilder : public TOnnxGraphBuilder {
 public:
-    explicit TOnnxCtrGraphBuilder(onnx::GraphProto* graph)
-        : Graph(graph)
-    {
-        for (const auto& input : graph->input()) {
-            Names.insert(input.name());
-        }
-        for (const auto& node : graph->node()) {
-            for (const auto& output : node.output()) {
-                Names.insert(output);
-            }
-        }
-        for (const auto& name : {"predictions", "label", "probabilities", "trees_input"}) {
-            Names.insert(name);
-        }
-    }
-
-    TString Node(const TString& op, const TVector<TString>& inputs, const TString& output = {}) {
-        auto* node = Graph->add_node();
-        node->set_op_type(op);
-        for (const auto& input : inputs) {
-            node->add_input(input);
-        }
-        const TString result = output.empty() ? NewName() : output;
-        node->add_output(result);
-        return result;
-    }
-
-    onnx::NodeProto* LastNode() {
-        return Graph->mutable_node(Graph->node_size() - 1);
-    }
-
-    TString Constant(const onnx::TensorProto& tensor) {
-        const auto result = Node("Constant", {});
-        auto* attr = LastNode()->add_attribute();
-        attr->set_name("value");
-        attr->set_type(onnx::AttributeProto_AttributeType_TENSOR);
-        *attr->mutable_t() = tensor;
-        return result;
-    }
+    using TOnnxGraphBuilder::TOnnxGraphBuilder;
 
     TString Int(i64 value) {
         if (const auto* name = IntConstants.FindPtr(value)) {
@@ -770,19 +732,6 @@ public:
         tensor.set_data_type(onnx::TensorProto_DataType_INT64);
         tensor.add_int64_data(value);
         return IntConstants[value] = Constant(tensor);
-    }
-
-    TString Float(float value) {
-        onnx::TensorProto tensor;
-        tensor.set_data_type(onnx::TensorProto_DataType_FLOAT);
-        tensor.add_float_data(value);
-        return Constant(tensor);
-    }
-
-    TString CastToInt(const TString& value) {
-        const auto result = Node("Cast", {value});
-        AddAttribute("to", i64(onnx::TensorProto_DataType_INT64), LastNode());
-        return result;
     }
 
     TString FloatColumn(int index) {
@@ -862,22 +811,11 @@ private:
         return Multiplier;
     }
 
-    TString NewName() {
-        TString name;
-        do {
-            name = "__catboost_ctr_" + ToString(NextName++);
-        } while (!Names.insert(name).second);
-        return name;
-    }
-
-    onnx::GraphProto* Graph;
-    THashSet<TString> Names;
     THashMap<i64, TString> IntConstants;
     THashMap<int, TString> FloatColumns;
     THashMap<TString, TString> UnsignedInputs;
     THashMap<std::pair<TString, TString>, TString> ProjectionPrefixes;
     TString Multiplier;
-    size_t NextName = 0;
 };
 
 struct TCtrLookupValues {
@@ -1441,12 +1379,6 @@ static void ConvertHashedCatTreeToOnnxGraph(const TFullModel& model, onnx::Graph
         "ONNX hashed categorical export supports only binary classification and scalar regression");
     CB_ENSURE(trees.IsOblivious(), "ONNX export requires symmetric trees");
     const bool classifier = IsClassifierModel(model);
-    TVector<i64> labelsInt;
-    TVector<TString> labelsString;
-    if (classifier) {
-        GetClassLabels(model, &labelsInt, &labelsString);
-        CB_ENSURE(labelsInt.size() + labelsString.size() == 2, "ONNX hashed categorical export requires exactly two class labels");
-    }
     auto singleCategoryMargin = TryExportSingleCategoryMargin(model, graph);
     TOnnxFeaturesLayout layout;
     if (!singleCategoryMargin) {
@@ -1459,28 +1391,7 @@ static void ConvertHashedCatTreeToOnnxGraph(const TFullModel& model, onnx::Graph
         InitValueInfo("predictions", onnx::TensorProto_DataType_FLOAT, 1, graph->add_output());
         return;
     }
-    const auto probability = builder.Node("Sigmoid", {margin});
-    const auto probabilities = builder.Node("Concat", {builder.Node("Sub", {builder.Float(1), probability}), probability});
-    AddAttribute("axis", i64(1), builder.LastNode());
-    builder.Node("ZipMap", {probabilities}, "probabilities");
-    builder.LastNode()->set_domain(onnx::AI_ONNX_ML_DOMAIN);
-    AddClassLabelsAttribute(labelsInt, labelsString, builder.LastNode());
-    const auto labelType = labelsString.empty() ? onnx::TensorProto_DataType_INT64 : onnx::TensorProto_DataType_STRING;
-    const auto positive = builder.CastToInt(builder.Node("Greater", {margin, builder.Float(model.GetBinClassLogitThreshold())}));
-    const auto indices = builder.Node("Squeeze", {positive});
-    AddAttribute("axes", TVector<i64>{1}, builder.LastNode());
-    onnx::TensorProto labels;
-    labels.set_data_type(labelType);
-    labels.add_dims(2);
-    for (auto value : labelsInt) {
-        labels.add_int64_data(value);
-    }
-    for (const auto& value : labelsString) {
-        labels.add_string_data(value);
-    }
-    builder.Node("Gather", {builder.Constant(labels), indices}, "label");
-    InitValueInfo("label", labelType, Nothing(), graph->add_output());
-    InitProbabilitiesOutput("probabilities", labelType, graph->add_output());
+    AddBinaryClassifierOutputs(model, margin, graph);
 }
 
 
