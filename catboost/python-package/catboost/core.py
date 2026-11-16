@@ -3813,13 +3813,20 @@ class CatBoost(_CatBoostBase):
                 * coreml_model_version : string
                 * coreml_model_author : string
                 * coreml_model_license: string
+            Parameters for ONNX export:
+                * onnx_cat_features_input_type : 'string' (default) or 'hashed'.
+                  'hashed' supports CTRs for binary classification and scalar
+                  regression. Categorical inputs have shape (N, 1) and dtype int64,
+                  and contain signed 32-bit hashes from utils.get_cat_feature_hash.
+                  This mode does not require pool. See utils.convert_to_onnx_object.
             Parameters for PMML export:
                 * pmml_copyright : string
                 * pmml_description : string
                 * pmml_model_version : string
         pool : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or catboost.FeaturesData
             Training dataset.
-            Required if the model contains categorical features and the format is 'cpp', 'python', 'json' or 'onnx'.
+            Required if the model contains categorical features and the format is 'cpp', 'python', 'json'
+            or 'onnx' with onnx_cat_features_input_type='string'.
         """
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to use save_model(). Use fit() to train model. Then use this method.")

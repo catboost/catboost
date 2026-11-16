@@ -12748,3 +12748,385 @@ def test_onnx_binary_threshold_default_graph_unchanged():
     assert reset.graph == original.graph
     assert reset.opset_import == original.opset_import
     assert {p.key: p.value for p in reset.metadata_props} == {p.key: p.value for p in original.metadata_props}
+
+
+ONNX_CTR_EXPORT_PARAMETERS = {'onnx_cat_features_input_type': 'hashed'}
+
+
+def _onnx_ctr_session(model):
+    onnx = pytest.importorskip('onnx')
+    ort = pytest.importorskip('onnxruntime')
+    from catboost.utils import convert_to_onnx_object
+    proto = convert_to_onnx_object(model, ONNX_CTR_EXPORT_PARAMETERS)
+    onnx.checker.check_model(proto)
+    options = ort.SessionOptions()
+    options.intra_op_num_threads = 2
+    return proto, ort.InferenceSession(proto.SerializeToString(), options, providers=['CPUExecutionProvider'])
+
+
+def _onnx_ctr_feed(session, model, data):
+    from catboost.utils import get_cat_feature_hash
+    cats = model.get_cat_feature_indices()
+    feed = {}
+    for inp in session.get_inputs():
+        if inp.name == 'num_features':
+            feed[inp.name] = data[:, [i for i in range(data.shape[1]) if i not in cats]].astype(np.float32)
+        else:
+            index = model.feature_names_.index(inp.name) if inp.name in model.feature_names_ else int(inp.name[len('cat_feature_'):])
+            feed[inp.name] = np.array([get_cat_feature_hash(v) for v in data[:, index]], dtype=np.int64).reshape(-1, 1)
+    return feed
+
+
+def _check_onnx_ctr_predictions(model, session, data):
+    outputs = session.run(None, _onnx_ctr_feed(session, model, data))
+    if isinstance(model, CatBoostClassifier):
+        probabilities = [[row[label] for label in model.classes_] for row in outputs[1]]
+        np.testing.assert_allclose(probabilities, model.predict_proba(data), atol=2e-6, rtol=2e-6)
+        np.testing.assert_array_equal(outputs[0], model.predict(data).reshape(-1))
+    else:
+        assert outputs[0].shape == (len(data), 1)
+        np.testing.assert_allclose(outputs[0].reshape(-1), model.predict(data, prediction_type='RawFormulaVal'), atol=2e-5, rtol=2e-6)
+
+
+@pytest.mark.parametrize('cat_count', [1, 2, 3])
+@pytest.mark.parametrize('loss', ['RMSE', 'Logloss'])
+@pytest.mark.parametrize('ctr_kind', ['Borders', 'Buckets', 'mean', 'frequency'])
+def test_onnx_ctr_predictions(task_type, cat_count, loss, ctr_kind):
+    rng = np.random.RandomState(42)
+    values = rng.randint(0, 8, size=(400, cat_count))
+    target = values[:, 0] ** 2 if cat_count == 1 else 10 * (values[:, 0] % 2 == values[:, 1] % 2) + 0.2 * values[:, -1]
+    data = values.astype(str).astype(object)
+    if ctr_kind == 'frequency':
+        ctr_kind = 'FeatureFreq' if task_type == 'GPU' else 'Counter'
+    elif ctr_kind == 'mean':
+        ctr_kind = 'FloatTargetMeanValue' if task_type == 'GPU' else 'BinarizedTargetMeanValue'
+    cls = CatBoostRegressor if loss == 'RMSE' else CatBoostClassifier
+    model = cls(iterations=25, depth=5, learning_rate=0.3, verbose=False, thread_count=4,
+                one_hot_max_size=1, max_ctr_complexity=3, random_seed=4, task_type=task_type,
+                simple_ctr=[ctr_kind + ':Prior=0.25:Prior=0.75'],
+                combinations_ctr=[ctr_kind + ':Prior=0.25:Prior=0.75'])
+    model.fit(data, target if loss == 'RMSE' else target > np.median(target), cat_features=list(range(cat_count)))
+    model.set_scale_and_bias(1, 0.7)
+    proto, session = _onnx_ctr_session(model)
+    assert any(node.op_type == 'LabelEncoder' for node in proto.graph.node)
+    # Export from a reloaded CBM needs neither the training Pool nor its string vocabulary.
+    path = test_output_path('ctr.cbm')
+    model.save_model(path)
+    restored = cls().load_model(path)
+    proto_restored, _ = _onnx_ctr_session(restored)
+    assert proto.graph == proto_restored.graph
+    unknown = np.full((3, cat_count), 'unseen', dtype=object)
+    unknown[1, 0] = data[0, 0]
+    test_data = np.concatenate([data[:32], unknown])
+    for batch in [test_data[:1], test_data[:7], test_data]:
+        _check_onnx_ctr_predictions(model, session, batch)
+    empty_outputs = session.run(None, _onnx_ctr_feed(session, model, test_data[:0]))
+    if loss == 'RMSE':
+        assert empty_outputs[0].shape == (0, 1)
+    else:
+        assert empty_outputs[0].shape == (0,)
+        assert empty_outputs[1] == []
+    with pytest.raises(CatBoostError, match='onnx_cat_features_input_type'):
+        model.save_model(test_output_path('requires_hashes.onnx'), format='onnx')
+
+
+@pytest.mark.parametrize('label_kind', ['integer', 'string', 'boolean'])
+@pytest.mark.parametrize('bias', [-3., 0., 3.])
+@pytest.mark.parametrize('threshold', [0.2, 0.5, 0.8])
+def test_onnx_ctr_binary_labels_and_bias(label_kind, bias, threshold):
+    data = np.array([['a'], ['b'], ['c'], ['d']] * 20, dtype=object)
+    labels = {'integer': [-7, 19], 'string': ['negative', 'positive'], 'boolean': [False, True]}[label_kind]
+    target = np.array([labels[0], labels[1], labels[0], labels[1]] * 20)
+    model = CatBoostClassifier(iterations=8, depth=3, one_hot_max_size=1, verbose=False, thread_count=2)
+    model.fit(data, target, cat_features=[0])
+    model.set_scale_and_bias(1, bias)
+    model.set_probability_threshold(threshold)
+    _, session = _onnx_ctr_session(model)
+    _check_onnx_ctr_predictions(model, session, np.array([['a'], ['d'], ['unknown']], dtype=object))
+
+
+@pytest.mark.parametrize('nan_mode', ['Min', 'Max'])
+def test_onnx_ctr_mixed_inputs_and_nan(nan_mode):
+    rng = np.random.RandomState(7)
+    cats = rng.randint(0, 6, size=500)
+    binary = rng.randint(0, 2, size=500)
+    numbers = rng.randn(500).astype(np.float32)
+    numbers[::7] = np.nan
+    target = 3 * (cats % 2) + binary * 2 + np.nan_to_num(numbers)
+    data = np.column_stack([cats.astype(str), binary.astype(str), numbers]).astype(object)
+    data[:, 2] = numbers
+    model = CatBoostRegressor(iterations=30, depth=5, one_hot_max_size=2, max_ctr_complexity=3,
+                             nan_mode=nan_mode, verbose=False, thread_count=4)
+    model.fit(Pool(data, target, cat_features=[0, 1], feature_names=['category', '__catboost_ctr_0', 'number']))
+    proto, session = _onnx_ctr_session(model)
+    assert any(node.op_type == 'LabelEncoder' and node.input[0] == '__catboost_ctr_0' for node in proto.graph.node)
+    test_data = data[:20].copy()
+    test_data[0, :2] = ['new category', 'new one-hot value']
+    _check_onnx_ctr_predictions(model, session, test_data)
+    # Exact numerical boundaries, infinities, and NaNs must retain native routing.
+    for border in model.get_borders()[2][:5]:
+        boundary = np.repeat(data[:1], 6, axis=0)
+        with np.errstate(over='ignore'):
+            boundary[:, 2] = [np.nextafter(np.float32(border), np.float32(-np.inf)), border,
+                              np.nextafter(np.float32(border), np.float32(np.inf)), -np.inf, np.inf, np.nan]
+        _check_onnx_ctr_predictions(model, session, boundary)
+
+
+@pytest.mark.parametrize('value', ['', 'hello', 'категория', '🙂', 'x' * 10000, b'abc', 0, -1, 2**63 - 1, np.int32(-42), np.uint64(2**64 - 1)])
+def test_onnx_ctr_category_hash(value):
+    from catboost.utils import get_cat_feature_hash
+    actual = get_cat_feature_hash(value)
+    assert isinstance(actual, int) and -2**31 <= actual < 2**31
+    if isinstance(value, (int, np.integer)):
+        assert actual == get_cat_feature_hash(str(value))
+    if isinstance(value, bytes):
+        assert actual == get_cat_feature_hash(value.decode())
+
+
+@pytest.mark.parametrize('value', [1.5, np.float32(1), float('nan'), None, 2**63])
+def test_onnx_ctr_invalid_category(value):
+    from catboost.utils import get_cat_feature_hash
+    with pytest.raises((CatBoostError, TypeError, OverflowError)):
+        get_cat_feature_hash(value)
+
+
+@pytest.mark.parametrize('loss', ['MultiClass', 'MultiRMSE', 'MultiLogloss'])
+def test_onnx_ctr_rejects_multiple_targets(loss):
+    from catboost.utils import convert_to_onnx_object
+    x = np.array([['a'], ['b'], ['c']] * 15)
+    y = np.array([0, 1, 2] * 15)
+    if loss == 'MultiRMSE':
+        y = np.column_stack([y, -y])
+    elif loss == 'MultiLogloss':
+        y = (y % 2).reshape(-1, 1)  # even a one-column multilabel model is outside this export contract
+    model = CatBoost({'loss_function': loss, 'iterations': 3, 'one_hot_max_size': 1, 'verbose': False, 'thread_count': 2})
+    model.fit(x, y, cat_features=[0])
+    with pytest.raises(CatBoostError, match='only binary classification and scalar regression'):
+        convert_to_onnx_object(model, ONNX_CTR_EXPORT_PARAMETERS)
+
+
+@pytest.mark.parametrize('option', ['invalid', 1, None])
+def test_onnx_ctr_invalid_input_option(option):
+    from catboost.utils import convert_to_onnx_object
+    model = CatBoostRegressor(iterations=2, verbose=False).fit([[1], [2], [3]], [1, 2, 1])
+    with pytest.raises(CatBoostError):
+        convert_to_onnx_object(model, {'onnx_cat_features_input_type': option})
+
+
+def _onnx_ctr_projection_hash(values):
+    multiplier = 0x4906ba494954cb65
+    result = 0
+    for value in values:
+        result = (multiplier * (result + multiplier * int(value))) % 2**64
+    return result
+
+
+def _onnx_ctr_synthetic_model(ctr_type='Counter', cat_count=1, conditions=False, empty=False, nan_mode='AsFalse'):
+    """A one-split model with explicit statistics, independent of training heuristics."""
+    from catboost.utils import get_cat_feature_hash
+    cat_features = [{'feature_id': '', 'feature_index': i, 'flat_feature_index': i} for i in range(cat_count)]
+    elements = [{'cat_feature_index': i, 'combination_element': 'cat_feature_value'} for i in range(cat_count)]
+    terms = [get_cat_feature_hash(chr(ord('a') + i)) for i in range(cat_count)]
+    floats = []
+    if conditions:
+        floats = [{'feature_id': '', 'feature_index': 0, 'flat_feature_index': cat_count,
+                   'borders': [0.5], 'has_nans': True, 'nan_value_treatment': nan_mode}]
+        cat_features[0]['values'] = [terms[0]]
+        elements += [{'combination_element': 'float_feature', 'float_feature_index': 0, 'border': 0.5},
+                     {'combination_element': 'cat_feature_exact_value', 'cat_feature_index': 0, 'value': terms[0]}]
+        terms += [1, 1]
+    identifier = json.dumps({'identifier': elements, 'type': ctr_type}, separators=(',', ':'))
+    is_frequency = ctr_type in ('Counter', 'FeatureFreq')
+    is_mean = ctr_type in ('BinarizedTargetMeanValue', 'FloatTargetMeanValue')
+    history = [3] if is_frequency else ([3, 10] if is_mean else [5, 2, 3])
+    numerator = 2 if ctr_type == 'Buckets' else 3
+    denominator = 20 if is_frequency else 10
+    known = ((numerator + 0.5) / (denominator + 2) + 0.25) * 7
+    missing = (0.5 / ((20 if is_frequency else 0) + 2) + 0.25) * 7
+    border = float(np.float32((known + missing) / 2))
+    model_json = {
+        'model_info': {}, 'scale_and_bias': [1, [0.25]],
+        'features_info': {'categorical_features': cat_features, 'float_features': floats,
+                          'ctrs': [{'borders': [border], 'ctr_type': ctr_type, 'elements': elements,
+                                    'identifier': identifier, 'prior_denomerator': 2, 'prior_numerator': 0.5,
+                                    'scale': 7, 'shift': 0.25, 'target_border_idx': 1 if not is_frequency and not is_mean else 0}]},
+        'ctr_data': {identifier: {'hash_stride': 1 + len(history), 'counter_denominator': 20,
+                                  'hash_map': [] if empty else [str(_onnx_ctr_projection_hash(terms))] + history}},
+        'oblivious_trees': [{'leaf_values': [-3, 5], 'leaf_weights': [10, 10],
+                             'splits': [{'split_type': 'OnlineCtr', 'border': border,
+                                         'ctr_target_border_idx': 1 if not is_frequency and not is_mean else 0,
+                                         'split_index': 2 if conditions else 0}]}],
+    }
+    path = test_output_path('synthetic_ctr.json')
+    with open(path, 'w') as out:
+        json.dump(model_json, out)
+    return CatBoostRegressor().load_model(path, format='json')
+
+
+@pytest.mark.parametrize('ctr_type', ['Borders', 'Buckets', 'BinarizedTargetMeanValue', 'FloatTargetMeanValue', 'Counter', 'FeatureFreq'])
+@pytest.mark.parametrize('empty', [False, True])
+def test_onnx_ctr_saved_statistics_and_empty_table(ctr_type, empty):
+    model = _onnx_ctr_synthetic_model(ctr_type=ctr_type, empty=empty)
+    _, session = _onnx_ctr_session(model)
+    data = np.array([['a'], ['unseen'], ['a']], dtype=object)
+    _check_onnx_ctr_predictions(model, session, data)
+    predictions = model.predict(data)
+    assert (predictions[0] == predictions[1]) == empty
+
+
+@pytest.mark.parametrize('nan_mode', ['AsFalse', 'AsTrue'])
+def test_onnx_ctr_projection_conditions(nan_mode):
+    model = _onnx_ctr_synthetic_model(cat_count=3, conditions=True, nan_mode=nan_mode)
+    _, session = _onnx_ctr_session(model)
+    data = np.array([['a', 'b', 'c', 1.], ['a', 'b', 'c', 0.5], ['a', 'b', 'c', np.nan],
+                     ['unknown', 'b', 'c', 1.], ['a', 'unknown', 'c', 1.], ['a', 'b', 'unknown', 1.]], dtype=object)
+    _check_onnx_ctr_predictions(model, session, data)
+    predictions = model.predict(data)
+    assert predictions[0] != predictions[1]
+    assert predictions[2] == predictions[0 if nan_mode == 'AsTrue' else 1]
+
+
+@pytest.mark.parametrize('cat_count', [1, 2, 3, 8])
+@pytest.mark.parametrize('conditions', [False, True])
+@pytest.mark.parametrize('execution_provider', ['CPUExecutionProvider', 'CUDAExecutionProvider'])
+def test_onnx_ctr_projection_hash_exact_int64(cat_count, conditions, execution_provider):
+    onnx = pytest.importorskip('onnx')
+    ort = pytest.importorskip('onnxruntime')
+    if execution_provider not in ort.get_available_providers():
+        pytest.skip(execution_provider + ' is unavailable')
+    model = _onnx_ctr_synthetic_model(cat_count=cat_count, conditions=conditions)
+    proto, _ = _onnx_ctr_session(model)
+    input_names = {value.name for value in proto.graph.input}
+    encoder = next(node for node in proto.graph.node if node.op_type == 'LabelEncoder' and node.input[0] not in input_names)
+    hash_output = encoder.input[0]
+    proto.graph.output.append(onnx.helper.make_tensor_value_info(hash_output, onnx.TensorProto.INT64, [None, 1]))
+    onnx.checker.check_model(proto)
+    options = ort.SessionOptions()
+    options.intra_op_num_threads = 2
+    rng = np.random.RandomState(182)
+    values = rng.randint(-2**31, 2**31, size=(1000, cat_count), dtype=np.int64)
+    values[:7] = np.array([-2**31, 2**31 - 1, -1, 0, 1, -65536, 65535], dtype=np.int64)[:, None]
+    feed = {'cat_feature_' + str(i): values[:, i:i + 1] for i in range(cat_count)}
+    terms = values
+    if conditions:
+        from catboost.utils import get_cat_feature_hash
+        values[::2, 0] = get_cat_feature_hash('a')
+        numbers = np.resize(np.array([-np.inf, 0.5, 1., np.inf, np.nan], dtype=np.float32), len(values))
+        feed['num_features'] = numbers.reshape(-1, 1)
+        terms = np.column_stack([values, numbers > 0.5, values[:, 0] == get_cat_feature_hash('a')])
+    expected = [_onnx_ctr_projection_hash(row) for row in terms]
+    expected = np.array([value if value < 2**63 else value - 2**64 for value in expected], dtype=np.int64)
+    # Both optimized and unoptimized execution must preserve every bit, including the sign bit.
+    for optimization in [ort.GraphOptimizationLevel.ORT_DISABLE_ALL, ort.GraphOptimizationLevel.ORT_ENABLE_ALL]:
+        options.graph_optimization_level = optimization
+        providers = ['CPUExecutionProvider'] if execution_provider == 'CPUExecutionProvider' else [execution_provider, 'CPUExecutionProvider']
+        session = ort.InferenceSession(proto.SerializeToString(), options, providers=providers)
+        assert session.get_providers()[0] == execution_provider
+        actual = session.run([hash_output], feed)[0].reshape(-1)
+        np.testing.assert_array_equal(actual, expected)
+
+
+def test_onnx_ctr_category_hash_collision():
+    from catboost.utils import get_cat_feature_hash
+    known, colliding = 'ctr_collision_70427', 'ctr_collision_74875'
+    assert get_cat_feature_hash(known) == get_cat_feature_hash(colliding) == -673102259
+    data = np.array([[known], ['other'], ['third']] * 30, dtype=object)
+    model = CatBoostRegressor(iterations=8, one_hot_max_size=1, verbose=False, thread_count=2)
+    model.fit(data, [10, -1, 3] * 30, cat_features=[0])
+    _, session = _onnx_ctr_session(model)
+    data = np.array([[known], [colliding], ['unseen']], dtype=object)
+    _check_onnx_ctr_predictions(model, session, data)
+    assert model.predict(data)[0] == model.predict(data)[1]
+
+
+def test_onnx_ctr_unused_and_reordered_features():
+    from catboost.utils import get_cat_feature_hash
+    rng = np.random.RandomState(19)
+    values = rng.randint(0, 8, size=400)
+    numbers = rng.randn(400)
+    data = np.column_stack([np.zeros(400), np.full(400, 'unused'), values.astype(str), numbers]).astype(object)
+    names = ['unused_float', 'unused_category', 'active_category', 'active_float']
+    model = CatBoostRegressor(iterations=12, depth=4, one_hot_max_size=1, verbose=False, thread_count=2)
+    model.fit(Pool(data, 3 * (values % 2) + numbers, cat_features=[1, 2], feature_names=names))
+    _, before = _onnx_ctr_session(model)
+    _check_onnx_ctr_predictions(model, before, data[:20])
+    model.drop_unused_features()
+    _, after = _onnx_ctr_session(model)
+    feed = {'active_category': np.array([get_cat_feature_hash(v) for v in data[:20, 2]], dtype=np.int64).reshape(-1, 1),
+            'num_features': data[:20, 3:4].astype(np.float32)}
+    result = after.run(['predictions'], feed)[0].reshape(-1)
+    reordered = Pool(data[:20, [3, 2, 1, 0]], cat_features=[1, 2], feature_names=names[::-1])
+    np.testing.assert_allclose(result, model.predict(reordered), atol=2e-5, rtol=2e-6)
+
+
+def test_onnx_ctr_export_file_and_import_rejection():
+    onnx = pytest.importorskip('onnx')
+    model = _onnx_ctr_synthetic_model()
+    proto, session = _onnx_ctr_session(model)
+    path = test_output_path('hashed_ctr.onnx')
+    model.save_model(path, format='onnx', export_parameters=ONNX_CTR_EXPORT_PARAMETERS)
+    assert onnx.load(path) == proto
+    with pytest.raises(CatBoostError):
+        CatBoostRegressor().load_model(path, format='onnx')
+    # The public graph schema rejects the old raw-string contract and incorrect shapes.
+    for values in [np.array([['a']], dtype=object), np.array([[1]], dtype=np.int32), np.array([1], dtype=np.int64)]:
+        with pytest.raises(Exception, match='(type|rank|dimensions)'):
+            session.run(None, {'cat_feature_0': values})
+
+
+@pytest.mark.parametrize('loss', ['CrossEntropy', 'MAE', 'Quantile:alpha=0.8', 'Poisson', 'Tweedie:variance_power=1.5', 'Huber:delta=1'])
+def test_onnx_ctr_other_scalar_losses(loss):
+    data = np.array([['a'], ['b'], ['c'], ['d']] * 25)
+    target = [0.1, 0.8, 0.3, 0.9] * 25 if loss == 'CrossEntropy' else [1, 2, 3, 8] * 25
+    cls = CatBoostClassifier if loss == 'CrossEntropy' else CatBoostRegressor
+    model = cls(loss_function=loss, iterations=8, depth=3, one_hot_max_size=1, verbose=False, thread_count=2)
+    model.fit(data, target, cat_features=[0])
+    _, session = _onnx_ctr_session(model)
+    _check_onnx_ctr_predictions(model, session, np.array([['a'], ['d'], ['unseen']], dtype=object))
+
+
+def test_onnx_ctr_rejects_nonunit_scale():
+    from catboost.utils import convert_to_onnx_object
+    model = _onnx_ctr_synthetic_model()
+    model.set_scale_and_bias(2, 0.0)
+    with pytest.raises(CatBoostError, match='[Ss]cale'):
+        convert_to_onnx_object(model, ONNX_CTR_EXPORT_PARAMETERS)
+
+
+def test_onnx_ctr_unseen_combination_of_known_categories():
+    from catboost.utils import get_cat_feature_hash
+    _onnx_ctr_synthetic_model(cat_count=2)
+    path = test_output_path('synthetic_ctr.json')
+    with open(path) as src:
+        model_json = json.load(src)
+    table = next(iter(model_json['ctr_data'].values()))
+    second_key = _onnx_ctr_projection_hash([get_cat_feature_hash('c'), get_cat_feature_hash('d')])
+    table['hash_map'].extend([str(second_key), 3])
+    with open(path, 'w') as out:
+        json.dump(model_json, out)
+    model = CatBoostRegressor().load_model(path, format='json')
+    _, session = _onnx_ctr_session(model)
+    data = np.array([['a', 'b'], ['c', 'd'], ['a', 'd'], ['c', 'b']], dtype=object)
+    _check_onnx_ctr_predictions(model, session, data)
+    predictions = model.predict(data)
+    assert predictions[0] == predictions[1]
+    assert predictions[2] == predictions[3]
+    assert predictions[0] != predictions[2]
+
+
+def test_onnx_ctr_rejects_nonsymmetric_trees():
+    from catboost.utils import convert_to_onnx_object
+    model = CatBoostRegressor(iterations=3, depth=3, grow_policy='Depthwise', one_hot_max_size=1,
+                             verbose=False, thread_count=2)
+    model.fit([['a'], ['b'], ['c']] * 20, [1, 2, 3] * 20, cat_features=[0])
+    with pytest.raises(CatBoostError, match='oblivious'):
+        convert_to_onnx_object(model, ONNX_CTR_EXPORT_PARAMETERS)
+
+
+def test_onnx_ctr_constant_categorical_model():
+    model = CatBoostRegressor(iterations=3, one_hot_max_size=1, allow_const_label=True,
+                             verbose=False, thread_count=2)
+    model.fit([['a'], ['b'], ['c']] * 10, [3.5] * 30, cat_features=[0])
+    _, session = _onnx_ctr_session(model)
+    _check_onnx_ctr_predictions(model, session, np.array([['a'], ['unseen']], dtype=object))
+    assert session.run(None, {'cat_feature_0': np.empty((0, 1), dtype=np.int64)})[0].shape == (0, 1)

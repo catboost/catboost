@@ -106,7 +106,12 @@ namespace NCB {
             graphName = userParameters["onnx_graph_name"].GetStringSafe();
         }
 
-        NCB::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph(), catFeaturesHashToString);
+        const TString catInputType = userParameters.Has("onnx_cat_features_input_type")
+            ? userParameters["onnx_cat_features_input_type"].GetStringSafe() : TString("string");
+        CB_ENSURE(catInputType == "string" || catInputType == "hashed",
+            "onnx_cat_features_input_type must be 'string' or 'hashed'");
+        NCB::NOnnx::ConvertTreeToOnnxGraph(
+            model, graphName, outModel.mutable_graph(), catFeaturesHashToString, catInputType == "hashed");
 
         TString data = outModel.SerializeAsStringOrThrow();
         oStream->Write(data);

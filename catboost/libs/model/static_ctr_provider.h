@@ -11,6 +11,14 @@
 #include <functional>
 
 
+// Evaluate resolved table buckets using the same arithmetic as native model application.
+// NotFoundIndex entries use the CTR type's unknown-key default.
+void CalcCtrValues(
+    const TModelCtr& ctr,
+    const TCtrValueTable& table,
+    TConstArrayRef<ui64> buckets,
+    TArrayRef<float> result);
+
 class TStaticCtrProvider: public ICtrProvider {
 public:
     TStaticCtrProvider() = default;

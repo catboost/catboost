@@ -2203,6 +2203,12 @@ cdef inline get_id_object_bytes_string_representation(
             bytes_string_buf_representation[0] = ToString[i64](int(id_object))
 
 
+def _get_cat_feature_hash(value):
+    cdef TString text
+    get_id_object_bytes_string_representation(value, &text)
+    return <i32>CalcCatFeatureHash(text)
+
+
 cdef inline ui64 get_timestamp_value(object obj) except *:
     if isinstance(obj, numbers.Integral) and not isinstance(obj, bool):
         return <ui64>obj
