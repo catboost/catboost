@@ -719,6 +719,9 @@ def convert_to_onnx_object(model, export_parameters=None, data=None, **kwargs):
     """
     Convert given CatBoost model to ONNX-ML model.
 
+    Custom binary probability thresholds are preserved in the label output
+    and model metadata. The threshold does not change the probabilities.
+
     Parameters
     ----------
     model : CatBoost trained model

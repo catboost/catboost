@@ -337,6 +337,32 @@ Y_UNIT_TEST_SUITE(TestOnnxExport) {
         CheckPredictionsEqual(model, *data->ObjectsData, importedModel, *data->ObjectsData);
     }
 
+    Y_UNIT_TEST(TestBinaryProbabilityThresholdExportImport) {
+        const auto data = MakeDataProvider(
+            {CatColumn({"a", "a", "b", "b", "a", "b"})}, {0, 0, 1, 0, 0, 1});
+        const auto mapping = MergeCatFeaturesHashToString(*data->ObjectsData);
+        NJson::TJsonValue params;
+        params.InsertValue("loss_function", "Logloss");
+        NJson::TJsonValue classNames(NJson::JSON_ARRAY);
+        classNames.AppendValue(0);
+        classNames.AppendValue(1);
+        params.InsertValue("class_names", classNames);
+        auto model = TrainOnDataProvider(data, params);
+        model.SetScaleAndBias({1., {0.75}});
+        for (const TString threshold : {"0", "0.2", "0.9", "1"}) {
+            model.ModelInfo["binclass_probability_threshold"] = threshold;
+            onnx::ModelProto proto;
+            UNIT_ASSERT(proto.ParseFromString(ConvertTreeToOnnxProto(model, "", &mapping)));
+            onnx::checker::check_model(proto);
+            UNIT_ASSERT_VALUES_EQUAL(GetNode(proto, "Greater").input_size(), 2);
+            UNIT_ASSERT_VALUES_EQUAL(GetNode(proto, "TreeEnsembleRegressor").output_size(), 1);
+            const auto imported = ExportToOnnxAndImport(model, &mapping);
+            UNIT_ASSERT_VALUES_EQUAL(imported.GetBinClassProbabilityThreshold(), model.GetBinClassProbabilityThreshold());
+            UNIT_ASSERT_VALUES_EQUAL(imported.GetDimensionsCount(), 1);
+            CheckPredictionsEqual(model, *data->ObjectsData, imported, *data->ObjectsData);
+        }
+    }
+
     Y_UNIT_TEST(TestBinaryClassifierExportImport) {
         const auto data = MakeDataProvider(
             {CatColumn({"a", "a", "b", "b", "a", "b"})}, {0, 0, 1, 0, 0, 1});
