@@ -207,6 +207,25 @@ Y_UNIT_TEST_SUITE(TSplitSelectionRegressionTest) {
 }
 
 Y_UNIT_TEST_SUITE(TShapPreparationRegressionTest) {
+    Y_UNIT_TEST(RejectIndependentShapWithoutDatasets) {
+        const auto model = SimpleFloatModel();
+        NPar::TLocalExecutor localExecutor;
+        UNIT_ASSERT_EXCEPTION_CONTAINS(
+            PrepareTrees(model, nullptr, nullptr, EPreCalcShapValues::Auto, &localExecutor,
+                         false, ECalcTypeShapValues::Independent),
+            TCatBoostException,
+            "require both an explained dataset and a reference dataset"
+        );
+
+        const TVector<double> leafWeights(model.ModelTrees->GetModelTreeData()->GetLeafValues().size(), 1.0);
+        UNIT_ASSERT_EXCEPTION_CONTAINS(
+            PrepareTreesWithoutIndependent(model, 10, false, leafWeights,
+                                           EPreCalcShapValues::Auto, false, ECalcTypeShapValues::Independent),
+            TCatBoostException,
+            "require both an explained dataset and a reference dataset"
+        );
+    }
+
     Y_UNIT_TEST(RejectUnsupportedShapTypeWithoutDataset) {
         const auto model = SimpleAsymmetricModel();
         const TVector<double> leafWeights(model.ModelTrees->GetModelTreeData()->GetLeafValues().size(), 1.0);

@@ -117,8 +117,8 @@ TShapPreparedTrees PrepareTreesWithoutIndependent(
 
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
-    const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
-    const NCB::TDataProviderPtr referenceDataset, // can be nullptr if using Independent Tree SHAP algorithm
+    const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights and calcType is not Independent
+    const NCB::TDataProviderPtr referenceDataset, // required for Independent Tree SHAP
     EPreCalcShapValues mode,
     NPar::ILocalExecutor* localExecutor,
     bool calcInternalValues = false,
