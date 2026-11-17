@@ -5,7 +5,7 @@ Drop-in replacement for subprocess javac calls.  Connects to JavacDaemon
 over a Unix socket; starts the daemon lazily on first use and reuses it
 across build nodes in the same build session.
 
-Daemon selection is keyed by the JDK resource path (socket) and by the
+Daemon selection is keyed by the canonical JDK root path (socket) and by the
 SHA-256 of the embedded jar (cache dir).  Different JDK versions always
 use separate daemon instances.  Different users building with the same
 daemon version share one warm JVM safely (cache dir is content-addressed).
@@ -670,13 +670,15 @@ def _jdk_major_version(javac_bin: str) -> int:
 
 def _resource_id(javac_bin: str) -> str:
     """
-    Stable per-JDK identifier.
+    Stable per-JDK identifier, independent of the resource directory layout.
 
-    In ya build, JDK_RESOURCE / EXTERNAL_JAVA_JDK_RESOURCE resolve to paths
-    like /…/.ya/tools/v4/<resource_id>/, so basename gives a unique value
-    that changes whenever the JDK toolchain is updated.
+    Python runner uses .../tools/v4/<resource_id>/bin/javac, while Larry uses
+    .../fetcher/<resource_id>/content/bin/javac. Hash the full canonical root
+    so roots with the same basename never share a daemon. Keep the identifier
+    short enough for the macOS Unix socket path limit.
     """
-    return os.path.basename(_jdk_root(javac_bin))
+    root = os.path.realpath(_jdk_root(javac_bin))
+    return hashlib.sha256(os.fsencode(root)).hexdigest()[:16]
 
 
 def _socket_path(javac_bin: str, semantic_jvm: list = None) -> str:
