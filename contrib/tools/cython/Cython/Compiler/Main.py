@@ -22,7 +22,7 @@ from .StringEncoding import EncodedString
 from .Scanning import PyrexScanner, FileSourceDescriptor
 from .Errors import PyrexError, CompileError, error, warning
 from .Symtab import ModuleScope
-from .. import Utils
+from .. import Utils, _ResourceFiles
 from . import Options
 from .Options import CompilationOptions, default_options
 from .CmdLine import parse_command_line
@@ -44,8 +44,7 @@ module_name_pattern = "[{0}{1}][{0}{2}{1}{3}]*".format(
 module_name_pattern = re.compile("{0}(\\.{0})*$".format(module_name_pattern))
 
 
-standard_include_path = os.path.abspath(
-    os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Includes'))
+standard_include_path = _ResourceFiles.data_root('Includes')
 
 
 class Context:
@@ -266,7 +265,8 @@ class Context:
                     rel_path = module_name.replace('.', os.sep) + os.path.splitext(pxd_pathname)[1]
                     if not pxd_pathname.endswith(rel_path):
                         rel_path = pxd_pathname  # safety measure to prevent printing incorrect paths
-                    if Options.source_root:
+                    # Builtin paths are virtual and independent of the physical checkout.
+                    if Options.source_root and not _ResourceFiles.is_resource_path(pxd_pathname):
                         rel_path = os.path.relpath(pxd_pathname, Options.source_root)
                     source_desc = FileSourceDescriptor(pxd_pathname, rel_path)
                     err, result = self.process_pxd(source_desc, scope, qualified_name)
@@ -777,8 +777,9 @@ def search_include_directories(dirs, qualified_name, suffix="", pos=None, includ
         package_filename = "__init__" + suffix
 
     for dirname in dirs:
+        dirname = _ResourceFiles.include_root(dirname, Options.source_root)
         path = os.path.join(dirname, dotted_filename)
-        if os.path.exists(path):
+        if Utils.path_exists(path):
             return path
 
         # Arcadia-specific lookup: search for packages in include paths,
@@ -787,11 +788,11 @@ def search_include_directories(dirs, qualified_name, suffix="", pos=None, includ
         if not include:
             package_dir = os.path.join(dirname, *package_names)
             path = os.path.join(package_dir, module_filename)
-            if os.path.exists(path):
+            if Utils.path_exists(path):
                 return path
             path = os.path.join(dirname, package_dir, module_name,
                                 package_filename)
-            if os.path.exists(path):
+            if Utils.path_exists(path):
                 return path
 
     return None

@@ -4,7 +4,8 @@ PY3_LIBRARY()
 
 LICENSE(
     Apache-2.0 AND
-    LicenseRef-scancode-unknown-license-reference
+    LicenseRef-scancode-unknown-license-reference AND
+    MIT
 )
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
@@ -15,7 +16,102 @@ VERSION(3.2.9)
 
 ORIGINAL_SOURCE(mirror://pypi/c/cython/cython-3.2.9.tar.gz)
 
+ENABLE(NO_PYTHON_INCLS)
+
 NO_LINT()
+
+PY_SRCS(
+    TOP_LEVEL
+    ${ARCADIA_ROOT}/contrib/python/six/py3/six.py=six
+    Cython/Build/BuildExecutable.py
+    Cython/Build/Cache.py
+    Cython/Build/Cythonize.py
+    Cython/Build/Dependencies.py
+    Cython/Build/Distutils.py
+    Cython/Build/Inline.py
+    Cython/Build/IpythonMagic.py
+    Cython/Build/SharedModule.py
+    Cython/Build/__init__.py
+    Cython/CodeWriter.py
+    Cython/Compiler/AnalysedTreeTransforms.py
+    Cython/Compiler/Annotate.py
+    Cython/Compiler/AutoDocTransforms.py
+    Cython/Compiler/Buffer.py
+    Cython/Compiler/Builtin.py
+    Cython/Compiler/CmdLine.py
+    Cython/Compiler/Code.py
+    Cython/Compiler/CodeGeneration.py
+    Cython/Compiler/CythonScope.py
+    Cython/Compiler/Dataclass.py
+    Cython/Compiler/DebugFlags.py
+    Cython/Compiler/Errors.py
+    Cython/Compiler/ExprNodes.py
+    Cython/Compiler/FlowControl.py
+    Cython/Compiler/FusedNode.py
+    Cython/Compiler/Future.py
+    Cython/Compiler/Interpreter.py
+    Cython/Compiler/Lexicon.py
+    Cython/Compiler/LineTable.py
+    Cython/Compiler/Main.py
+    Cython/Compiler/MatchCaseNodes.py
+    Cython/Compiler/MemoryView.py
+    Cython/Compiler/ModuleNode.py
+    Cython/Compiler/Naming.py
+    Cython/Compiler/Nodes.py
+    Cython/Compiler/Optimize.py
+    Cython/Compiler/Options.py
+    Cython/Compiler/ParseTreeTransforms.py
+    Cython/Compiler/Parsing.py
+    Cython/Compiler/Pipeline.py
+    Cython/Compiler/PyrexTypes.py
+    Cython/Compiler/Pythran.py
+    Cython/Compiler/Scanning.py
+    Cython/Compiler/StringEncoding.py
+    Cython/Compiler/Symtab.py
+    Cython/Compiler/TreeFragment.py
+    Cython/Compiler/TreePath.py
+    Cython/Compiler/TypeInference.py
+    Cython/Compiler/TypeSlots.py
+    Cython/Compiler/UFuncs.py
+    Cython/Compiler/UtilNodes.py
+    Cython/Compiler/UtilityCode.py
+    Cython/Compiler/Version.py
+    Cython/Compiler/Visitor.py
+    Cython/Compiler/__init__.py
+    Cython/Coverage.py
+    Cython/Debugger/Cygdb.py
+    Cython/Debugger/DebugWriter.py
+    Cython/Debugger/__init__.py
+    Cython/Debugger/libcython.py
+    Cython/Debugger/libpython.py
+    Cython/Debugging.py
+    Cython/Distutils/__init__.py
+    Cython/Distutils/build_ext.py
+    Cython/Distutils/extension.py
+    Cython/Distutils/old_build_ext.py
+    Cython/Parser/__init__.py
+    Cython/Plex/Actions.py
+    Cython/Plex/DFA.py
+    Cython/Plex/Errors.py
+    Cython/Plex/Lexicons.py
+    Cython/Plex/Machines.py
+    Cython/Plex/Regexps.py
+    Cython/Plex/Scanners.py
+    Cython/Plex/Transitions.py
+    Cython/Plex/__init__.py
+    Cython/Runtime/__init__.py
+    Cython/Shadow.py
+    Cython/StringIOTree.py
+    Cython/Tempita/__init__.py
+    Cython/Tempita/_looper.py
+    Cython/Tempita/_tempita.py
+    Cython/TestUtils.py
+    Cython/Utility/__init__.py
+    Cython/Utils.py
+    Cython/_ResourceFiles.py
+    Cython/__init__.py
+    cython.py
+)
 
 RESOURCE_FILES(
     PREFIX contrib/tools/cython/
@@ -24,4 +120,183 @@ RESOURCE_FILES(
     .dist-info/top_level.txt
 )
 
+RESOURCE_FILES(
+    PREFIX cython/
+    Cython/Includes/cpython/__init__.pxd
+    Cython/Includes/cpython/array.pxd
+    Cython/Includes/cpython/bool.pxd
+    Cython/Includes/cpython/buffer.pxd
+    Cython/Includes/cpython/bytearray.pxd
+    Cython/Includes/cpython/bytes.pxd
+    Cython/Includes/cpython/cellobject.pxd
+    Cython/Includes/cpython/ceval.pxd
+    Cython/Includes/cpython/codecs.pxd
+    Cython/Includes/cpython/complex.pxd
+    Cython/Includes/cpython/contextvars.pxd
+    Cython/Includes/cpython/conversion.pxd
+    Cython/Includes/cpython/datetime.pxd
+    Cython/Includes/cpython/descr.pxd
+    Cython/Includes/cpython/dict.pxd
+    Cython/Includes/cpython/exc.pxd
+    Cython/Includes/cpython/fileobject.pxd
+    Cython/Includes/cpython/float.pxd
+    Cython/Includes/cpython/function.pxd
+    Cython/Includes/cpython/genobject.pxd
+    Cython/Includes/cpython/getargs.pxd
+    Cython/Includes/cpython/instance.pxd
+    Cython/Includes/cpython/iterator.pxd
+    Cython/Includes/cpython/iterobject.pxd
+    Cython/Includes/cpython/list.pxd
+    Cython/Includes/cpython/long.pxd
+    Cython/Includes/cpython/longintrepr.pxd
+    Cython/Includes/cpython/mapping.pxd
+    Cython/Includes/cpython/marshal.pxd
+    Cython/Includes/cpython/mem.pxd
+    Cython/Includes/cpython/memoryview.pxd
+    Cython/Includes/cpython/method.pxd
+    Cython/Includes/cpython/module.pxd
+    Cython/Includes/cpython/number.pxd
+    Cython/Includes/cpython/object.pxd
+    Cython/Includes/cpython/pycapsule.pxd
+    Cython/Includes/cpython/pylifecycle.pxd
+    Cython/Includes/cpython/pyport.pxd
+    Cython/Includes/cpython/pystate.pxd
+    Cython/Includes/cpython/pythread.pxd
+    Cython/Includes/cpython/ref.pxd
+    Cython/Includes/cpython/sequence.pxd
+    Cython/Includes/cpython/set.pxd
+    Cython/Includes/cpython/slice.pxd
+    Cython/Includes/cpython/time.pxd
+    Cython/Includes/cpython/tuple.pxd
+    Cython/Includes/cpython/type.pxd
+    Cython/Includes/cpython/unicode.pxd
+    Cython/Includes/cpython/version.pxd
+    Cython/Includes/cpython/weakref.pxd
+    Cython/Includes/libc/__init__.pxd
+    Cython/Includes/libc/complex.pxd
+    Cython/Includes/libc/errno.pxd
+    Cython/Includes/libc/float.pxd
+    Cython/Includes/libc/limits.pxd
+    Cython/Includes/libc/locale.pxd
+    Cython/Includes/libc/math.pxd
+    Cython/Includes/libc/setjmp.pxd
+    Cython/Includes/libc/signal.pxd
+    Cython/Includes/libc/stddef.pxd
+    Cython/Includes/libc/stdint.pxd
+    Cython/Includes/libc/stdio.pxd
+    Cython/Includes/libc/stdlib.pxd
+    Cython/Includes/libc/string.pxd
+    Cython/Includes/libc/threads.pxd
+    Cython/Includes/libc/time.pxd
+    Cython/Includes/libcpp/__init__.pxd
+    Cython/Includes/libcpp/algorithm.pxd
+    Cython/Includes/libcpp/any.pxd
+    Cython/Includes/libcpp/atomic.pxd
+    Cython/Includes/libcpp/barrier.pxd
+    Cython/Includes/libcpp/bit.pxd
+    Cython/Includes/libcpp/cast.pxd
+    Cython/Includes/libcpp/cmath.pxd
+    Cython/Includes/libcpp/complex.pxd
+    Cython/Includes/libcpp/condition_variable.pxd
+    Cython/Includes/libcpp/deque.pxd
+    Cython/Includes/libcpp/exception.pxd
+    Cython/Includes/libcpp/execution.pxd
+    Cython/Includes/libcpp/forward_list.pxd
+    Cython/Includes/libcpp/functional.pxd
+    Cython/Includes/libcpp/future.pxd
+    Cython/Includes/libcpp/iterator.pxd
+    Cython/Includes/libcpp/latch.pxd
+    Cython/Includes/libcpp/limits.pxd
+    Cython/Includes/libcpp/list.pxd
+    Cython/Includes/libcpp/map.pxd
+    Cython/Includes/libcpp/memory.pxd
+    Cython/Includes/libcpp/mutex.pxd
+    Cython/Includes/libcpp/numbers.pxd
+    Cython/Includes/libcpp/numeric.pxd
+    Cython/Includes/libcpp/optional.pxd
+    Cython/Includes/libcpp/pair.pxd
+    Cython/Includes/libcpp/queue.pxd
+    Cython/Includes/libcpp/random.pxd
+    Cython/Includes/libcpp/semaphore.pxd
+    Cython/Includes/libcpp/set.pxd
+    Cython/Includes/libcpp/shared_mutex.pxd
+    Cython/Includes/libcpp/span.pxd
+    Cython/Includes/libcpp/stack.pxd
+    Cython/Includes/libcpp/stop_token.pxd
+    Cython/Includes/libcpp/string.pxd
+    Cython/Includes/libcpp/string_view.pxd
+    Cython/Includes/libcpp/typeindex.pxd
+    Cython/Includes/libcpp/typeinfo.pxd
+    Cython/Includes/libcpp/unordered_map.pxd
+    Cython/Includes/libcpp/unordered_set.pxd
+    Cython/Includes/libcpp/utility.pxd
+    Cython/Includes/libcpp/vector.pxd
+    Cython/Includes/numpy/math.pxd
+    Cython/Includes/openmp.pxd
+    Cython/Includes/posix/__init__.pxd
+    Cython/Includes/posix/dlfcn.pxd
+    Cython/Includes/posix/fcntl.pxd
+    Cython/Includes/posix/ioctl.pxd
+    Cython/Includes/posix/mman.pxd
+    Cython/Includes/posix/resource.pxd
+    Cython/Includes/posix/select.pxd
+    Cython/Includes/posix/signal.pxd
+    Cython/Includes/posix/stat.pxd
+    Cython/Includes/posix/stdio.pxd
+    Cython/Includes/posix/stdlib.pxd
+    Cython/Includes/posix/strings.pxd
+    Cython/Includes/posix/time.pxd
+    Cython/Includes/posix/types.pxd
+    Cython/Includes/posix/uio.pxd
+    Cython/Includes/posix/unistd.pxd
+    Cython/Includes/posix/wait.pxd
+    Cython/Utility/AsyncGen.c
+    Cython/Utility/Buffer.c
+    Cython/Utility/BufferFormatFromTypeInfo.pxd
+    Cython/Utility/Builtins.c
+    Cython/Utility/CConvert.pyx
+    Cython/Utility/CMath.c
+    Cython/Utility/CommonStructures.c
+    Cython/Utility/CommonTypes.c
+    Cython/Utility/Complex.c
+    Cython/Utility/Coroutine.c
+    Cython/Utility/CpdefEnums.pyx
+    Cython/Utility/CppConvert.pyx
+    Cython/Utility/CppSupport.cpp
+    Cython/Utility/CythonFunction.c
+    Cython/Utility/Dataclasses.c
+    Cython/Utility/Embed.c
+    Cython/Utility/Exceptions.c
+    Cython/Utility/ExtensionTypes.c
+    Cython/Utility/FunctionArguments.c
+    Cython/Utility/FusedFunction.pyx
+    Cython/Utility/ImportExport.c
+    Cython/Utility/MemoryView.pxd
+    Cython/Utility/MemoryView.pyx
+    Cython/Utility/MemoryView_C.c
+    Cython/Utility/ModuleSetupCode.c
+    Cython/Utility/NumpyImportArray.c
+    Cython/Utility/ObjectHandling.c
+    Cython/Utility/Optimize.c
+    Cython/Utility/Overflow.c
+    Cython/Utility/Printing.c
+    Cython/Utility/Profile.c
+    Cython/Utility/StringTools.c
+    Cython/Utility/Synchronization.c
+    Cython/Utility/TString.c
+    Cython/Utility/TestCyUtilityLoader.pyx
+    Cython/Utility/TestCythonScope.pyx
+    Cython/Utility/TestUtilityLoader.c
+    Cython/Utility/TypeConversion.c
+    Cython/Utility/UFuncs.pyx
+    Cython/Utility/UFuncs_C.c
+    Cython/Utility/__init__.py
+    Cython/Utility/arrayarray.h
+)
+
 END()
+
+RECURSE(
+    bin
+    deps
+)
