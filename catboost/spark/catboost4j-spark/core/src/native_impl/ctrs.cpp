@@ -441,7 +441,8 @@ public:
     void SetupBinFeatureIndexes(
         const TConstArrayRef<TFloatFeature>,
         const TConstArrayRef<TOneHotFeature>,
-        const TConstArrayRef<TCatFeature>
+        const TConstArrayRef<TCatFeature>,
+        const TConstArrayRef<TEstimatedFeature> = {}
     ) override {
         ythrow TCatBoostException()
             << "TFromFileCtrProvider is for streamed serialization only";

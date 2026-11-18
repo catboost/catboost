@@ -1,0 +1,3 @@
+numpy>=1.26
+catboost>=1.2.8
+pytest>=8

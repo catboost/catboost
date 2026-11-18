@@ -137,7 +137,8 @@ bool TStaticCtrProvider::HasNeededCtrs(TConstArrayRef<TModelCtr> neededCtrs) con
 
 void TStaticCtrProvider::SetupBinFeatureIndexes(const TConstArrayRef<TFloatFeature> floatFeatures,
                                                 const TConstArrayRef<TOneHotFeature> oheFeatures,
-                                                const TConstArrayRef<TCatFeature> catFeatures) {
+                                                const TConstArrayRef<TCatFeature> catFeatures,
+                                                const TConstArrayRef<TEstimatedFeature> estimatedFeatures) {
     ui32 currentIndex = 0;
     FloatFeatureIndexes.clear();
     for (const auto& floatFeature : floatFeatures) {
@@ -150,6 +151,11 @@ void TStaticCtrProvider::SetupBinFeatureIndexes(const TConstArrayRef<TFloatFeatu
             FloatFeatureIndexes[split] = featureIdx;
         }
         currentIndex += (floatFeature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
+    }
+    // Estimated buckets precede one-hot buckets in the evaluator layout even
+    // though estimated predicates cannot themselves participate in a CTR.
+    for (const auto& estimatedFeature : estimatedFeatures) {
+        currentIndex += (estimatedFeature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     OneHotFeatureIndexes.clear();
     for (const auto& oheFeature : oheFeatures) {

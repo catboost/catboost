@@ -3,11 +3,33 @@
 #include <catboost/private/libs/options/option.h>
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
 Y_UNIT_TEST_SUITE(TOptionsTest) {
     using namespace NCatboostOptions;
+
+    Y_UNIT_TEST(TestSatL2UsesFirstOrderStatistics) {
+        UNIT_ASSERT(!IsSecondOrderScoreFunction(EScoreFunction::SatL2));
+        UNIT_ASSERT(IsSecondOrderScoreFunction(EScoreFunction::NewtonL2));
+    }
+
+    Y_UNIT_TEST(TestRegionLeafCapacityUsesDepthPlusOne) {
+        for (ui32 depth : {0u, 5u, 30u, 32u, 100u, 65535u}) {
+            TCatBoostOptions options(ETaskType::GPU);
+            options.ObliviousTreeOptions->GrowPolicy = EGrowPolicy::Region;
+            options.ObliviousTreeOptions->MaxDepth = depth;
+            options.SetNotSpecifiedOptionsToDefaults();
+            UNIT_ASSERT_VALUES_EQUAL(options.ObliviousTreeOptions->MaxLeaves.Get(), depth + 1);
+        }
+        TCatBoostOptions legacy(ETaskType::GPU);
+        legacy.ObliviousTreeOptions->GrowPolicy = EGrowPolicy::Region;
+        legacy.ObliviousTreeOptions->MaxDepth = 30;
+        legacy.ObliviousTreeOptions->MaxLeaves = 1u << 30;
+        legacy.SetNotSpecifiedOptionsToDefaults();
+        UNIT_ASSERT_VALUES_EQUAL(legacy.ObliviousTreeOptions->MaxLeaves.Get(), 31u);
+    }
 
     template <class TOptions>
     inline void TestSaveLoad(const TOptions& options, ETaskType taskType) {

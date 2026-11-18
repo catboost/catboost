@@ -6,6 +6,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
 #include <util/generic/hash.h>
@@ -15,6 +16,8 @@
 #include <util/system/compiler.h>
 #include <util/system/types.h>
 #include <util/system/yassert.h>
+
+#include <type_traits>
 
 
 namespace NCB {
@@ -115,9 +118,30 @@ namespace NCB {
                     auto maybeCatIterator = (*ObjectsData.GetCatFeature(internalFeatureIdx))
                         ->GetBlockIterator(objectOffset);
                     auto* catIteratorPtr = dynamic_cast<IDynamicBlockIterator<TCatValue>*>(maybeCatIterator.Get());
-                    CB_ENSURE_INTERNAL(catIteratorPtr, "Should be IDynamicBlockIteratorPtr<TCatValue>");
-                    Y_UNUSED(maybeCatIterator.Release());
-                    CatBlockIterators[modelFlatFeatureIdx] = IDynamicBlockIteratorPtr<TCatValue>(catIteratorPtr);
+                    if (catIteratorPtr) {
+                        Y_UNUSED(maybeCatIterator.Release());
+                        CatBlockIterators[modelFlatFeatureIdx] = IDynamicBlockIteratorPtr<TCatValue>(catIteratorPtr);
+                    } else {
+                        // Saved quantized pools store categorical bins in 8 or
+                        // 16 bits when possible. Widen each block for the model
+                        // accessor while retaining the iterator's subset/offset.
+                        const auto widen = [&] (auto* iterator) {
+                            using TSrc = typename std::remove_pointer_t<decltype(iterator)>::value_type;
+                            Y_UNUSED(maybeCatIterator.Release());
+                            CatBlockIterators[modelFlatFeatureIdx] = MakeBlockTransformerIterator<TCatValue>(
+                                IDynamicBlockIteratorPtr<TSrc>(iterator),
+                                [] (TConstArrayRef<TSrc> src, TVector<TCatValue>& dst) {
+                                    Copy(src.begin(), src.end(), dst.begin());
+                                });
+                        };
+                        if (auto* iterator = dynamic_cast<IDynamicBlockIterator<ui8>*>(maybeCatIterator.Get())) {
+                            widen(iterator);
+                        } else if (auto* iterator = dynamic_cast<IDynamicBlockIterator<ui16>*>(maybeCatIterator.Get())) {
+                            widen(iterator);
+                        } else {
+                            CB_ENSURE_INTERNAL(false, "Should be IDynamicBlockIteratorPtr<TCatValue>");
+                        }
+                    }
                 } else if (featureMetaInfo.Type == EFeatureType::Text) {
                     TextBlockIterators[modelFlatFeatureIdx]
                         = (*ObjectsData.GetTextFeature(internalFeatureIdx))

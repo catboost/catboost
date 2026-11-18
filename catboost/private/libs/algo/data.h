@@ -46,7 +46,8 @@ namespace NCB {
         TMaybe<float>* targetBorder,
         NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
-        TMaybe<TFullModel*> initModel = Nothing());
+        TMaybe<TFullModel*> initModel = Nothing(),
+        TArraySubsetIndexing<ui32>* learnObjectOrder = nullptr);
 
     TTrainingDataProviders GetTrainingData(
         TDataProviders srcData,
@@ -60,7 +61,8 @@ namespace NCB {
         TLabelConverter* labelConverter,
         NPar::ILocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
-        TMaybe<TFullModel*> initModel = Nothing());
+        TMaybe<TFullModel*> initModel = Nothing(),
+        TArraySubsetIndexing<ui32>* learnObjectOrder = nullptr);
 
     TTrainingDataProviders MakeFeatureSubsetTrainingData(
         const TVector<ui32>& ignoredFeatures,

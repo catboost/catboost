@@ -4,6 +4,7 @@
 #include "hessian.h"
 
 #include <util/generic/fwd.h>
+#include <util/generic/string.h>
 
 struct TDers;
 class THessianInfo;
@@ -48,6 +49,11 @@ struct TCustomObjectiveDescriptor {
         void* customData);
 
 public:
+    // Metal per-object objective function body. It receives float approx,
+    // target and weight, and returns float3(value, negative loss derivative,
+    // positive curvature), with weights already applied. CUDA callbacks keep
+    // their existing ABI and are never interpreted as Metal callbacks.
+    TString MetalSource;
     void* CustomData = nullptr;
     TGpuCalcDersRangePtr GpuCalcDersRange = nullptr;
     TCalcDersRangePtr CalcDersRange = nullptr;

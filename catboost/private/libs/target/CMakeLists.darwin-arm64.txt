@@ -14,6 +14,11 @@
 
 add_library(private-libs-target)
 
+if (HAVE_METAL)
+  set_property(SOURCE ${PROJECT_SOURCE_DIR}/catboost/private/libs/target/data_providers.cpp
+    APPEND PROPERTY COMPILE_DEFINITIONS CATBOOST_HAVE_METAL=1)
+endif()
+
 
 target_link_libraries(private-libs-target PUBLIC
   contrib-libs-cxxsupp
@@ -39,4 +44,3 @@ target_sources(private-libs-target PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/target/calc_class_weights.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/target/util.cpp
 )
-
