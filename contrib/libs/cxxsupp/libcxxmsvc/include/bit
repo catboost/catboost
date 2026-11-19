@@ -135,6 +135,27 @@ int __countr_zero(_Tp __t) _NOEXCEPT
     }
 }
 
+#if defined(_LIBCPP_COMPILER_MSVC) && _LIBCPP_STD_VER >= 20
+
+// Only call it at comptime, more efficient implementations are available for runtime
+template<class _Tp>
+constexpr int __countl_zero_comptime(_Tp __t) _NOEXCEPT {
+    static_assert(__libcpp_is_unsigned_integer<_Tp>::value, "__countl_zero_comptime requires an unsigned integer type");
+    static_assert(sizeof(_Tp) <= sizeof(unsigned long long));
+
+    int digits = numeric_limits<_Tp>::digits;
+
+    while (__t != 0) {
+        __t >>= 1;
+        --digits;
+    }
+
+    return digits;
+}
+
+#endif
+
+
 template<class _Tp>
 _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
 int __countl_zero(_Tp __t) _NOEXCEPT
@@ -143,17 +164,7 @@ int __countl_zero(_Tp __t) _NOEXCEPT
     if (__t == 0)
         return numeric_limits<_Tp>::digits;
 
-    if      (sizeof(_Tp) <= sizeof(unsigned int))
-        return __libcpp_clz(static_cast<unsigned int>(__t))
-              - (numeric_limits<unsigned int>::digits - numeric_limits<_Tp>::digits);
-    else if (sizeof(_Tp) <= sizeof(unsigned long))
-        return __libcpp_clz(static_cast<unsigned long>(__t))
-              - (numeric_limits<unsigned long>::digits - numeric_limits<_Tp>::digits);
-    else if (sizeof(_Tp) <= sizeof(unsigned long long))
-        return __libcpp_clz(static_cast<unsigned long long>(__t))
-              - (numeric_limits<unsigned long long>::digits - numeric_limits<_Tp>::digits);
-    else
-    {
+    if (sizeof(_Tp) > sizeof(unsigned long long)) {
         int __ret = 0;
         int __iter = 0;
         const unsigned int __ulldigits = numeric_limits<unsigned long long>::digits;
@@ -164,6 +175,22 @@ int __countl_zero(_Tp __t) _NOEXCEPT
             __ret += __iter;
             }
         return __ret + __iter;
+    } else {
+#if defined(_LIBCPP_COMPILER_MSVC) && _LIBCPP_STD_VER >= 20
+        if (is_constant_evaluated()) {
+            return __countl_zero_comptime(__t);
+        }
+#endif
+
+        if      (sizeof(_Tp) <= sizeof(unsigned int))
+            return __libcpp_clz(static_cast<unsigned int>(__t))
+              - (numeric_limits<unsigned int>::digits - numeric_limits<_Tp>::digits);
+        else if (sizeof(_Tp) <= sizeof(unsigned long))
+            return __libcpp_clz(static_cast<unsigned long>(__t))
+                - (numeric_limits<unsigned long>::digits - numeric_limits<_Tp>::digits);
+        else
+            return __libcpp_clz(static_cast<unsigned long long>(__t))
+                - (numeric_limits<unsigned long long>::digits - numeric_limits<_Tp>::digits);
     }
 }
 
