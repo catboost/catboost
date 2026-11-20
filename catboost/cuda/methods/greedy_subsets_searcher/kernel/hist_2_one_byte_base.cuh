@@ -73,7 +73,7 @@ namespace NKernel
 
             #pragma unroll
             for (int k = 0; k < N; k += NN) {
-                impl->AddPointsImpl<NN>(ci + k, s1 + k, s2 + k);
+                impl->template AddPointsImpl<NN>(ci + k, s1 + k, s2 + k);
             }
         }
 
@@ -81,7 +81,7 @@ namespace NKernel
                                                  const float s1,
                                                  const float s2) {
             TImpl* impl = static_cast<TImpl*>(this);
-            impl->AddPointsImpl<1>(&ci, &s1, &s2);
+            impl->template AddPointsImpl<1>(&ci, &s1, &s2);
         }
 
         __forceinline__ __device__ void ReduceToOneWarp() {
@@ -177,7 +177,7 @@ namespace NKernel
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
 
         numBlocks.x = (fCount + 3) / 4;
-        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        ScaleBlockCountToOccupancy(numBlocks, maxActiveBlocks);
         if (IsGridEmpty(numBlocks)) {
             return;
         }
@@ -222,7 +222,7 @@ namespace NKernel
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
 
         numBlocks.x = (fCount + 3) / 4;
-        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        ScaleBlockCountToOccupancy(numBlocks, maxActiveBlocks);
         if (IsGridEmpty(numBlocks)) {
             return;
         }
@@ -264,7 +264,7 @@ namespace NKernel
         const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
         numBlocks.x = (fCount + 3) / 4;
-        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        ScaleBlockCountToOccupancy(numBlocks, maxActiveBlocks);
         if (IsGridEmpty(numBlocks)) {
             return;
         }
@@ -305,7 +305,7 @@ namespace NKernel
         const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
         numBlocks.x = (fCount + 3) / 4;
-        numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        ScaleBlockCountToOccupancy(numBlocks, 2 * maxActiveBlocks);
         if (IsGridEmpty(numBlocks)) {
             return;
         }

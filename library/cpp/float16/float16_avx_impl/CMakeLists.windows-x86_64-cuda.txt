@@ -20,6 +20,13 @@ target_link_libraries(cpp-float16-float16_avx_impl PUBLIC
   yutil
 )
 
+# clang gates the F16C intrinsic
+# _mm256_cvtph_ps behind -mf16c; cl.exe's /arch:AVX enables it implicitly but
+# clang(-cl)'s does not. Enable it for the clang(-cl) build.
+target_compile_options(cpp-float16-float16_avx_impl PRIVATE
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-mf16c>
+)
+
 
 target_sources_custom(cpp-float16-float16_avx_impl
   .avx

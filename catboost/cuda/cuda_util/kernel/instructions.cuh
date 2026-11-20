@@ -2,6 +2,34 @@
 #include <cub/thread/thread_load.cuh>
 
 
+#if defined(USE_HIP)
+// HIP/amdgcn has no PTX. bfe -> bit extract; ld.global.cg -> a streaming
+// (cache-streaming) load via the cub modifier, which rocPRIM maps to a
+// non-temporal global load; prefetch -> no-op (no portable amdgcn prefetch).
+__forceinline__ __device__ ui32 bfe(ui32 a, ui32 start, ui32 length)
+{
+    return length >= 32 ? (a >> start) : ((a >> start) & ((1u << length) - 1u));
+}
+
+__forceinline__ __device__ ui32 load_noncached(const ui32* ptr)
+{
+    return cub::ThreadLoad<cub::LOAD_CS>(ptr);
+}
+
+__forceinline__ __device__ uint2 load_noncached(const uint2* ptr)
+{
+    return cub::ThreadLoad<cub::LOAD_CS>(ptr);
+}
+
+__forceinline__ __device__ float load_noncached(const float* ptr)
+{
+    return cub::ThreadLoad<cub::LOAD_CS>(ptr);
+}
+
+__device__ __forceinline__ void PrefetchL1(void* ptr) {
+    (void)ptr;
+}
+#else
 __forceinline__ __device__ ui32 bfe(ui32 a, ui32 start, ui32 length)
 {
     ui32 res;
@@ -33,6 +61,7 @@ __forceinline__ __device__ float load_noncached(const float * ptr)
 __device__ __forceinline__ void PrefetchL1(void *ptr) {
     asm("prefetch.global.L1 [%0];"::"l"(ptr));
 }
+#endif
 
 
 template <typename T>
