@@ -36,6 +36,7 @@ target_allocator(catboost-private-libs-quantization_schema-ut
 )
 
 target_link_options(catboost-private-libs-quantization_schema-ut PRIVATE
+  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

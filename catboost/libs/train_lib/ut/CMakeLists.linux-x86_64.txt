@@ -36,6 +36,7 @@ target_allocator(catboost-libs-train_lib-ut
 )
 
 target_link_options(catboost-libs-train_lib-ut PRIVATE
+  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

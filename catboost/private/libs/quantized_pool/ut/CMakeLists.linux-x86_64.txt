@@ -42,6 +42,7 @@ target_allocator(catboost-private-libs-quantized_pool-ut
 )
 
 target_link_options(catboost-private-libs-quantized_pool-ut PRIVATE
+  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

@@ -31,6 +31,7 @@ target_allocator(util-network-ut
 )
 
 target_link_options(util-network-ut PRIVATE
+  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

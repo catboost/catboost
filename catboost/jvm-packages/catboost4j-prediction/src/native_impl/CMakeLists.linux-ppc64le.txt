@@ -31,6 +31,7 @@ target_allocator(catboost4j-prediction
 )
 
 target_link_options(catboost4j-prediction PRIVATE
+  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

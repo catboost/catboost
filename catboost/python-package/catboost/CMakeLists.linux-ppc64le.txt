@@ -86,6 +86,7 @@ target_allocator(_catboost
 )
 
 target_link_options(_catboost PRIVATE
+  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

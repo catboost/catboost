@@ -31,6 +31,7 @@ target_allocator(catboost-cuda-cuda_util-ut
 )
 
 target_link_options(catboost-cuda-cuda_util-ut PRIVATE
+  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

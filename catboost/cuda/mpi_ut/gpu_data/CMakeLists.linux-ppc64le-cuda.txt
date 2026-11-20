@@ -31,6 +31,7 @@ target_allocator(gpu_data
 )
 
 target_link_options(gpu_data PRIVATE
+  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

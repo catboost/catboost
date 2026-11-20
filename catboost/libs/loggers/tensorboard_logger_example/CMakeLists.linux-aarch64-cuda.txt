@@ -28,6 +28,7 @@ target_allocator(tensorboard_logger_example
 )
 
 target_link_options(tensorboard_logger_example PRIVATE
+  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed
