@@ -1,0 +1,5 @@
+# libimagequant is GPL-licensed.
+# We would like to prevent our open source projects from depending on GPL-licensed software.
+- source_filter: "^contrib/python/Pillow/py3"
+  includes:
+    - libimagequant.h

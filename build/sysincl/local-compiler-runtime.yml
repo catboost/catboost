@@ -1,0 +1,7 @@
+- includes:
+  - sanitizer/asan_interface.h
+  - sanitizer/common_interface_defs.h
+  - sanitizer/hwasan_interface.h
+  - sanitizer/lsan_interface.h
+  - sanitizer/msan_interface.h
+  - sanitizer/tsan_interface.h
