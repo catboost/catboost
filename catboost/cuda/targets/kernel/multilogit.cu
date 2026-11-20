@@ -610,6 +610,210 @@ namespace NKernel {
 
     template <int BlockSize, int ElementsPerThread>
     __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
+    __global__ void MultiRMSEWithMissingValuesValueAndDerImpl(
+        ui32 targetCount,
+        ui32 size,
+        const float* targets, ui32 targetAlignSize,
+        const float* weights,
+        const float* predictions, ui32 predictionsAlignSize,
+        const ui32* loadPredictionsIndices,
+        float* functionValue,
+        float* der, ui32 derAlignSize
+    ) {
+        ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
+
+        float sumDimErrors = 0;
+        for (int dim = 0; dim < targetCount; ++dim) {
+            #pragma unroll
+            for (int j = 0; j < ElementsPerThread; ++j) {
+                const int idx = tid + j * BlockSize;
+                if (idx >= size) {
+                    continue;
+                }
+                const ui32 loadApproxIndex = loadPredictionsIndices ? __ldg(loadPredictionsIndices + idx) : idx;
+                const float weight = weights ? __ldg(weights + idx) : 1.0f;
+                const float target = __ldg(targets + idx + dim * targetAlignSize);
+                const float approx = __ldg(predictions + loadApproxIndex + dim * predictionsAlignSize);
+                const float diff = target - approx;
+                if (functionValue && !isnan(target)) {
+                    sumDimErrors += diff * diff * weight;
+                }
+                if (der) { // -gradient
+                    if (isnan(target)) {
+                        der[idx + dim * derAlignSize] = 0.0f;
+                    } else {
+                        der[idx + dim * derAlignSize] = diff * weight;
+                    }
+                }
+
+            }
+        }
+        if (functionValue) {
+            __shared__ float tmpScores[BlockSize];
+            tmpScores[threadIdx.x] = -sumDimErrors;
+            __syncthreads();
+
+            float val = FastInBlockReduce<float>(threadIdx.x, tmpScores, BlockSize);
+
+            if (threadIdx.x == 0) {
+                atomicAdd(functionValue, val);
+            }
+        }
+    }
+
+    template <int BlockSize, int ElementsPerThread>
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
+    __global__ void MultiRMSEWithMissingValuesSecondDerImpl(
+        ui32 size,
+        const float* targets, ui32 targetAlignSize,
+        const float* weights,
+        float* der2,
+        int der2Row, ui32 der2AlignSize
+    ) {
+        ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
+        #pragma unroll
+        for (int j = 0; j < ElementsPerThread; ++j) {
+            const ui32 idx = tid + j * BlockSize;
+            if (idx < size) {
+                for (int k = 0; k < der2Row; ++k) {
+                    der2[idx + k * der2AlignSize] = 0.0f;
+                }
+                const float target = __ldg(targets + idx + der2Row * targetAlignSize);
+                const float weight = weights ? __ldg(weights + idx) : 1.0f;
+                //hessian is diagonal, missing target gives zero second derivative
+                der2[idx + der2Row * der2AlignSize] = isnan(target) ? 0.0f : weight;
+            }
+        }
+    }
+
+    void MultiRMSEWithMissingValuesValueAndDer(
+        ui32 targetCount,
+        ui32 size,
+        const float* target, ui32 targetAlignSize,
+        const float* weights,
+        const float* predictions, ui32 predictionsAlignSize,
+        const ui32* loadPredictionsIndices,
+        float* functionValue,
+        float* der, ui32 derAlignSize,
+        TCudaStream stream
+    ) {
+        const ui32 blockSize = 256;
+        const ui32 elementsPerThreads = 4;
+        const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
+        if (functionValue) {
+            FillBuffer(functionValue, 0.0f, 1, stream);
+        }
+        if (numBlocks) {
+            MultiRMSEWithMissingValuesValueAndDerImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(
+                targetCount,
+                size,
+                target, targetAlignSize,
+                weights,
+                predictions, predictionsAlignSize,
+                loadPredictionsIndices,
+                functionValue,
+                der, derAlignSize);
+        }
+    }
+
+    void MultiRMSEWithMissingValuesSecondDer(
+        ui32 size,
+        const float* target, ui32 targetAlignSize,
+        const float* weights,
+        float* der2,
+        ui32 der2Row, ui32 der2AlignSize,
+        TCudaStream stream
+    ) {
+        const ui32 blockSize = 256;
+        const ui32 elementsPerThreads = 4;
+        const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
+        if (numBlocks) {
+            MultiRMSEWithMissingValuesSecondDerImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(
+                size,
+                target, targetAlignSize,
+                weights,
+                der2,
+                der2Row, der2AlignSize);
+        }
+    }
+
+    template <int BlockSize, int ElementsPerThread>
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
+    __global__ void MultiRMSEWithMissingValuesStatsImpl(
+        ui32 targetCount,
+        ui32 size,
+        const float* targets, ui32 targetAlignSize,
+        const float* weights,
+        const float* predictions, ui32 predictionsAlignSize,
+        float* stats
+    ) {
+        const ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
+        __shared__ float tmpStats[BlockSize];
+
+        for (int dim = 0; dim < (int)targetCount; ++dim) {
+            float sumErrors = 0;
+            float sumWeights = 0;
+
+            #pragma unroll
+            for (int j = 0; j < ElementsPerThread; ++j) {
+                const ui32 idx = tid + j * BlockSize;
+                if (idx >= size) {
+                    continue;
+                }
+                const float target = __ldg(targets + idx + dim * targetAlignSize);
+                if (isnan(target)) {
+                    continue;
+                }
+                const float weight = weights ? __ldg(weights + idx) : 1.0f;
+                const float diff = target - __ldg(predictions + idx + dim * predictionsAlignSize);
+                sumErrors += weight * diff * diff;
+                sumWeights += weight;
+            }
+
+            __syncthreads();
+            tmpStats[threadIdx.x] = sumErrors;
+            __syncthreads();
+            const float blockErrors = FastInBlockReduce<float>(threadIdx.x, tmpStats, BlockSize);
+            if (threadIdx.x == 0) {
+                atomicAdd(stats + 2 * dim, blockErrors);
+            }
+
+            __syncthreads();
+            tmpStats[threadIdx.x] = sumWeights;
+            __syncthreads();
+            const float blockWeights = FastInBlockReduce<float>(threadIdx.x, tmpStats, BlockSize);
+            if (threadIdx.x == 0) {
+                atomicAdd(stats + 2 * dim + 1, blockWeights);
+            }
+        }
+    }
+
+    void MultiRMSEWithMissingValuesStats(
+        ui32 targetCount,
+        ui32 size,
+        const float* target, ui32 targetAlignSize,
+        const float* weights,
+        const float* predictions, ui32 predictionsAlignSize,
+        float* stats,
+        TCudaStream stream
+    ) {
+        const ui32 blockSize = 256;
+        const ui32 elementsPerThreads = 4;
+        const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
+        FillBuffer(stats, 0.0f, 2 * targetCount, stream);
+        if (numBlocks) {
+            MultiRMSEWithMissingValuesStatsImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(
+                targetCount,
+                size,
+                target, targetAlignSize,
+                weights,
+                predictions, predictionsAlignSize,
+                stats);
+        }
+    }
+
+    template <int BlockSize, int ElementsPerThread>
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiClassOneVsAllValAndFirstDerImpl(const float* targetClasses, int numClasses, ui32 size,
                                                          const float* weights,
                                                          const float* predictions,
