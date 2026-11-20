@@ -112,6 +112,9 @@ namespace NCatboostOptions {
 
     TVector<double> GetAlphaMultiQuantile(const TMap<TString, TString>& lossParams);
 
+    TVector<double> GetBoundariesPiecewiseQuantile(const TMap<TString, TString>& lossParams);
+    TVector<double> GetQuantilesPiecewiseQuantile(const TMap<TString, TString>& lossParams);
+
     double GetAlphaQueryCrossEntropy(const TMap<TString, TString>& lossParams);
     double GetAlphaQueryCrossEntropy(const TLossDescription& lossFunctionConfig);
     void GetApproxScaleQueryCrossEntropy(
