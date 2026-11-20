@@ -328,11 +328,12 @@ static TVector<double> GetMeanValues(
     EExplainableModelOutput modelOutputType,
     double target,
     bool isNotRawOutputType,
+    double scale,
     double bias
 ) {
     TVector<double> meanValues(shapValues.size());
     for (size_t idx = 0; idx < shapValues.size(); ++idx) {
-        meanValues[idx] = shapValues[idx].back() + bias;
+        meanValues[idx] = shapValues[idx].back() * scale + bias;
     }
     if (!isNotRawOutputType) {
         return meanValues;
@@ -383,15 +384,18 @@ static TVector<double> GetUnpackedShapValues(
 
 static TVector<TVector<double>> GetProbabilityMeanValues(
     const TVector<TVector<TVector<double>>>& shapValues, // [refIdx][dim][feature]
-    const TVector<double>& bias
+    const TScaleAndBias& scaleAndBias
 ) {
+    const double scale = scaleAndBias.Scale;
+    const auto& bias = scaleAndBias.GetBiasRef();
     TVector<TVector<double>> probabilityMeanValues(shapValues[0].size(), TVector<double>(shapValues.size(), 0.0));
     for (auto referenceIdx : xrange(shapValues.size())) {
         const auto& shapValuesForReference = shapValues[referenceIdx];
         const size_t approxDimension = shapValuesForReference.size();
         TVector<double> meanValuesForReference(approxDimension);
         for (auto dimension : xrange(approxDimension)) {
-            meanValuesForReference[dimension] = shapValuesForReference[dimension].back() + bias[dimension];
+            meanValuesForReference[dimension] =
+                shapValuesForReference[dimension].back() * scale + bias[dimension];
         }
         TVector<double> probabilityMeanValuesForReference(approxDimension);
         CalcSoftmax(meanValuesForReference, &probabilityMeanValuesForReference);
@@ -410,9 +414,11 @@ void PostProcessingIndependent(
     size_t flatFeatureCount,
     size_t documentIdx,
     bool calcInternalValues,
-    const TVector<double>& bias,
+    const TScaleAndBias& scaleAndBias,
     TVector<TVector<double>>* shapValues
 ) {
+    const double scale = scaleAndBias.Scale;
+    const auto& bias = scaleAndBias.GetBiasRef();
     const size_t featureCount = calcInternalValues ? combinationClassFeatures.size() : flatFeatureCount;
     const size_t referenceCount = independentTreeShapParams.ReferenceLeafIndicesForAllTrees[0].size();
     EExplainableModelOutput modelOutputType = independentTreeShapParams.ModelOutputType;
@@ -425,7 +431,10 @@ void PostProcessingIndependent(
     const bool isExplainMultiClassProbabilities = approxDimension > 1 && EExplainableModelOutput::Probability == modelOutputType;
     TVector<TVector<double>> meanValuesProbabitiesForAllReference;
     if (isExplainMultiClassProbabilities) {
-        meanValuesProbabitiesForAllReference = GetProbabilityMeanValues(shapValuesInternalForAllReferences, bias);
+        meanValuesProbabitiesForAllReference = GetProbabilityMeanValues(
+            shapValuesInternalForAllReferences,
+            scaleAndBias
+        );
     }
     // prepare shap values for all references
     TVector<TVector<TVector<double>>> shapValuesForAllReferences(approxDimension);
@@ -464,6 +473,7 @@ void PostProcessingIndependent(
                 modelOutputType,
                 targetOfDocument,
                 isNotRawOutputType,
+                scale,
                 bias[dimension]
             );
         const auto& shapValuesForAllReferencesOneDimensional = shapValuesForAllReferences[dimension];
@@ -480,7 +490,8 @@ void PostProcessingIndependent(
             double totalCoeffient = transformedCoeffient / rescaleCoefficient;
             TConstArrayRef<double> shapValuesForReferenceOneDimensional = MakeConstArrayRef(shapValuesForAllReferencesOneDimensional[referenceIdx]);
             for (size_t featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
-                shapValuesRef[featureIdx] += shapValuesForReferenceOneDimensional[featureIdx] * totalCoeffient;
+                shapValuesRef[featureIdx] +=
+                    shapValuesForReferenceOneDimensional[featureIdx] * scale * totalCoeffient;
             }
             shapValuesRef[featureCount] += (meanValues[referenceIdx] / rescaleCoefficient);
         }
