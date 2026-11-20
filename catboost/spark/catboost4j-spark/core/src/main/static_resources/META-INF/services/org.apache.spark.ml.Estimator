@@ -1,0 +1,2 @@
+ai.catboost.spark.CatBoostClassifier
+ai.catboost.spark.CatBoostRegressor
