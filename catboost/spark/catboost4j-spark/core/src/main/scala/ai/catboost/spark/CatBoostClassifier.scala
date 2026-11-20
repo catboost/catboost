@@ -83,6 +83,9 @@ class CatBoostClassificationModel (
     nativeModel.GetDimensionsCount.toInt
   )
 
+  // for ML on Spark Connect only
+  private[spark] def this() = this(Identifiable.randomUID("CatBoostClassificationModel"), null, -1)
+
   override def copy(extra: ParamMap): CatBoostClassificationModel = {
     val that = new CatBoostClassificationModel(this.uid, this.nativeModel, this.nativeDimension)
     this.copyValues(that, extra).asInstanceOf[CatBoostClassificationModel]
