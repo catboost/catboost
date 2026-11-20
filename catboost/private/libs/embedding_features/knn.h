@@ -93,6 +93,16 @@ namespace NCB {
 
     class TKNNCalcer final : public TEmbeddingFeatureCalcer {
     public:
+        struct TNeighbor {
+            float Target;
+            float Distance;
+
+            TNeighbor(float target = 0, float distance = 0)
+                : Target(target)
+                , Distance(distance) 
+            {}
+        };
+
         explicit TKNNCalcer(
             int totalDimension = 2,
             bool isClassification = true,
@@ -111,6 +121,10 @@ namespace NCB {
         {}
 
         void Compute(const TEmbeddingsArray& embed, TOutputFloatIterator outputFeaturesIterator) const override;
+
+        TVector<TNeighbor> GetNearestNeighborsAndDistances(const TEmbeddingsArray& embed) const;
+
+        void CompareAndCompute(TVector<TNeighbor>* neighbors, TOutputFloatIterator outputFeaturesIterator) const;
 
         ui32 FeatureCount() const override {
             return FeatureCount_;
