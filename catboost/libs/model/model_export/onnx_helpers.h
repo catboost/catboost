@@ -23,7 +23,8 @@ namespace NCB {
             const TFullModel& model,
             const TMaybe<TString>& onnxGraphName, // "CatBoostModel" if not defined
             onnx::GraphProto* onnxGraph,
-            const THashMap<ui32, TString>* catFeaturesHashToString = nullptr);
+            const THashMap<ui32, TString>* catFeaturesHashToString = nullptr,
+            bool useHashedCatFeatures = false);
 
         struct TOnnxNode {
             enum class EType {

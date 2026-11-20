@@ -715,9 +715,31 @@ def quantize(
     return pool
 
 
+def get_cat_feature_hash(value):
+    """Return the signed 32-bit CatBoost hash of a string or integer category.
+
+    This uses the same conversion and hash as Pool construction. Store the result
+    in an int64 tensor for ONNX export with onnx_cat_features_input_type='hashed'.
+    Floating-point and missing categorical values are invalid, as for a Pool.
+    """
+    return _catboost._get_cat_feature_hash(value)
+
+
+def get_cat_feature_hashes(values):
+    """Hash an array of categories for ONNX inference, preserving its shape.
+
+    Returns an int64 NumPy array containing signed 32-bit CatBoost hashes. Each
+    element follows the same string/integer conversion rules as get_cat_feature_hash.
+    """
+    return _catboost._get_cat_feature_hashes(values)
+
+
 def convert_to_onnx_object(model, export_parameters=None, data=None, **kwargs):
     """
     Convert given CatBoost model to ONNX-ML model.
+
+    Custom binary probability thresholds are preserved in the label output
+    and model metadata. The threshold does not change the probabilities.
 
     Parameters
     ----------
@@ -732,9 +754,23 @@ def convert_to_onnx_object(model, export_parameters=None, data=None, **kwargs):
                 The model_version component of onnx Model
             * onnx_doc_string : string
                 The doc_string component of onnx Model
+            * onnx_cat_features_input_type : 'string' (default) or 'hashed'
+                'string' supports one-hot categorical splits and requires data.
+                'hashed' also supports CTRs for binary classification and scalar
+                regression with symmetric trees. Each used categorical feature
+                is a separate int64 input of shape (N, 1), containing signed
+                32-bit hashes from get_cat_feature_hashes (or the scalar helper
+                get_cat_feature_hash). Original strings are
+                not accepted by that graph. Numerical inputs are packed in
+                num_features in the model's numerical-feature order.
+                Uses standard ONNX opset 11 and ONNX-ML opset 2. Importing the
+                resulting CTR graph back into CatBoost is not supported.
+                Regression returns raw scores of shape (N, 1); apply any
+                objective-specific output transform (e.g. exp for Poisson)
+                outside the graph, as for the existing numerical ONNX export.
     data : catboost.Pool [default=None]
         Pool object containing categorical features hash to string mapping.
-        Required for models with categorical features.
+        Required for categorical models in 'string' mode; not needed in 'hashed' mode.
     Returns
     -------
     onnx_object : ModelProto
