@@ -78,10 +78,6 @@ target_link_libraries(_catboost_no_cuda PUBLIC
   cpp-text_processing-app_helpers
 )
 
-target_allocator(_catboost_no_cuda
-  cpp-malloc-mimalloc
-)
-
 target_link_options(_catboost_no_cuda PRIVATE
   -headerpad_max_install_names
   -Wl,-platform_version,macos,11.0,11.0
