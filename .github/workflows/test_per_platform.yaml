@@ -336,6 +336,17 @@ jobs:
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark/projects/spark_3.5_2.12
           mvn --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark_core_resources/ -D"prebuilt.native.sources.jar"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark-impl-sources.jar test
 
+      - name: Upload JVM test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jvm-test-diagnostics-${{ inputs.os }}-${{ inputs.machine }}-${{ github.run_attempt }}
+          if-no-files-found: ignore
+          path: |
+            catboost/catboost/**/target/surefire-reports/**
+            catboost/catboost/**/hs_err_pid*.log
+            catboost/catboost/**/replay_pid*.log
+
       - if: inputs.os != 'macos'
         name: Check R package
         shell: pwsh
