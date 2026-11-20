@@ -109,6 +109,26 @@ public class CatBoostModelTest {
         return null;
     }
 
+    static CatBoostModel loadBinaryClassificationModel() throws CatBoostError {
+        try {
+            return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/binary_classification_model.cbm"));
+        } catch (IOException ioe) {
+        }
+
+        fail("failed to load binary classification model from resource, can't run tests without it");
+        return null;
+    }
+
+    static CatBoostModel loadMultiLabelModel() throws CatBoostError {
+        try {
+            return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/multilabel_model.cbm"));
+        } catch (IOException ioe) {
+        }
+
+        fail("failed to load multilabel model from resource, can't run tests without it");
+        return null;
+    }
+
     static CatBoostModel loadTestModelWithNumCatAndTextFeatures() throws CatBoostError {
         try {
             return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/model_with_num_cat_and_text_features.cbm"));
@@ -1427,6 +1447,121 @@ public class CatBoostModelTest {
                 assertEqual(expected, prediction);
                 assertEqual(expected, model.predict(numericFeatures, catFeatures, textFeatures, null));
             }
+        }
+    }
+
+    @Test
+    public void testGetLossFunctionName() throws CatBoostError {
+        try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            TestCase.assertEquals("RMSE", model.getLossFunctionName());
+            TestCase.assertFalse(model.isClassificationModel());
+        }
+
+        try(final CatBoostModel model = loadBinaryClassificationModel()) {
+            TestCase.assertEquals("Logloss", model.getLossFunctionName());
+            TestCase.assertTrue(model.isClassificationModel());
+        }
+
+        try(final CatBoostModel model = loadIrisModel()) {
+            TestCase.assertEquals("MultiClass", model.getLossFunctionName());
+            TestCase.assertTrue(model.isClassificationModel());
+        }
+
+        try(final CatBoostModel model = loadMultiLabelModel()) {
+            TestCase.assertEquals("MultiLogloss", model.getLossFunctionName());
+            TestCase.assertTrue(model.isClassificationModel());
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictProbaSingleBinaryClassification() throws CatBoostError {
+        try(final CatBoostModel model = loadBinaryClassificationModel()) {
+            final float[] numericFeatures = new float[]{0.1f, 0.3f, 0.2f};
+            final CatBoostPredictions expected = new CatBoostPredictions(
+                    1, 2, new double[]{0.8311679912604886, 0.16883200873951146});
+            assertEqual(expected, model.predictProba(numericFeatures, (String[]) null));
+            assertEqual(expected, model.predictProba(numericFeatures, (int[]) null));
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictProbaBatchBinaryClassification() throws CatBoostError {
+        try(final CatBoostModel model = loadBinaryClassificationModel()) {
+            final float[][] numericFeatures = new float[][]{
+                    {0.1f, 0.3f, 0.2f},
+                    {0.7f, 0.8f, 0.1f}};
+            final CatBoostPredictions expected = new CatBoostPredictions(
+                    2,
+                    2,
+                    new double[]{
+                            0.8311679912604886, 0.16883200873951146,
+                            0.02100889246865989, 0.9789911075313401});
+            assertEqual(expected, model.predictProba(numericFeatures, (String[][]) null));
+            assertEqual(expected, model.predictProba(numericFeatures, (int[][]) null));
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictProbaMultiClassification() throws CatBoostError {
+        try(final CatBoostModel model = loadIrisModel()) {
+            final float[][] numericFeatures = new float[][]{
+                    {5.1f, 3.5f, 1.4f, 0.2f},
+                    {7.0f, 3.2f, 4.7f, 1.4f}};
+            final CatBoostPredictions expected = new CatBoostPredictions(
+                    2,
+                    3,
+                    new double[]{
+                            0.9994479295359996, 0.0003558260120837352, 0.00019624445191659693,
+                            0.0049559090102939424, 0.9916047231962838, 0.0034393677934222845});
+            assertEqual(expected, model.predictProba(numericFeatures, (String[][]) null));
+
+            final CatBoostPredictions expectedForSingleObject = new CatBoostPredictions(
+                    1,
+                    3,
+                    new double[]{0.9994479295359996, 0.0003558260120837352, 0.00019624445191659693});
+            assertEqual(expectedForSingleObject, model.predictProba(numericFeatures[0], (String[]) null));
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictProbaMultiLabelClassification() throws CatBoostError {
+        try(final CatBoostModel model = loadMultiLabelModel()) {
+            final float[][] numericFeatures = new float[][]{
+                    {0.1f, 0.3f, 0.2f},
+                    {0.7f, 0.8f, 0.1f}};
+            final CatBoostPredictions expected = new CatBoostPredictions(
+                    2,
+                    2,
+                    new double[]{
+                            0.05371455497363548, 0.03590936205107306,
+                            0.9048872789121774, 0.48429689536433607});
+            assertEqual(expected, model.predictProba(numericFeatures, (String[][]) null));
+        }
+    }
+
+    @Test
+    public void testPredictProbaSumsUpToOneForMultiClassification() throws CatBoostError {
+        try(final CatBoostModel model = loadIrisModel()) {
+            final float[] numericFeatures = new float[]{6.3f, 3.3f, 6.0f, 2.5f};
+            final CatBoostPredictions probabilities = model.predictProba(numericFeatures, (String[]) null);
+
+            double sum = 0.;
+            for (int classIndex = 0; classIndex < probabilities.getPredictionDimension(); ++classIndex) {
+                final double probability = probabilities.get(0, classIndex);
+                TestCase.assertTrue(probability >= 0. && probability <= 1.);
+                sum += probability;
+            }
+            TestCase.assertEquals(1., sum, 1.e-10);
+        }
+    }
+
+    @Test
+    public void testFailPredictProbaForNonClassificationModel() throws CatBoostError {
+        try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            final float[] numericFeatures = new float[]{0.1f, 0.3f, 0.2f};
+            Assertions.assertThrows(
+                    CatBoostError.class,
+                    () -> { model.predictProba(numericFeatures, (String[]) null); });
         }
     }
 }

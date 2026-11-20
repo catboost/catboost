@@ -793,6 +793,19 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeC
     Y_END_JNI_API_CALL();
 }
 
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetLossFunctionName
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jlossFunctionName) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    auto jlossFunctionNameString = StringToJavaUTF8(jenv, model->GetLossFunctionName());
+    jenv->SetObjectArrayElement(jlossFunctionName, 0, jlossFunctionNameString);
+
+    Y_END_JNI_API_CALL();
+}
+
 static size_t GetArraySize(JNIEnv* const jenv, const jarray array) {
     if (jenv->IsSameObject(array, NULL) == JNI_TRUE) {
         return 0;
