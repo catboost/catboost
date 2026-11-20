@@ -142,7 +142,7 @@ static TVector<TVector<TVector<double>>> CalcSubtreeValuesForTree(
                 subtreeValues[0][0][dimension] = firstLeafPtr[leafIdx + dimension];
             }
         } else {
-            for (size_t localIdx = reversedTree.size() - 1; localIdx > 0; --localIdx) {
+            for (size_t localIdx = reversedTree.size(); localIdx-- > 0;) {
                 size_t leafIdx = forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[startOffset + localIdx];
                 size_t leafWeightIdx = leafIdx / approxDimension;
                 if (leafWeightIdx < leafWeights.size()) {
@@ -154,7 +154,7 @@ static TVector<TVector<TVector<double>>> CalcSubtreeValuesForTree(
                         }
                     }
                 }
-                if (!FuzzyEquals(1 + subtreeWeights[0][localIdx], 1 + 0.0)) {
+                if (localIdx > 0 && !FuzzyEquals(1 + subtreeWeights[0][localIdx], 1 + 0.0)) {
                     for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
                         subtreeValues[0][reversedTree[localIdx] - startOffset][dimension] +=
                             subtreeValues[0][localIdx][dimension];
@@ -210,12 +210,15 @@ static TVector<TVector<double>> CalcSubtreeWeightsForTree(
         if (reversedTree.size() == 1) {
             subtreeWeightsOnParent[0] = leafWeights[forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[startOffset] / forest.GetDimensionsCount()];
         } else {
-            for (size_t localIdx = reversedTree.size() - 1; localIdx > 0; --localIdx) {
+            // The root can also store a leaf when one of its child offsets is zero.
+            for (size_t localIdx = reversedTree.size(); localIdx-- > 0;) {
                 size_t leafIdx = forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[startOffset + localIdx] / forest.GetDimensionsCount();
                 if (leafIdx < leafWeights.size()) {
                     subtreeWeightsOnParent[localIdx] += leafWeights[leafIdx];
                 }
-                subtreeWeightsOnParent[reversedTree[localIdx] - startOffset] += subtreeWeightsOnParent[localIdx];
+                if (localIdx > 0) {
+                    subtreeWeightsOnParent[reversedTree[localIdx] - startOffset] += subtreeWeightsOnParent[localIdx];
+                }
             }
         }
     }

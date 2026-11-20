@@ -5114,6 +5114,73 @@ def test_loss_function_change_asymmetric(task_type, grow_policy):
     return local_canonical_file(fimp_npy_path)
 
 
+def check_shap_nonsymmetric_additivity(task_type, grow_policy, loss_function, shap_calc_type):
+    rng = np.random.RandomState(42)
+    features = rng.normal(size=(256, 4))
+    target = 2 * features[:, 0] + features[:, 1] * features[:, 2]
+    if loss_function == 'Logloss':
+        target = (target > 0).astype(int)
+    elif loss_function == 'MultiClass':
+        target = np.digitize(target, [-1, 1])
+    elif loss_function == 'MultiRMSE':
+        target = np.column_stack([target, features[:, 3] - features[:, 1]])
+    pool = Pool(features, target, weight=rng.uniform(0.5, 2.0, len(features)))
+    model = CatBoost(dict(
+        iterations=8,
+        depth=5,
+        loss_function=loss_function,
+        grow_policy=grow_policy,
+        bootstrap_type='No',
+        random_seed=0,
+        task_type=task_type,
+        devices='0',
+        thread_count=4,
+        verbose=False,
+    )).fit(pool)
+    shap_values = model.get_feature_importance(pool, type='ShapValues', shap_calc_type=shap_calc_type)
+    prediction = model.predict(pool, prediction_type='RawFormulaVal')
+    np.testing.assert_allclose(shap_values.sum(axis=-1), prediction, rtol=1e-10, atol=1e-10)
+
+    # JSON import represents terminal children as separate nodes. The feature
+    # contributions must be independent of this internal representation.
+    model_path = test_output_path('shap_model.json')
+    model.save_model(model_path, format='json')
+    restored = CatBoost().load_model(model_path, format='json')
+    np.testing.assert_allclose(restored.predict(pool, prediction_type='RawFormulaVal'), prediction,
+                               rtol=1e-10, atol=1e-10)
+    np.testing.assert_allclose(
+        shap_values,
+        restored.get_feature_importance(pool, type='ShapValues', shap_calc_type=shap_calc_type),
+        rtol=1e-10, atol=1e-10,
+    )
+    if shap_calc_type == 'Regular':
+        interactions = model.get_feature_importance(pool, type='ShapInteractionValues')
+        np.testing.assert_allclose(interactions[..., :-1, :-1].sum(axis=-1), shap_values[..., :-1],
+                                   rtol=1e-10, atol=1e-10)
+        np.testing.assert_allclose(interactions[..., :-1, :-1],
+                                   interactions[..., :-1, :-1].swapaxes(-1, -2), rtol=1e-10, atol=1e-10)
+        np.testing.assert_allclose(interactions, restored.get_feature_importance(pool, type='ShapInteractionValues'),
+                                   rtol=1e-10, atol=1e-10)
+        if loss_function != 'MultiRMSE':
+            np.testing.assert_allclose(
+                model.get_feature_importance(pool, type='LossFunctionChange'),
+                restored.get_feature_importance(pool, type='LossFunctionChange'), rtol=1e-10, atol=1e-10,
+            )
+
+
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+@pytest.mark.parametrize('loss_function', ['RMSE', 'Logloss', 'MultiClass'])
+@pytest.mark.parametrize('shap_calc_type', ['Regular', 'Approximate'])
+def test_shap_nonsymmetric_additivity(task_type, grow_policy, loss_function, shap_calc_type):
+    check_shap_nonsymmetric_additivity(task_type, grow_policy, loss_function, shap_calc_type)
+
+
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+@pytest.mark.parametrize('shap_calc_type', ['Regular', 'Approximate'])
+def test_shap_nonsymmetric_multirmse_additivity(grow_policy, shap_calc_type):
+    check_shap_nonsymmetric_additivity('CPU', grow_policy, 'MultiRMSE', shap_calc_type)
+
+
 @pytest.mark.parametrize('calc_shap_mode', ['TreeSHAP', 'IndependentTreeSHAP'])
 def test_shap_feature_importance_modes(task_type, calc_shap_mode):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
