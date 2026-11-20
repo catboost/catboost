@@ -29,6 +29,7 @@ The required dataset depends on the selected feature importance calculation type
 - {{ title__regular-feature-importance-PredictionValuesChange }} — Either None or the same dataset that was used for training if the model does not contain information regarding the weight of leaves. All models trained with {{ product }} version 0.9 or higher contain leaf weight information by default.
 - {{ title__regular-feature-importance-LossFunctionChange }}  — Any dataset. Feature importances are calculated on a subset for large datasets.
 - {{ title__predictiondiff }} — A list of object pairs.
+- SageValues — A dataset of Pool type. Feature importances are calculated for every feature in this dataset.
 
 **Possible types**
 
@@ -36,7 +37,7 @@ The required dataset depends on the selected feature importance calculation type
 
 **Default value**
 
-{{ python--required }} for the {{ title__regular-feature-importance-LossFunctionChange }} and {{ title__ShapValues }} type of feature importances and in case the model does not contain information regarding the weight of leaves.
+{{ python--required }} for the {{ title__regular-feature-importance-LossFunctionChange }}, {{ title__ShapValues }} and SageValues types of feature importances and in case the model does not contain information regarding the weight of leaves.
 
 ### reference_data
 
@@ -65,6 +66,7 @@ Possible values:
 - [ShapValues](shap-values.md): A vector  with contributions of each feature to the prediction for every input object and the expected value of the model prediction for the object (average prediction given no knowledge about the object).
 - [Interaction](feature-interaction.md#feature-interaction__feature-interaction-strength): The value of the feature interaction strength for each pair of features.
 - PredictionDiff: A vector with contributions of each feature to the RawFormulaVal difference for each pair of objects.
+- SageValues: A vector with SAGE values for every feature.
 
 **Possible types**
 
@@ -137,6 +139,54 @@ Works with the [ShapValues](shap-values.md) type of feature importance calculati
 **Default value**
 
 False
+
+### sage_n_samples
+
+#### Description
+
+The number of outer samples used in the SAGE values approximation algorithm.
+
+Used only if `type` is `SageValues`.
+
+**Possible types**
+
+int
+
+**Default value**
+
+128
+
+### sage_batch_size
+
+#### Description
+
+The number of samples used on each step of the SAGE values approximation algorithm.
+
+Used only if `type` is `SageValues`.
+
+**Possible types**
+
+int
+
+**Default value**
+
+512
+
+### sage_detect_convergence
+
+#### Description
+
+If set to True, the SAGE values calculation is stopped either when the SAGE values converge or when `sage_n_samples` iterations of the algorithm pass.
+
+Used only if `type` is `SageValues`.
+
+**Possible types**
+
+bool
+
+**Default value**
+
+True
 
 {% include [python__log-params](../_includes/work_src/reusage-python/python__log-params.md) %}
 
