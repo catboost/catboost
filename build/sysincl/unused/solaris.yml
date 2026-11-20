@@ -1,8 +1,0 @@
-- includes:
-  - procfs.h
-  - sunmath.h
-  - sunmedia_types.h
-  - synch.h
-  - sys/byteorder.h
-  - sys/isa_defs.h
-  - sys/port.h

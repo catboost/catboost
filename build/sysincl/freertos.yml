@@ -1,3 +1,0 @@
-- source_filter: "^contrib/restricted/abseil-cpp"
-  includes:
-  - task.h

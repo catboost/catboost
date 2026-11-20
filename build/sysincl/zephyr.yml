@@ -1,3 +1,0 @@
-- source_filter: "^contrib/libs/cxxsupp/libcxx/include/__configuration/platform.h"
-  includes:
-  - picolibc.h

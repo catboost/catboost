@@ -54,7 +54,6 @@ target_link_libraries(_hnsw PUBLIC
   cpp-online_hnsw-base
   cpp-online_hnsw-dense_vectors
   library-cpp-pair_vector_distance
-  tools-cython-deps
 )
 
 target_cython_sources(_hnsw PRIVATE

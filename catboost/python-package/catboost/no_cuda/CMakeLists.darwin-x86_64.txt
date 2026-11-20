@@ -76,7 +76,6 @@ target_link_libraries(_catboost_no_cuda PUBLIC
   cpp-json-writer
   cpp-text_processing-tokenizer
   cpp-text_processing-app_helpers
-  tools-cython-deps
 )
 
 target_allocator(_catboost_no_cuda
