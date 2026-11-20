@@ -1733,7 +1733,9 @@ ONNX_TEST_PARAMETERS = [
     ('binclass', True),
     ('multiclass', False),
     ('regression', False),
-    ('regression', True)
+    ('regression', True),
+    ('multiregression', False),
+    ('multiregression', True)
 ]
 
 
@@ -1758,6 +1760,10 @@ def test_onnx_export(problem_type, boost_from_average):
         loss_function = 'RMSE'
         train_path = TRAIN_FILE
         cd_path = CD_FILE
+    elif problem_type == 'multiregression':
+        loss_function = 'MultiRMSE'
+        train_path = MULTIREGRESSION_TRAIN_FILE
+        cd_path = MULTIREGRESSION_CD_FILE
     else:
         raise Exception('Unsupported problem_type: %s' % problem_type)
 
@@ -1818,6 +1824,11 @@ def test_onnx_import(problem_type, boost_from_average):
         train_path = TRAIN_FILE
         test_path = TEST_FILE
         cd_path = CD_FILE
+    elif problem_type == 'multiregression':
+        loss_function = 'MultiRMSE'
+        train_path = MULTIREGRESSION_TRAIN_FILE
+        test_path = MULTIREGRESSION_TEST_FILE
+        cd_path = MULTIREGRESSION_CD_FILE
     else:
         raise Exception('Unsupported problem_type: %s' % problem_type)
 
@@ -1850,7 +1861,7 @@ def test_onnx_import(problem_type, boost_from_average):
     )
     model.save_model(output_onnx_model_path, format="onnx")
 
-    prediction_type = 'RawFormulaVal' if problem_type == 'regression' else 'Class'
+    prediction_type = 'RawFormulaVal' if problem_type in ('regression', 'multiregression') else 'Class'
     canon_pred = model.predict(test_pool, prediction_type=prediction_type)
 
     onnx_loaded_model = CatBoost(
@@ -1865,7 +1876,7 @@ def test_onnx_import(problem_type, boost_from_average):
     )
 
     onnx_loaded_model.load_model(output_onnx_model_path, format="onnx")
-    if problem_type == 'regression':
+    if problem_type in ('regression', 'multiregression'):
         assert (
             np.allclose(
                 canon_pred,
