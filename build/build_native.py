@@ -103,6 +103,9 @@ class Opts(object):
         ),
         'macosx_version_min': Option('Minimal macOS version to target', default='11.0'),
         'have_cuda': Option('Enable CUDA support', default=False, opt_type=bool),
+        'with_asan': Option('Enable AddressSanitizer (incompatible with --with-tsan)', default=False, opt_type=bool),
+        'with_ubsan': Option('Enable UndefinedBehaviorSanitizer (incompatible with --with-tsan)', default=False, opt_type=bool),
+        'with_tsan': Option('Enable ThreadSanitizer (incompatible with --with-asan and --with-ubsan)', default=False, opt_type=bool),
         'cuda_root_dir': Option('CUDA root dir (taken from CUDA_PATH or CUDA_ROOT by default)'),
         'cuda_runtime_library': Option('CMAKE_CUDA_RUNTIME_LIBRARY for CMake', default='Static'),
         'android_ndk_root_dir': Option('Path to Android NDK root'),
@@ -457,6 +460,33 @@ def get_catboost_components(targets : Iterable[str]) -> Set[str]:
 
     return catboost_components
 
+def get_sanitizer_cmake_args(opts: Opts) -> List[str]:
+    sanitizers = []
+    if opts.with_asan:
+        sanitizers.append('address')
+    if opts.with_ubsan:
+        sanitizers.append('undefined')
+    if opts.with_tsan:
+        sanitizers.append('thread')
+
+    if not sanitizers:
+        return []
+    if opts.have_cuda:
+        raise RuntimeError('Sanitizers are not supported together with CUDA builds')
+    if opts.with_tsan and len(sanitizers) > 1:
+        raise RuntimeError('ThreadSanitizer cannot be combined with AddressSanitizer or UndefinedBehaviorSanitizer')
+    if opts.with_tsan and platform.system().lower() == 'windows':
+        raise RuntimeError('ThreadSanitizer is not supported on Windows')
+
+    sanitizer_flags = f'-fsanitize={",".join(sanitizers)}'
+    if platform.system().lower() != 'windows':
+        sanitizer_flags += ' -fno-omit-frame-pointer'
+    return [
+        '-DCUSTOM_ALLOCATORS=Off',
+        f'-DCMAKE_C_FLAGS_INIT={sanitizer_flags}',
+        f'-DCMAKE_CXX_FLAGS_INIT={sanitizer_flags}'
+    ]
+
 def get_default_build_platform_toolchain(source_root_dir: str) -> str:
     if platform.system().lower() == 'windows':
         return os.path.abspath(os.path.join(source_root_dir, 'build', 'toolchains', 'default.toolchain'))
@@ -625,6 +655,8 @@ def build(
             f'-DCUDAToolkit_ROOT={os.path.splitdrive(cuda_root_dir)[1] if cmake_platform_to_root_path is not None else cuda_root_dir}',
             f'-DCMAKE_CUDA_RUNTIME_LIBRARY={opts.cuda_runtime_library}'
         ]
+
+    cmake_cmd += get_sanitizer_cmake_args(opts)
 
     if opts.native_built_tools_root_dir:
         cmake_cmd += [f'-DTOOLS_ROOT={opts.native_built_tools_root_dir}']
