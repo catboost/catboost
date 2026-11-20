@@ -7,7 +7,7 @@
 %include <typemaps.i>
 
 %typemap(throws, throws="Exception") yexception {
-    jclass excep = jenv->FindClass("ai/catboost/CatBoostError");
+    jclass excep = jenv->FindClass("ai/catboost/common/CatBoostError");
     if (excep)
         jenv->ThrowNew(excep, $1.what());
     return $null;

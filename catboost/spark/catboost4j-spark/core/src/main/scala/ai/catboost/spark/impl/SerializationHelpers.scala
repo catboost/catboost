@@ -2,7 +2,7 @@ package ai.catboost.spark.impl
 
 import java.io.{ObjectInputStream,ObjectOutputStream}
 
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 
 
 object SerializationHelpers {

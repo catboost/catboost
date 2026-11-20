@@ -28,7 +28,7 @@ import org.apache.spark.TaskContext
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._;
 
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 import ai.catboost.spark.impl.RowEncoderConstructor
 import ai.catboost.spark.params.{Helpers,PoolLoadParams,QuantizationParams,QuantizationParamsTrait}
 import ai.catboost.spark.params.macros.ParamGetterSetter

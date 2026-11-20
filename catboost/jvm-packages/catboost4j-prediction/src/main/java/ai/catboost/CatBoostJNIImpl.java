@@ -1,5 +1,7 @@
 package ai.catboost;
 
+import ai.catboost.common.CatBoostError;
+
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 

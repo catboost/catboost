@@ -66,9 +66,9 @@ public class NativeLib {
 
     private static void loadNativeLibraryFromJar(final @NotNull String libName) throws IOException {
         for (String machineResourcesDir : getCurrentMachineResourcesDirs()) {
-            final String pathWithinJar = "/" + machineResourcesDir + "/lib/" + System.mapLibraryName(libName);
-            if (NativeLib.class.getResource(pathWithinJar) != null) {
-                final String tempLibPath = createTemporaryFileFromJar(pathWithinJar);
+            final String pathWithinJar = machineResourcesDir + "/lib/" + System.mapLibraryName(libName);
+            if (ClassLoader.getSystemResource(pathWithinJar) != null) {
+                final String tempLibPath = createTemporaryFileFromJar("/" + pathWithinJar);
                 System.load(tempLibPath);
                 return;
             }
@@ -81,7 +81,7 @@ public class NativeLib {
         int bytesRead;
 
         try(OutputStream out = new BufferedOutputStream(new FileOutputStream(pathOnDisk));
-            InputStream in = NativeLib.class.getResourceAsStream(pathWithinJar)) {
+            InputStream in = ClassLoader.getSystemResourceAsStream(pathWithinJar.replaceFirst("^/?", ""))) {
 
             if (in == null) {
                 throw new FileNotFoundException("File " + pathWithinJar + " was not found inside JAR.");
