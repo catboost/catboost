@@ -415,6 +415,13 @@ static void InitPreparedTreesWithoutIndependent(
     ECalcTypeShapValues calcType,
     TShapPreparedTrees* preparedTrees
 ) {
+    CB_ENSURE(
+        model.IsOblivious()
+            || (calcType == ECalcTypeShapValues::Regular)
+            || (calcType == ECalcTypeShapValues::Approximate),
+        "'" << calcType << "' SHAP values calculation type is supported only for symmetric trees"
+    );
+
     const size_t treeCount = model.GetTreeCount();
     preparedTrees->CalcShapValuesByLeafForAllTrees = IsPrepareTreesCalcShapValues(
         model,
@@ -523,6 +530,10 @@ TShapPreparedTrees PrepareTreesWithoutIndependent(
         calcType,
         &preparedTrees
     );
+    CB_ENSURE(
+        calcType != ECalcTypeShapValues::Independent,
+        "Independent SHAP values require both an explained dataset and a reference dataset"
+    );
     const bool isMultiClass = IsMultiClassification(model);
     CalcTreeStats(*model.ModelTrees, preparedTrees.LeafWeightsForAllTrees, isMultiClass, calcType, &preparedTrees);
     return preparedTrees;
@@ -540,6 +551,10 @@ TShapPreparedTrees PrepareTrees(
     EExplainableModelOutput modelOutputType,
     bool fstrOnTrainPool
 ) {
+    CB_ENSURE(
+        calcType != ECalcTypeShapValues::Independent || (dataset && referenceDataset),
+        "Independent SHAP values require both an explained dataset and a reference dataset"
+    );
     TShapPreparedTrees preparedTrees;
     InitLeafWeights(model, fstrOnTrainPool, dataset, localExecutor, &preparedTrees.LeafWeightsForAllTrees);
     InitPreparedTreesWithoutIndependent(

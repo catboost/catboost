@@ -169,6 +169,10 @@ namespace NCatboostCuda {
             return LeafValues;
         }
 
+        TMaybe<float> GetL1LeavesSum() const {
+            return CalcL1LeavesSum(LeafValues, Dim);
+        }
+
         const TVector<double>& GetWeights() const {
             return LeafWeights;
         }

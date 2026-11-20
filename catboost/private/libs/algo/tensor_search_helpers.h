@@ -43,6 +43,14 @@ struct TCandidateInfo {
 public:
     SAVELOAD(SplitEnsemble, BestScore, BestBinId);
 
+    /* false if no split of this candidate has been selected as the best one, e.g. if all scores are NaN
+     * (possible with degenerate derivatives, e.g. because of too small l2 regularization).
+     * GetBestSplit must not be called for such candidates.
+     */
+    bool HasBestSplit() const {
+        return BestBinId >= 0;
+    }
+
     TSplit GetBestSplit(
         const NCB::TTrainingDataProviders& data,
         const TFold& fold,
