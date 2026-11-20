@@ -62,6 +62,9 @@ Other info:
 <Output>
 <OutputField name="prediction" optype="continuous" dataType="double"/>
 </Output>
+<Targets>
+<Target rescaleConstant="0.7821782231" rescaleFactor="1" field="prediction"/>
+</Targets>
 <LocalTransformations>
 <DerivedField name="feature_4_mapped" optype="categorical" dataType="integer">
 <MapValues mapMissingTo="3" defaultValue="3" outputColumn="value" dataType="integer">
@@ -708,8 +711,5 @@ Other info:
 </TreeModel>
 </Segment>
 </Segmentation>
-<Targets>
-<Target rescaleConstant="0.7821782231" rescaleFactor="1" field="prediction"/>
-</Targets>
 </MiningModel>
 </PMML>
