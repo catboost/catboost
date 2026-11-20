@@ -2,7 +2,11 @@
 
 #include <catboost/libs/model/model_export/model_exporter.h>
 
+#include <library/cpp/json/json_reader.h>
+#include <library/cpp/json/json_writer.h>
 #include <library/cpp/testing/unittest/registar.h>
+
+#include <util/stream/file.h>
 
 using namespace std;
 using namespace NCB;
@@ -31,5 +35,40 @@ Y_UNIT_TEST_SUITE(TJsonModelExport) {
         ExportModel(model, "model.json", EModelType::Json);
         model = ReadModel("model.json", EModelType::Json);
         UNIT_ASSERT(model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty());
+    }
+    Y_UNIT_TEST(TestMalformedLeafValuesCountRejected) {
+        // A JSON model whose oblivious tree has a leaf_values count that is not a
+        // multiple of 2^depth must be rejected instead of silently truncating the
+        // approx dimension (which later causes out-of-bounds leaf reads at apply time).
+        TFullModel model = TrainFloatCatboostModel();
+        ExportModel(model, "model.json", EModelType::Json);
+
+        NJson::TJsonValue jsonModel;
+        {
+            TIFStream in("model.json");
+            NJson::ReadJsonTree(&in, &jsonModel, /*throwOnError*/ true);
+        }
+        NJson::TJsonValue& trees = jsonModel["oblivious_trees"];
+        UNIT_ASSERT(trees.GetArray().size() > 0);
+
+        // Drop one leaf value from the first tree so the count is no longer a
+        // multiple of 2^depth.
+        NJson::TJsonValue& leafValues = trees[0]["leaf_values"];
+        UNIT_ASSERT(leafValues.GetArray().size() > 1);
+        NJson::TJsonValue truncated(NJson::JSON_ARRAY);
+        const auto& src = leafValues.GetArray();
+        for (size_t i = 0; i + 1 < src.size(); ++i) {
+            truncated.AppendValue(src[i]);
+        }
+        leafValues = truncated;
+
+        {
+            TOFStream out("model_malformed.json");
+            NJson::WriteJson(&out, &jsonModel);
+        }
+
+        UNIT_ASSERT_EXCEPTION(
+            ReadModel("model_malformed.json", EModelType::Json),
+            TCatBoostException);
     }
 }
