@@ -1,3 +1,13 @@
+# Release (upcoming)
+
+## New features
+* \[Python-package\] Add `Pool.set_label(label)` to replace a Pool's labels in place without rebuilding the Pool. Enables efficient multi-target / weighting-schema sweeps on the same feature matrix at production scale.
+
+## Behavior changes
+* \[Python-package\] `model.fit(pool, y=labels)` previously raised `CatBoostError`; it now routes through `Pool.set_label(y)`. A `UserWarning` is emitted when this replaces pre-existing labels, so the mutation is not silent. The three `model.score(pool, y=...)` methods (classifier, regressor, ranker) received the same change. Passing the same `Pool` as both `X` and `eval_set` (directly, inside a list, inside a `(X, y)` tuple, or inside a list of such tuples) with a non-`None` `y` now raises a clear error -- previously it silently mutated the train pool's labels and invalidated the hold-out.
+* \[Python-package\] After `pool.set_label(y)`, `pool.get_label()` returns values cast back to the input dtype (e.g. `int64` in, `int64` out), matching the Pool constructor's behavior. Code that relied on `get_label()` always returning float after any mutation will see the original dtype instead.
+* \[Python-package\] `pool.set_label([])` on a zero-row Pool is now a legal no-op, mirroring `Pool(data=[], label=[])`.
+
 # Node package Release 1.27.0
 (uses `catboostmodel` native libraries from the main CatBoost release v1.2.10)
 * Fix prediction of type `Probability` on CPUs that do not have SSE4 instruction set (that includes all ARM CPUs).
