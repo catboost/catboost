@@ -179,6 +179,14 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeC
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetLossFunctionName
+ * Signature: (J[Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetLossFunctionName
+  (JNIEnv *, jclass, jlong, jobjectArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelPredict
  * Signature: (J[F[Ljava/lang/String;[Ljava/lang/String;[[F[D)Ljava/lang/String;
  */

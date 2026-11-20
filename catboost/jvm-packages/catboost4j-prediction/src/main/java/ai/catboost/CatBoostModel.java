@@ -7,12 +7,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 
 import ai.catboost.common.NativeLib;
 
@@ -29,9 +31,24 @@ public class CatBoostModel implements AutoCloseable {
     private int usedTextFeatureCount = 0;
     private int usedEmbeddingFeatureCount = 0;
     private String[] featureNames;
+    private String lossFunctionName = "";
     private Map<String, String> metadata = new HashMap<String, String>();
     private List<Feature> features = new ArrayList<Feature>();
     private static CatBoostJNI implLibrary = null;
+
+    private static final Set<String> CLASSIFICATION_LOSS_FUNCTIONS = new HashSet<String>(Arrays.asList(
+            "Logloss",
+            "CrossEntropy",
+            "MultiClass",
+            "MultiClassOneVsAll",
+            "MultiLogloss",
+            "MultiCrossEntropy",
+            "Focal"));
+
+    private static final Set<String> ONE_VS_ALL_LOSS_FUNCTIONS = new HashSet<String>(Arrays.asList(
+            "MultiClassOneVsAll",
+            "MultiLogloss",
+            "MultiCrossEntropy"));
 
     public enum FormulaEvaluatorType {
         CPU,
@@ -130,6 +147,7 @@ public class CatBoostModel implements AutoCloseable {
         final int[] usedTextFeatureCount = new int[1];
         final int[] usedEmbeddingFeatureCount = new int[1];
         final int[] featureVectorExpectedSize = new int[1];
+        final String[] lossFunctionName = new String[1];
         final String[][] modelMetadataKeys = new String[1][];
         final String[][] modelMetadataValues = new String[1][];
         final String[][] floatFeatureNames = new String[1][];
@@ -160,6 +178,7 @@ public class CatBoostModel implements AutoCloseable {
             implLibrary.catBoostModelGetUsedTextFeatureCount(handle, usedTextFeatureCount);
             implLibrary.catBoostModelGetUsedEmbeddingFeatureCount(handle, usedEmbeddingFeatureCount);
             implLibrary.catBoostModelGetFlatFeatureVectorExpectedSize(handle, featureVectorExpectedSize);
+            implLibrary.catBoostModelGetLossFunctionName(handle, lossFunctionName);
             implLibrary.catBoostModelGetMetadata(handle, modelMetadataKeys, modelMetadataValues);
             implLibrary.catBoostModelGetFloatFeatures(handle, floatFeatureNames, floatFlatFeatureIndex, floatFeatureIndex, floatHasNans, floatNanValueTreatment);
             implLibrary.catBoostModelGetCatFeatures(handle, catFeatureNames, catFlatFeatureIndex, catFeatureIndex);
@@ -182,6 +201,7 @@ public class CatBoostModel implements AutoCloseable {
         this.usedCategoricFeatureCount = usedCatFeatureCount[0];
         this.usedTextFeatureCount = usedTextFeatureCount[0];
         this.usedEmbeddingFeatureCount = usedEmbeddingFeatureCount[0];
+        this.lossFunctionName = lossFunctionName[0] == null ? "" : lossFunctionName[0];
 
         for (int i = 0; i < modelMetadataKeys[0].length; i++) {
             this.metadata.put(modelMetadataKeys[0][i], modelMetadataValues[0][i]);
@@ -426,6 +446,25 @@ public class CatBoostModel implements AutoCloseable {
      * @return Names of features used by the model.
      */
     public String[] getFeatureNames() { return featureNames; }
+
+    /**
+     * @return Name of the loss function the model has been trained with, empty string if the model does not
+     *         contain this information.
+     */
+    @NotNull
+    public String getLossFunctionName() {
+        return lossFunctionName;
+    }
+
+    /**
+     * @return true if the model has been trained with a classification loss function and, therefore, class
+     *         probabilities can be computed for it with {@link #predictProba(float[], String[])} and its
+     *         overloads. Models that do not contain information about the loss function they have been
+     *         trained with are treated as classification ones.
+     */
+    public boolean isClassificationModel() {
+        return lossFunctionName.isEmpty() || CLASSIFICATION_LOSS_FUNCTIONS.contains(lossFunctionName);
+    }
 
     /**
      * @return A map of metadata
@@ -835,6 +874,218 @@ public class CatBoostModel implements AutoCloseable {
         final CatBoostPredictions prediction = new CatBoostPredictions(resultSize, getPredictionDimension());
         predict(numericFeatures, catFeatureHashes, textFeatures, embeddingFeatures, prediction);
         return prediction;
+    }
+
+    /**
+     * Apply model to object defined by features and get class probabilities.
+     *
+     * <p>The prediction dimension of the result is always equal to the number of classes. Binary
+     * classification models produce a single raw value per object, but probabilities of both classes are
+     * returned for them ({@code [P(class 0), P(class 1)]}).
+     *
+     * @param numericFeatures Numeric features.
+     * @param catFeatures     Categoric features.
+     * @return                Class probabilities.
+     * @throws CatBoostError In case of error within native library or if the model has not been trained with a
+     *                       classification loss function.
+     */
+    @NotNull
+    public CatBoostPredictions predictProba(
+            final @Nullable float[] numericFeatures,
+            final @Nullable String[] catFeatures) throws CatBoostError {
+        return toProbabilities(predict(numericFeatures, catFeatures));
+    }
+
+    /**
+     * Same as {@link #predictProba(float[], String[])}, but also accepts text and embedding features.
+     *
+     * @param numericFeatures   Numeric features.
+     * @param catFeatures       Categoric features.
+     * @param textFeatures      Text features.
+     * @param embeddingFeatures Embedding features.
+     * @return                  Class probabilities.
+     * @throws CatBoostError In case of error within native library or if the model has not been trained with a
+     *                       classification loss function.
+     */
+    @NotNull
+    public CatBoostPredictions predictProba(
+            final @Nullable float[] numericFeatures,
+            final @Nullable String[] catFeatures,
+            final @Nullable String[] textFeatures,
+            final @Nullable float[][] embeddingFeatures) throws CatBoostError {
+        return toProbabilities(predict(numericFeatures, catFeatures, textFeatures, embeddingFeatures));
+    }
+
+    /**
+     * Same as {@link #predictProba(float[], String[])}, but accepts categoric features as hashes computed by
+     * {@link #hashCategoricalFeature(String)}.
+     *
+     * @param numericFeatures  Numeric features.
+     * @param catFeatureHashes Categoric feature hashes.
+     * @return                 Class probabilities.
+     * @throws CatBoostError In case of error within native library or if the model has not been trained with a
+     *                       classification loss function.
+     */
+    @NotNull
+    public CatBoostPredictions predictProba(
+            final @Nullable float[] numericFeatures,
+            final @Nullable int[] catFeatureHashes) throws CatBoostError {
+        return toProbabilities(predict(numericFeatures, catFeatureHashes));
+    }
+
+    /**
+     * Same as {@link #predictProba(float[], String[], String[], float[][])}, but accepts categoric features as
+     * hashes computed by {@link #hashCategoricalFeature(String)}.
+     *
+     * @param numericFeatures   Numeric features.
+     * @param catFeatureHashes  Categoric feature hashes.
+     * @param textFeatures      Text features.
+     * @param embeddingFeatures Embedding features.
+     * @return                  Class probabilities.
+     * @throws CatBoostError In case of error within native library or if the model has not been trained with a
+     *                       classification loss function.
+     */
+    @NotNull
+    public CatBoostPredictions predictProba(
+            final @Nullable float[] numericFeatures,
+            final @Nullable int[] catFeatureHashes,
+            final @Nullable String[] textFeatures,
+            final @Nullable float[][] embeddingFeatures) throws CatBoostError {
+        return toProbabilities(predict(numericFeatures, catFeatureHashes, textFeatures, embeddingFeatures));
+    }
+
+    /**
+     * Apply model to a batch of objects and get class probabilities.
+     *
+     * @param numericFeatures Numeric features matrix.
+     * @param catFeatures     Categoric features matrix.
+     * @return                Class probabilities.
+     * @throws CatBoostError In case of error within native library or if the model has not been trained with a
+     *                       classification loss function.
+     */
+    @NotNull
+    public CatBoostPredictions predictProba(
+            final @Nullable float[][] numericFeatures,
+            final @Nullable String[][] catFeatures) throws CatBoostError {
+        return toProbabilities(predict(numericFeatures, catFeatures));
+    }
+
+    /**
+     * Same as {@link #predictProba(float[][], String[][])}, but also accepts text and embedding features.
+     *
+     * @param numericFeatures   Numeric features matrix.
+     * @param catFeatures       Categoric features matrix.
+     * @param textFeatures      Text features matrix.
+     * @param embeddingFeatures Embedding features matrix.
+     * @return                  Class probabilities.
+     * @throws CatBoostError In case of error within native library or if the model has not been trained with a
+     *                       classification loss function.
+     */
+    @NotNull
+    public CatBoostPredictions predictProba(
+            final @Nullable float[][] numericFeatures,
+            final @Nullable String[][] catFeatures,
+            final @Nullable String[][] textFeatures,
+            final @Nullable float[][][] embeddingFeatures) throws CatBoostError {
+        return toProbabilities(predict(numericFeatures, catFeatures, textFeatures, embeddingFeatures));
+    }
+
+    /**
+     * Same as {@link #predictProba(float[][], String[][])}, but accepts categoric features as hashes computed by
+     * {@link #hashCategoricalFeature(String)}.
+     *
+     * @param numericFeatures  Numeric features matrix.
+     * @param catFeatureHashes Categoric feature hashes matrix.
+     * @return                 Class probabilities.
+     * @throws CatBoostError In case of error within native library or if the model has not been trained with a
+     *                       classification loss function.
+     */
+    @NotNull
+    public CatBoostPredictions predictProba(
+            final @Nullable float[][] numericFeatures,
+            final @Nullable int[][] catFeatureHashes) throws CatBoostError {
+        return toProbabilities(predict(numericFeatures, catFeatureHashes));
+    }
+
+    /**
+     * Same as {@link #predictProba(float[][], String[][], String[][], float[][][])}, but accepts categoric
+     * features as hashes computed by {@link #hashCategoricalFeature(String)}.
+     *
+     * @param numericFeatures   Numeric features matrix.
+     * @param catFeatureHashes  Categoric feature hashes matrix.
+     * @param textFeatures      Text features matrix.
+     * @param embeddingFeatures Embedding features matrix.
+     * @return                  Class probabilities.
+     * @throws CatBoostError In case of error within native library or if the model has not been trained with a
+     *                       classification loss function.
+     */
+    @NotNull
+    public CatBoostPredictions predictProba(
+            final @Nullable float[][] numericFeatures,
+            final @Nullable int[][] catFeatureHashes,
+            final @Nullable String[][] textFeatures,
+            final @Nullable float[][][] embeddingFeatures) throws CatBoostError {
+        return toProbabilities(predict(numericFeatures, catFeatureHashes, textFeatures, embeddingFeatures));
+    }
+
+    @NotNull
+    private CatBoostPredictions toProbabilities(final @NotNull CatBoostPredictions rawPredictions) throws CatBoostError {
+        if (!isClassificationModel()) {
+            throw new CatBoostError(
+                    "probabilities are not available for the model trained with " + lossFunctionName
+                    + " loss function");
+        }
+
+        final int objectCount = rawPredictions.getObjectCount();
+        final double[] rawData = rawPredictions.getRawData();
+
+        if (predictionDimension == 1) {
+            final double[] probabilities = new double[objectCount * 2];
+            for (int objectIndex = 0; objectIndex < objectCount; ++objectIndex) {
+                final double probability = sigmoid(rawData[objectIndex]);
+                probabilities[2 * objectIndex] = 1.0 - probability;
+                probabilities[2 * objectIndex + 1] = probability;
+            }
+            return new CatBoostPredictions(objectCount, 2, probabilities);
+        }
+
+        final double[] probabilities = new double[objectCount * predictionDimension];
+        if (ONE_VS_ALL_LOSS_FUNCTIONS.contains(lossFunctionName)) {
+            for (int i = 0; i < probabilities.length; ++i) {
+                probabilities[i] = sigmoid(rawData[i]);
+            }
+        } else {
+            for (int objectIndex = 0; objectIndex < objectCount; ++objectIndex) {
+                softmax(rawData, probabilities, objectIndex * predictionDimension, predictionDimension);
+            }
+        }
+        return new CatBoostPredictions(objectCount, predictionDimension, probabilities);
+    }
+
+    private static double sigmoid(final double rawValue) {
+        return 1.0 / (1.0 + Math.exp(-rawValue));
+    }
+
+    private static void softmax(
+            final @NotNull double[] rawData,
+            final @NotNull double[] probabilities,
+            final int offset,
+            final int dimension) {
+        double maxRawValue = rawData[offset];
+        for (int i = 1; i < dimension; ++i) {
+            maxRawValue = Math.max(maxRawValue, rawData[offset + i]);
+        }
+
+        double sumExponents = 0.0;
+        for (int i = 0; i < dimension; ++i) {
+            final double exponent = Math.exp(rawData[offset + i] - maxRawValue);
+            probabilities[offset + i] = exponent;
+            sumExponents += exponent;
+        }
+
+        for (int i = 0; i < dimension; ++i) {
+            probabilities[offset + i] /= sumExponents;
+        }
     }
 
     @Override
