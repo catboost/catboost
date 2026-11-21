@@ -26,6 +26,14 @@ FATAL: In-source builds are not allowed.
 ")
 endif()
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-flto=thin)
+    add_link_options(-flto=thin)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-flto=auto)
+    add_link_options(-flto=auto)
+endif()
+
 set(BUILD_SHARED_LIBS Off)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS Off)
