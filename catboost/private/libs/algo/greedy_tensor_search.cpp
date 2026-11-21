@@ -631,6 +631,9 @@ static void SelectCtrsToDropAfterCalc(
 }
 
 
+// bucket sums for two candidates are calculated together only if there are enough tasks for all threads
+constexpr int MinTaskCountPerThreadToCalcTwoCandidatesTogether = 4;
+
 static void CalcBestScore(
     const TTrainingDataProviders& data,
     const TSplitTree& currentTree,
@@ -659,8 +662,113 @@ static void CalcBestScore(
         }
     }
 
+    const auto makeScoreCalcer = [&] () {
+        THolder<IScoreCalcer> scoreCalcer;
+        if (IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
+            scoreCalcer.Reset(new TPairwiseScoreCalcer);
+        } else {
+            scoreCalcer = MakePointwiseScoreCalcer(
+                ctx->Params.ObliviousTreeOptions->ScoreFunction
+            );
+        }
+        return scoreCalcer;
+    };
+
+    const auto setBestScore = [&] (int taskIdx, const TVector<TVector<double>>& allScores) {
+        TCandidatesContext& candidatesContext = (*candidatesContexts)[tasks[taskIdx].first];
+        auto& candidate = candidatesContext.CandidateList[tasks[taskIdx].second];
+
+        SetBestScore(
+            randSeed + taskIdx,
+            allScores,
+            scoreDistribution,
+            scoreStDev,
+            candidatesContext,
+            &candidate.Candidates);
+
+        PenalizeBestSplits(
+            xrange(ctx->SampledDocs.LeavesCount),
+            *ctx,
+            data,
+            *fold,
+            candidatesContext.OneHotMaxSize,
+            &candidate.Candidates
+        );
+    };
+
+    const auto canCalcTogether = [&] (int taskIdx) {
+        const TCandidatesContext& candidatesContext = (*candidatesContexts)[tasks[taskIdx].first];
+        const auto& candidate = candidatesContext.CandidateList[tasks[taskIdx].second];
+        return (candidate.Candidates.size() == 1)
+            && !candidate.Candidates[0].SplitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)
+            && !candidate.Candidates[0].SplitEnsemble.IsEstimated;
+    };
+
+    // pairs of tasks calculated together (see CalcStatsAndScoresForTwoCandidates), (taskIdx, -1) for other tasks
+    TVector<std::pair<int, int>> taskGroups;
+    const bool groupTasks = IsPlainMode(ctx->Params.BoostingOptions->BoostingType)
+        && !IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())
+        && (tasks.ysize()
+            >= MinTaskCountPerThreadToCalcTwoCandidatesTogether * (ctx->LocalExecutor->GetThreadCount() + 1));
+    int unpairedTaskIdx = -1;
+    for (int taskIdx : xrange(tasks.ysize())) {
+        if (!groupTasks || !canCalcTogether(taskIdx)) {
+            taskGroups.emplace_back(taskIdx, -1);
+        } else if (unpairedTaskIdx == -1) {
+            unpairedTaskIdx = taskIdx;
+        } else if (tasks[unpairedTaskIdx].first != tasks[taskIdx].first) {
+            taskGroups.emplace_back(unpairedTaskIdx, -1);
+            unpairedTaskIdx = taskIdx;
+        } else {
+            taskGroups.emplace_back(unpairedTaskIdx, taskIdx);
+            unpairedTaskIdx = -1;
+        }
+    }
+    if (unpairedTaskIdx != -1) {
+        taskGroups.emplace_back(unpairedTaskIdx, -1);
+    }
+
+    const auto calcBestScoresForTwo = [&] (int taskIdx0, int taskIdx1) {
+        const TCandidatesContext& candidatesContext = (*candidatesContexts)[tasks[taskIdx0].first];
+        const auto& candidate0 = candidatesContext.CandidateList[tasks[taskIdx0].second];
+        const auto& candidate1 = candidatesContext.CandidateList[tasks[taskIdx1].second];
+
+        THolder<IScoreCalcer> scoreCalcer0 = makeScoreCalcer();
+        THolder<IScoreCalcer> scoreCalcer1 = makeScoreCalcer();
+        CalcStatsAndScoresForTwoCandidates(
+            *candidatesContext.LearnData,
+            fold->GetAllCtrs(),
+            ctx->SampledDocs,
+            ctx->SmallestSplitSideDocs,
+            fold,
+            pairs,
+            ctx->Params,
+            candidate0.Candidates[0],
+            candidate1.Candidates[0],
+            currentTree.GetDepth(),
+            ctx->UseTreeLevelCaching(),
+            currTreeMonotonicConstraints,
+            monotonicConstraints,
+            ctx->LocalExecutor,
+            &ctx->PrevTreeLevelStats,
+            scoreCalcer0.Get(),
+            scoreCalcer1.Get());
+
+        for (auto [taskIdx, scoreCalcer] : {std::make_pair(taskIdx0, &scoreCalcer0), std::make_pair(taskIdx1, &scoreCalcer1)}) {
+            TVector<TVector<double>> allScores(1);
+            (*scoreCalcer)->GetScores().swap(allScores[0]);
+            setBestScore(taskIdx, allScores);
+        }
+    };
+
     ctx->LocalExecutor->ExecRange(
-        [&] (int taskIdx) {
+        [&] (int taskGroupIdx) {
+            const auto [taskIdx, pairedTaskIdx] = taskGroups[taskGroupIdx];
+            if (pairedTaskIdx != -1) {
+                calcBestScoresForTwo(taskIdx, pairedTaskIdx);
+                return;
+            }
+
             TCandidatesContext& candidatesContext = (*candidatesContexts)[tasks[taskIdx].first];
             TCandidateList& candList = candidatesContext.CandidateList;
 
@@ -678,14 +786,7 @@ static void CalcBestScore(
             TVector<TVector<double>> allScores(candidate.Candidates.size());
             ctx->LocalExecutor->ExecRange(
                 [&](int oneCandidate) {
-                    THolder<IScoreCalcer> scoreCalcer;
-                    if (IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
-                        scoreCalcer.Reset(new TPairwiseScoreCalcer);
-                    } else {
-                        scoreCalcer = MakePointwiseScoreCalcer(
-                            ctx->Params.ObliviousTreeOptions->ScoreFunction
-                        );
-                    }
+                    THolder<IScoreCalcer> scoreCalcer = makeScoreCalcer();
 
                     CalcStatsAndScores(
                         *candidatesContext.LearnData,
@@ -715,25 +816,10 @@ static void CalcBestScore(
                 fold->ClearCtrDataForProjectionIfOwned(splitEnsemble.SplitCandidate.Ctr.Projection);
             }
 
-            SetBestScore(
-                randSeed + taskIdx,
-                allScores,
-                scoreDistribution,
-                scoreStDev,
-                candidatesContext,
-                &candidate.Candidates);
-
-            PenalizeBestSplits(
-                xrange(ctx->SampledDocs.LeavesCount),
-                *ctx,
-                data,
-                *fold,
-                candidatesContext.OneHotMaxSize,
-                &candidate.Candidates
-            );
+            setBestScore(taskIdx, allScores);
         },
         0,
-        tasks.ysize(),
+        taskGroups.ysize(),
         NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
