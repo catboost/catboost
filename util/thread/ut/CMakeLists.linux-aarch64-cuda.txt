@@ -29,7 +29,6 @@ target_allocator(util-thread-ut
 )
 
 target_link_options(util-thread-ut PRIVATE
-  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

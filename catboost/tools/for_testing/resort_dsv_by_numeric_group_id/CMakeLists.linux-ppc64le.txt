@@ -28,7 +28,6 @@ target_allocator(resort_dsv_by_numeric_group_id
 )
 
 target_link_options(resort_dsv_by_numeric_group_id PRIVATE
-  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

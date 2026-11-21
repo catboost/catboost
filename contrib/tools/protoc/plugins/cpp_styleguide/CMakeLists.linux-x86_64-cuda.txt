@@ -34,7 +34,6 @@ target_allocator(cpp_styleguide
 )
 
 target_link_options(cpp_styleguide PRIVATE
-  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

@@ -30,7 +30,6 @@ target_allocator(util-string-ut
 )
 
 target_link_options(util-string-ut PRIVATE
-  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

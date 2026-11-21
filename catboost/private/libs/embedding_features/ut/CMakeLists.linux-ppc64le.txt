@@ -29,7 +29,6 @@ target_allocator(catboost-private-libs-embedding_features-ut
 )
 
 target_link_options(catboost-private-libs-embedding_features-ut PRIVATE
-  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

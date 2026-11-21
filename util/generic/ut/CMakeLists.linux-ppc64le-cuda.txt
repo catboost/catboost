@@ -38,7 +38,6 @@ target_allocator(util-generic-ut
 )
 
 target_link_options(util-generic-ut PRIVATE
-  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

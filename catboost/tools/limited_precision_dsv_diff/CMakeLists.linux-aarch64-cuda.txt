@@ -29,7 +29,6 @@ target_allocator(limited_precision_dsv_diff
 )
 
 target_link_options(limited_precision_dsv_diff PRIVATE
-  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

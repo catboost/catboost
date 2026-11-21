@@ -28,7 +28,6 @@ target_allocator(util-stream-ut
 )
 
 target_link_options(util-stream-ut PRIVATE
-  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

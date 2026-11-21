@@ -29,7 +29,6 @@ target_allocator(json_options_ut
 )
 
 target_link_options(json_options_ut PRIVATE
-  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed

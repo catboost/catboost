@@ -30,7 +30,6 @@ target_allocator(rescompiler
 )
 
 target_link_options(rescompiler PRIVATE
-  -Wl,--compress-debug-sections=zstd
   -ldl
   -lrt
   -Wl,--no-as-needed
