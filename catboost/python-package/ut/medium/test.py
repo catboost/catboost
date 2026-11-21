@@ -1800,9 +1800,6 @@ def test_onnx_export(problem_type, boost_from_average):
     ]
 )
 def test_onnx_import(problem_type, boost_from_average):
-    if (problem_type == 'binclass') and boost_from_average:
-        pytest.xfail('CatBoost does not support importing classification onnx models with bias')
-
     if problem_type == 'binclass':
         loss_function = 'Logloss'
         train_path = TRAIN_FILE
@@ -1875,10 +1872,55 @@ def test_onnx_import(problem_type, boost_from_average):
         )
     else:
         loaded_pred = onnx_loaded_model.predict(test_pool, prediction_type=prediction_type)
-        if problem_type == 'binclass':
-            # TODO(akhropov): remove when MLTOOLS-4924 is fixed
-            loaded_pred = np.array([value[0] for value in loaded_pred])
         assert np.all(canon_pred == loaded_pred)
+        assert np.allclose(
+            model.predict(test_pool, prediction_type='Probability'),
+            onnx_loaded_model.predict(test_pool, prediction_type='Probability'),
+            atol=1e-4,
+        )
+
+
+@pytest.mark.parametrize('bias', [-1.5, 0.0, 1.5])
+def test_onnx_binary_probabilities_with_bias(task_type, bias):
+    onnxruntime = pytest.importorskip('onnxruntime')
+    features = np.arange(32, dtype=np.float32).reshape(-1, 1)
+    labels = np.where(features[:, 0] % 3 == 0, 'yes', 'no')
+    model = CatBoostClassifier(iterations=5, depth=2, task_type=task_type, verbose=False).fit(features, labels)
+    model.set_scale_and_bias(1.0, bias)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(path, format='onnx')
+    session = onnxruntime.InferenceSession(path, providers=['CPUExecutionProvider'])
+    probabilities = session.run(['probabilities'], {'features': features})[0]
+    assert np.allclose(
+        [[row[label] for label in model.classes_] for row in probabilities],
+        model.predict_proba(features), atol=1e-6,
+    )
+    imported = CatBoostClassifier().load_model(path, format='onnx')
+    assert np.allclose(imported.predict_proba(features), model.predict_proba(features), atol=1e-6)
+    assert np.allclose(
+        imported.predict(features, prediction_type='RawFormulaVal'),
+        model.predict(features, prediction_type='RawFormulaVal'), atol=1e-6,
+    )
+
+
+@pytest.mark.parametrize('bias', [-1.5, 0.0, 1.5])
+def test_onnx_import_binary_legacy_base_values(bias):
+    onnx = pytest.importorskip('onnx')
+    features = np.arange(32, dtype=np.float32).reshape(-1, 1)
+    model = CatBoostClassifier(iterations=5, depth=2, verbose=False).fit(features, (features[:, 0] % 3 == 0).astype(int))
+    model.set_scale_and_bias(1.0, 0.0)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(path, format='onnx')
+    proto = onnx.load(path)
+    tree = next(node for node in proto.graph.node if node.op_type == 'TreeEnsembleClassifier')
+    tree.attribute.append(onnx.helper.make_attribute('base_values', [-bias, bias]))
+    onnx.checker.check_model(proto)
+    onnx.save(proto, path)
+    model.set_scale_and_bias(1.0, bias)
+    imported = CatBoostClassifier().load_model(path, format='onnx')
+    assert np.allclose(imported.predict_proba(features), model.predict_proba(features), atol=1e-6)
+    assert np.allclose(imported.predict(features, prediction_type='RawFormulaVal'),
+                       model.predict(features, prediction_type='RawFormulaVal'), atol=1e-6)
 
 
 @pytest.mark.parametrize('with_feature_names', [False, True], ids=['with_feature_names=False', 'with_feature_names=True'])
@@ -1905,7 +1947,6 @@ def test_onnx_export_with_categorical_features(task_type, with_feature_names, wi
     ], dtype=object)
     y = np.array([1.0, 2.0, 1.5, 2.5, 1.2, 2.2, 1.8, 2.8])
     if loss_function == 'Logloss':
-        # Keep this categorical-layout test independent of binary bias handling.
         y = (y >= 2.0).astype(int)
     elif loss_function == 'MultiClass':
         y = np.array([0, 2, 1, 2, 0, 2, 1, 2])
@@ -1939,6 +1980,8 @@ def test_onnx_export_with_categorical_features(task_type, with_feature_names, wi
         boost_from_average=boost_from_average
     )
     model.fit(train_pool)
+    if loss_function == 'Logloss' and boost_from_average:
+        model.set_scale_and_bias(1.0, 1.5)
 
     output_onnx_model_path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
     export_parameters = {
@@ -1988,16 +2031,8 @@ def test_onnx_export_with_categorical_features(task_type, with_feature_names, wi
         imported_data = np.column_stack([feed[name] for name in input_names])
         imported_pool = Pool(imported_data, cat_features=imported_model.get_cat_feature_indices())
         if loss_function == 'Logloss':
-            # The existing importer can retain two opposite class scores. Check
-            # the categorical splits through the margin; probabilities are fixed separately.
             imported_raw = imported_model.predict(imported_pool, prediction_type='RawFormulaVal')
-            if imported_raw.ndim == 2:
-                assert imported_raw.shape[1] == 2
-                assert np.allclose(imported_raw[:, 0], -imported_raw[:, 1], atol=1e-4)
-                imported_raw = imported_raw[:, 1]
             assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), imported_raw, atol=1e-4)
-            assert np.array_equal(model.predict(pool).flatten(), imported_model.predict(imported_pool).flatten())
-            continue
         if loss_function == 'RMSE':
             imported_pred = imported_model.predict(imported_pool)
         else:
@@ -2157,6 +2192,78 @@ def test_onnx_import_with_only_categorical_features():
     loaded_pred = loaded_model.predict(train_pool)
 
     assert np.allclose(cb_pred, loaded_pred, atol=1e-4)
+
+
+@pytest.mark.parametrize('order', ['reversed_pairs', 'interleaved_leaves', 'grouped_classes'])
+def test_onnx_import_binary_class_weight_order(order):
+    onnx = pytest.importorskip('onnx')
+    onnxruntime = pytest.importorskip('onnxruntime')
+    features = np.arange(32, dtype=np.float32).reshape(-1, 1)
+    model = CatBoostClassifier(iterations=3, depth=1, verbose=False).fit(features, (features[:, 0] > 12).astype(int))
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(path, format='onnx')
+    proto = onnx.load(path)
+    tree = next(node for node in proto.graph.node if node.op_type == 'TreeEnsembleClassifier')
+    attributes = {attribute.name: attribute for attribute in tree.attribute}
+    row_count = len(attributes['class_ids'].ints)
+    if order == 'reversed_pairs':
+        indices = [index ^ 1 for index in range(row_count)]
+    elif order == 'interleaved_leaves':
+        indices = [offset + index for offset in range(0, row_count, 4) for index in (0, 3, 2, 1)]
+    else:
+        indices = list(range(0, row_count, 2)) + list(range(1, row_count, 2))
+    for name in ('class_treeids', 'class_nodeids', 'class_ids', 'class_weights'):
+        attribute = attributes[name]
+        values = attribute.floats if name == 'class_weights' else attribute.ints
+        reordered = [values[index] for index in indices]
+        del values[:]
+        values.extend(reordered)
+    onnx.checker.check_model(proto)
+    onnx.save(proto, path)
+    imported = CatBoostClassifier().load_model(path, format='onnx')
+    session = onnxruntime.InferenceSession(path, providers=['CPUExecutionProvider'])
+    probabilities = session.run(['probabilities'], {'features': features})[0]
+    expected = [[row[label] for label in model.classes_] for row in probabilities]
+    assert np.allclose(imported.predict_proba(features), expected, atol=1e-6)
+    assert np.allclose(imported.predict_proba(features), model.predict_proba(features), atol=1e-6)
+
+
+@pytest.mark.parametrize('mutation, message', [
+    ('class_ids', 'class id'), ('class_weights', 'class weights'), ('base_values', 'base values'),
+    ('class_labels', 'two class labels'),
+])
+def test_onnx_import_invalid_binary_scores(mutation, message):
+    onnx = pytest.importorskip('onnx')
+    features = np.arange(16, dtype=np.float32).reshape(-1, 1)
+    model = CatBoostClassifier(iterations=2, depth=1, verbose=False).fit(features, (features[:, 0] > 5).astype(int))
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(path, format='onnx')
+    proto = onnx.load(path)
+    tree = next(node for node in proto.graph.node if node.op_type == 'TreeEnsembleClassifier')
+    attributes = {attribute.name: attribute for attribute in tree.attribute}
+    if mutation == 'class_ids':
+        attributes[mutation].ints[0] = 2
+    elif mutation == 'class_weights':
+        attributes[mutation].floats[0] += 1.0
+    elif mutation == 'class_labels':
+        attributes['classlabels_int64s'].ints.append(2)
+    else:
+        tree.attribute.append(onnx.helper.make_attribute('base_values', [1.0, 1.0]))
+    onnx.save(proto, path)
+    with pytest.raises(CatBoostError, match=message):
+        CatBoostClassifier().load_model(path, format='onnx')
+
+
+def test_onnx_import_two_class_softmax():
+    features = np.arange(32, dtype=np.float32).reshape(-1, 1)
+    model = CatBoostClassifier(loss_function='MultiClass', iterations=3, depth=2, verbose=False)
+    model.fit(features, (features[:, 0] > 12).astype(int))
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(path, format='onnx')
+    imported = CatBoostClassifier().load_model(path, format='onnx')
+    assert np.allclose(imported.predict_proba(features), model.predict_proba(features), atol=1e-6)
+    assert np.allclose(imported.predict(features, prediction_type='RawFormulaVal'),
+                       model.predict(features, prediction_type='RawFormulaVal'), atol=1e-6)
 
 
 def test_onnx_export_lightgbm_import_catboost():
