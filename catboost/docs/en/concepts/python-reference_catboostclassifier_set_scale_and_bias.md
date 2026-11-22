@@ -17,7 +17,6 @@ set_scale_and_bias(scale, bias)
 
 ```python
 from catboost import CatBoostClassifier, Pool
-import numpy as np
 
 train_data = Pool(data=[[1, 4, 5, 6],
                         [4, 5, 6, 7],
@@ -25,7 +24,8 @@ train_data = Pool(data=[[1, 4, 5, 6],
                   label=[1, 1, -1],
                   weight=[0.1, 0.2, 0.3])
 
-model = CatBoostClassifier()
+model = CatBoostClassifier(iterations=1, boost_from_average=False, verbose=False)
+model.fit(train_data)
 
 print("Default scale and bias: " + str(model.get_scale_and_bias()))
 model.set_scale_and_bias(0.5, 0.5)

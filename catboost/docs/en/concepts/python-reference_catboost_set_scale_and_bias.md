@@ -17,12 +17,17 @@ set_scale_and_bias(scale, bias)
 
 ```python
 from catboost import CatBoost
-import numpy as np
 
-train_data = np.random.randint(1, 100, size=(100, 10))
-train_labels = np.random.randint(2, size=(100))
+train_data = [[0], [1], [2], [3]]
+train_labels = [1.0, 2.0, 3.0, 4.0]
 
-model = CatBoost()
+model = CatBoost({
+    "iterations": 1,
+    "loss_function": "RMSE",
+    "boost_from_average": False,
+    "verbose": False,
+})
+model.fit(train_data, train_labels)
 
 print("Default scale and bias: " + str(model.get_scale_and_bias()))
 model.set_scale_and_bias(0.5, 0.5)
