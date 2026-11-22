@@ -12,8 +12,7 @@ from typing import Dict, Iterable, List, Optional, Set, Union
 
 
 MSVS_TO_DEFAULT_MSVC_TOOLSET = {
-    '2019': '14.28.29333',
-    '2022': '14.29.30133'
+    '2022': '14.40.33807',
 }
 
 class Target(object):
@@ -95,11 +94,10 @@ class Opts(object):
         'msvs_installation_path':
             Option('Microsoft Visual Studio installation path (default is "{Program Files}\\Microsoft Visual Studio\\")'
         ),
-        'msvs_version': Option('Microsoft Visual Studio version (like "2019", "2022")', default='2022'),
+        'msvs_version': Option('Microsoft Visual Studio version (like "2022")', default='2022'),
         'msvc_toolset': Option(
             'Microsoft Visual C++ Toolset version to use'
-            + f'(default for Visual Studio 2019 is "{MSVS_TO_DEFAULT_MSVC_TOOLSET["2019"]}",'
-            + f' for Visual Studio 2022 is "{MSVS_TO_DEFAULT_MSVC_TOOLSET["2022"]}")'
+            + f' (default for Visual Studio 2022 is "{MSVS_TO_DEFAULT_MSVC_TOOLSET["2022"]}")'
         ),
         'macosx_version_min': Option('Minimal macOS version to target', default='11.0'),
         'have_cuda': Option('Enable CUDA support', default=False, opt_type=bool),
