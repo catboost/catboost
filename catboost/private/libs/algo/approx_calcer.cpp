@@ -938,7 +938,11 @@ static void CalcLeafValuesSimple(
                 bt.BodyFinish,
                 bt.Approx[0],
                 fold.LearnTarget[0],
-                MakeConstArrayRef(fold.SampleWeights),
+                // Averaging fold has no bootstrap, so SampleWeights are all 1 here; use object weights
+                // like the other estimation methods below do (fold.GetLearnWeights()).
+                fold.GetLearnWeights().empty()
+                    ? MakeConstArrayRef(fold.SampleWeights)
+                    : MakeConstArrayRef(fold.GetLearnWeights()),
                 &(*leafDeltas)[0]);
             return;
         }
