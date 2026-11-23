@@ -3,7 +3,6 @@
 
 #include <util/random/random.h>
 #include <util/random/shuffle.h>
-#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/types.h>
 #include <util/system/yassert.h>
 #include <util/system/yield.h>
@@ -106,7 +105,7 @@ namespace NPar {
                 }
             }
         }
-        AtomicSet(DistributionIsComplete, allComplete);
+        DistributionIsComplete.store(allComplete, std::memory_order_release);
 
         Shuffle(xferList.begin(), xferList.end());
         std::sort(xferList.begin(), xferList.end(), TRequiredTransferCmp());
@@ -155,7 +154,7 @@ namespace NPar {
         ++QueryId;
         TransferInfos[QueryId] = TTransferInfo(envId, hostId, part, srcComp, dstComp, dataVersion);
         fullCtx.CopyInitiated[dstComp][part] = true;
-        AtomicAdd(ActiveReqCount, 1);
+        ++ActiveReqCount;
         QueryProc->SendQuery(queryComp, cmd, buf, this, QueryId);
     }
 
@@ -178,7 +177,7 @@ namespace NPar {
         TransferInfos.erase(i);
 
         DoSend();
-        AtomicAdd(ActiveReqCount, -1);
+        --ActiveReqCount;
     }
 
     TContextDistributor::TContextDistributor(TRemoteQueryProcessor* queryProc, TLocalDataBuffer* writeBuffer)
@@ -193,7 +192,7 @@ namespace NPar {
     }
 
     TContextDistributor::~TContextDistributor() {
-        while (AtomicGet(ActiveReqCount))
+        while (ActiveReqCount.load(std::memory_order_acquire))
             ThreadYield();
     }
 
@@ -462,14 +461,14 @@ namespace NPar {
 
     void TContextDistributor::WaitDistribution() {
         CHROMIUM_TRACE_FUNCTION();
-        while (!AtomicGet(DistributionIsComplete))
+        while (!DistributionIsComplete.load(std::memory_order_acquire))
             ThreadYield();
         PAR_DEBUG_LOG << "Distribution complete" << Endl;
     }
 
     void TContextDistributor::WaitAllDistributionActivity() {
         CHROMIUM_TRACE_FUNCTION();
-        while (AtomicGet(ActiveReqCount) > 0)
+        while (ActiveReqCount.load(std::memory_order_acquire) > 0)
             ThreadYield();
     }
 

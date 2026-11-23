@@ -8,8 +8,6 @@
 #include <library/cpp/chromium_trace/interface.h>
 
 #include <util/random/random.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
-#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/event.h>
 #include <util/system/fs.h>
 #include <util/system/hostname.h>
@@ -65,8 +63,8 @@ namespace NPar {
     class TMetaRequester: public IRemoteQueryResponseNotify {
         TIntrusivePtr<TRemoteQueryProcessor> Meta;
         TVector<TVector<char>> Results;
-        TAtomic QueryCount = 0;
-        TAtomic ResultCount = 0;
+        std::atomic<int> QueryCount{0};
+        std::atomic<int> ResultCount{0};
         TSystemEvent Ready;
 
     public:
@@ -75,26 +73,26 @@ namespace NPar {
         {
         }
         void AddQuery(int compId, const char* query, TVector<char>* data) {
-            Meta->SendQuery(compId, query, data, this, AtomicGet(QueryCount));
-            AtomicIncrement(QueryCount);
+            Meta->SendQuery(compId, query, data, this, QueryCount.load(std::memory_order_acquire));
+            ++QueryCount;
         }
         void GotResponse(int id, TVector<char>* response) override {
             if (id >= Results.ysize())
                 Results.resize(id + 1);
             Results[id].swap(*response);
-            AtomicIncrement(ResultCount);
-            if (AtomicGet(ResultCount) == AtomicGet(QueryCount))
+            ++ResultCount;
+            if (ResultCount.load(std::memory_order_acquire) == QueryCount.load(std::memory_order_acquire))
                 Ready.Signal();
         }
         void GetResults(TVector<TVector<char>>* res) {
             Ready.Reset();
-            if (AtomicGet(QueryCount) != AtomicGet(ResultCount))
+            if (QueryCount.load(std::memory_order_acquire) != ResultCount.load(std::memory_order_acquire))
                 Ready.Wait();
             if (res)
                 res->swap(Results);
             Results.resize(0);
-            AtomicSet(QueryCount, 0);
-            AtomicSet(ResultCount, 0);
+            QueryCount.store(0, std::memory_order_release);
+            ResultCount.store(0, std::memory_order_release);
         }
     };
     //////////////////////////////////////////////////////////////////////////
@@ -148,7 +146,7 @@ namespace NPar {
         CHROMIUM_TRACE_FUNCTION();
         Y_ASSERT(Requester.Get() == nullptr);
         BaseSearcherAddrs = baseSearcherAddrs;
-        LastCounts.resize(BaseSearcherAddrs.ysize(), TAtomicWrap(0));
+        LastCounts.resize(BaseSearcherAddrs.size());
 
         SetRequester(CreateRequester(
             masterListenPort,
@@ -312,7 +310,7 @@ namespace NPar {
     void TRemoteQueryProcessor::IncLastCount(int compId) {
         Y_ASSERT(compId >= 0 && compId < LastCounts.ysize());
         if (compId >= 0 && compId < LastCounts.ysize())
-            AtomicAdd(LastCounts[compId].Counter, 1);
+            ++LastCounts[compId];
     }
 
     void TRemoteQueryProcessor::TInitCmd::NewRequest(TRemoteQueryProcessor* p, TNetworkRequest* req) {
@@ -327,7 +325,7 @@ namespace NPar {
         p->CompId = initData.CompId;
         p->MasterAddress = initData.MasterAddress;
         p->BaseSearcherAddrs = initData.BaseSearcherAddrs;
-        p->LastCounts.resize(p->BaseSearcherAddrs.ysize(), TAtomicWrap(0));
+        p->LastCounts.resize(p->BaseSearcherAddrs.size());
 
         p->SendReply(req->ReqId, nullptr);
         PAR_DEBUG_LOG << "CompId " << p->CompId << " initialized" << Endl;

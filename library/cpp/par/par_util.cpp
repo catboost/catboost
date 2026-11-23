@@ -5,6 +5,8 @@
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
+#include <atomic>
+
 namespace NPar {
     TGUID TJobExecutor::TCallback::GetMasterQueryId() {
         return TGUID();
@@ -212,12 +214,12 @@ namespace NPar {
             TIntrusivePtr<IDCResultNotify> DCNotify;
             int ReqId;
             TIntrusivePtr<TSharedCmd> SharedCmd;
-            TAtomic JobCount;
+            std::atomic<int> JobCount;
             TVector<TVector<char>> ResultsBuf;
             int Start, Finish;
 
             void DoneJob() {
-                if (AtomicAdd(JobCount, -1) > 0)
+                if (--JobCount > 0)
                     return;
                 Y_ASSERT(JobCount == 0);
                 if (!DCNotify->IsDistrCmdNeeded())
