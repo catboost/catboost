@@ -2749,6 +2749,27 @@ def test_ones_weight_equal_to_nonspecified_weight(task_type):
     assert np.all(predictions[0] == predictions[1])
 
 
+@pytest.mark.parametrize('loss_function', ['Quantile:alpha=0.5', 'MAE'])
+@pytest.mark.parametrize('grow_policy', ['SymmetricTree', 'Depthwise', 'Lossguide'])
+def test_exact_leaves_use_object_weights(loss_function, grow_policy):
+    # In each leaf ten objects have target 0 and weight 1, one object has target 10 and weight 100:
+    # the plain median is 0, the weighted one is 10.
+    X = np.array([[0.0]] * 11 + [[1.0]] * 11)
+    y = np.array(([0.0] * 10 + [10.0]) * 2)
+    weight = np.array(([1.0] * 10 + [100.0]) * 2)
+    model = CatBoostRegressor(
+        loss_function=loss_function,
+        leaf_estimation_method='Exact',
+        grow_policy=grow_policy,
+        iterations=1,
+        depth=1,
+        learning_rate=1.0,
+        boost_from_average=False,
+    )
+    model.fit(Pool(X, y, weight=weight))
+    assert np.allclose(model.predict(X), 10.0)
+
+
 def test_py_data_group_id(task_type):
     train_pool_from_files = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
     test_pool_from_files = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
