@@ -654,16 +654,19 @@ double StrToD(const char* b, char** se) {
 }
 
 namespace {
-    static inline DoubleToStringConverter& ToStringConverterNoPad() noexcept {
+    template <int ExtraFlags = DoubleToStringConverter::NO_FLAGS>
+    static inline const DoubleToStringConverter& ToStringConverter() noexcept {
         struct TCvt: public DoubleToStringConverter {
             inline TCvt() noexcept
-                : DoubleToStringConverter(EMIT_POSITIVE_EXPONENT_SIGN, "inf", "nan", 'e', -10, 21, 4, 0)
+                : DoubleToStringConverter(EMIT_POSITIVE_EXPONENT_SIGN | ExtraFlags, "inf", "nan", 'e', -10, 21, 4, 0)
             {
             }
         };
 
         return *SingletonWithPriority<TCvt, 0>();
     }
+
+    constexpr int KeepFloatFlags = DoubleToStringConverter::EMIT_TRAILING_DECIMAL_POINT | DoubleToStringConverter::EMIT_TRAILING_ZERO_AFTER_POINT;
 
     struct TBuilder {
         alignas(StringBuilder) char Store[sizeof(StringBuilder)];
@@ -725,9 +728,21 @@ namespace {
     static inline size_t DoDtoa(double d, char* buf, size_t len, int prec) noexcept {
         TBuilder sb(buf, len);
 
-        Y_ABORT_UNLESS(ToStringConverterNoPad().ToPrecision(d, prec, sb.SB), "conversion failed");
+        Y_ABORT_UNLESS(ToStringConverter().ToPrecision(d, prec, sb.SB), "conversion failed");
 
         return FixEnd(buf, FixZeros(buf, sb.SB->position()));
+    }
+
+    template <int ExtraFlags = DoubleToStringConverter::NO_FLAGS, class T>
+    static inline size_t DoDtoaShortest(T value, char* buf, size_t len) noexcept {
+        TBuilder sb(buf, len);
+        const auto& converter = ToStringConverter<ExtraFlags>();
+        if constexpr (std::is_same_v<T, float>) {
+            Y_ABORT_UNLESS(converter.ToShortestSingle(value, sb.SB), "conversion failed");
+        } else {
+            Y_ABORT_UNLESS(converter.ToShortest(value, sb.SB), "conversion failed");
+        }
+        return FixEnd(buf, sb.SB->position());
     }
 } // namespace
 
@@ -743,17 +758,22 @@ size_t ToStringImpl<float>(float f, char* buf, size_t len) {
 
 size_t FloatToString(float t, char* buf, size_t len, EFloatToStringMode mode, int ndigits) {
     if (mode == PREC_AUTO) {
-        TBuilder sb(buf, len);
-
-        Y_ABORT_UNLESS(ToStringConverterNoPad().ToShortestSingle(t, sb.SB), "conversion failed");
-
-        return FixEnd(buf, sb.SB->position());
+        return DoDtoaShortest(t, buf, len);
+    }
+    if (mode == PREC_AUTO_KEEP_FLOAT) {
+        return DoDtoaShortest<KeepFloatFlags>(t, buf, len);
     }
 
     return FloatToString((double)t, buf, len, mode, ndigits);
 }
 
 size_t FloatToString(double t, char* buf, size_t len, EFloatToStringMode mode, int ndigits) {
+    if (mode == PREC_AUTO) {
+        return DoDtoaShortest(t, buf, len);
+    }
+    if (mode == PREC_AUTO_KEEP_FLOAT) {
+        return DoDtoaShortest<KeepFloatFlags>(t, buf, len);
+    }
     if (mode == PREC_NDIGITS) {
         auto minDigits = DoubleToStringConverter::kMinPrecisionDigits;
         auto maxDigits = DoubleToStringConverter::kMaxPrecisionDigits;
@@ -763,13 +783,7 @@ size_t FloatToString(double t, char* buf, size_t len, EFloatToStringMode mode, i
 
     TBuilder sb(buf, len);
 
-    if (mode == PREC_AUTO) {
-        Y_ABORT_UNLESS(ToStringConverterNoPad().ToShortest(t, sb.SB), "conversion failed");
-
-        return FixEnd(buf, sb.SB->position());
-    }
-
-    if (!ToStringConverterNoPad().ToFixed(t, ndigits, sb.SB)) {
+    if (!ToStringConverter().ToFixed(t, ndigits, sb.SB)) {
         return FloatToString(t, buf, len, PREC_AUTO);
     }
 

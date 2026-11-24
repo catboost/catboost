@@ -45,7 +45,11 @@ enum EFloatToStringMode {
 
     /** same as PREC_POINT_DIGITS, but stripping trailing zeroes:
      * 0.1f for ndgigits=6 -> "0.1" */
-    PREC_POINT_DIGITS_STRIP_ZEROES = 4
+    PREC_POINT_DIGITS_STRIP_ZEROES = 4,
+
+    /** Same as PREC_AUTO, but append ".0" if a finite number has no decimal point or exponent.
+     * Preserves the sign of zero: -0.0 -> "-0.0", 0.0 -> "0.0". */
+    PREC_AUTO_KEEP_FLOAT = 5,
 };
 
 size_t FloatToString(float t, char* buf, size_t len, EFloatToStringMode mode = PREC_AUTO, int ndigits = 0);

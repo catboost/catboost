@@ -289,6 +289,16 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_STRINGS_EQUAL(FloatToString(-std::numeric_limits<float>::infinity()), "-inf");
     }
 
+    Y_UNIT_TEST(TestFloatToStringKeepFloat) {
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(2.0f, PREC_AUTO_KEEP_FLOAT), "2.0");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(-0.0f, PREC_AUTO_KEEP_FLOAT), "-0.0");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(0.12345678f, PREC_AUTO_KEEP_FLOAT), "0.12345678");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(1.0, PREC_AUTO_KEEP_FLOAT), "1.0");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(-0.0, PREC_AUTO_KEEP_FLOAT), "-0.0");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(1.2345678901234567, PREC_AUTO_KEEP_FLOAT), "1.2345678901234567");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(1e-20, PREC_AUTO_KEEP_FLOAT), "1e-20");
+    }
+
     Y_UNIT_TEST(TestReadFloats) {
         GoodFloatTester<float>("0.0001", 0.0001f, EPS);
         GoodFloatTester<double>("0.0001", 0.0001, EPS);
