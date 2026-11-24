@@ -1,0 +1,101 @@
+# build/internal/platform/cuda (include/ and extras/CUPTI/include/)
+- includes:
+  - cooperative_groups.h
+  - cooperative_groups/reduce.h
+  - cuComplex.h
+  - cublas.h
+  - cublasLt.h
+  - cublas_v2.h
+  - cuda.h
+  - cuda/annotated_ptr
+  - cuda/atomic
+  - cuda/barrier
+  - cuda/discard_memory
+  - cuda/functional
+  - cuda/latch
+  - cuda/memory_resource
+  - cuda/pipeline
+  - cuda/ptx
+  - cuda/semaphore
+  - cuda/stream_ref
+  - cuda/std/atomic
+  - cuda/std/array
+  - cuda/std/cassert
+  - cuda/std/cmath
+  - cuda/std/complex
+  - cuda/std/cstddef
+  - cuda/std/cstdint
+  - cuda/std/functional
+  - cuda/std/limits
+  - cuda/std/tuple
+  - cuda/std/type_traits
+  - cuda/std/__tuple_dir/structured_bindings.h
+  - cuda/std/utility
+  - cuda/std/version
+  - cudaEGL.h
+  - cudaProfiler.h
+  - cudaTypedefs.h
+  - cuda_bf16.h
+  - cuda_bf16.hpp
+  - cuda_fp16.h
+  - cuda_fp16.hpp
+  - cuda_fp4.h
+  - cuda_fp6.h
+  - cuda_fp8.h
+  - __pstl_algorithm
+  - cuda_gl_interop.h
+  - cuda_occupancy.h
+  - cuda_pipeline_primitives.h
+  - cuda_profiler_api.h
+  - cuda_runtime.h:           build/internal/platform/cuda/cuda_runtime_include.h
+  - cuda_runtime_api.h
+  - cufft.h
+  - cufftXt.h
+  - cupti.h
+  - cupti_pmsampling.h
+  - cupti_profiler_target.h
+  - cupti_target.h
+  - curand.h
+  - curand_kernel.h
+  - curand_mtgp32_host.h
+  - curand_mtgp32dc_p_11213.h
+  - cusolverDn.h
+  - cusolverSp.h
+  - cusparse.h
+  - cusparseLt.h
+  - device_atomic_functions.h
+  - device_launch_parameters.h
+  - device_types.h
+  - driver_types.h
+  - host_defines.h
+  - library_types.h
+  - math_constants.h
+  - mma.h
+  - npp.h
+  - nppdefs.h
+  - nppi.h
+  - nppi_filtering_functions.h
+  - npps.h
+  - nv/target
+  - nvToolsExt.h
+  - nvToolsExtCuda.h
+  - nvml.h
+  - nvperf_cuda_host.h
+  - nvperf_host.h
+  - nvperf_target.h
+  - nvrtc.h
+  - nvtx3/nvToolsExt.h
+  - surface_types.h
+  - texture_types.h
+  - vector_types.h
+
+# These headers should be provided by TensorRT.
+# Proper solution must be found in DTCC-171
+- source_filter: "^contrib/libs/tf/.*"
+  includes:
+  - NvInfer.h
+  - NvInferPlugin.h
+
+- source_filter: "^contrib/libs/nvidia/nccl/.*"
+  includes:
+  - nvtx3/nvToolsExt.h: "contrib/libs/nvidia/nccl/src/include/nvtx3/nvToolsExt.h"

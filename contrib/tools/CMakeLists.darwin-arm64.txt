@@ -13,4 +13,5 @@
 # changes in this file.
 
 add_subdirectory(protoc)
+add_subdirectory(cython)
 add_subdirectory(swig)

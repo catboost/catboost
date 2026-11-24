@@ -1,0 +1,12 @@
+# This file is conditionally included from ymake.core.conf to ensure
+# that contrib/libs/ibdrv/include/{infiniband/verbs.h,rdma/rdma_cma.h}
+# are the only ibdrv headers needed for opensource catboost
+# (transitively from library/cpp/netliba). They are replaced by empty
+# files in put_arcadia_to_git.sh.
+
+- source_filter: "^contrib/libs/ibdrv"
+  includes:
+    - infiniband/sa.h
+    - infiniband/verbs.h
+    - infiniband/verbs_api.h
+    - rdma/rdma_cma.h
