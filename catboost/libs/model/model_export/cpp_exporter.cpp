@@ -24,7 +24,8 @@ namespace NCB {
 
     static inline TString WriteInitializerName(const TString& name) {
         TStringBuilder out;
-        out << "." << name << " = ";
+        // Keep field labels in the generated code without requiring C++20.
+        out << "/*" << name << "=*/ ";
         return out;
     }
 

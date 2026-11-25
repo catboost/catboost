@@ -101,14 +101,11 @@ def test_cpp_export(dataset, parameters, with_namespace):
 
     if os.name == 'posix':
         # note that 'g++' on macOS is an alias to 'clang++' so this will work on macOS as well
-        compile_cmd = ['g++', '-std=c++14', '-o', applicator_exe]
+        compile_cmd = ['g++', '-std=c++14', '-pedantic-errors', '-o', applicator_exe]
         if with_namespace:
             compile_cmd += ['-DWITH_CPP_NAMESPACE=TestNamespace']
     else:
-        # Generated code for models with categorical features requires C++20 because it uses designated initializers.
-        # Issue to allow older standards: https://github.com/catboost/catboost/issues/3172
-        cpp_standard_arg = '/std:c++14' if dataset == 'higgs' else '/std:c++20'
-        compile_cmd = ['cl.exe', cpp_standard_arg, '-Fe' + applicator_exe]
+        compile_cmd = ['cl.exe', '/std:c++14', '-Fe' + applicator_exe]
         if with_namespace:
             compile_cmd += ['/DWITH_CPP_NAMESPACE=TestNamespace']
 

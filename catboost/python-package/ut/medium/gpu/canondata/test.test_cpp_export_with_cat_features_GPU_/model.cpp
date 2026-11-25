@@ -145,97 +145,97 @@ static const struct CatboostModel {
     double Biases[1] = {0.7821782231};
     unsigned int Dimension = 1;
     struct TCatboostCPPExportModelCtrs modelCtrs = {
-        .UsedModelCtrsCount = 6,
-        .CompressedModelCtrs = {
+        /*UsedModelCtrsCount=*/ 6,
+        /*CompressedModelCtrs=*/ {
             {
-                .Projection = {
-                    .transposedCatFeatureIndexes = {3},
-                    .binarizedIndexes = {},
+                /*Projection=*/ {
+                    /*transposedCatFeatureIndexes=*/ {3},
+                    /*binarizedIndexes=*/ {},
                 },
-                .ModelCtrs = {
-                    {.BaseHash = 7143027501654808510ull, .BaseCtrType = ECatboostCPPExportModelCtrType::Borders, .TargetBorderIdx = 0, .PriorNum = 0.5, .PriorDenom = 1, .Shift = 0, .Scale = 1},
-                    {.BaseHash = 13098404409511680397ull, .BaseCtrType = ECatboostCPPExportModelCtrType::FeatureFreq, .TargetBorderIdx = 0, .PriorNum = 0, .PriorDenom = 1, .Shift = 0, .Scale = 1}
+                /*ModelCtrs=*/ {
+                    {/*BaseHash=*/ 7143027501654808510ull, /*BaseCtrType=*/ ECatboostCPPExportModelCtrType::Borders, /*TargetBorderIdx=*/ 0, /*PriorNum=*/ 0.5, /*PriorDenom=*/ 1, /*Shift=*/ 0, /*Scale=*/ 1},
+                    {/*BaseHash=*/ 13098404409511680397ull, /*BaseCtrType=*/ ECatboostCPPExportModelCtrType::FeatureFreq, /*TargetBorderIdx=*/ 0, /*PriorNum=*/ 0, /*PriorDenom=*/ 1, /*Shift=*/ 0, /*Scale=*/ 1}
                 }
             },
             {
-                .Projection = {
-                    .transposedCatFeatureIndexes = {7},
-                    .binarizedIndexes = {},
+                /*Projection=*/ {
+                    /*transposedCatFeatureIndexes=*/ {7},
+                    /*binarizedIndexes=*/ {},
                 },
-                .ModelCtrs = {
-                    {.BaseHash = 7143027501654808506ull, .BaseCtrType = ECatboostCPPExportModelCtrType::Borders, .TargetBorderIdx = 0, .PriorNum = 1, .PriorDenom = 1, .Shift = 0, .Scale = 1}
+                /*ModelCtrs=*/ {
+                    {/*BaseHash=*/ 7143027501654808506ull, /*BaseCtrType=*/ ECatboostCPPExportModelCtrType::Borders, /*TargetBorderIdx=*/ 0, /*PriorNum=*/ 1, /*PriorDenom=*/ 1, /*Shift=*/ 0, /*Scale=*/ 1}
                 }
             },
             {
-                .Projection = {
-                    .transposedCatFeatureIndexes = {8},
-                    .binarizedIndexes = {},
+                /*Projection=*/ {
+                    /*transposedCatFeatureIndexes=*/ {8},
+                    /*binarizedIndexes=*/ {},
                 },
-                .ModelCtrs = {
-                    {.BaseHash = 7143027501654808485ull, .BaseCtrType = ECatboostCPPExportModelCtrType::Borders, .TargetBorderIdx = 0, .PriorNum = 0, .PriorDenom = 1, .Shift = 0, .Scale = 1},
-                    {.BaseHash = 7143027501654808485ull, .BaseCtrType = ECatboostCPPExportModelCtrType::Borders, .TargetBorderIdx = 0, .PriorNum = 1, .PriorDenom = 1, .Shift = 0, .Scale = 1}
+                /*ModelCtrs=*/ {
+                    {/*BaseHash=*/ 7143027501654808485ull, /*BaseCtrType=*/ ECatboostCPPExportModelCtrType::Borders, /*TargetBorderIdx=*/ 0, /*PriorNum=*/ 0, /*PriorDenom=*/ 1, /*Shift=*/ 0, /*Scale=*/ 1},
+                    {/*BaseHash=*/ 7143027501654808485ull, /*BaseCtrType=*/ ECatboostCPPExportModelCtrType::Borders, /*TargetBorderIdx=*/ 0, /*PriorNum=*/ 1, /*PriorDenom=*/ 1, /*Shift=*/ 0, /*Scale=*/ 1}
                 }
             },
             {
-                .Projection = {
-                    .transposedCatFeatureIndexes = {10},
-                    .binarizedIndexes = {},
+                /*Projection=*/ {
+                    /*transposedCatFeatureIndexes=*/ {10},
+                    /*binarizedIndexes=*/ {},
                 },
-                .ModelCtrs = {
-                    {.BaseHash = 13098404409511680404ull, .BaseCtrType = ECatboostCPPExportModelCtrType::FeatureFreq, .TargetBorderIdx = 0, .PriorNum = 0, .PriorDenom = 1, .Shift = 0, .Scale = 1}
+                /*ModelCtrs=*/ {
+                    {/*BaseHash=*/ 13098404409511680404ull, /*BaseCtrType=*/ ECatboostCPPExportModelCtrType::FeatureFreq, /*TargetBorderIdx=*/ 0, /*PriorNum=*/ 0, /*PriorDenom=*/ 1, /*Shift=*/ 0, /*Scale=*/ 1}
                 }
             }
         },
-        .CtrData = {
-            .LearnCtrs = {
+        /*CtrData=*/ {
+            /*LearnCtrs=*/ {
                 {
                     7143027501654808485ull,
                     {
-                        .IndexHashViewer = {{18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {8473802870189803490ull, 0}, {7071392469244395075ull, 2}, {18446744073709551615ull, 0}, {8806438445905145973ull, 3}, {619730330622847022ull, 1}, {18446744073709551615ull, 0}},
-                        .TargetClassesCount = 2,
-                        .CounterDenominator = 0,
-                        .CtrMeanHistory = {{.Sum = 2.94273e-44, .Count = 61}, {.Sum = 0, .Count = 12}, {.Sum = 1.4013e-45, .Count = 5}, {.Sum = 0, .Count = 1}},
-                        .CtrTotal = {21, 61, 0, 12, 1, 5, 0, 1}
+                        /*IndexHashViewer=*/ {{18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {8473802870189803490ull, 0}, {7071392469244395075ull, 2}, {18446744073709551615ull, 0}, {8806438445905145973ull, 3}, {619730330622847022ull, 1}, {18446744073709551615ull, 0}},
+                        /*TargetClassesCount=*/ 2,
+                        /*CounterDenominator=*/ 0,
+                        /*CtrMeanHistory=*/ {{/*Sum=*/ 2.94273e-44, /*Count=*/ 61}, {/*Sum=*/ 0, /*Count=*/ 12}, {/*Sum=*/ 1.4013e-45, /*Count=*/ 5}, {/*Sum=*/ 0, /*Count=*/ 1}},
+                        /*CtrTotal=*/ {21, 61, 0, 12, 1, 5, 0, 1}
                     }
                 },
                 {
                     7143027501654808506ull,
                     {
-                        .IndexHashViewer = {{3607388709394294015ull, 5}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18356215166324018775ull, 2}, {18365206492781874408ull, 1}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {14559146096844143499ull, 4}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {11416626865500250542ull, 3}, {5549384008678792175ull, 0}},
-                        .TargetClassesCount = 2,
-                        .CounterDenominator = 0,
-                        .CtrMeanHistory = {{.Sum = 0, .Count = 22}, {.Sum = 2.8026e-45, .Count = 3}, {.Sum = 0, .Count = 14}, {.Sum = 2.66247e-44, .Count = 17}, {.Sum = 0, .Count = 22}, {.Sum = 1.4013e-45, .Count = 1}},
-                        .CtrTotal = {0, 22, 2, 3, 0, 14, 19, 17, 0, 22, 1, 1}
+                        /*IndexHashViewer=*/ {{3607388709394294015ull, 5}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18356215166324018775ull, 2}, {18365206492781874408ull, 1}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {14559146096844143499ull, 4}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {11416626865500250542ull, 3}, {5549384008678792175ull, 0}},
+                        /*TargetClassesCount=*/ 2,
+                        /*CounterDenominator=*/ 0,
+                        /*CtrMeanHistory=*/ {{/*Sum=*/ 0, /*Count=*/ 22}, {/*Sum=*/ 2.8026e-45, /*Count=*/ 3}, {/*Sum=*/ 0, /*Count=*/ 14}, {/*Sum=*/ 2.66247e-44, /*Count=*/ 17}, {/*Sum=*/ 0, /*Count=*/ 22}, {/*Sum=*/ 1.4013e-45, /*Count=*/ 1}},
+                        /*CtrTotal=*/ {0, 22, 2, 3, 0, 14, 19, 17, 0, 22, 1, 1}
                     }
                 },
                 {
                     7143027501654808510ull,
                     {
-                        .IndexHashViewer = {{18446744073709551615ull, 0}, {15379737126276794113ull, 5}, {18446744073709551615ull, 0}, {14256903225472974739ull, 3}, {18048946643763804916ull, 1}, {2051959227349154549ull, 4}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {7024059537692152076ull, 6}, {18446744073709551615ull, 0}, {15472181234288693070ull, 2}, {8864790892067322495ull, 0}},
-                        .TargetClassesCount = 2,
-                        .CounterDenominator = 0,
-                        .CtrMeanHistory = {{.Sum = 1.4013e-44, .Count = 58}, {.Sum = 0, .Count = 4}, {.Sum = 1.4013e-45, .Count = 6}, {.Sum = 1.4013e-45, .Count = 5}, {.Sum = 4.2039e-45, .Count = 6}, {.Sum = 2.8026e-45, .Count = 0}, {.Sum = 7.00649e-45, .Count = 0}},
-                        .CtrTotal = {10, 58, 0, 4, 1, 6, 1, 5, 3, 6, 2, 0, 5, 0}
+                        /*IndexHashViewer=*/ {{18446744073709551615ull, 0}, {15379737126276794113ull, 5}, {18446744073709551615ull, 0}, {14256903225472974739ull, 3}, {18048946643763804916ull, 1}, {2051959227349154549ull, 4}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {7024059537692152076ull, 6}, {18446744073709551615ull, 0}, {15472181234288693070ull, 2}, {8864790892067322495ull, 0}},
+                        /*TargetClassesCount=*/ 2,
+                        /*CounterDenominator=*/ 0,
+                        /*CtrMeanHistory=*/ {{/*Sum=*/ 1.4013e-44, /*Count=*/ 58}, {/*Sum=*/ 0, /*Count=*/ 4}, {/*Sum=*/ 1.4013e-45, /*Count=*/ 6}, {/*Sum=*/ 1.4013e-45, /*Count=*/ 5}, {/*Sum=*/ 4.2039e-45, /*Count=*/ 6}, {/*Sum=*/ 2.8026e-45, /*Count=*/ 0}, {/*Sum=*/ 7.00649e-45, /*Count=*/ 0}},
+                        /*CtrTotal=*/ {10, 58, 0, 4, 1, 6, 1, 5, 3, 6, 2, 0, 5, 0}
                     }
                 },
                 {
                     13098404409511680397ull,
                     {
-                        .IndexHashViewer = {{18446744073709551615ull, 0}, {15379737126276794113ull, 5}, {18446744073709551615ull, 0}, {14256903225472974739ull, 3}, {18048946643763804916ull, 1}, {2051959227349154549ull, 4}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {7024059537692152076ull, 6}, {18446744073709551615ull, 0}, {15472181234288693070ull, 2}, {8864790892067322495ull, 0}},
-                        .TargetClassesCount = 0,
-                        .CounterDenominator = 101,
-                        .CtrMeanHistory = {{.Sum = 9.52883e-44, .Count = 4}, {.Sum = 9.80909e-45, .Count = 6}, {.Sum = 1.26117e-44, .Count = 2}},
-                        .CtrTotal = {68, 4, 7, 6, 9, 2, 5}
+                        /*IndexHashViewer=*/ {{18446744073709551615ull, 0}, {15379737126276794113ull, 5}, {18446744073709551615ull, 0}, {14256903225472974739ull, 3}, {18048946643763804916ull, 1}, {2051959227349154549ull, 4}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {7024059537692152076ull, 6}, {18446744073709551615ull, 0}, {15472181234288693070ull, 2}, {8864790892067322495ull, 0}},
+                        /*TargetClassesCount=*/ 0,
+                        /*CounterDenominator=*/ 101,
+                        /*CtrMeanHistory=*/ {{/*Sum=*/ 9.52883e-44, /*Count=*/ 4}, {/*Sum=*/ 9.80909e-45, /*Count=*/ 6}, {/*Sum=*/ 1.26117e-44, /*Count=*/ 2}},
+                        /*CtrTotal=*/ {68, 4, 7, 6, 9, 2, 5}
                     }
                 },
                 {
                     13098404409511680404ull,
                     {
-                        .IndexHashViewer = {{2136296385601851904ull, 0}, {7428730412605434673ull, 2}, {9959754109938180626ull, 6}, {14256903225472974739ull, 1}, {8056048104805248435ull, 3}, {18446744073709551615ull, 0}, {12130603730978457510ull, 5}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {10789443546307262781ull, 4}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}},
-                        .TargetClassesCount = 0,
-                        .CounterDenominator = 101,
-                        .CtrMeanHistory = {{.Sum = 1.30321e-43, .Count = 1}, {.Sum = 2.8026e-45, .Count = 2}, {.Sum = 1.4013e-45, .Count = 1}},
-                        .CtrTotal = {93, 1, 2, 2, 1, 1, 1}
+                        /*IndexHashViewer=*/ {{2136296385601851904ull, 0}, {7428730412605434673ull, 2}, {9959754109938180626ull, 6}, {14256903225472974739ull, 1}, {8056048104805248435ull, 3}, {18446744073709551615ull, 0}, {12130603730978457510ull, 5}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}, {10789443546307262781ull, 4}, {18446744073709551615ull, 0}, {18446744073709551615ull, 0}},
+                        /*TargetClassesCount=*/ 0,
+                        /*CounterDenominator=*/ 101,
+                        /*CtrMeanHistory=*/ {{/*Sum=*/ 1.30321e-43, /*Count=*/ 1}, {/*Sum=*/ 2.8026e-45, /*Count=*/ 2}, {/*Sum=*/ 1.4013e-45, /*Count=*/ 1}},
+                        /*CtrTotal=*/ {93, 1, 2, 2, 1, 1, 1}
                     }
                 }
             }
