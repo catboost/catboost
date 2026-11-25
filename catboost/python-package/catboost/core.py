@@ -2278,9 +2278,6 @@ class _CatBoostBase(object):
             'check_fit1d':
                 'TODO: CatBoost API allows to pass 1d array as features data (as a single feature),'
                 ' maybe this behavior should be tunable in the future',
-            'check_fit2d_1sample':
-                'TODO: raise ValueError mentioning "sample" instead of a current error. '
-                'https://github.com/catboost/catboost/issues/3003',
             'check_fit2d_predict1d':
                 'TODO: CatBoost API allows to pass 1d array for prediction for a single sample,'
                 ' maybe this behavior should be tunable in the future',
@@ -2792,13 +2789,19 @@ class CatBoost(_CatBoostBase):
             allow_clear_pool = train_params["allow_clear_pool"]
 
             with plot_wrapper(plot, plot_file, 'Training plots', [_get_train_dir(params)]):
-                self._train(
-                    train_pool,
-                    train_params["eval_sets"],
-                    params,
-                    allow_clear_pool,
-                    train_params["init_model"]
-                )
+                try:
+                    self._train(
+                        train_pool,
+                        train_params["eval_sets"],
+                        params,
+                        allow_clear_pool,
+                        train_params["init_model"]
+                    )
+                except CatBoostError as error:
+                    # Explicit or existing quantization borders can make a single sample trainable.
+                    if train_pool.num_row() == 1 and str(error).endswith("All features are either constant or ignored."):
+                        raise ValueError("Cannot fit CatBoost on 1 sample: all features are either constant or ignored.") from error
+                    raise
 
             # Have property feature_importance possibly set
             loss = self._object._get_loss_function_name()

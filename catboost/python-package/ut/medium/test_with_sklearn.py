@@ -110,6 +110,31 @@ def test_sklearn_estimator_api_compatibility(estimator, check):
     check(estimator)
 
 
+@pytest.mark.parametrize('estimator', [CatBoostClassifier, CatBoostRegressor])
+def test_fit_single_sample_from_quantized_pool(estimator):
+    pool = Pool([[0], [1], [2], [3]], [0, 1, 0, 1])
+    pool.quantize()
+    model = estimator(iterations=1, thread_count=1, verbose=False,
+                      allow_writing_files=False, allow_const_label=True)
+
+    model.fit(pool.slice([0]))
+
+    assert model.is_fitted()
+
+
+@pytest.mark.parametrize('estimator', [CatBoostClassifier, CatBoostRegressor])
+def test_fit_single_sample_with_input_borders(estimator, tmp_path):
+    borders_file = tmp_path / 'borders.tsv'
+    borders_file.write_text('0\t0.5\n', encoding='utf-8')
+    model = estimator(iterations=1, thread_count=1, verbose=False,
+                      allow_writing_files=False, allow_const_label=True,
+                      input_borders=str(borders_file))
+
+    model.fit([[1.0]], [0])
+
+    assert model.is_fitted()
+
+
 def test_custom_splitting_before_cv_sklearn_kfold():
     cv_dataset = Pool(TRAIN_FILE, column_description=CD_FILE)
 
