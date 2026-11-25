@@ -4221,6 +4221,25 @@ def test_cv_with_save_snapshot(task_type):
         )
 
 
+@pytest.mark.parametrize('in_params', [False, True])
+def test_cv_rejects_snapshot_file(in_params):
+    pool = Pool([[0], [1], [2], [3], [4], [5]], [0, 1, 0, 1, 0, 1])
+    params = {'loss_function': 'Logloss', 'iterations': 1, 'allow_writing_files': False,
+              'thread_count': 1}
+    folds = [
+        (np.array([0, 1, 2, 3]), np.array([4, 5])),
+        (np.array([2, 3, 4, 5]), np.array([0, 1])),
+    ]
+    kwargs = {}
+    if in_params:
+        params['snapshot_file'] = 'experiment.cbsnapshot'
+    else:
+        kwargs['snapshot_file'] = 'experiment.cbsnapshot'
+
+    with pytest.raises(CatBoostError, match='snapshot_file'):
+        cv(pool, params, folds=folds, **kwargs)
+
+
 @pytest.mark.parametrize("params", [
     {"loss_function": "Logloss", "eval_metric": "AUC"},
     {"loss_function": "RMSE", "eval_metric": "R2"},

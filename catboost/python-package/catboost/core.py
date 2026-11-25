@@ -7260,7 +7260,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         Enable progress snapshotting for restoring progress after crashes or interruptions
 
     snapshot_file : string or os.PathLike, [default=None]
-        Learn progress snapshot file path, if None will use default filename
+        Snapshot filenames are not supported by cross-validation.
 
     snapshot_interval: int, [default=600]
         Interval between saving snapshots (seconds)
@@ -7360,8 +7360,8 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if save_snapshot is not None:
         params['save_snapshot'] = save_snapshot
 
-    if snapshot_file is not None:
-        params['snapshot_file'] = snapshot_file
+    if snapshot_file is not None or params.get('snapshot_file') is not None:
+        raise CatBoostError("Cross-validation does not support snapshot_file.")
 
     if snapshot_interval is not None:
         params['snapshot_interval'] = snapshot_interval
