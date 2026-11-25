@@ -194,7 +194,7 @@ namespace NKernel {
                         localStats[k] = Ldg(stats, warpSize * k);
                     }
 
-                    hist.AddPoints<N>(localBins, localStats);
+                    hist.template AddPoints<N>(localBins, localStats);
 
                     bins += stripeSize;
                     stats += stripeSize;
@@ -244,7 +244,7 @@ namespace NKernel {
                     stats += stripeSize;
                     indices += stripeSize;
 
-                    hist.AddPoints<N>(localBins, localStats);
+                    hist.template AddPoints<N>(localBins, localStats);
                 }
             }
 
@@ -288,7 +288,7 @@ namespace NKernel {
                     stats += stripeSize;
                     bins += stripeSize;
 
-                    hist.AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats);
+                    hist.template AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats);
                 }
             }
 
@@ -333,7 +333,7 @@ namespace NKernel {
                     stats += stripeSize;
                     indices += stripeSize;
 
-                    hist.AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats);
+                    hist.template AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats);
                 }
             }
 
@@ -377,7 +377,7 @@ namespace NKernel {
                     stats += stripeSize;
                     bins += stripeSize;
 
-                    hist.AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats);
+                    hist.template AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats);
                 }
             }
 
@@ -426,7 +426,7 @@ namespace NKernel {
                     stats += stripeSize;
                     indices += stripeSize;
 
-                    hist.AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats);
+                    hist.template AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats);
                 }
             }
 

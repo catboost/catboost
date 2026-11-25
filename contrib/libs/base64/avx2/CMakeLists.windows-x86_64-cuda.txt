@@ -32,6 +32,9 @@ set_property(
   PROPERTY
   COMPILE_OPTIONS
   /D__AVX2__=1
+  # clang needs -mavx2 to enable the
+  # AVX2 intrinsics this codec variant uses; cl.exe allows them unconditionally.
+  $<IF:$<C_COMPILER_ID:MSVC>,,-mavx2>
 )
 
 set_property(
@@ -41,4 +44,7 @@ set_property(
   PROPERTY
   COMPILE_OPTIONS
   /D__AVX2__=1
+  # clang needs -mavx2 to enable the
+  # AVX2 intrinsics this codec variant uses; cl.exe allows them unconditionally.
+  $<IF:$<C_COMPILER_ID:MSVC>,,-mavx2>
 )
