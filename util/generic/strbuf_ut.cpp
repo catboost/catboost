@@ -281,7 +281,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         TStringBuf s{helloThere};
 
         size_t index = 0;
-        for (auto it = s.cbegin(); s.cend() != it; ++it, ++index) {
+        for (const char* it = s.cbegin(); s.cend() != it; ++it, ++index) {
             UNIT_ASSERT_VALUES_EQUAL(helloThere[index], *it);
         }
     }
