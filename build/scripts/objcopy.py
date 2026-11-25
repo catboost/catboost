@@ -1,10 +1,11 @@
 import argparse
-import sys, os
 import base64
 import hashlib
-import tempfile
+import os
 import shutil
 import subprocess
+import sys
+import tempfile
 from collections import namedtuple
 from unittest.mock import patch
 
@@ -51,8 +52,8 @@ class LLVMResourceInserter:
     PackedArgs = namedtuple("PackedArgs", ["infile_path", "comressed_file_path", "symbol_name"])
 
     def _compress_files(self, infos: list[PackedArgs]) -> list[int]:
-        if len(infos) == 0:
-            return [0]
+        if not infos:
+            return []
         # Compress resources
         cmd = [self.compressor, "--compress-only"]
         for inserted_file, compressed_file, _ in infos:
@@ -94,10 +95,6 @@ class LLVMResourceInserter:
         if len(infos) == 0 or TOTAL_SIZE == 0:
             return ''
 
-        syms = []
-        for packed_args in infos:
-            syms += [sym for (_, _, sym) in packed_args]
-
         cumulative_pos = [0] * (len(f_sizes) + 1)
         for i, sz in enumerate(f_sizes):
             cumulative_pos[i + 1] = cumulative_pos[i] + sz
@@ -109,7 +106,7 @@ class LLVMResourceInserter:
         generated_return = f'static {SECTION_ATTR} const char {HOLDER_VARIABLE}[{TOTAL_SIZE}] = {{0}};\n'
         template = '#define {sym}      ({var} + {begin_offset})\n'
         template += '#define {sym}_end  ({var} + {end_offset})\n'
-        for sym, start_offset, size in zip(syms, cumulative_pos, f_sizes):
+        for (_, _, sym), start_offset, size in zip(infos, cumulative_pos, f_sizes):
             generated_return += template.format(
                 sym=sym, begin_offset=start_offset, end_offset=start_offset + size, var=HOLDER_VARIABLE
             )
@@ -121,18 +118,19 @@ class LLVMResourceInserter:
 
         # Step 1: Compress files and save its sizes
         file_sizes = []
-        infos = [[]]
+        batches = [[]]
         estimated_cmd_len = 0
         LIMIT = 6000
         for idx, (path, key) in enumerate(kv_files):
-            packed_args = (path, os.path.join(self.tmpdir, f'{idx}.zstd'), self.mangler(key))
-            infos[-1].append(packed_args)
+            packed_file = self.PackedArgs(path, os.path.join(self.tmpdir, f'{idx}.zstd'), self.mangler(key))
+            batches[-1].append(packed_file)
             estimated_cmd_len += len(path)
             if estimated_cmd_len > LIMIT:
-                infos.append([])
+                batches.append([])
                 estimated_cmd_len = 0
-        for packed_args in infos:
-            file_sizes += self._compress_files(packed_args)
+        for batch in batches:
+            file_sizes.extend(self._compress_files(batch))
+        packed_files = [packed_file for batch in batches for packed_file in batch]
 
         # Introduce custom tmp_filename generator for keeping object-file hash the same
         def tmp_file_generator():
@@ -158,7 +156,7 @@ class LLVMResourceInserter:
             with open(dummy_src.name, 'rt') as f:
                 generated_source_text = f.read()
             generated_source_text = generated_source_text.replace('extern "C" const char', '// extern "C" const char')
-            generated_source_text = self._gen_prefix(infos, file_sizes) + generated_source_text
+            generated_source_text = self._gen_prefix(packed_files, file_sizes) + generated_source_text
             with open(dummy_src.name, 'wt') as f:
                 f.write(generated_source_text)
 
@@ -167,7 +165,7 @@ class LLVMResourceInserter:
 
         # Step 3: Put files into object
         if sum(file_sizes) > 0:
-            self._insert_files(packed_args, file_sizes, self.obj_out)
+            self._insert_files(packed_files, file_sizes, self.obj_out)
 
         return self.obj_out
 
