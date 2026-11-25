@@ -54,7 +54,3 @@
     - netinet/tcp.h: contrib/libs/esp-idf/components/lwip/port/esp32/include/netinet/tcp.h
     - sys/socket.h: contrib/libs/esp-idf/components/lwip/port/esp32/include/sys/socket.h
     - netdb.h: contrib/libs/esp-idf/components/lwip/port/esp32/include/netdb.h
-
-- source_filter: "^yandex_io/libs/ws/tls_wrapper/mbedtls/"
-  includes:
-    - mbedtls/x509_crt.h: smart_devices/third_party/espressif/esp-idf/5.5_esp32c5/components/mbedtls/mbedtls/include/mbedtls/x509_crt.h
