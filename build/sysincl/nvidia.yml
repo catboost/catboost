@@ -51,6 +51,7 @@
   - cuda_runtime_api.h
   - cufft.h
   - cufftXt.h
+  - cudla.h
   - cupti.h
   - cupti_pmsampling.h
   - cupti_profiler_target.h
@@ -99,3 +100,8 @@
 - source_filter: "^contrib/libs/nvidia/nccl/.*"
   includes:
   - nvtx3/nvToolsExt.h: "contrib/libs/nvidia/nccl/src/include/nvtx3/nvToolsExt.h"
+
+# NvSci IPC includes this system header only under __QNX__.
+- source_filter: "^contrib/libs/nvidia/nvsci/private/.*"
+  includes:
+  - sys/iofunc.h
