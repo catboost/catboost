@@ -1,11 +1,13 @@
 #pragma once
 
 #include <util/generic/buffer.h>
+#include <util/generic/ptr.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
+#include <util/stream/fwd.h>
 
 namespace NBlockCodecs {
     struct TData: public TStringBuf {
@@ -83,6 +85,32 @@ namespace NBlockCodecs {
     using TCodecPtr = THolder<ICodec>;
 
     const ICodec* Codec(const TStringBuf& name);
+
+    struct TStreamingBlockEncoderFactory;
+
+    class TCodecProperties {
+    public:
+        TCodecProperties() = default;
+
+        // The encoder takes incremental writes and produces one block readable by ICodec::Decode.
+        bool SupportsStreamingBlockEncode() const noexcept;
+
+        // Returns null if unsupported. The destination must outlive the encoder. Call Finish()
+        // before consuming the result. Unlike TCodedOutput, no extra framing is added.
+        // The string overload appends a block without requiring the uncompressed size in advance.
+        THolder<IOutputStream> TryMakeStreamingBlockEncoder(TString& output) const;
+        // For a forward-only destination, uncompressedSize must match the total bytes written.
+        THolder<IOutputStream> TryMakeStreamingBlockEncoder(IOutputStream& output, ui64 uncompressedSize) const;
+
+    private:
+        friend TCodecProperties GetCodecProperties(TStringBuf name);
+
+        const ICodec* Codec_ = nullptr;
+        const TStreamingBlockEncoderFactory* StreamingBlockEncoderFactory_ = nullptr;
+    };
+
+    // Aliases have the same properties as their target. Throws TNotFound for an unregistered name.
+    TCodecProperties GetCodecProperties(TStringBuf name);
 
     // some aux methods
     typedef TVector<TStringBuf> TCodecList;
