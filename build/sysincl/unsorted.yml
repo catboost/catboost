@@ -299,7 +299,6 @@
   - crypto/cryptodev.h
   - cxcore.h
   - efndef
-  - exiv2/types.hpp
   - hw_ubsec.h
   - jpidef.h
   - lckdef.h
