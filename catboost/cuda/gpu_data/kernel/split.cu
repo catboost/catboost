@@ -9,27 +9,28 @@ namespace NKernel {
     struct TBinSplitLoader {
         const ui32* CompressedIndex;
         const ui32* Indices;
-        ui32 Value;
+        ui32 BinIdx;
         ui32 Mask;
+        ui32 Shift;
         bool TakeEqual;
 
         __forceinline__ __device__ TBinSplitLoader(const ui32* index,
                                                    const ui32* indices,
-                                                   const ui32 value,
-                                                   const ui32 mask,
-                                                   bool takeEqual)
+                                                   ui32 binIdx,
+                                                   const TCFeature& feature)
                 : CompressedIndex(index)
                 , Indices(indices)
-                , Value(value)
-                , Mask(mask)
-                , TakeEqual(takeEqual) {
+                , BinIdx(binIdx)
+                , Mask(feature.Mask)
+                , Shift(feature.Shift)
+                , TakeEqual(feature.OneHotFeature) {
 
         }
 
         __forceinline__ __device__ ui32 operator()(ui32 offset) {
             const ui32 idx = Indices ? Indices[offset] : offset;
-            const ui32 featureVal = CompressedIndex[idx] & Mask;
-            return static_cast<ui32>(TakeEqual ? (featureVal == Value) : featureVal > Value);
+            const ui32 featureVal = (CompressedIndex[idx] >> Shift) & Mask;
+            return static_cast<ui32>(TakeEqual ? (featureVal == BinIdx) : featureVal > BinIdx);
         }
     };
 
@@ -91,10 +92,7 @@ namespace NKernel {
         compressedBits += BLOCK_SIZE * blockIdx.x;
         compressedIndex += feature.Offset;
 
-        const ui32 value = binIdx << feature.Shift;
-        const ui32 mask = feature.Mask << feature.Shift;
-
-        TBinSplitLoader loader(compressedIndex, indices, value, mask, feature.OneHotFeature);
+        TBinSplitLoader loader(compressedIndex, indices, binIdx, feature);
         helper.CompressBlock(loader, size, compressedBits);
     }
 
@@ -188,13 +186,10 @@ namespace NKernel {
         compressedIndex += feature.Offset;
         int i =  blockIdx.x * blockDim.x + threadIdx.x;
 
-        const ui32 value = binIdx << feature.Shift;
-        const ui32 mask = feature.Mask << feature.Shift;
-
         while (i < size) {
             const ui32 idx = indices ? __ldg(indices + i) : i;
-            const ui32 featureVal = __ldg(compressedIndex + idx) & mask;
-            const ui32 split = (feature.OneHotFeature ? (featureVal == value) : featureVal > value);
+            const ui32 featureVal = (__ldg(compressedIndex + idx) >> feature.Shift) & feature.Mask;
+            const ui32 split = (feature.OneHotFeature ? (featureVal == binIdx) : featureVal > binIdx);
             bins[i] |= split << depth;
             i += blockDim.x * gridDim.x;
         }
