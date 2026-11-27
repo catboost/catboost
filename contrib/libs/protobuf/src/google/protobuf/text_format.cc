@@ -1465,6 +1465,7 @@ class TextFormat::Printer::TextGenerator
           // Saw newline.  If there is more text, we may need to insert an
           // indent here.  So, write what we have so far, including the '\n'.
           Write(text + pos, i - pos + 1);
+          if (failed_) return;
           pos = i + 1;
 
           // Setting this true will cause the next Write() to insert an indent
@@ -2272,6 +2273,7 @@ void TextFormat::Printer::PrintMessage(const Message& message,
     std::sort(fields.begin(), fields.end(), FieldIndexSorter());
   }
   for (const FieldDescriptor* field : fields) {
+    if (generator->failed()) return;
     PrintField(message, reflection, field, generator);
   }
   if (!hide_unknown_fields_) {
@@ -2703,6 +2705,7 @@ void TextFormat::Printer::PrintUnknownFields(
     const UnknownFieldSet& unknown_fields, BaseTextGenerator* generator,
     int recursion_budget) const {
   for (int i = 0; i < unknown_fields.field_count(); i++) {
+    if (generator->failed()) return;
     const UnknownField& field = unknown_fields.field(i);
     TProtoStringType field_number = y_absl::StrCat(field.number());
 

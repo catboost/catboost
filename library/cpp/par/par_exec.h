@@ -10,9 +10,9 @@
 
 #include <util/generic/is_in.h>
 #include <util/generic/vector.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
-#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/yield.h>
+
+#include <atomic>
 
 namespace NPar {
     struct TDeserializedCmds {
@@ -46,8 +46,8 @@ namespace NPar {
         TVector<TVector<char>> ResultData;
         TVector<bool> ResultHasData;
         TVector<int> RemapTable;
-        TAtomic ReduceReqCount;
-        TAtomic CurrentState; // 0 = working, -1 = complete/canceled
+        std::atomic<ssize_t> ReduceReqCount;
+        std::atomic<bool> Finished{false};
         TGUID MasterGuid;
 
         int CountHasData(int* iPtr) {
@@ -62,9 +62,9 @@ namespace NPar {
             return hasDataCount;
         }
         void DoneReduceTask() {
-            if (AtomicAdd(ReduceReqCount, -1) != 0)
+            if (--ReduceReqCount != 0)
                 return;
-            if (AtomicCas(&CurrentState, -1, 0)) {
+            if (!Finished.exchange(true)) {
                 if (!RemapTable.empty()) {
                     int reduceResultCount = RemapTable.ysize();
                     for (int i = 0; i < reduceResultCount; ++i)
@@ -91,7 +91,7 @@ namespace NPar {
             return MasterGuid;
         }
         void Cancel() {
-            if (AtomicCas(&CurrentState, -1, 0)) {
+            if (!Finished.exchange(true)) {
                 if (CompleteNotify.Get()) {
                     CompleteNotify->MRCommandComplete(true, nullptr);
                     CompleteNotify = nullptr;
@@ -100,7 +100,7 @@ namespace NPar {
             }
         }
         bool NeedResult() {
-            if (AtomicGet(CurrentState) != 0)
+            if (Finished.load(std::memory_order_acquire))
                 return false;
             if (CancelCheck.Get()) {
                 if (!CancelCheck->MRIsCmdNeeded()) {
@@ -147,7 +147,7 @@ namespace NPar {
                     PAR_DEBUG_LOG << "Launch reduce task " << firstId << Endl;
                     int cmdId = JobRequest->Descr.ExecList[firstId].CmdId;
                     Cmds.Check(cmdId);
-                    AtomicAdd(ReduceReqCount, 1);
+                    ++ReduceReqCount;
                     if (JobRequest->IsLowPriority)
                         LocalExecutor().Exec(this, firstId, TLocalExecutor::MED_PRIORITY);
                     else
@@ -171,7 +171,6 @@ namespace NPar {
             , CompleteNotify(completeNotify)
             , Cmds(jobRequest)
             , ReduceReqCount(0)
-            , CurrentState(0)
         {
             resultData->swap(ResultData);
             resultHasData->swap(ResultHasData);
@@ -208,18 +207,21 @@ namespace NPar {
         TIntrusivePtr<IMRCommandCompleteNotify> CompleteNotify, CancelCheck;
         TDeserializedCmds Cmds;
 
+        inline static std::atomic<ui64> LocalMapWins{0};
+        inline static std::atomic<ui64> RemoteMapWins{0};
+
         // map job result buffers
         TMapResultBuffer RemoteMapBuf, LocalMapBuf;
-        TMapResultBuffer* volatile MapResult;
+        std::atomic<TMapResultBuffer*> MapResult;
 
-        TAtomic LocalMapReqCount, RemoteMapReqCount;
+        std::atomic<ssize_t> LocalMapReqCount, RemoteMapReqCount;
         TIntrusivePtr<IUserContext> UserContext, LocalUserContext;
 
         // remote result buffers
         TVector<TRemoteMapInfo> MapParts;
         TVector<bool> PartCompleted;
         TVector<int> MapJob2PartId;
-        TAtomic RemoteJobCount;
+        std::atomic<ssize_t> RemoteJobCount;
         int LocalPartId;
 
         TLockFreeStack<TGUID> AllReqList;
@@ -248,7 +250,7 @@ namespace NPar {
                     int cmdId = JobRequest->Descr.ExecList[i].CmdId;
                     Cmds.Check(cmdId);
                 }
-                AtomicAdd(LocalMapReqCount, mapJobCount);
+                LocalMapReqCount += mapJobCount;
                 int execRangeFlags = JobRequest->IsLowPriority ? TLocalExecutor::MED_PRIORITY : 0;
                 LocalExecutor().ExecRange(this, 0, mapJobCount, execRangeFlags);
                 DoneLocalMapTask();
@@ -287,7 +289,7 @@ namespace NPar {
 
                 const int FAKE_REMOTE_JOB_COUNT = 100; // needed to prevent rescheduling of not started job
                 RemoteMapReqCount += partCount;
-                AtomicSet(RemoteJobCount, partCount + FAKE_REMOTE_JOB_COUNT);
+                RemoteJobCount.store(partCount + FAKE_REMOTE_JOB_COUNT, std::memory_order_release);
 
                 // launch part ops
                 LocalPartId = -1;
@@ -299,7 +301,7 @@ namespace NPar {
                         part->DstHost = localCompId;
                         LocalPartId = i;
                         TMRCommandExec::Launch(jr, QueryProc.Get(), localCompId, UserContext.Get(), this);
-                        AtomicAdd(RemoteJobCount, -1); // this one is not remote
+                        --RemoteJobCount; // this one is not remote
                     } else {
                         TVector<char> buf;
                         SerializeToMem(&buf, *jr);
@@ -309,7 +311,7 @@ namespace NPar {
                     }
                 }
                 //Y_ASSERT(LocalPartId >= 0); // can happen
-                AtomicAdd(RemoteJobCount, -FAKE_REMOTE_JOB_COUNT);
+                RemoteJobCount -= FAKE_REMOTE_JOB_COUNT;
                 DoneRemoteMapTask();
                 if (LocalPartId == -1)
                     TryToExecAllMapsLocally();
@@ -346,14 +348,14 @@ namespace NPar {
                 }
             }
 
-            if (LocalUserContext->HasHostIds(hostIdSet) && AtomicGet(MapResult) == nullptr) {
+            if (LocalUserContext->HasHostIds(hostIdSet) && MapResult.load(std::memory_order_acquire) == nullptr) {
                 Y_ASSERT(LocalMapReqCount == 0);
                 LocalMapReqCount = 1;
                 for (int i = 0; i < mapJobCount; ++i) {
                     int cmdId = JobRequest->Descr.ExecList[i].CmdId;
                     Cmds.Check(cmdId);
                 }
-                AtomicAdd(LocalMapReqCount, mapJobCount);
+                LocalMapReqCount += mapJobCount;
                 LocalExecutor().ExecRange(this, 0, mapJobCount, TLocalExecutor::LOW_PRIORITY);
                 DoneLocalMapTask();
             }
@@ -361,7 +363,8 @@ namespace NPar {
         void Cancel() {
             CHROMIUM_TRACE_FUNCTION();
             // can cancel op if reduce has not started yet
-            if (AtomicCas(&MapResult, (TMapResultBuffer*)-1, (TMapResultBuffer*)nullptr)) {
+            TMapResultBuffer* expected = nullptr;
+            if (MapResult.compare_exchange_strong(expected, reinterpret_cast<TMapResultBuffer*>(-1))) {
                 PAR_DEBUG_LOG << "MRExec canceled" << Endl;
                 CancelAllRemoteQueries();
                 if (CompleteNotify.Get()) {
@@ -423,7 +426,7 @@ namespace NPar {
                 return;
             }
             CopyRemoteTaskResults(id, &res.Result);
-            if (AtomicAdd(RemoteJobCount, -1) == 1) {
+            if (--RemoteJobCount == 1) {
                 // last job left, try to reschedule it, probably new copy will finish faster
                 int partId = -1;
                 for (int i = 0; i < MapParts.ysize(); ++i) {
@@ -433,7 +436,7 @@ namespace NPar {
                     }
                 }
                 //Y_ASSERT(partId != -1); // possible since RemoteJobCount is modified from LaunchOps() in different thread
-                if (partId >= 0 && AtomicGet(MapResult) == nullptr)
+                if (partId >= 0 && MapResult.load(std::memory_order_acquire) == nullptr)
                     ReschedulePartRequest(partId);
             }
             DoneRemoteMapTask();
@@ -446,7 +449,7 @@ namespace NPar {
             if (!NeedResult())
                 return;
             CopyRemoteTaskResults(LocalPartId, res);
-            if (AtomicGet(RemoteJobCount) > 0) {
+            if (RemoteJobCount.load(std::memory_order_acquire) > 0) {
                 // completed local part, lets try to execute all the rest map jobs locally
                 // "local-remote balance"
                 TryToExecAllMapsLocally();
@@ -475,7 +478,7 @@ namespace NPar {
         void LocalExec(int id) override {
             // do map task locally
             const TJobParams& params = JobRequest->Descr.ExecList[id];
-            if (NeedResult() && AtomicGet(MapResult) == nullptr) {
+            if (NeedResult() && MapResult.load(std::memory_order_acquire) == nullptr) {
                 int partId = MapJob2PartId[id];
                 if (partId == -1 || !PartCompleted[partId]) {
                     TVector<char>& dataBuf = LocalMapBuf.ResultData[id];
@@ -486,26 +489,28 @@ namespace NPar {
             }
         }
         void StartReduce() {
-            auto* const mapResult = AtomicGet(MapResult);
+            auto* const mapResult = MapResult.load(std::memory_order_acquire);
             TReduceExec::Launch(JobRequest.Get(), CompleteNotify.Get(), &mapResult->ResultData, &mapResult->ResultHasData);
         }
         void DoneRemoteMapTask() {
-            if (AtomicAdd(RemoteMapReqCount, -1) != 0)
+            if (--RemoteMapReqCount != 0)
                 return;
-            if (AtomicCas(&MapResult, &RemoteMapBuf, (TMapResultBuffer*)nullptr)) {
+            TMapResultBuffer* expected = nullptr;
+            if (MapResult.compare_exchange_strong(expected, &RemoteMapBuf)) {
                 CancelAllRemoteQueries();
                 PAR_DEBUG_LOG << "Remote maps completed first" << Endl;
-                AtomicAdd(RemoteMapWins, 1);
+                RemoteMapWins.fetch_add(1, std::memory_order_relaxed);
                 StartReduce();
             }
         }
         Y_FORCE_INLINE void DoneLocalMapTask() {
-            if (AtomicAdd(LocalMapReqCount, -1) != 0)
+            if (--LocalMapReqCount != 0)
                 return;
             DoneLocalMapTaskImpl();
         }
         void DoneLocalMapTaskImpl() {
-            if (AtomicCas(&MapResult, &LocalMapBuf, (TMapResultBuffer*)nullptr)) {
+            TMapResultBuffer* expected = nullptr;
+            if (MapResult.compare_exchange_strong(expected, &LocalMapBuf)) {
                 CancelAllRemoteQueries();
 
                 // so local map exec finished first, copy complete remote results to local buf
@@ -526,7 +531,7 @@ namespace NPar {
                 }
                 if (!MapParts.empty()) {
                     PAR_DEBUG_LOG << "Local maps completed first" << Endl;
-                    AtomicAdd(LocalMapWins, 1); // count only wins over competing remote execs
+                    LocalMapWins.fetch_add(1, std::memory_order_relaxed); // count only wins over competing remote execs
                 } else {
                     PAR_DEBUG_LOG << "Local maps done" << Endl;
                 }
@@ -534,7 +539,7 @@ namespace NPar {
             }
         }
         bool NeedResult() {
-            if (AtomicGet(MapResult) != nullptr)
+            if (MapResult.load(std::memory_order_acquire) != nullptr)
                 return false;
             if (CancelCheck.Get()) {
                 if (!CancelCheck->MRIsCmdNeeded()) {
@@ -573,9 +578,6 @@ namespace NPar {
             Cancel();
         }
 
-    public:
-        static TAtomic LocalMapWins, RemoteMapWins;
-
         static void Launch(TJobRequest* jobRequest,
                            TRemoteQueryProcessor* queryProc,
                            int localCompId,
@@ -613,9 +615,9 @@ namespace NPar {
         TVector<TVector<char>> ResultData;
         TVector<bool> ResultHasData;
         TVector<TBlock> Blocks;
-        TAtomic CurrentBlockId;
-        void* IsCanceledFlag;
-        TAtomic ActiveOpCount;
+        std::atomic<ssize_t> CurrentBlockId;
+        std::atomic<bool> Finished{false};
+        std::atomic<ssize_t> ActiveOpCount;
         TGUID MasterGuid;
 
         enum {
@@ -635,7 +637,7 @@ namespace NPar {
                     int count = ResultMap.ysize();
                     for (int i = 0; i < count; ++i)
                         Parent->ResultData[ResultMap[i]].swap((*res)[i]);
-                    AtomicAdd(Parent->ActiveOpCount, -1);
+                    --Parent->ActiveOpCount;
 
                     Parent->StartNextBlock();
                 }
@@ -653,7 +655,7 @@ namespace NPar {
         };
 
         void Cancel() {
-            if (AtomicCas(&IsCanceledFlag, (void*)this, (void*)nullptr)) {
+            if (!Finished.exchange(true)) {
                 PAR_DEBUG_LOG << "SplitMRExec canceled" << Endl;
                 if (CompleteNotify.Get())
                     CompleteNotify->MRCommandComplete(true, nullptr);
@@ -667,20 +669,20 @@ namespace NPar {
                 return;
             }
             int blockId, nextBlockId;
-            AtomicAdd(ActiveOpCount, 1);
+            ++ActiveOpCount;
             if (ds == IUserContext::DATA_COMPLETE) {
                 int blockCount = Blocks.ysize();
-                blockId = AtomicAdd(CurrentBlockId, blockCount) - blockCount;
+                blockId = CurrentBlockId.fetch_add(blockCount);
                 nextBlockId = Blocks.ysize();
             } else {
-                blockId = AtomicAdd(CurrentBlockId, 1) - 1;
+                blockId = CurrentBlockId.fetch_add(1);
                 nextBlockId = blockId + 1;
             }
             if (blockId >= Blocks.ysize()) {
                 // no new ops to launch
                 // check if the work is complete
-                AtomicAdd(ActiveOpCount, -1); // cancel this block
-                if (AtomicAdd(ActiveOpCount, 0) == 0 && AtomicCas(&IsCanceledFlag, (void*)this, (void*)nullptr))
+                --ActiveOpCount; // cancel this block
+                if (ActiveOpCount.load() == 0 && !Finished.exchange(true))
                     TReduceExec::Launch(JobRequest.Get(), CompleteNotify.Get(), &ResultData, &ResultHasData);
             } else {
                 int startIdx = Blocks[blockId].StartIdx;
@@ -706,7 +708,7 @@ namespace NPar {
                     return;
                 }
 
-                if (IsCanceledFlag)
+                if (Finished.load(std::memory_order_acquire))
                     return;
 
                 if (LaunchJobRequest(jr.Get(), QueryProc.Get(), UserContext.Get(), bc.Get()))
@@ -724,7 +726,6 @@ namespace NPar {
             , CompleteNotify(mrNotify)
             , UserContext(userContext)
             , CurrentBlockId(0)
-            , IsCanceledFlag(nullptr)
             , ActiveOpCount(0)
         {
             int mapJobCount = jobRequest->Descr.ExecList.ysize();
