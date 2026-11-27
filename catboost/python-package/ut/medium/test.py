@@ -1791,6 +1791,38 @@ def test_onnx_export(problem_type, boost_from_average):
     return compare_canonical_models(output_onnx_model_path, diff_limit=1e-18)
 
 
+@pytest.mark.parametrize('boost_from_average', [False, True])
+def test_onnx_regression_output_shape(task_type, boost_from_average):
+    onnx = pytest.importorskip('onnx')
+    onnxruntime = pytest.importorskip('onnxruntime')
+    features = np.arange(32, dtype=np.float32).reshape(-1, 1)
+    model = CatBoostRegressor(iterations=5, depth=2, task_type=task_type,
+                             boost_from_average=boost_from_average, verbose=False).fit(features, features[:, 0] ** 2)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(path, format='onnx')
+    proto = onnx.load(path)
+    onnx.checker.check_model(proto, full_check=True)
+    shape = proto.graph.output[0].type.tensor_type.shape
+    assert len(shape.dim) == 2
+    assert shape.dim[0].dim_param == 'N'
+    assert shape.dim[1].dim_value == 1
+    session = onnxruntime.InferenceSession(path, providers=['CPUExecutionProvider'])
+    assert session.get_outputs()[0].shape == ['N', 1]
+    for batch_size in (1, 7, 32):
+        batch = features[:batch_size]
+        predictions = session.run(['predictions'], {'features': batch})[0]
+        assert predictions.shape == (batch_size, 1)
+        assert np.allclose(predictions[:, 0], model.predict(batch), rtol=1e-5, atol=1e-5)
+
+        output_shape = [batch_size if dim == 'N' else dim for dim in session.get_outputs()[0].shape]
+        output = onnxruntime.OrtValue.ortvalue_from_numpy(np.empty(output_shape, dtype=np.float32))
+        binding = session.io_binding()
+        binding.bind_cpu_input('features', batch)
+        binding.bind_ortvalue_output('predictions', output)
+        session.run_with_iobinding(binding)
+        assert np.array_equal(output.numpy(), predictions)
+
+
 @pytest.mark.parametrize(
     'problem_type,boost_from_average',
     ONNX_TEST_PARAMETERS,
@@ -2157,38 +2189,6 @@ def test_onnx_import_with_only_categorical_features():
     loaded_pred = loaded_model.predict(train_pool)
 
     assert np.allclose(cb_pred, loaded_pred, atol=1e-4)
-
-
-@pytest.mark.parametrize('boost_from_average', [False, True])
-def test_onnx_regression_output_shape(task_type, boost_from_average):
-    onnx = pytest.importorskip('onnx')
-    onnxruntime = pytest.importorskip('onnxruntime')
-    features = np.arange(32, dtype=np.float32).reshape(-1, 1)
-    model = CatBoostRegressor(iterations=5, depth=2, task_type=task_type,
-                             boost_from_average=boost_from_average, verbose=False).fit(features, features[:, 0] ** 2)
-    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
-    model.save_model(path, format='onnx')
-    proto = onnx.load(path)
-    onnx.checker.check_model(proto, full_check=True)
-    shape = proto.graph.output[0].type.tensor_type.shape
-    assert len(shape.dim) == 2
-    assert shape.dim[0].dim_param == 'N'
-    assert shape.dim[1].dim_value == 1
-    session = onnxruntime.InferenceSession(path, providers=['CPUExecutionProvider'])
-    assert session.get_outputs()[0].shape == ['N', 1]
-    for batch_size in (1, 7, 32):
-        batch = features[:batch_size]
-        predictions = session.run(['predictions'], {'features': batch})[0]
-        assert predictions.shape == (batch_size, 1)
-        assert np.allclose(predictions[:, 0], model.predict(batch), rtol=1e-5, atol=1e-5)
-
-        output_shape = [batch_size if dim == 'N' else dim for dim in session.get_outputs()[0].shape]
-        output = onnxruntime.OrtValue.ortvalue_from_numpy(np.empty(output_shape, dtype=np.float32))
-        binding = session.io_binding()
-        binding.bind_cpu_input('features', batch)
-        binding.bind_ortvalue_output('predictions', output)
-        session.run_with_iobinding(binding)
-        assert np.array_equal(output.numpy(), predictions)
 
 
 def test_onnx_export_lightgbm_import_catboost():
