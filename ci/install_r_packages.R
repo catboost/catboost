@@ -5,8 +5,8 @@ missing_packages <- function() {
     packages[!vapply(packages, requireNamespace, logical(1), quietly = TRUE)]
 }
 
+missing <- missing_packages()
 for (attempt in seq_len(3L)) {
-    missing <- missing_packages()
     if (!length(missing)) {
         break
     }
@@ -17,15 +17,12 @@ for (attempt in seq_len(3L)) {
     )
     # install.packages can report download failures as warnings and return
     # successfully, so check that the requested namespaces actually load.
-    if (!length(missing_packages())) {
-        break
-    }
-    if (attempt < 3L) {
+    missing <- missing_packages()
+    if (length(missing) && attempt < 3L) {
         Sys.sleep(5L)
     }
 }
 
-missing <- missing_packages()
 if (length(missing)) {
     stop("R packages unavailable after 3 installation attempts: ", paste(missing, collapse = ", "))
 }
