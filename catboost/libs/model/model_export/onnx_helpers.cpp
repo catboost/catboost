@@ -577,9 +577,9 @@ static void AddTree(
     const TModelTrees& trees,
     i64 treeIdx,
     bool isClassifierModel,
-    double binaryClassifierBias,
     const TOnnxFeaturesLayout& layout,
-    TTreesAttributes* treesAttributes) {
+    TTreesAttributes* treesAttributes,
+    double binaryClassifierBias = 0.0) {
 
     i64 nodeIdx = 0;
 
@@ -790,7 +790,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
     }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
         const double binaryClassifierBias = foldBinaryBias && treeIdx == 0 ? scaleAndBias.GetOneDimensionalBiasOrZero() : 0.0;
-        AddTree(trees, treeIdx, isClassifierModel, binaryClassifierBias, layout, &treesAttributes);
+        AddTree(trees, treeIdx, isClassifierModel, layout, &treesAttributes, binaryClassifierBias);
     }
 }
 
