@@ -15,7 +15,7 @@ from catboost import Pool, _have_equal_features, CatBoost, CatBoostClassifier, C
 import catboost.utils
 
 try:
-    import pyarrow  # noqa: F401
+    import pyarrow
     has_pyarrow = True
 except ImportError:
     has_pyarrow = False
@@ -336,11 +336,18 @@ def preprocess_data(
         X = X[offset:]
         Xpl = Xpl.slice(offset=offset)
         if has_pyarrow:
-            if isinstance(Xpl, pl.DataFrame):
-                for column in Xpl:
+            columns = Xpl if isinstance(Xpl, pl.DataFrame) else [Xpl]
+            # Polars may materialize these slices on Arrow export. Its 128-bit
+            # integers use a private Arrow format that PyArrow cannot import.
+            materialized = (pl.Array, pl.Categorical, pl.Object)
+            int128_types = (getattr(pl, 'Int128', None), getattr(pl, 'UInt128', None))
+            for column in columns:
+                if column.dtype == pl.String:
+                    # Pool consumes string views from the Arrow C stream.
+                    if hasattr(pyarrow, 'string_view'):
+                        assert pyarrow.chunked_array(column).chunk(0).offset == offset
+                elif column.dtype not in materialized + int128_types:
                     assert column.to_arrow().offset == offset
-            elif isinstance(Xpl, pl.Series):
-                assert Xpl.to_arrow().offset == offset
 
     n_samples_after_offset = len(X)
 
