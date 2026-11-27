@@ -1,0 +1,18 @@
+- includes:
+  - thrust/count.h
+  - thrust/device_ptr.h
+  - thrust/device_vector.h
+  - thrust/functional.h
+  - thrust/execution_policy.h
+  - thrust/iterator/constant_iterator.h
+  - thrust/iterator/counting_iterator.h
+  - thrust/iterator/iterator_facade.h
+  - thrust/iterator/iterator_traits.h
+  - thrust/iterator/transform_iterator.h
+  - thrust/scan.h
+  - thrust/sort.h
+  - thrust/system/cuda/execution_policy.h
+  - thrust/transform.h
+  - thrust/tuple.h
+  - thrust/unique.h
+  - thrust/version.h

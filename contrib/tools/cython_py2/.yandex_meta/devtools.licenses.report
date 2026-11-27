@@ -1,0 +1,172 @@
+# File format ($ symbol means the beginning of a line):
+#
+# $ # this message
+# $ # =======================
+# $     # comments (all commentaries should starts with some number of spaces and # symbol)
+# $ IGNORE_FILES {file1.ext1} {file2.ext2} - (optional) ignore listed files when generating license macro and credits
+# $ RENAME {original license id} TO {new license id} # user comments - (optional) use {new license id} instead {original license id} in ya.make files
+# $ # user comments
+# $
+# ${action} {license id} {license text hash}
+# $BELONGS ./ya/make/file/relative/path/1/ya.make ./ya/make/2/ya.make
+# ${all_file_action} filename
+# $ # user commentaries (many lines)
+# $ generated description - files with this license, license text... (some number of lines that starts with some number of spaces, do not modify)
+# ${action} {license spdx} {license text hash}
+# $BELONGS ./ya/make/file/relative/path/3/ya.make
+# ${all_file_action} filename
+# $    #    user commentaries
+# $ generated description
+# $ ...
+#
+# You can modify action, all_file_action and add commentaries
+# Available actions:
+# keep - keep license in contrib and use in credits
+# skip - skip license
+# remove - remove all files with this license
+# rename - save license text/links into licenses texts file, but not store SPDX into LINCENSE macro. You should store correct license id into devtools.license.spdx.txt file
+#
+# {all file action} records will be generated when license text contains filename that exists on filesystem (in contrib directory)
+# We suppose that that files can contain some license info
+# Available all file actions:
+# FILE_IGNORE - ignore file (do nothing)
+# FILE_INCLUDE - include all file data into licenses text file
+# =======================
+
+KEEP     LicenseRef-scancode-unknown-license-reference 05a06fc4032d942dd3f429b0a85e5ada
+BELONGS ya.make
+    License text:
+        The original Pyrex code as of 2006-04 is licensed under the following
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 16.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        COPYING.txt [1:1]
+
+KEEP     LicenseRef-scancode-unknown-license-reference AND Apache-2.0 1400309c67a0aa7225fd6bc233a2a832
+BELONGS ya.make
+    License text:
+        Cython itself is licensed under the permissive **Apache License**.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 16.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        README.rst [40:40]
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        README.rst [40:40]
+
+KEEP     Apache-2.0           158a5755dff2e18f301fa2391d29ce23
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        LICENSE.txt [1:176]
+
+KEEP     Apache-2.0           184f7a78939a4fbb79148cfa29a95a48
+BELONGS ya.make
+    License text:
+        Cython, which derives from Pyrex, is licensed under the Apache 2.0
+        Software License.  More precisely, all modifications and new code
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 44.00
+        Match type      : REFERENCE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        COPYING.txt [7:8]
+
+SKIP     GPL-2.0-or-later AND Bootloader-exception 35b681ec6079cfeb49b0bd28c29f807a
+BELONGS Cython/ya.make
+    License text:
+        \# Distributed under the terms of the Modified BSD License.
+        \#
+        \# The full license is in the file ipython-COPYING.rst, distributed with this software.
+    Scancode info:
+        Original SPDX id: GPL-2.0-or-later
+        Score           : 57.58
+        Match type      : NOTICE
+        Links           : http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html, https://spdx.org/licenses/GPL-2.0-or-later
+    Files with this license:
+        Cython/Build/IpythonMagic.py [42:44]
+    Scancode info:
+        Original SPDX id: Bootloader-exception
+        Score           : 57.58
+        Match type      : NOTICE
+        Links           : https://github.com/pyinstaller/pyinstaller/blob/develop/COPYING.txt, https://spdx.org/licenses/Bootloader-exception
+    Files with this license:
+        Cython/Build/IpythonMagic.py [42:44]
+
+KEEP     Apache-2.0           6daa5d0a3df49b5ad21479adec3c9229
+BELONGS ya.make
+    License text:
+        License: Apache-2.0
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        .dist-info/METADATA [8:8]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 77e02435d3b0399a4f806e7a6b17ea8c
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: COPYING.txt at line 11
+    License text:
+        See LICENSE.txt for more details.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        COPYING.txt [11:11]
+
+KEEP     Public-Domain        8176b91ad5b7258faab82ba488e9da9d
+BELONGS Cython/ya.make
+    License text:
+        //   Written by Rusty Russell, public domain, https://ccodearchive.net/
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-public-domain
+        Score           : 70.00
+        Match type      : REFERENCE
+        Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
+    Files with this license:
+        Cython/Utility/ObjectHandling.c [2521:2521]
+
+KEEP     Apache-2.0           86e8237b9a37a6951edea992afba41f3
+BELONGS ya.make
+    License text:
+        Classifier: License :: OSI Approved :: Apache Software License
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 95.00
+        Match type      : TAG
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        .dist-info/METADATA [16:16]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 8ec7c99b03de2d2c6bd840f80b68cb59
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: README.rst at line 42
+    License text:
+        See `LICENSE.txt <https://github.com/cython/cython/blob/master/LICENSE.txt>`_.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        README.rst [42:42]

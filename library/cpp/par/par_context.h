@@ -10,8 +10,9 @@
 #include <library/cpp/chromium_trace/interface.h>
 #include <library/cpp/binsaver/bin_saver.h>
 
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/thread.h>
+
+#include <atomic>
 
 namespace NPar {
     class TThreadIdChecker {
@@ -104,11 +105,11 @@ namespace NPar {
     class TReplyForwarder: public IRemoteQueryResponseNotify {
         TIntrusivePtr<TRemoteQueryProcessor> QueryProc;
         TGUID ReqId;
-        TAtomic RespCount;
+        std::atomic<ssize_t> RespCount;
 
         void GotResponse(int, TVector<char>* response) override {
             CHROMIUM_TRACE_FUNCTION();
-            if (AtomicDecrement(RespCount) == 0) {
+            if (--RespCount == 0) {
                 QueryProc->SendReply(ReqId, response);
             }
         }
@@ -333,7 +334,7 @@ namespace NPar {
         THashMap<int, TFullCtxInfo> EnvId2Info;
         TMutex Sync;
         TVector<int> ComputerSendCount;
-        TAtomic DistributionIsComplete;
+        std::atomic<bool> DistributionIsComplete;
 
         struct TTransferInfo {
             int EnvId, HostId;
@@ -356,7 +357,7 @@ namespace NPar {
         };
         int QueryId;
         THashMap<int, TTransferInfo> TransferInfos;
-        TAtomic ActiveReqCount;
+        std::atomic<ssize_t> ActiveReqCount;
         int SlaveCount;
         TIntrusivePtr<TLocalDataBuffer> WriteBuffer;
 

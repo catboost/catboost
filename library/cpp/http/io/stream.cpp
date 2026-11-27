@@ -128,7 +128,7 @@ namespace {
         ui16 BlockSize_;
         THolder<IOutputStream> Slave_;
     };
-}
+} // namespace
 
 class THttpInput::TImpl {
     typedef THashSet<TString> TAcceptCodings;
@@ -223,7 +223,7 @@ private:
                 if (Options_.StrictContentLength) {
                     if (const ui64 left = ContentLengthLeft()) {
                         ythrow THttpTruncatedBodyException() << "Body ended after " << (ContentLength_ - left)
-                                                            << " of " << ContentLength_ << " byte(s) declared in Content-Length";
+                                                             << " of " << ContentLength_ << " byte(s) declared in Content-Length";
                     }
                 }
                 Trailers_.ConstructInPlace();
@@ -297,9 +297,9 @@ private:
         size_t pos = FirstLine_.rfind(' ');
         // In HTTP/1.1 Keep-Alive is turned on by default
         if (pos != TString::npos && strcmp(FirstLine_.c_str() + pos + 1, "HTTP/1.1") == 0) {
-            p.KeepAlive = true; //request
+            p.KeepAlive = true; // request
         } else if (strnicmp(FirstLine_.data(), "HTTP/1.1", 8) == 0) {
-            p.KeepAlive = true; //reply
+            p.KeepAlive = true; // reply
         }
 
         for (THttpHeaders::TConstIterator h = Headers_.Begin(); h != Headers_.End(); ++h) {
@@ -449,8 +449,7 @@ TString THttpInput::BestCompressionScheme(TArrayRef<const TStringBuf> codings) c
         [this](const TString& coding) {
             return AcceptEncoding(coding);
         },
-        codings
-    );
+        codings);
 }
 
 TString THttpInput::BestCompressionScheme() const {
@@ -667,10 +666,12 @@ private:
 
     inline bool HasResponseBody() const noexcept {
         if (IsHttpResponse()) {
-            if (Request_ && Request_->FirstLine().StartsWith(TStringBuf("HEAD")))
+            if (Request_ && Request_->FirstLine().StartsWith(TStringBuf("HEAD"))) {
                 return false;
-            if (FirstLine_.size() > 9 && strncmp(FirstLine_.data() + 9, "204", 3) == 0)
+            }
+            if (FirstLine_.size() > 9 && strncmp(FirstLine_.data() + 9, "204", 3) == 0) {
                 return false;
+            }
             return true;
         }
         return false;
@@ -942,6 +943,26 @@ void THttpOutput::DoFlush() {
 
 void THttpOutput::DoFinish() {
     Impl_->Finish();
+}
+
+bool WriteHttpRequestWithExtraHeaders(IOutputStream& out, TStringBuf request, const THttpHeaders& extraHeaders) {
+    TStringBuf line;
+    TStringBuf remaining;
+    if (!request.TrySplit('\n', line, remaining) || line.empty() || line == "\r") {
+        return false;
+    }
+
+    while (remaining.TrySplit('\n', line, remaining)) {
+        if (line.empty() || line == "\r") {
+            const size_t offset = line.data() - request.data();
+            out.Write(request.Head(offset));
+            extraHeaders.OutTo(&out);
+            out.Write(request.Tail(offset));
+            return true;
+        }
+    }
+
+    return false;
 }
 
 const THttpHeaders& THttpOutput::SentHeaders() const noexcept {

@@ -68,6 +68,12 @@ public:
         return false;
     }
 
+    // Finish a close-delimited message. Return false for premature EOF;
+    // content decoding can still throw, just as in Parse(data, 0).
+    [[nodiscard]] bool TryFinishOnEof();
+
+    static constexpr TStringBuf IncompleteResponseMessage = "incompleted http response";
+
     const char* Data() const noexcept {
         return Data_;
     }
@@ -148,6 +154,7 @@ private:
     void ParseHeaderLine();
 
     void OnEof();
+    bool IsEofExpected() const noexcept;
 
     void ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val);
 

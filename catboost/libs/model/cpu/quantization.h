@@ -1,6 +1,8 @@
 #pragma once
 
 #include <catboost/libs/model/model.h>
+#include "simd.h"
+#include "onehot_simd.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
@@ -51,6 +53,7 @@ namespace NCB::NModelEvaluation {
         }
     };
 
+    template <bool UseWideKernels = false>
     inline void OneHotBinsFromTransposedCatFeatures(
         const TConstArrayRef<TOneHotFeature> OneHotFeatures,
         const THashMap<int, int> catFeaturePackedIndex,
@@ -60,6 +63,16 @@ namespace NCB::NModelEvaluation {
     ) {
         for (const auto& oheFeature : OneHotFeatures) {
             const auto catIdx = catFeaturePackedIndex.at(oheFeature.CatFeatureIndex);
+            if constexpr (UseWideKernels) {
+                if (docCount >= 64) {
+                    if (auto kernel = NDetail::GetWideOneHot()) {
+                        kernel(transposedHash.data() + catIdx * docCount, docCount,
+                            oheFeature.Values.data(), oheFeature.Values.size(), result);
+                        result += docCount * ((oheFeature.Values.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN);
+                        continue;
+                    }
+                }
+            }
             for (size_t docId = 0; docId < docCount; ++docId) {
                 static_assert(sizeof(int) >= sizeof(i32));
                 const int val = *reinterpret_cast<i32*>(&(transposedHash[catIdx * docCount + docId]));
@@ -75,6 +88,73 @@ namespace NCB::NModelEvaluation {
                 }
             }
             result += docCount * ((oheFeature.Values.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN);
+        }
+    }
+
+    template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
+    Y_NO_INLINE void BinarizeFloatsWide(
+        TFeaturePosition position, size_t docCount, TFloatFeatureAccessor accessor,
+        TConstArrayRef<float> borders, size_t start, ui8*& result, float replacement,
+        NDetail::TBinarizeFunction kernel) {
+        alignas(64) float values[FORMULA_EVALUATION_BLOCK_SIZE];
+        for (size_t doc = 0; doc < docCount; ++doc) {
+            values[doc] = accessor(position, start + doc);
+        }
+        kernel(values, docCount, borders.data(), borders.size(), UseNanSubstitution, replacement, result);
+        result += docCount * ((borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN);
+    }
+
+    template <size_t FeatureCount, typename TFloatFeatureAccessor>
+    Y_NO_INLINE void BinarizeFloatFeatureGroup(
+        const TFloatFeature* const* features, const TFeatureLayout* featureInfo,
+        size_t docCount, TFloatFeatureAccessor accessor, size_t start,
+        ui8*& result, NDetail::TBinarizeFunction kernel) {
+        TFeaturePosition positions[FeatureCount];
+        for (size_t feature = 0; feature < FeatureCount; ++feature) {
+            positions[feature] = featureInfo
+                                     ? featureInfo->GetRemappedPosition(*features[feature])
+                                     : features[feature]->Position;
+        }
+        alignas(64) float values[FeatureCount][FORMULA_EVALUATION_BLOCK_SIZE];
+        // Read several features while the same document row is in cache.
+        for (size_t doc = 0; doc < docCount; ++doc) {
+            for (size_t feature = 0; feature < FeatureCount; ++feature) {
+                values[feature][doc] = accessor(positions[feature], start + doc);
+            }
+        }
+        for (size_t feature = 0; feature < FeatureCount; ++feature) {
+            const auto& floatFeature = *features[feature];
+            const bool substitute = floatFeature.HasNans &&
+                                    floatFeature.NanValueTreatment != TFloatFeature::ENanValueTreatment::AsIs;
+            const float infinity = std::numeric_limits<float>::infinity();
+            const float replacement = floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue
+                                          ? infinity
+                                          : -infinity;
+            kernel(values[feature], docCount, floatFeature.Borders.data(), floatFeature.Borders.size(),
+                   substitute, replacement, result);
+            result += docCount * ((floatFeature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN);
+        }
+    }
+
+    template <typename TFloatFeatureAccessor>
+    Y_NO_INLINE void BinarizeFloatFeaturesWide(
+        TConstArrayRef<TFloatFeature> features, const TFeatureLayout* featureInfo,
+        size_t docCount, TFloatFeatureAccessor accessor, size_t start,
+        ui8*& result, NDetail::TBinarizeFunction kernel) {
+        const TFloatFeature* group[4];
+        size_t size = 0;
+        for (const auto& feature : features) {
+            if (!feature.UsedInModel()) {
+                continue;
+            }
+            group[size++] = &feature;
+            if (size == 4) {
+                BinarizeFloatFeatureGroup<4>(group, featureInfo, docCount, accessor, start, result, kernel);
+                size = 0;
+            }
+        }
+        for (size_t feature = 0; feature < size; ++feature) {
+            BinarizeFloatFeatureGroup<1>(group + feature, featureInfo, docCount, accessor, start, result, kernel);
         }
     }
 
@@ -142,7 +222,7 @@ namespace NCB::NModelEvaluation {
 
 #ifndef ARCADIA_SSE
 
-    template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
+    template <bool UseNanSubstitution, typename TFloatFeatureAccessor, bool UseWideKernels = false>
     Y_FORCE_INLINE void BinarizeFloats(
         TFeaturePosition position,
         const size_t docCount,
@@ -165,7 +245,7 @@ namespace NCB::NModelEvaluation {
 
 #else
 
-    template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
+    template <bool UseNanSubstitution, typename TFloatFeatureAccessor, bool UseWideKernels = false>
     Y_FORCE_INLINE void BinarizeFloats(
         TFeaturePosition position,
         const size_t docCount,
@@ -175,6 +255,15 @@ namespace NCB::NModelEvaluation {
         ui8*& result,
         const float nanSubstitutionValue = 0.0f
     ) {
+        if constexpr (UseWideKernels) {
+            if (docCount >= 64 && docCount <= FORMULA_EVALUATION_BLOCK_SIZE) {
+                if (auto kernel = NDetail::GetWideBinarize()) {
+                    BinarizeFloatsWide<UseNanSubstitution>(position, docCount, floatAccessor, borders,
+                        start, result, nanSubstitutionValue, kernel);
+                    return;
+                }
+            }
+        }
         const __m128 substitutionValVec = _mm_set1_ps(nanSubstitutionValue);
         const auto docCount16 = (docCount | 0xf) ^ 0xf;
         for (size_t docId = 0; docId < docCount16; docId += 16) {
@@ -260,7 +349,7 @@ namespace NCB::NModelEvaluation {
 
 
     // TCatFeatureAccessor must return hashed cat feature values
-    template <typename TCatFeatureAccessor>
+    template <typename TCatFeatureAccessor, bool UseWideKernels = true>
     inline void ComputeOneHotAndCtrFeaturesForBlock(
         const TModelTrees& trees,
         const TModelTrees::TForApplyData& applyData,
@@ -294,7 +383,7 @@ namespace NCB::NModelEvaluation {
                 ++usedFeatureIdx;
             }
             Y_ASSERT(applyData.UsedCatFeaturesCount == (size_t)usedFeatureIdx);
-            OneHotBinsFromTransposedCatFeatures(
+            OneHotBinsFromTransposedCatFeatures<UseWideKernels>(
                 trees.GetOneHotFeatures(),
                 catFeaturePackedIndexes,
                 docCount,
@@ -314,10 +403,11 @@ namespace NCB::NModelEvaluation {
             for (const auto& ctr : trees.GetCtrFeatures()) {
                 auto ctrFloatsPtr = &ctrs[ctrFloatsPosition];
                 ctrFloatsPosition += docCount;
-                BinarizeFloats<false>(
+                auto ctrAccessor = [ctrFloatsPtr](TFeaturePosition, size_t index) { return ctrFloatsPtr[index]; };
+                BinarizeFloats<false, decltype(ctrAccessor), UseWideKernels>(
                     TFeaturePosition(),
                     docCount,
-                    [ctrFloatsPtr](TFeaturePosition, size_t index) { return ctrFloatsPtr[index]; },
+                    ctrAccessor,
                     ctr.Borders,
                     0,
                     *resultPtr
@@ -330,9 +420,9 @@ namespace NCB::NModelEvaluation {
 /**
 * This function binarizes
 */
-    template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor,
+    template <bool UseWideKernels, typename TFloatFeatureAccessor, typename TCatFeatureAccessor,
               typename TTextFeatureAccessor, typename TEmbeddingFeatureAccessor>
-    inline void BinarizeFeatures(
+    inline void BinarizeFeaturesImpl(
         const TModelTrees& trees,
         const TModelTrees::TForApplyData& applyData,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
@@ -364,47 +454,59 @@ namespace NCB::NModelEvaluation {
             ui8* resultPtrForBlockStart = resultPtr;
             ++cpuEvaluatorQuantizedData->BlocksCount;
             auto docCount = Min(end - start, FORMULA_EVALUATION_BLOCK_SIZE);
-            for (const auto& floatFeature : trees.GetFloatFeatures()) {
-                if (!floatFeature.UsedInModel()) {
-                    continue;
+            bool floatsBinarized = false;
+            if constexpr (UseWideKernels) {
+                if (docCount >= 64) {
+                    if (auto kernel = NDetail::GetWideBinarize()) {
+                        BinarizeFloatFeaturesWide(trees.GetFloatFeatures(), featureInfo, docCount,
+                                                  floatAccessor, start, resultPtr, kernel);
+                        floatsBinarized = true;
+                    }
                 }
-                TFeaturePosition position = floatFeature.Position;
-                if (featureInfo) {
-                    position = featureInfo->GetRemappedPosition(floatFeature);
-                }
-                if (!floatFeature.HasNans ||
-                    floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsIs) {
-                    BinarizeFloats<false>(
-                        position,
-                        docCount,
-                        floatAccessor,
-                        floatFeature.Borders,
-                        start,
-                        resultPtr
-                    );
-                } else {
-                    const float infinity = std::numeric_limits<float>::infinity();
-                    if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsFalse) {
-                        BinarizeFloats<true>(
+            }
+            if (!floatsBinarized) {
+                for (const auto& floatFeature : trees.GetFloatFeatures()) {
+                    if (!floatFeature.UsedInModel()) {
+                        continue;
+                    }
+                    TFeaturePosition position = floatFeature.Position;
+                    if (featureInfo) {
+                        position = featureInfo->GetRemappedPosition(floatFeature);
+                    }
+                    if (!floatFeature.HasNans ||
+                        floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsIs) {
+                        BinarizeFloats<false, TFloatFeatureAccessor, UseWideKernels>(
                             position,
                             docCount,
                             floatAccessor,
                             floatFeature.Borders,
                             start,
-                            resultPtr,
-                            -infinity
+                            resultPtr
                         );
                     } else {
-                        Y_ASSERT(floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue);
-                        BinarizeFloats<true>(
-                            position,
-                            docCount,
-                            floatAccessor,
-                            floatFeature.Borders,
-                            start,
-                            resultPtr,
-                            infinity
-                        );
+                        const float infinity = std::numeric_limits<float>::infinity();
+                        if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsFalse) {
+                            BinarizeFloats<true, TFloatFeatureAccessor, UseWideKernels>(
+                                position,
+                                docCount,
+                                floatAccessor,
+                                floatFeature.Borders,
+                                start,
+                                resultPtr,
+                                -infinity
+                            );
+                        } else {
+                            Y_ASSERT(floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue);
+                            BinarizeFloats<true, TFloatFeatureAccessor, UseWideKernels>(
+                                position,
+                                docCount,
+                                floatAccessor,
+                                floatFeature.Borders,
+                                start,
+                                resultPtr,
+                                infinity
+                            );
+                        }
                     }
                 }
             }
@@ -500,19 +602,20 @@ namespace NCB::NModelEvaluation {
 
                     auto estimatedFeaturePtr = &estimatedFeatures[reorderedOffset * docCount];
 
-                    BinarizeFloats<false>(
+                    auto estimatedAccessor = [estimatedFeaturePtr](TFeaturePosition, size_t index) {
+                        return estimatedFeaturePtr[index];
+                    };
+                    BinarizeFloats<false, decltype(estimatedAccessor), UseWideKernels>(
                         TFeaturePosition(),
                         docCount,
-                        [estimatedFeaturePtr](TFeaturePosition, size_t index) {
-                            return estimatedFeaturePtr[index];
-                        },
+                        estimatedAccessor,
                         MakeConstArrayRef(estimatedFeature.Borders),
                         0,
                         resultPtr
                     );
                 }
             }
-            ComputeOneHotAndCtrFeaturesForBlock(
+            ComputeOneHotAndCtrFeaturesForBlock<TCatFeatureAccessor, UseWideKernels>(
                 trees,
                 applyData,
                 ctrProvider,
@@ -527,6 +630,41 @@ namespace NCB::NModelEvaluation {
             );
         }
     }
+
+    template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor,
+              typename TTextFeatureAccessor, typename TEmbeddingFeatureAccessor>
+    inline void BinarizeFeatures(
+        const TModelTrees& trees,
+        const TModelTrees::TForApplyData& applyData,
+        const TIntrusivePtr<ICtrProvider>& ctrProvider,
+        const TIntrusivePtr<TTextProcessingCollection>& textProcessingCollection,
+        const TIntrusivePtr<TEmbeddingProcessingCollection>& embeddingProcessingCollection,
+        TFloatFeatureAccessor floatAccessor,
+        TCatFeatureAccessor catFeatureAccessor,
+        TTextFeatureAccessor textFeatureAccessor,
+        TEmbeddingFeatureAccessor embeddingFeatureAccessor,
+        size_t start,
+        size_t end,
+        TCPUEvaluatorQuantizedData* cpuEvaluatorQuantizedData,
+        TArrayRef<ui32> transposedHash,
+        TArrayRef<float> ctrs,
+        TArrayRef<float> estimatedFeatures,
+        const TFeatureLayout* featureInfo = nullptr
+    ) {
+        // Select the specialization once per block, preserving the small-batch path.
+        if (end - start >= 64 && NDetail::GetWideBinarize()) {
+            BinarizeFeaturesImpl<true>(
+                trees, applyData, ctrProvider, textProcessingCollection, embeddingProcessingCollection,
+                floatAccessor, catFeatureAccessor, textFeatureAccessor, embeddingFeatureAccessor,
+                start, end, cpuEvaluatorQuantizedData, transposedHash, ctrs, estimatedFeatures, featureInfo);
+        } else {
+            BinarizeFeaturesImpl<false>(
+                trees, applyData, ctrProvider, textProcessingCollection, embeddingProcessingCollection,
+                floatAccessor, catFeatureAccessor, textFeatureAccessor, embeddingFeatureAccessor,
+                start, end, cpuEvaluatorQuantizedData, transposedHash, ctrs, estimatedFeatures, featureInfo);
+        }
+    }
+
 
 /**
 * This function is for quantized pool

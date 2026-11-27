@@ -1,0 +1,490 @@
+# Binaryen emits C code inside string literals.
+- source_filter: "^contrib/restricted/binaryen"
+  includes:
+    - wasm-rt-impl.h
+
+- includes:
+  # Valgrind PEERDIR and ADDINCL are added only in --valgrind builds,
+  # but we should resolve headers anyway.
+  - valgrind/callgrind.h
+  - valgrind/memcheck.h
+  - valgrind/valgrind.h
+  # DB2_ODBC_CLI
+  - sqlcli1.h
+
+- includes:
+  - cudnn.h:         contrib/libs/nvidia/cudnn/cudnn.h
+  - uuid/uuid.h:     contrib/libs/uuid/include/uuid/uuid.h
+
+# _cgo_export.h is generated into build dir of go package which uses cgo
+# and we are unable to resolve it correctly to whcih build dir to resolve
+# in the case when tests are also built for this package
+- includes:
+  - _cgo_export.h
+
+# Another sysincl/addincl clash. Here we also have GLOBAL ADDINCL that will
+# produce sysincl/addincl mismatch configure errors when someone writes
+# #include <math.h> and enables USE_ARCADIA_LIBM. Now we have no instances of this.
+- source_filter: "^contrib/libs/libm/.*\\.c"
+  includes:
+    - complex.h:     contrib/libs/libm/include/complex.h
+    - math.h:        contrib/libs/libm/include/math.h
+
+- source_filter: "^contrib/libs/jemalloc/"
+  includes:
+    - unwind.h:       contrib/libs/libunwind/include/unwind.h
+
+- source_filter: "^contrib/libs/libunwind/"
+  includes:
+    - unwind.h:       contrib/libs/libunwind/include/unwind.h
+
+- source_filter: "^contrib/tools/bison/"
+  includes:
+    - error.h:       contrib/tools/bison/lib/error.h
+    - obstack.h:     contrib/tools/bison/lib/obstack.h
+    # ucrt headers are included by bison/lib in a very specific way
+    - ../ucrt/fcntl.h
+    - ../ucrt/locale.h
+    - ../ucrt/math.h
+    - ../ucrt/signal.h
+    - ../ucrt/sys/stat.h
+
+- source_filter: "^contrib/tools/m4/"
+  includes:
+    - error.h:       contrib/tools/m4/lib/error.h
+    - fcntl.h:       contrib/tools/m4/lib/fcntl.h
+    - obstack.h:     contrib/tools/m4/lib/obstack.h
+    - regex.h:       contrib/tools/m4/lib/regex.h
+    - system.h
+    # ucrt headers are included by m4/lib in a very specific way
+    - ../ucrt/fcntl.h
+    - ../ucrt/locale.h
+    - ../ucrt/math.h
+    - ../ucrt/signal.h
+    - ../ucrt/sys/stat.h
+
+- source_filter: "^contrib/tools/make"
+  includes:
+    - fnmatch.h:     contrib/tools/make/glob/fnmatch.h
+    - glob.h:        contrib/tools/make/glob/glob.h
+
+- source_filter: "^contrib/libs/cppkafka"
+  includes:
+    - error.h:       contrib/libs/cppkafka/include/cppkafka/error.h
+
+- source_filter: "^contrib/libs/zbar"
+  includes:
+    - error.h:       contrib/libs/zbar/zbar/error.h
+
+- source_filter: "^contrib/libs/curl"
+  includes:
+    - http.h:        contrib/libs/curl/lib/http.h
+    - inet_ntop.h:   contrib/libs/curl/lib/inet_ntop.h
+    - share.h:       contrib/libs/curl/lib/share.h
+
+- source_filter: "^contrib/restricted/openal-soft"
+  includes:
+    - atomic.h: contrib/restricted/openal-soft/common/atomic.h
+    - threads.h: contrib/restricted/openal-soft/common/threads.h
+
+- source_filter: "^contrib/deprecated/ffmpeg-3/"
+  includes:
+    - fontconfig/fontconfig.h
+    - fribidi.h
+    - stdatomic.h:    contrib/deprecated/ffmpeg-3/compat/atomics/win32/stdatomic.h
+    - atomic.h:       contrib/deprecated/ffmpeg-3/libavutil/atomic.h
+
+- source_filter: "^contrib/deprecated/ffmpeg-3.4.1/"
+  includes:
+    - fontconfig/fontconfig.h
+    - fribidi.h
+    - stdatomic.h:    contrib/deprecated/ffmpeg-3.4.1/compat/atomics/win32/stdatomic.h
+    - atomic.h:       contrib/deprecated/ffmpeg-3.4.1/libavutil/atomic.h
+
+- source_filter: "^contrib/(deprecated/onednn|libs/intel/onednn)"
+
+  includes:
+    - mkl_cblas.h: contrib/libs/intel/mkl/include/mkl_cblas.h
+    - mkl_version.h: contrib/libs/intel/mkl/include/mkl_version.h
+    - mkl_vml_defines.h: contrib/libs/intel/mkl/include/mkl_vml_defines.h
+    - mkl_vml_functions.h: contrib/libs/intel/mkl/include/mkl_vml_functions.h
+
+- source_filter: "^contrib/libs/nsync"
+  includes:
+    - atomic.h:      contrib/libs/nsync/platform/c++11/atomic.h
+
+- source_filter: "^contrib/python/numpy/py3"
+  includes:
+    - numpy/random.pxd
+    - alloc.h: contrib/python/numpy/include/numpy/core/src/multiarray/alloc.h
+
+- source_filter: "^contrib/python/memray"
+  includes:
+    - alloc.h: contrib/python/memray/memray/_memray/alloc.h
+
+- source_filter: "^contrib/tools/python/src/Objects/exceptions.c"
+  includes:
+    - errmap.h:      contrib/tools/python/src/PC/errmap.h
+
+- source_filter: "^contrib/libs/speex"
+  includes:
+    - mkl.h:         contrib/libs/intel/mkl/include/mkl.h
+
+# Use gettext-stub which has a permissive license
+- source_filter: "^contrib/libs/gdk-pixbuf"
+  includes:
+    - libintl.h: contrib/restricted/gettext-stub/libintl.h
+
+- source_filter: "^contrib/restricted/glib"
+  includes:
+    - libintl.h: contrib/restricted/gettext-stub/libintl.h
+
+- source_filter: "^contrib/restricted/gst-plugins-base"
+  includes:
+    - libintl.h: contrib/restricted/gettext-stub/libintl.h
+
+- source_filter: "^contrib/restricted/gstreamer"
+  includes:
+    - libintl.h: contrib/restricted/gettext-stub/libintl.h
+
+- source_filter: "^contrib/libs/poco/Data/ODBC"
+  includes:
+    - sql.h:         contrib/libs/unixodbc/include/sql.h
+    - sqlext.h:      contrib/libs/unixodbc/include/sqlext.h
+    - sqltypes.h:    contrib/libs/unixodbc/include/sqltypes.h
+    - sqlucode.h:    contrib/libs/unixodbc/include/sqlucode.h
+
+- source_filter: "^contrib/libs/icu"
+  includes:
+    - util.h:        contrib/libs/icu/common/util.h
+
+- source_filter: "^contrib/tools/yasm"
+  includes:
+    - util.h:        contrib/tools/yasm/util.h
+
+- source_filter: "^contrib/libs/libgit2"
+  includes:
+    - alloc.h:       contrib/libs/libgit2/src/util/alloc.h
+    - process.h:     contrib/libs/libgit2/src/util/process.h
+    - thread.h:      contrib/libs/libgit2/src/util/thread.h
+    - regexp.h:      contrib/libs/libgit2/src/util/regexp.h
+    - util.h:        contrib/libs/libgit2/src/util/util.h
+
+- source_filter: "^contrib/libs/nodejs_12"
+  includes:
+    - util.h:        contrib/libs/nodejs_12/src/util.h
+
+- source_filter: "^contrib/libs/numa"
+  includes:
+    - util.h:        contrib/libs/numa/internal/util.h
+
+- source_filter: "^contrib/libs/systemd"
+  includes:
+    - util.h:        contrib/libs/systemd/src/basic/util.h
+
+- source_filter: "^contrib/libs/nvidia/nccl"
+  includes:
+    - alloc.h:       contrib/libs/nvidia/nccl/src/include/alloc.h
+    - socket.h:      contrib/libs/nvidia/nccl/src/include/socket.h
+
+- source_filter: "^contrib/deprecated/tf/tensorflow"
+  includes:
+    - cuda.h:        contrib/deprecated/tf/tensorflow/core/platform/cuda.h
+
+- source_filter: "^contrib/libs/(apache/apr|openssl)"
+  includes:
+    - netinet/sctp.h
+
+- source_filter: "^contrib/libs/subversion"
+  includes:
+    - magic.h
+    - xmlparse.h
+
+- source_filter: "^(contrib/libs/cxxsupp/openmp|catboost/cuda/cuda_lib)"
+  includes:
+    - hwloc.h
+    - hwloc/cudart.h
+
+- source_filter: "^contrib/(libs/(ffmpeg-3|kyotocabinet)|tools/ag)"
+  includes:
+    - lzma.h
+
+- source_filter: "^contrib/libs/(kyotocabinet|minilzo)"
+  includes:
+    - lzo/lzo1x.h
+
+- source_filter: "^contrib/libs/opencv"
+  includes:
+    - mem.h
+
+- source_filter: "^catboost/cuda/cuda_lib/mpi"
+  includes:
+    - mpi.h
+
+- source_filter: "^contrib/tools/fluent-bit-(full|minimal)"
+  includes:
+    - backtrace.h: contrib/libs/backtrace/backtrace.h
+
+- source_filter: "^contrib/restricted/boost/stacktrace/include/boost/stacktrace/detail"
+  includes:
+    - backtrace.h: contrib/libs/backtrace/backtrace.h
+
+- source_filter: "^contrib/libs/dpdk/"
+  includes:
+    - process.h: contrib/libs/dpdk/drivers/bus/dpaa/include/process.h
+
+- source_filter: "^contrib/libs/dpdk_arm64/"
+  includes:
+    - process.h: contrib/libs/dpdk_arm64/drivers/bus/dpaa/include/process.h
+
+- source_filter: "^contrib/libs/usrsctp/"
+  includes:
+    - netinet/sctp_uio.h: contrib/libs/usrsctp/usrsctplib/netinet/sctp_uio.h
+
+- source_filter: "^contrib/libs/libsrtp/"
+  includes:
+  - alloc.h: contrib/libs/libsrtp/crypto/include/alloc.h
+  - err.h: contrib/libs/libsrtp/crypto/include/err.h
+  - stat.h: contrib/libs/libsrtp/crypto/include/stat.h
+
+- source_filter: "^contrib/python/pymqi"
+  includes:
+    # IBM MQ
+    - cmqc.h
+    - cmqxc.h
+    - cmqcfc.h
+    - cmqbc.h
+
+- source_filter: "^contrib/libs/h3"
+  includes:
+    - alloc.h: contrib/libs/h3/h3lib/include/alloc.h
+
+- source_filter: "^contrib/libs/libyang"
+  includes:
+    - in.h: contrib/libs/libyang/libyang/in.h
+
+- source_filter: "^contrib/restricted/noc/frr"
+  includes:
+    - bfd.h: contrib/restricted/noc/frr/lib/bfd.h
+    - getopt.h: contrib/restricted/noc/frr/lib/getopt.h
+    - filter.h: contrib/restricted/noc/frr/lib/filter.h
+    - memory.h: contrib/restricted/noc/frr/lib/memory.h
+    - thread.h: contrib/restricted/noc/frr/lib/thread.h
+
+- source_filter: "^contrib/libs/cxxsupp/libcxxrt"
+  includes:
+    - atomic.h: contrib/libs/cxxsupp/libcxxrt/atomic.h
+
+- source_filter: "^contrib/libs/util-linux"
+  includes:
+    - procfs.h: contrib/libs/util-linux/include/procfs.h
+
+- source_filter: "^contrib/libs/gdal"
+  includes:
+    - io.h: contrib/libs/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/io.h
+
+- source_filter: "^contrib/libs/connectedhomeip"
+  includes:
+    - freertos/FreeRTOS.h
+    - freertos/semphr.h
+    - freertos/task.h
+    - lwip/def.h
+    - lwip/err.h
+    - lwip/inet.h
+    - lwip/init.h
+    - lwip/ip4_addr.h
+    - lwip/ip_addr.h
+    - lwip/mem.h
+    - lwip/memp.h
+    - lwip/netif.h
+    - lwip/opt.h
+    - lwip/pbuf.h
+    - lwip/stats.h
+    - lwip/sys.h
+    - lwip/tcpip.h
+    # contrib/libs/connectedhomeip: src/lib/support, src/inet, src/system on OS_DARWIN
+    - nlfaultinjection.hpp:
+      - contrib/libs/connectedhomeip/third_party/nlfaultinjection/include/nlfaultinjection.hpp
+
+- source_filter: "^contrib/libs/glibcasm"
+  includes:
+    - alloca.h: contrib/libs/glibcasm/glibc/include/alloca.h
+    - assert.h: contrib/libs/glibcasm/glibc/include/assert.h
+    - bits/atomic_wide_counter.h:
+        - contrib/libs/glibcasm/glibc/bits/atomic_wide_counter.h
+        - contrib/libs/glibcasm/glibc/include/bits/atomic_wide_counter.h
+    - bits/dl_find_object.h:
+        - contrib/libs/glibcasm/glibc/include/bits/dl_find_object.h
+        - contrib/libs/glibcasm/glibc/sysdeps/x86/bits/dl_find_object.h
+    - bits/endian.h: contrib/libs/glibcasm/glibc/include/bits/endian.h
+    - bits/libc-header-start.h: contrib/libs/glibcasm/glibc/bits/libc-header-start.h
+    - bits/long-double.h: contrib/libs/glibcasm/glibc/sysdeps/ieee754/ldbl-96/bits/long-double.h
+    - bits/sigstack.h:
+        - contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/bits/sigstack.h
+        - contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/x86/include/bits/sigstack.h
+        - contrib/libs/glibcasm/glibc/include/bits/sigstack.h
+    - bits/stdint-intn.h: contrib/libs/glibcasm/glibc/bits/stdint-intn.h
+    - bits/stdint-uintn.h: contrib/libs/glibcasm/glibc/bits/stdint-uintn.h
+    - bits/time64.h: contrib/libs/glibcasm/glibc/bits/time64.h
+    - bits/timesize.h: contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/x86/bits/timesize.h
+    - bits/typesizes.h: contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/x86/bits/typesizes.h
+    - bits/types.h: contrib/libs/glibcasm/glibc/include/bits/types.h
+    - bits/unistd_ext.h:
+        - contrib/libs/glibcasm/glibc/include/bits/unistd_ext.h
+        - contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/bits/unistd_ext.h
+    - bits/wchar.h: contrib/libs/glibcasm/glibc/bits/wchar.h
+    - bits/wordsize.h: contrib/libs/glibcasm/glibc/sysdeps/x86/bits/wordsize.h
+    - cpu-features.h: contrib/libs/glibcasm/glibc/sysdeps/x86/include/cpu-features.h
+    - dl-lookupcfg.h:
+        - contrib/libs/glibcasm/glibc/sysdeps/generic/dl-lookupcfg.h
+        - contrib/libs/glibcasm/glibc/sysdeps/x86/dl-lookupcfg.h
+    - dl-sysdep.h:
+        - contrib/libs/glibcasm/glibc/sysdeps/generic/dl-sysdep.h
+        - contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/dl-sysdep.h
+    - dlfcn.h: contrib/libs/glibcasm/glibc/include/dlfcn.h
+    - elf.h: contrib/libs/glibcasm/glibc/include/elf.h
+    - endian.h: contrib/libs/glibcasm/glibc/include/endian.h
+    - errno.h: contrib/libs/glibcasm/glibc/include/errno.h
+    - features.h: contrib/libs/glibcasm/glibc/include/features.h
+    - features-time64.h:
+        - contrib/libs/glibcasm/glibc/include/features-time64.h
+        - contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/features-time64.h
+    - fpu_control.h:
+        - contrib/libs/glibcasm/glibc/include/fpu_control.h
+        - contrib/libs/glibcasm/glibc/sysdeps/x86/fpu_control.h
+    - hp-timing.h: contrib/libs/glibcasm/glibc/sysdeps/x86/hp-timing.h
+    - inttypes.h: contrib/libs/glibcasm/glibc/include/inttypes.h
+    - kernel-features.h:
+        - contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/x86_64/kernel-features.h
+        - contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/kernel-features.h
+    - ldsodefs.h:
+        - contrib/libs/glibcasm/glibc/sysdeps/generic/ldsodefs.h
+        - contrib/libs/glibcasm/glibc/sysdeps/gnu/ldsodefs.h
+        - contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/ldsodefs.h
+        - contrib/libs/glibcasm/glibc/sysdeps/x86/ldsodefs.h
+    - limits.h: contrib/libs/glibcasm/glibc/include/limits.h
+    - link.h: contrib/libs/glibcasm/glibc/include/link.h
+    - locale.h: contrib/libs/glibcasm/glibc/include/locale.h
+    - misc/sys/cdefs.h: contrib/libs/glibcasm/glibc/misc/sys/cdefs.h
+    - netinet/in.h: contrib/libs/glibcasm/glibc/include/netinet/in.h
+    - posix/bits/types.h: contrib/libs/glibcasm/glibc/posix/bits/types.h
+    - pthread.h: contrib/libs/glibcasm/glibc/include/pthread.h
+    - single-thread.h:
+        - contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/x86_64/single-thread.h
+        - contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/single-thread.h
+    - sched.h: contrib/libs/glibcasm/glibc/include/sched.h
+    - setjmp.h: contrib/libs/glibcasm/glibc/include/setjmp.h
+    - shlib-compat.h: contrib/libs/glibcasm/glibc/include/shlib-compat.h
+    - signal.h: contrib/libs/glibcasm/glibc/include/signal.h
+    - stdint.h:
+        - contrib/libs/glibcasm/glibc/include/stdint.h
+        - ""
+    - stdlib.h: contrib/libs/glibcasm/glibc/include/stdlib.h
+    - stackinfo.h:
+        - contrib/libs/glibcasm/glibc/include/stackinfo.h
+        - contrib/libs/glibcasm/glibc/sysdeps/x86_64/stackinfo.h
+    - stdlib.h: contrib/libs/glibcasm/glibc/include/stdlib.h
+    - stdlib/stdint.h: contrib/libs/glibcasm/glibc/stdlib/stdint.h
+    - string.h: contrib/libs/glibcasm/glibc/include/string.h
+    - strings.h: contrib/libs/glibcasm/glibc/include/strings.h
+    - sys/cdefs.h: contrib/libs/glibcasm/glibc/include/sys/cdefs.h
+    - sys/mman.h: contrib/libs/glibcasm/glibc/include/sys/mman.h
+    - sys/param.h: contrib/libs/glibcasm/glibc/include/sys/param.h
+    - sys/procfs.h: contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/sys/procfs.h
+    - sys/select.h: contrib/libs/glibcasm/glibc/include/sys/select.h
+    - sys/socket.h: contrib/libs/glibcasm/glibc/include/sys/socket.h
+    - sys/stat.h: contrib/libs/glibcasm/glibc/include/sys/stat.h
+    - sys/syscall.h: contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/include/sys/syscall.h
+    - sys/time.h: contrib/libs/glibcasm/glibc/include/sys/time.h
+    - sys/types.h: contrib/libs/glibcasm/glibc/include/sys/types.h
+    - sys/ucontext.h: contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/x86/sys/ucontext.h
+    - sys/user.h: contrib/libs/glibcasm/glibc/sysdeps/unix/sysv/linux/x86/sys/user.h
+    - time.h: contrib/libs/glibcasm/glibc/include/time.h
+    - tls.h: contrib/libs/glibcasm/glibc/sysdeps/x86_64/nptl/tls.h
+    - unistd.h: contrib/libs/glibcasm/glibc/include/unistd.h
+    - unwind.h: contrib/libs/glibcasm/glibc/sysdeps/generic/unwind.h
+    # These are stubs for actual resolving into system
+    - stdc-predef.h: contrib/libs/glibcasm/glibc/include/stdc-predef.h
+    - gnu/stubs.h: contrib/libs/glibcasm/glibc/include/gnu/stubs.h
+
+
+- source_filter: "^contrib/libs/libunwind/include/unwind.h"
+  includes:
+    - stdint.h:
+        - contrib/libs/glibcasm/glibc/include/stdint.h
+        - ""
+
+- source_filter: "^contrib/libs/cxxsupp/libcxx/include/inttypes.h"
+  includes:
+    - stdint.h:
+        - contrib/libs/glibcasm/glibc/include/stdint.h
+        - ""
+
+- source_filter: "^contrib/tools/bison/data"
+  includes:
+    - "]b4_location_include["
+
+- source_filter: "^contrib/libs/libheif"
+  includes:
+    - error.h:  contrib/libs/libheif/libheif/error.h
+    - file.h:   contrib/libs/libheif/libheif/file.h
+
+- source_filter: "^vendor/github.com/NVIDIA"
+  includes:
+    - nvml.h:
+      - vendor/github.com/NVIDIA/go-dcgm/pkg/dcgm/nvml.h
+      - vendor/github.com/NVIDIA/go-nvml/gen/nvml/nvml.h
+      - vendor/github.com/NVIDIA/go-nvml/pkg/nvml/nvml.h
+
+- source_filter: "^contrib/libs/svt-av1"
+  includes:
+    - filter.h: contrib/libs/svt-av1/Source/Lib/Codec/filter.h
+
+- source_filter: "^contrib/libs/tinycbor"
+  includes:
+    - memory.h: contrib/libs/tinycbor/src/memory.h
+
+- source_filter: "^contrib/restricted/ffmpeg"
+  includes:
+    - thread.h: contrib/restricted/ffmpeg/libavcodec/thread.h
+    - jni.h: contrib/restricted/ffmpeg/libavcodec/jni.h
+
+- source_filter: "^contrib/libs/kvazaar"
+  includes:
+    - getopt.h: contrib/libs/kvazaar/src/extras/getopt.h
+
+# libgpg-error has its own thread.h
+- source_filter: "^contrib/restricted/libgpg-error"
+  includes:
+  - thread.h: contrib/restricted/libgpg-error/src/thread.h
+
+# libgcrypt has its own types.h
+- source_filter: "^contrib/restricted/libgcrypt"
+  includes:
+  - types.h: contrib/restricted/libgcrypt/src/types.h
+
+# libgcrypt has its own gcrypt.h and types.h
+- source_filter: "^contrib/restricted/libgcrypt|^contrib/libs/audiowmark"
+  includes:
+  - gcrypt.h: contrib/restricted/libgcrypt/src/gcrypt.h
+  - types.h: contrib/restricted/libgcrypt/src/types.h
+
+# fftw3 has its own fftw3.h
+- source_filter: "^contrib/restricted/fftw3|^contrib/libs/audiowmark"
+  includes:
+  - fftw3.h: contrib/restricted/fftw3/api/fftw3.h
+
+- source_filter: "^contrib/restricted/libx265"
+  includes:
+    - search.h: contrib/restricted/libx265/encoder/search.h
+
+# Resolve openssl3-specific to contrib/libs/openssl3
+# even if the target does not depend it
+# in order to ease the migration.
+- includes:
+  - openssl/core_names.h: contrib/libs/openssl-3/include/openssl/core_names.h
+
+- source_filter: "^contrib/libs/wamr/"
+  includes:
+    - aot.h: contrib/libs/wamr/core/iwasm/compilation/aot.h
+    - aot_llvm.h: contrib/libs/wamr/core/iwasm/compilation/aot_llvm.h
