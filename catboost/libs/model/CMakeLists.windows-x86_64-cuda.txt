@@ -23,6 +23,7 @@ add_subdirectory(flatbuffers)
 add_subdirectory(cuda)
 add_subdirectory(model_export)
 add_subdirectory(ut)
+add_subdirectory(cpu)
 
 add_library(catboost-libs-model)
 
@@ -49,6 +50,9 @@ target_link_libraries(catboost-libs-model PUBLIC
 
 target_sources(catboost-libs-model PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/evaluator_impl.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/leaf_add_simd.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/onehot_simd.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/simd.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/quantization.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ctr_data.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ctr_helpers.cpp

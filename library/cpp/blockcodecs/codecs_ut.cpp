@@ -17,6 +17,49 @@ Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
         return bb;
     }
 
+    Y_UNIT_TEST(TestCodecPropertiesByName) {
+        UNIT_ASSERT(GetCodecProperties("zstd08_3").SupportsStreamingBlockEncode());
+        UNIT_ASSERT(GetCodecProperties("zstd_3").SupportsStreamingBlockEncode());
+        UNIT_ASSERT(GetCodecProperties("zstd_fast_2").SupportsStreamingBlockEncode());
+        UNIT_ASSERT(!GetCodecProperties("lz4").SupportsStreamingBlockEncode());
+        UNIT_ASSERT(!GetCodecProperties("null").SupportsStreamingBlockEncode());
+        for (const TStringBuf name : ListAllCodecs()) {
+            if (name.StartsWith("zstd06_")) {
+                UNIT_ASSERT(!GetCodecProperties(name).SupportsStreamingBlockEncode());
+            }
+        }
+        UNIT_ASSERT_EXCEPTION(GetCodecProperties("zstd08_0"), TNotFound);
+    }
+
+    Y_UNIT_TEST(TestStreamingEncoderProducesOneDecodableBlock) {
+        const TString head(200 * 1024, 'a');
+        const TString tail(100 * 1024 + 17, 'b');
+        const TString expected = TString::Join(head, tail);
+        const TString prefix = "existing header";
+        for (const TStringBuf name : {TStringBuf("zstd_3"), TStringBuf("zstd_fast_2")}) {
+            const TCodecProperties properties = GetCodecProperties(name);
+            TString appended = prefix;
+            const THolder<IOutputStream> unknownSize = properties.TryMakeStreamingBlockEncoder(appended);
+            UNIT_ASSERT(unknownSize);
+            unknownSize->Write(head);
+            unknownSize->Write(tail);
+            unknownSize->Finish();
+            UNIT_ASSERT(appended.StartsWith(prefix));
+            UNIT_ASSERT_VALUES_EQUAL(Codec(name)->Decode(TStringBuf(appended).SubStr(prefix.size())), expected);
+
+            TStringStream output;
+            const THolder<IOutputStream> knownSize = properties.TryMakeStreamingBlockEncoder(output, expected.size());
+            UNIT_ASSERT(knownSize);
+            knownSize->Write(head);
+            knownSize->Write(tail);
+            knownSize->Finish();
+            UNIT_ASSERT_VALUES_EQUAL(Codec(name)->Decode(output.Str()), expected);
+        }
+        TString output = prefix;
+        UNIT_ASSERT(!GetCodecProperties("lz4").TryMakeStreamingBlockEncoder(output));
+        UNIT_ASSERT_VALUES_EQUAL(output, prefix);
+    }
+
     Y_UNIT_TEST(TestLz4SafeRejectsIncorrectDecompressedLength) {
         const TString data(4096, 'a');
         for (const auto& name : ListAllCodecs()) {

@@ -130,6 +130,8 @@ $\displaystyle\frac{\left(\sum\limits_{i = 1}^{N} w_{i} t_{i}/N\right)}{\left(\s
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
+If there are no pairs to compare (for example, all objects in the dataset have the same target value), the denominator is zero and the metric value is 0. It is not NaN and no error is raised, so an evaluation set with a single class reports `AUC` = 0 at every iteration and the best iteration is the first one.
+
 #### {{ loss-functions__params__auc__type__Classic }}
 
 $\displaystyle\frac{\sum I(a_{i}, a_{j}) \cdot w_{i} \cdot w_{j}} {\sum w_{i} \cdot w_{j}}$

@@ -301,8 +301,7 @@ class CythonSharedUtilityCode(Code.AbstractUtilityCode):
             scope = scope.find_submodule(name, as_package=is_package)
 
         pxd_pathname = os.path.join(
-            os.path.split(Cython.__file__)[0],
-            'Utility',
+            Code.get_utility_dir(),
             self._pxd_name
         )
         try:

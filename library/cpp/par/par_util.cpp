@@ -5,6 +5,8 @@
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
+#include <atomic>
+
 namespace NPar {
     TGUID TJobExecutor::TCallback::GetMasterQueryId() {
         return TGUID();
@@ -212,14 +214,15 @@ namespace NPar {
             TIntrusivePtr<IDCResultNotify> DCNotify;
             int ReqId;
             TIntrusivePtr<TSharedCmd> SharedCmd;
-            TAtomic JobCount;
+            std::atomic<int> JobCount;
             TVector<TVector<char>> ResultsBuf;
             int Start, Finish;
 
             void DoneJob() {
-                if (AtomicAdd(JobCount, -1) > 0)
+                // Release our result to the last job, which acquires all of them
+                if (JobCount.fetch_sub(1, std::memory_order_acq_rel) > 1)
                     return;
-                Y_ASSERT(JobCount == 0);
+                Y_ASSERT(JobCount.load(std::memory_order_acquire) == 0);
                 if (!DCNotify->IsDistrCmdNeeded())
                     return;
                 if (ResultsBuf.ysize() > 1) {
@@ -256,7 +259,7 @@ namespace NPar {
                 SharedCmd->FinalMap->ExecAsync(Context.Get(), HostId, &buf, this, id);
             }
             ~TExecutor() override {
-                Y_ASSERT(JobCount == 0);
+                Y_ASSERT(JobCount.load(std::memory_order_acquire) == 0);
             }
 
         public:

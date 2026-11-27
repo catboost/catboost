@@ -18,12 +18,17 @@ using namespace NBlockCodecs;
 
 namespace {
 
+    struct TRegisteredCodec {
+        const ICodec* Codec = nullptr;
+        const TStreamingBlockEncoderFactory* StreamingBlockEncoderFactory = nullptr;
+    };
+
     struct TCodecFactory {
         inline TCodecFactory() {
             Add(&Null);
         }
 
-        inline const ICodec* Find(const TStringBuf& name) const {
+        inline const TRegisteredCodec& Find(const TStringBuf& name) const {
             auto it = Registry.find(name);
 
             if (it == Registry.end()) {
@@ -41,13 +46,13 @@ namespace {
             Sort(lst.begin(), lst.end());
         }
 
-        inline void Add(ICodec* codec) {
-            Registry[codec->Name()] = codec;
+        inline void Add(const ICodec* codec, const TStreamingBlockEncoderFactory* factory = nullptr) {
+            Registry[codec->Name()] = {codec, factory};
         }
 
-        inline void Add(TCodecPtr codec) {
+        inline void Add(TCodecPtr codec, const TStreamingBlockEncoderFactory* factory = nullptr) {
             Codecs.push_back(std::move(codec));
-            Add(Codecs.back().Get());
+            Add(Codecs.back().Get(), factory);
         }
 
         inline void Alias(TStringBuf from, TStringBuf to) {
@@ -58,7 +63,7 @@ namespace {
         TDeque<TString> Tmp;
         TNullCodec Null;
         TVector<TCodecPtr> Codecs;
-        typedef THashMap<TStringBuf, ICodec*> TRegistry;
+        typedef THashMap<TStringBuf, TRegisteredCodec> TRegistry;
         TRegistry Registry;
 
         // SEARCH-8344: Global decompressed size limiter (to prevent remote DoS)
@@ -67,7 +72,33 @@ namespace {
 }
 
 const ICodec* NBlockCodecs::Codec(const TStringBuf& name) {
-    return Singleton<TCodecFactory>()->Find(name);
+    return Singleton<TCodecFactory>()->Find(name).Codec;
+}
+
+TCodecProperties NBlockCodecs::GetCodecProperties(TStringBuf name) {
+    const TRegisteredCodec& registration = Singleton<TCodecFactory>()->Find(name);
+    TCodecProperties properties;
+    properties.Codec_ = registration.Codec;
+    properties.StreamingBlockEncoderFactory_ = registration.StreamingBlockEncoderFactory;
+    return properties;
+}
+
+bool TCodecProperties::SupportsStreamingBlockEncode() const noexcept {
+    return StreamingBlockEncoderFactory_ != nullptr;
+}
+
+THolder<IOutputStream> TCodecProperties::TryMakeStreamingBlockEncoder(TString& output) const {
+    if (!SupportsStreamingBlockEncode()) {
+        return {};
+    }
+    return StreamingBlockEncoderFactory_->ForString(*Codec_, output);
+}
+
+THolder<IOutputStream> TCodecProperties::TryMakeStreamingBlockEncoder(IOutputStream& output, ui64 uncompressedSize) const {
+    if (!SupportsStreamingBlockEncode()) {
+        return {};
+    }
+    return StreamingBlockEncoderFactory_->ForKnownSize(*Codec_, output, uncompressedSize);
 }
 
 TCodecList NBlockCodecs::ListAllCodecs() {
@@ -84,6 +115,10 @@ TString NBlockCodecs::ListAllCodecsAsString() {
 
 void NBlockCodecs::RegisterCodec(TCodecPtr codec) {
     Singleton<TCodecFactory>()->Add(std::move(codec));
+}
+
+void NBlockCodecs::RegisterCodec(TCodecPtr codec, const TStreamingBlockEncoderFactory& factory) {
+    Singleton<TCodecFactory>()->Add(std::move(codec), &factory);
 }
 
 void NBlockCodecs::RegisterAlias(TStringBuf from, TStringBuf to) {
