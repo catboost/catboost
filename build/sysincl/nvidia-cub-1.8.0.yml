@@ -1,0 +1,6 @@
+# Though cub is provided as a part of CUDA HPC SDK,
+# we would like to be updatable independently.
+# Hence we are using it directly from Arcadia.
+# This sysincl enforces such usage.
+- includes:
+  - cub/cub.cuh: contrib/libs/nvidia/cub-1.8.0/cub/cub.cuh

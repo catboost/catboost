@@ -9,6 +9,8 @@
 #include <util/thread/lfstack.h>
 #include <util/generic/vector.h>
 
+#include <atomic>
+
 namespace NPar {
     template <class T>
     inline ssize_t TotalSize(const TVector<TVector<T>>& data) {
@@ -118,7 +120,8 @@ namespace NPar {
             {
             }
         };
-        TAtomic QueuedDataSize, LowId, HighId;
+        std::atomic<ssize_t> QueuedDataSize;
+        std::atomic<i64> LowId, HighId;
         TLockFreeStack<TSetDataOp*> SetQueue;
 
         enum {
@@ -130,9 +133,9 @@ namespace NPar {
         }
         i64 GenId() {
             // poor man's "64bit" counter, we hope that threads will not stall for 2*10^9 ids
-            TAtomic low = AtomicAdd(LowId, 1);
+            const i64 low = ++LowId;
             int highIncrement = (low & 0x7fffffff) == 0;
-            TAtomic high = AtomicAdd(HighId, highIncrement);
+            const i64 high = HighId += highIncrement;
             return (((i64)high) << 32) + low;
         }
 
@@ -149,7 +152,7 @@ namespace NPar {
 
         void SetDataFromQueueLocked() {
             for (TSetDataOp* op; SetQueue.Dequeue(&op); delete op) {
-                AtomicAdd(QueuedDataSize, -TotalSize(op->Data));
+                QueuedDataSize -= TotalSize(op->Data);
                 TTableInfo& tbl = Tables[op->TblId];
 
                 if (tbl.Version > op->VersionId) {
@@ -172,7 +175,7 @@ namespace NPar {
             SetDataFromQueueLocked();
         }
         void EnqueSetDataOp(TSetDataOp* op, ssize_t dataSize) {
-            AtomicAdd(QueuedDataSize, dataSize);
+            QueuedDataSize += dataSize;
             SetQueue.Enqueue(op);
             if (QueuedDataSize > MAX_QUEUED_SIZE) {
                 SetDataFromQueue();
@@ -195,7 +198,7 @@ namespace NPar {
         }
         i64 SetData(int tblId, ui64 versionId, TVector<TVector<char>>* p) {
             // It's not static_assert because this code can be compiled on 32-bit platform
-            Y_ABORT_UNLESS(sizeof(TAtomic) >= 8);
+            Y_ABORT_UNLESS(sizeof(ssize_t) >= 8);
 
             i64 id = GenId();
             const auto dataSize = TotalSize(*p);

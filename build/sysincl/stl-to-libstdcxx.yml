@@ -1,0 +1,13 @@
+# These headers are included from e. g. contrib/restricted/boost
+# in order to optimize build times when building against libstdc++.
+#
+# In ya make, such builds are supported when building with -DUSE_STL_SYSTEM
+- includes:
+  - bits/atomicity.h
+  - bits/c++config.h
+  - bits/char_traits.h
+  - bits/move.h
+  - bits/stl_algobase.h
+  - bits/stl_function.h
+  - bits/stl_move.h
+  - bits/stl_pair.h

@@ -385,6 +385,20 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         }
 
         UNIT_ASSERT_VALUES_EQUAL(sum, 6);
+
+        struct TBox {
+            char Delimiter[4];
+            TVector<TString> Expected;
+        };
+        const TString text = "abacaba";
+        const TBox cases[]{
+            {.Delimiter = "a", .Expected = {"", "b", "c", "b", ""}},
+            {.Delimiter = "ab", .Expected = {"", "ac", "a"}},
+            {.Delimiter = "abc", .Expected = {"abacaba"}},
+        };
+        for (const TBox& box : cases) {
+            UNIT_ASSERT_VALUES_EQUAL_C(StringSplitter(text).SplitByString(box.Delimiter).ToList<TString>(), box.Expected, LabeledOutput(box.Delimiter));
+        }
     }
 
     Y_UNIT_TEST(TestSplitByStringLimited) {

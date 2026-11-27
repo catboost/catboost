@@ -1,0 +1,4 @@
+- includes:
+    - numpy/__init__.pxd:
+        - contrib/tools/cython_py2/Cython/Includes/numpy/__init__.pxd
+        - contrib/python/numpy/py3/numpy/__init__.pxd

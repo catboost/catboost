@@ -1,0 +1,4 @@
+- includes:
+  - valgrind/callgrind.h: contrib/libs/valgrind/valgrind/callgrind.h
+  - valgrind/memcheck.h:  contrib/libs/valgrind/valgrind/memcheck.h
+  - valgrind/valgrind.h:  contrib/libs/valgrind/valgrind/valgrind.h

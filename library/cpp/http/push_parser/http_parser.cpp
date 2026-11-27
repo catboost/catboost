@@ -269,11 +269,24 @@ void THttpParser::ParseHeaderLine() {
     }
 }
 
+bool THttpParser::IsEofExpected() const noexcept {
+    return Parser_ == &THttpParser::ContentParser && !HasContentLength_ && !ChunkInputState_;
+}
+
 void THttpParser::OnEof() {
-    if (Parser_ == &THttpParser::ContentParser && !HasContentLength_ && !ChunkInputState_) {
-        return; //end of content determined by end of input
+    if (!IsEofExpected()) {
+        throw THttpException() << IncompleteResponseMessage;
     }
-    throw THttpException() << TStringBuf("incompleted http response");
+}
+
+bool THttpParser::TryFinishOnEof() {
+    if (!IsEofExpected()) {
+        return false;
+    }
+    if (DecodeContent_) {
+        DecodeContent(DecodedContent_);
+    }
+    return true;
 }
 
 bool THttpParser::DecodeContent(TString& decodedContent) const {
