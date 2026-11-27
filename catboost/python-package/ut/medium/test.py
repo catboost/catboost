@@ -12900,7 +12900,6 @@ def test_onnx_ctr_invalid_category(value):
 
 @pytest.mark.parametrize('loss', ['MultiClass', 'MultiRMSE', 'MultiLogloss'])
 def test_onnx_ctr_rejects_multiple_targets(loss):
-    from catboost.utils import convert_to_onnx_object
     x = np.array([['a'], ['b'], ['c']] * 15)
     y = np.array([0, 1, 2] * 15)
     if loss == 'MultiRMSE':
@@ -12910,15 +12909,16 @@ def test_onnx_ctr_rejects_multiple_targets(loss):
     model = CatBoost({'loss_function': loss, 'iterations': 3, 'one_hot_max_size': 1, 'verbose': False, 'thread_count': 2})
     model.fit(x, y, cat_features=[0])
     with pytest.raises(CatBoostError, match='only binary classification and scalar regression'):
-        convert_to_onnx_object(model, ONNX_CTR_EXPORT_PARAMETERS)
+        model.save_model(test_output_path('model.onnx'), format='onnx', export_parameters=ONNX_CTR_EXPORT_PARAMETERS)
 
 
 @pytest.mark.parametrize('option', ['invalid', 1, None])
 def test_onnx_ctr_invalid_input_option(option):
-    from catboost.utils import convert_to_onnx_object
     model = CatBoostRegressor(iterations=2, verbose=False).fit([[1], [2], [3]], [1, 2, 1])
-    with pytest.raises(CatBoostError):
-        convert_to_onnx_object(model, {'onnx_cat_features_input_type': option})
+    with pytest.raises(CatBoostError, match='onnx_cat_features_input_type|[Ss]tring'):
+        model.save_model(
+            test_output_path('model.onnx'), format='onnx', export_parameters={'onnx_cat_features_input_type': option}
+        )
 
 
 def _onnx_ctr_projection_hash(values):
@@ -13126,11 +13126,10 @@ def test_onnx_ctr_other_scalar_losses(loss):
 
 
 def test_onnx_ctr_rejects_nonunit_scale():
-    from catboost.utils import convert_to_onnx_object
     model = _onnx_ctr_synthetic_model()
     model.set_scale_and_bias(2, 0.0)
     with pytest.raises(CatBoostError, match='[Ss]cale'):
-        convert_to_onnx_object(model, ONNX_CTR_EXPORT_PARAMETERS)
+        model.save_model(test_output_path('model.onnx'), format='onnx', export_parameters=ONNX_CTR_EXPORT_PARAMETERS)
 
 
 def test_onnx_ctr_unseen_combination_of_known_categories():
@@ -13155,12 +13154,11 @@ def test_onnx_ctr_unseen_combination_of_known_categories():
 
 
 def test_onnx_ctr_rejects_nonsymmetric_trees():
-    from catboost.utils import convert_to_onnx_object
     model = CatBoostRegressor(iterations=3, depth=3, grow_policy='Depthwise', one_hot_max_size=1,
                              verbose=False, thread_count=2)
     model.fit([['a'], ['b'], ['c']] * 20, [1, 2, 3] * 20, cat_features=[0])
-    with pytest.raises(CatBoostError, match='oblivious'):
-        convert_to_onnx_object(model, ONNX_CTR_EXPORT_PARAMETERS)
+    with pytest.raises(CatBoostError, match='non symmetric trees'):
+        model.save_model(test_output_path('model.onnx'), format='onnx', export_parameters=ONNX_CTR_EXPORT_PARAMETERS)
 
 
 @pytest.mark.parametrize('cat_count', [1, 3])

@@ -918,6 +918,8 @@ static TOnnxFeaturesLayout InitHashedInputs(const TFullModel& model, onnx::Graph
         CB_ENSURE(feature.Values.size() < (size_t(1) << std::numeric_limits<float>::digits), "Too many one-hot values for ONNX float encoding");
         TVector<i64> keys;
         TVector<float> values;
+        keys.reserve(feature.Values.size());
+        values.reserve(feature.Values.size());
         auto& input = layout.CatInputs[feature.CatFeatureIndex];
         input.Index = nextColumn++;
         for (size_t i = 0; i < feature.Values.size(); ++i) {
@@ -1415,8 +1417,6 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
     TString margin;
 
     const TModelTrees& trees = *model.ModelTrees;
-
-    onnxGraph->set_name(onnxGraphName.GetOrElse("CatBoostModel"));
 
     const TOnnxFeaturesLayout layout = InitInputs(trees, catFeaturesHashToString, onnxGraph);
 
