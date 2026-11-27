@@ -6,6 +6,9 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <cmath>
+#include <limits>
+
 #include <util/random/fast.h>
 #include <util/random/shuffle.h>
 
@@ -67,7 +70,7 @@ static double MyAUC(
         }
     }
     if (pairWeightSum == 0) {
-        return 0;
+        return std::numeric_limits<double>::quiet_NaN();
     }
     double wrongPairsSum = 0;
     for (size_t i = 0; i < size; ++i) {
@@ -142,7 +145,7 @@ static double CalcAucSingleThread(TVector<TSample>* samples, double* outWeightSu
         *outPairWeightSum = pairWeightSum;
     }
     if (pairWeightSum == 0) {
-        return 0;
+        return std::numeric_limits<double>::quiet_NaN();
     }
     TVector<TSample> aux(samples->begin(), samples->end());
     StableSort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
@@ -558,5 +561,59 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         TestBinClassAucRandom(2000, 239, false, EPS);
         TestBinClassAucRandom(2000, 1000, false, EPS);
         TestBinClassAucRandom(2000, 2000, false, EPS);
+    }
+
+    Y_UNIT_TEST(SingleClassTargetTest) {
+        const TVector<double> approx{3, 2, 1};
+        const TVector<double> weight{1, 1, 1};
+
+        NPar::TLocalExecutor executor;
+        executor.RunAdditionalThreads(31);
+
+        {
+            TVector<NMetrics::TSample> samples;
+            for (ui32 i = 0; i < approx.size(); ++i) {
+                samples.emplace_back(1.0, approx[i], weight[i]);
+            }
+            UNIT_ASSERT(std::isnan(CalcAUC(&samples, nullptr, nullptr, &executor)));
+            UNIT_ASSERT(std::isnan(CalcAUC(&samples)));
+        }
+        {
+            TVector<NMetrics::TBinClassSample> positiveSamples, negativeSamples;
+            for (ui32 i = 0; i < approx.size(); ++i) {
+                positiveSamples.emplace_back(approx[i], weight[i]);
+            }
+            UNIT_ASSERT(std::isnan(CalcBinClassAuc(&positiveSamples, &negativeSamples, &executor)));
+            UNIT_ASSERT(std::isnan(CalcBinClassAuc(&positiveSamples, &negativeSamples)));
+            UNIT_ASSERT(std::isnan(CalcBinClassAuc(&positiveSamples, &negativeSamples, 32)));
+        }
+        {
+            TVector<NMetrics::TBinClassSample> positiveSamples, negativeSamples;
+            for (ui32 i = 0; i < approx.size(); ++i) {
+                negativeSamples.emplace_back(approx[i], weight[i]);
+            }
+            UNIT_ASSERT(std::isnan(CalcBinClassAuc(&positiveSamples, &negativeSamples, &executor)));
+            UNIT_ASSERT(std::isnan(CalcBinClassAuc(&positiveSamples, &negativeSamples)));
+            UNIT_ASSERT(std::isnan(CalcBinClassAuc(&positiveSamples, &negativeSamples, 32)));
+        }
+        for (const TString description : TVector<TString>{"AUC", "AUC:type=Ranking"}) {
+            for (const float singleClassTarget : {0.0f, 1.0f}) {
+                TVector<TVector<double>> prediction{approx};
+                TVector<float> targets(approx.size(), singleClassTarget);
+                TVector<float> weights{1, 1, 1};
+                TVector<TQueryInfo> queries;
+
+                const auto metric = std::move(CreateMetricsFromDescription({description}, 1).front());
+                const auto error = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(
+                    prediction,
+                    targets,
+                    weights,
+                    queries,
+                    0,
+                    targets.size(),
+                    executor);
+                UNIT_ASSERT(std::isnan(metric->GetFinalError(error)));
+            }
+        }
     }
 }

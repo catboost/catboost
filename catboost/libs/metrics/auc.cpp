@@ -3,6 +3,8 @@
 #include <catboost/libs/helpers/parallel_sort/parallel_sort.h>
 #include <catboost/private/libs/index_range/index_range.h>
 
+#include <limits>
+
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
@@ -234,7 +236,7 @@ double CalcAUC(TVector<TSample>* samples, double* outWeightSum, double* outPairW
         *outPairWeightSum = pairWeightSum;
     }
     if (pairWeightSum == 0) {
-        return 0;
+        return std::numeric_limits<double>::quiet_NaN();
     }
 
     return 1 - ((2 * optimisticAUC + deltaSum) / (2.0 * pairWeightSum));
@@ -250,7 +252,7 @@ double CalcBinClassAuc(
     NPar::ILocalExecutor* localExecutor
 ) {
     if (positiveSamples->empty() || negativeSamples->empty()) {
-        return 0;
+        return std::numeric_limits<double>::quiet_NaN();
     }
     bool needSwap = false;
     if (positiveSamples->size() > negativeSamples->size()) {
