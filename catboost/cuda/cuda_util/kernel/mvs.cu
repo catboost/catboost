@@ -233,10 +233,6 @@ __global__ void MvsBootstrapRadixSortImpl(
 
     #pragma unroll
     for (int k = 0; k < ITEMS_PER_THREAD; k++) {
-        if (takenFraction == 1.0f) {
-            weightsPerThread[k] = 1.0f;
-            continue;
-        }
         const float probability = GetSingleProbability(weightsPerThread[k], threshold);
         weightsPerThread[k] = (probability > eps && NextUniformF(&s) < probability)
             ? __fdividef(1.0f, probability)
