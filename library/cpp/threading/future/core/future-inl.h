@@ -23,18 +23,20 @@ namespace NThreading {
             Error
         };
 
+        // TFutureState<void> uses only NotReady, ExceptionSet and ValueSet
+        enum class EFutureState {
+            NotReady,
+            ExceptionSet,
+            ValueMoved, // keep the ordering of this and following values
+            ValueSet,
+            ValueRead,
+        };
+
         template <typename T>
         class TFutureState: public TAtomicRefCount<TFutureState<T>> {
-            enum {
-                NotReady,
-                ExceptionSet,
-                ValueMoved, // keep the ordering of this and following values
-                ValueSet,
-                ValueRead,
-            };
 
         private:
-            mutable TAtomic State;
+            mutable std::atomic<EFutureState> State;
             TAdaptiveLock StateLock;
 
             TCallbackList<T> Callbacks;
@@ -47,9 +49,9 @@ namespace NThreading {
                 T Value;
             };
 
-            void AccessValue(TDuration timeout, int acquireState) const {
-                TAtomicBase state = AtomicGet(State);
-                if (Y_UNLIKELY(state == NotReady)) {
+            void AccessValue(TDuration timeout, EFutureState acquireState) const {
+                EFutureState state = State.load(std::memory_order::acquire);
+                if (Y_UNLIKELY(state == EFutureState::NotReady)) {
                     if (timeout == TDuration::Zero()) {
                         ::NThreading::NImpl::ThrowFutureException("value not set"sv, __LOCATION__);
                     }
@@ -58,76 +60,80 @@ namespace NThreading {
                         ::NThreading::NImpl::ThrowFutureException("wait timeout"sv, __LOCATION__);
                     }
 
-                    state = AtomicGet(State);
+                    state = State.load(std::memory_order::acquire);
                 }
 
                 TryRethrowWithState(state);
 
-                switch (AtomicGetAndCas(&State, acquireState, ValueSet)) {
-                    case ValueSet:
+                EFutureState expected = EFutureState::ValueSet;
+                State.compare_exchange_strong(expected, acquireState);
+                switch (expected) {
+                    case EFutureState::ValueSet:
                         break;
-                    case ValueRead:
-                        if (acquireState != ValueRead) {
+                    case EFutureState::ValueRead:
+                        if (acquireState != EFutureState::ValueRead) {
                             ::NThreading::NImpl::ThrowFutureException("value being read"sv, __LOCATION__);
                         }
                         break;
-                    case ValueMoved:
+                    case EFutureState::ValueMoved:
                         ::NThreading::NImpl::ThrowFutureException("value was moved"sv, __LOCATION__);
-                    default:
-                        Y_ASSERT(state == ValueSet);
+                    case EFutureState::NotReady:
+                    case EFutureState::ExceptionSet:
+                        // Unreachable: the state is ready here, and an exception has already been rethrown above
+                        Y_ABORT("unexpected future state");
                 }
             }
 
         public:
             TFutureState()
-                : State(NotReady)
+                : State(EFutureState::NotReady)
                 , NullValue(0)
             {
             }
 
             template <typename TT>
             TFutureState(TT&& value)
-                : State(ValueSet)
+                : State(EFutureState::ValueSet)
                 , Value(std::forward<TT>(value))
             {
             }
 
             TFutureState(std::exception_ptr exception, TError)
-                : State(ExceptionSet)
+                : State(EFutureState::ExceptionSet)
                 , Exception(std::move(exception))
                 , NullValue(0)
             {
             }
 
             ~TFutureState() {
-                if (State >= ValueMoved) { // ValueMoved, ValueSet, ValueRead
+                if (HasValue()) {
                     Value.~T();
                 }
             }
 
             bool HasValue() const {
-                return AtomicGet(State) >= ValueMoved; // ValueMoved, ValueSet, ValueRead
+                return State.load(std::memory_order::acquire) >= EFutureState::ValueMoved; // ValueMoved, ValueSet, ValueRead
             }
 
             void TryRethrow() const {
-                TAtomicBase state = AtomicGet(State);
+                EFutureState state = State.load(std::memory_order::acquire);
                 TryRethrowWithState(state);
             }
 
             bool HasException() const {
-                return AtomicGet(State) == ExceptionSet;
+                return State.load(std::memory_order::acquire) == EFutureState::ExceptionSet;
             }
             bool IsReady() const {
-                return AtomicGet(State) != NotReady;
+                return State.load(std::memory_order::acquire) != EFutureState::NotReady;
             }
 
             const T& GetValue(TDuration timeout = TDuration::Zero()) const {
-                AccessValue(timeout, ValueRead);
+                AccessValue(timeout, EFutureState::ValueRead);
                 return Value;
             }
 
             T ExtractValue(TDuration timeout = TDuration::Zero()) {
-                AccessValue(timeout, ValueMoved);
+                AccessValue(timeout, EFutureState::ValueMoved);
                 return std::move(Value);
             }
 
@@ -144,8 +150,8 @@ namespace NThreading {
                 TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
-                    TAtomicBase state = AtomicGet(State);
-                    if (Y_UNLIKELY(state != NotReady)) {
+                    EFutureState state = State.load(std::memory_order::acquire);
+                    if (Y_UNLIKELY(state != EFutureState::NotReady)) {
                         return false;
                     }
 
@@ -153,7 +159,7 @@ namespace NThreading {
 
                     readyEvent = ReadyEvent.Get();
 
-                    AtomicSet(State, ValueSet);
+                    State.store(EFutureState::ValueSet, std::memory_order::release);
                 }
 
                 if (readyEvent) {
@@ -178,8 +184,8 @@ namespace NThreading {
                 TSystemEvent* readyEvent;
 
                 with_lock (StateLock) {
-                    TAtomicBase state = AtomicGet(State);
-                    if (Y_UNLIKELY(state != NotReady)) {
+                    EFutureState state = State.load(std::memory_order::acquire);
+                    if (Y_UNLIKELY(state != EFutureState::NotReady)) {
                         return false;
                     }
 
@@ -187,7 +193,7 @@ namespace NThreading {
 
                     readyEvent = ReadyEvent.Get();
 
-                    AtomicSet(State, ExceptionSet);
+                    State.store(EFutureState::ExceptionSet, std::memory_order::release);
                 }
 
                 if (readyEvent) {
@@ -202,7 +208,7 @@ namespace NThreading {
             }
 
             void RunCallbacks() {
-                Y_ASSERT(AtomicGet(State) != NotReady);
+                Y_ASSERT(State.load(std::memory_order::acquire) != EFutureState::NotReady);
                 if (!Callbacks.empty()) {
                     TCallbackList<T> callbacks = std::move(Callbacks);
                     TFuture<T> temp(this);
@@ -215,8 +221,8 @@ namespace NThreading {
             template <typename F>
             bool Subscribe(F&& func) {
                 with_lock (StateLock) {
-                    TAtomicBase state = AtomicGet(State);
-                    if (state == NotReady) {
+                    EFutureState state = State.load(std::memory_order::acquire);
+                    if (state == EFutureState::NotReady) {
                         Callbacks.emplace_back(std::forward<F>(func));
                         return true;
                     }
@@ -236,8 +242,8 @@ namespace NThreading {
                 TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
-                    TAtomicBase state = AtomicGet(State);
-                    if (state != NotReady) {
+                    EFutureState state = State.load(std::memory_order::acquire);
+                    if (state != EFutureState::NotReady) {
                         return true;
                     }
 
@@ -251,8 +257,8 @@ namespace NThreading {
                 return readyEvent->WaitD(deadline);
             }
 
-            void TryRethrowWithState(TAtomicBase state) const {
-                if (Y_UNLIKELY(state == ExceptionSet)) {
+            void TryRethrowWithState(EFutureState state) const {
+                if (Y_UNLIKELY(state == EFutureState::ExceptionSet)) {
                     Y_ASSERT(Exception);
                     std::rethrow_exception(Exception);
                 }
@@ -263,14 +269,9 @@ namespace NThreading {
 
         template <>
         class TFutureState<void>: public TAtomicRefCount<TFutureState<void>> {
-            enum {
-                NotReady,
-                ValueSet,
-                ExceptionSet,
-            };
 
         private:
-            TAtomic State;
+            std::atomic<EFutureState> State;
             TAdaptiveLock StateLock;
 
             TCallbackList<void> Callbacks;
@@ -280,35 +281,35 @@ namespace NThreading {
 
         public:
             TFutureState(bool valueSet = false)
-                : State(valueSet ? ValueSet : NotReady)
+                : State(valueSet ? EFutureState::ValueSet : EFutureState::NotReady)
             {
             }
 
             TFutureState(std::exception_ptr exception, TError)
-                : State(ExceptionSet)
+                : State(EFutureState::ExceptionSet)
                 , Exception(std::move(exception))
             {
             }
 
             bool HasValue() const {
-                return AtomicGet(State) == ValueSet;
+                return State.load(std::memory_order::acquire) == EFutureState::ValueSet;
             }
 
             void TryRethrow() const {
-                TAtomicBase state = AtomicGet(State);
+                EFutureState state = State.load(std::memory_order::acquire);
                 TryRethrowWithState(state);
             }
 
             bool HasException() const {
-                return AtomicGet(State) == ExceptionSet;
+                return State.load(std::memory_order::acquire) == EFutureState::ExceptionSet;
             }
             bool IsReady() const {
-                return AtomicGet(State) != NotReady;
+                return State.load(std::memory_order::acquire) != EFutureState::NotReady;
             }
 
             void GetValue(TDuration timeout = TDuration::Zero()) const {
-                TAtomicBase state = AtomicGet(State);
-                if (Y_UNLIKELY(state == NotReady)) {
+                EFutureState state = State.load(std::memory_order::acquire);
+                if (Y_UNLIKELY(state == EFutureState::NotReady)) {
                     if (timeout == TDuration::Zero()) {
                         ::NThreading::NImpl::ThrowFutureException("value not set"sv, __LOCATION__);
                     }
@@ -317,12 +318,12 @@ namespace NThreading {
                         ::NThreading::NImpl::ThrowFutureException("wait timeout"sv, __LOCATION__);
                     }
 
-                    state = AtomicGet(State);
+                    state = State.load(std::memory_order::acquire);
                 }
 
                 TryRethrowWithState(state);
 
-                Y_ASSERT(state == ValueSet);
+                Y_ASSERT(state == EFutureState::ValueSet);
             }
 
             void SetValue() {
@@ -336,14 +337,14 @@ namespace NThreading {
                 TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
-                    TAtomicBase state = AtomicGet(State);
-                    if (Y_UNLIKELY(state != NotReady)) {
+                    EFutureState state = State.load(std::memory_order::acquire);
+                    if (Y_UNLIKELY(state != EFutureState::NotReady)) {
                         return false;
                     }
 
                     readyEvent = ReadyEvent.Get();
 
-                    AtomicSet(State, ValueSet);
+                    State.store(EFutureState::ValueSet, std::memory_order::release);
                 }
 
                 if (readyEvent) {
@@ -368,8 +369,8 @@ namespace NThreading {
                 TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
-                    TAtomicBase state = AtomicGet(State);
-                    if (Y_UNLIKELY(state != NotReady)) {
+                    EFutureState state = State.load(std::memory_order::acquire);
+                    if (Y_UNLIKELY(state != EFutureState::NotReady)) {
                         return false;
                     }
 
@@ -377,7 +378,7 @@ namespace NThreading {
 
                     readyEvent = ReadyEvent.Get();
 
-                    AtomicSet(State, ExceptionSet);
+                    State.store(EFutureState::ExceptionSet, std::memory_order::release);
                 }
 
                 if (readyEvent) {
@@ -392,7 +393,7 @@ namespace NThreading {
             }
 
             void RunCallbacks() {
-                Y_ASSERT(AtomicGet(State) != NotReady);
+                Y_ASSERT(State.load(std::memory_order::acquire) != EFutureState::NotReady);
                 if (!Callbacks.empty()) {
                     TCallbackList<void> callbacks = std::move(Callbacks);
                     TFuture<void> temp(this);
@@ -405,8 +406,8 @@ namespace NThreading {
             template <typename F>
             bool Subscribe(F&& func) {
                 with_lock (StateLock) {
-                    TAtomicBase state = AtomicGet(State);
-                    if (state == NotReady) {
+                    EFutureState state = State.load(std::memory_order::acquire);
+                    if (state == EFutureState::NotReady) {
                         Callbacks.emplace_back(std::forward<F>(func));
                         return true;
                     }
@@ -426,8 +427,8 @@ namespace NThreading {
                 TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
-                    TAtomicBase state = AtomicGet(State);
-                    if (state != NotReady) {
+                    EFutureState state = State.load(std::memory_order::acquire);
+                    if (state != EFutureState::NotReady) {
                         return true;
                     }
 
@@ -441,8 +442,8 @@ namespace NThreading {
                 return readyEvent->WaitD(deadline);
             }
 
-            void TryRethrowWithState(TAtomicBase state) const {
-                if (Y_UNLIKELY(state == ExceptionSet)) {
+            void TryRethrowWithState(EFutureState state) const {
+                if (Y_UNLIKELY(state == EFutureState::ExceptionSet)) {
                     Y_ASSERT(Exception);
                     std::rethrow_exception(Exception);
                 }

@@ -2,6 +2,8 @@
 
 #include "fwd.h"
 
+// We do not use this header, but removing it breaks too many targets
+// FIXME in IGNIETFERRO-1105
 #include <library/cpp/deprecated/atomic/atomic.h>
 
 #include <util/datetime/base.h>
@@ -12,6 +14,8 @@
 #include <util/generic/yexception.h>
 #include <util/system/event.h>
 #include <util/system/spinlock.h>
+
+#include <atomic>
 
 namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
