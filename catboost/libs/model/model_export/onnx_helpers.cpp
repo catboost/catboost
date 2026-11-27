@@ -1474,19 +1474,19 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
 
         AddAttribute("post_transform", "NONE", treesNode);
         AddAttribute("n_targets", i64(1), treesNode);
+    }
 
-        if (explicitBinaryOutputs) {
-            margin = TOnnxGraphBuilder(onnxGraph).NewName();
-            treesNode->add_output(margin);
-        } else {
-            InitValueInfo(
-                "predictions",
-                onnx::TensorProto_DataType_FLOAT,
-                /*secondDim*/ Nothing(),
-                onnxGraph->add_output()
-            );
-            treesNode->add_output("predictions");
-        }
+    if (explicitBinaryOutputs) {
+        margin = TOnnxGraphBuilder(onnxGraph).NewName();
+        treesNode->add_output(margin);
+    } else if (!isClassifierModel) {
+        InitValueInfo(
+            "predictions",
+            onnx::TensorProto_DataType_FLOAT,
+            /*secondDim*/ Nothing(),
+            onnxGraph->add_output()
+        );
+        treesNode->add_output("predictions");
     }
     auto scaleAndBias = model.GetScaleAndBias();
     TTreesAttributes treesAttributes(isClassifierModel, !scaleAndBias.IsZeroBias(), treesNode->mutable_attribute());
