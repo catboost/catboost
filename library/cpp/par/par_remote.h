@@ -6,8 +6,8 @@
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
+#include <util/generic/deque.h>
 #include <util/generic/vector.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/event.h>
 #include <util/system/spinlock.h>
 #include <util/thread/lfqueue.h>
@@ -108,19 +108,6 @@ namespace NPar {
             void NewRequest(TRemoteQueryProcessor* p, TNetworkRequest* req) override;
         };
 
-        struct TAtomicWrap {
-            TAtomic Counter;
-
-            TAtomicWrap()
-                : Counter(0)
-            {
-            }
-            TAtomicWrap(int x)
-                : Counter(x)
-            {
-            }
-        };
-
         int CompId = -1;
         TVector<TNetworkAddress> BaseSearcherAddrs;
         TNetworkAddress MasterAddress;
@@ -134,7 +121,7 @@ namespace NPar {
         TIntrusivePtr<TGatherStatsCmd> GatherStatsCmd;
 
         TSystemEvent SlaveFinish;
-        TVector<TAtomicWrap> LastCounts;
+        TDeque<std::atomic<size_t>> LastCounts;
 
         using TRequestHash = TSpinLockedKeyValueStorage<TGUID, TIntrusivePtr<TQueryResultDst>, TGUIDHash>;
         TRequestHash RequestsData;

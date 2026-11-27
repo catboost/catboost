@@ -1,0 +1,207 @@
+--- a/Cython/Compiler/Main.py
++++ b/Cython/Compiler/Main.py
+@@ -22,7 +22,7 @@
+ from .Scanning import PyrexScanner, FileSourceDescriptor
+ from .Errors import PyrexError, CompileError, error, warning
+ from .Symtab import ModuleScope
+-from .. import Utils
++from .. import Utils, _ResourceFiles
+ from . import Options
+ from .Options import CompilationOptions, default_options
+ from .CmdLine import parse_command_line
+@@ -44,8 +44,7 @@
+ module_name_pattern = re.compile("{0}(\\.{0})*$".format(module_name_pattern))
+ 
+ 
+-standard_include_path = os.path.abspath(
+-    os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Includes'))
++standard_include_path = _ResourceFiles.data_root('Includes')
+ 
+ 
+ class Context:
+@@ -266,7 +265,8 @@
+                     rel_path = module_name.replace('.', os.sep) + os.path.splitext(pxd_pathname)[1]
+                     if not pxd_pathname.endswith(rel_path):
+                         rel_path = pxd_pathname  # safety measure to prevent printing incorrect paths
+-                    if Options.source_root:
++                    # Builtin paths are virtual and independent of the physical checkout.
++                    if Options.source_root and not _ResourceFiles.is_resource_path(pxd_pathname):
+                         rel_path = os.path.relpath(pxd_pathname, Options.source_root)
+                     source_desc = FileSourceDescriptor(pxd_pathname, rel_path)
+                     err, result = self.process_pxd(source_desc, scope, qualified_name)
+@@ -777,8 +777,9 @@
+         package_filename = "__init__" + suffix
+ 
+     for dirname in dirs:
++        dirname = _ResourceFiles.include_root(dirname, Options.source_root)
+         path = os.path.join(dirname, dotted_filename)
+-        if os.path.exists(path):
++        if Utils.path_exists(path):
+             return path
+ 
+         # Arcadia-specific lookup: search for packages in include paths,
+@@ -787,11 +788,11 @@
+         if not include:
+             package_dir = os.path.join(dirname, *package_names)
+             path = os.path.join(package_dir, module_filename)
+-            if os.path.exists(path):
++            if Utils.path_exists(path):
+                 return path
+             path = os.path.join(dirname, package_dir, module_name,
+                                 package_filename)
+-            if os.path.exists(path):
++            if Utils.path_exists(path):
+                 return path
+ 
+     return None
+--- a/Cython/Compiler/Code.py
++++ b/Cython/Compiler/Code.py
+@@ -379,8 +379,8 @@
+ def get_utility_dir():
+     # make this a function and not global variables:
+     # http://trac.cython.org/cython_trac/ticket/475
+-    Cython_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+-    return os.path.join(Cython_dir, "Utility")
++    from .. import _ResourceFiles
++    return _ResourceFiles.data_root("Utility")
+ 
+ read_utilities_hook = None
+ """
+--- a/Cython/Compiler/UtilityCode.py
++++ b/Cython/Compiler/UtilityCode.py
+@@ -301,8 +301,7 @@
+             scope = scope.find_submodule(name, as_package=is_package)
+ 
+         pxd_pathname = os.path.join(
+-            os.path.split(Cython.__file__)[0],
+-            'Utility',
++            Code.get_utility_dir(),
+             self._pxd_name
+         )
+         try:
+--- a/Cython/Utils.py
++++ b/Cython/Utils.py
+@@ -19,6 +19,9 @@
+ import shutil
+ import tempfile
+ 
++if getattr(sys, "is_standalone_binary", False):
++    import __res as resource
++
+ 
+ 
+ if sys.version_info < (3, 9):
+@@ -43,6 +46,7 @@
+     from functools import wraps
+ 
+ 
++from . import _ResourceFiles
+ from . import __version__ as cython_version
+ 
+ PACKAGE_FILES = ("__init__.py", "__init__.pyc", "__init__.pyx", "__init__.pxd")
+@@ -280,6 +284,8 @@
+ 
+ @cached_function
+ def path_exists(path):
++    if _ResourceFiles.is_resource_path(path):
++        return _ResourceFiles.resource_exists(path)
+     # try on the filesystem first
+     if os.path.exists(path):
+         return True
+@@ -389,6 +395,14 @@
+ 
+ 
+ def open_source_file(source_filename, encoding=None, error_handling=None):
++    if _ResourceFiles.is_resource_path(source_filename):
++        data = _ResourceFiles.open_resource(source_filename)
++        if encoding is None:
++            encoding = detect_opened_file_encoding(data)
++            data.seek(0)
++        stream = io.TextIOWrapper(data, encoding=encoding, errors=error_handling)
++        skip_bom(stream)
++        return stream
+     stream = None
+     try:
+         if encoding is None:
+@@ -626,8 +640,13 @@
+     if not src_base_dir.endswith(os.sep):
+         src_base_dir += os.sep
+     # paths below the base_dir are relative, otherwise absolute
++    # Embedded declarations change with the compiler binary.
++    dependencies = {
++        sys.executable if _ResourceFiles.is_resource_path(name) else name
++        for name in dependencies
++    }
+     paths = []
+-    for fname in dependencies:
++    for fname in sorted(dependencies):
+         try:
+             newpath = os.path.relpath(fname, cwd)
+         except ValueError:
+@@ -706,10 +725,9 @@
+             self.file = open(os.path.join(self.build_root, self.filename), self.mode)
+             return self.file
+         elif self.is_standalone:
+-            import library.python.resource
+-            from six import StringIO
+-
+-            content = library.python.resource.resfs_read(self.filename, builtin=True)
++            from io import StringIO
++
++            content = resource.resfs_read(self.filename, builtin=True)
+             assert content, (self.filename, os.environ.items())
+             return StringIO(content.decode())
+         else:
+@@ -726,8 +744,8 @@
+     if build_root:
+         filename = os.path.join(build_root, filename)
+     elif is_standalone:
+-        import library.python.resource
+-        return library.python.resource.resfs_src(filename, resfs_file=True)
++        import __res
++        return __res.resfs_src(filename, resfs_file=True)
+ 
+     return os.path.exists(filename)
+ 
+--- a/Cython/Build/SharedModule.py
++++ b/Cython/Build/SharedModule.py
+@@ -1,4 +1,6 @@
+ import os
++
++from Cython import _ResourceFiles
+ 
+ from Cython.Compiler import (
+     MemoryView, Code, Options, Pipeline, Errors, Main, Symtab
+@@ -28,7 +30,7 @@
+     def generate_c_utilities(module_node):
+         UtilityCode = Code.UtilityCode
+         match_special = UtilityCode.get_special_comment_matcher('/')
+-        for c_utility_file in os.listdir(Code.get_utility_dir()):
++        for c_utility_file in _ResourceFiles.list_directory(Code.get_utility_dir()):
+             if not c_utility_file.endswith('.c'):
+                 continue
+             for line in Code.read_utilities_hook(c_utility_file):
+--- a/Cython/Build/Cache.py
++++ b/Cython/Build/Cache.py
+@@ -6,7 +6,7 @@
+ import subprocess
+ from ..Utils import safe_makedirs, cached_function
+ import zipfile
+-from .. import __version__
++from .. import __version__, _ResourceFiles
+ 
+ try:
+     import zlib
+@@ -36,7 +36,11 @@
+     path = os.path.normpath(filename)
+     prefix = ("%d:%s" % (len(path), path)).encode("UTF-8")
+     m = hashlib.sha256(prefix)
+-    with open(path, "rb") as f:
++    if _ResourceFiles.is_resource_path(path):
++        source = _ResourceFiles.open_resource(path)
++    else:
++        source = open(path, "rb")
++    with source as f:
+         data = f.read(65000)
+         while data:
+             m.update(data)

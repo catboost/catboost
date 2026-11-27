@@ -3,6 +3,7 @@
 #include "compat.h"
 #include "defaults.h"
 #include "fs.h"
+#include "env.h"
 #include "sigset.h"
 #include "spinlock.h"
 
@@ -490,3 +491,34 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         UNIT_ASSERT_VALUES_EQUAL(firstLine, text);
     }
 } // Y_UNIT_TEST_SUITE(TShellCommandTest)
+
+#if defined(_win_)
+Y_UNIT_TEST_SUITE(TShellCommandUtf8ArgvTest) {
+    Y_UNIT_TEST(PreservesUnicodeArgument) {
+        TTempDir directory;
+        const TString path = directory.Path().GetPath() + "/Привет \xF0\x9F\x9A\x80.txt";
+        TFileOutput{path}.Finish();
+        TShellCommandOptions options;
+        options.SetUseShell(false).SetQuoteArguments(false);
+        TShellCommand command("cmd.exe /D /C if exist \"" + path + "\" (exit 0) else (exit 17)", options);
+        command.Run();
+        UNIT_ASSERT(command.GetExitCode().Defined());
+        UNIT_ASSERT_VALUES_EQUAL(command.GetExitCode().GetRef(), 0);
+    }
+
+    Y_UNIT_TEST(StartsUnicodeExecutable) {
+        TTempDir directory;
+        const TString executable = directory.Path().GetPath() + "/Привет \xF0\x9F\x9A\x80.exe";
+        const auto commandProcessor = GetEnv("ComSpec");
+        UNIT_ASSERT(!commandProcessor.empty());
+        NFs::Copy(commandProcessor, executable);
+        TShellCommandOptions options;
+        options.SetUseShell(false).SetQuoteArguments(true);
+        TShellCommand command(executable, options);
+        command << "/D" << "/C" << "exit" << "0";
+        command.Run();
+        UNIT_ASSERT(command.GetExitCode().Defined());
+        UNIT_ASSERT_VALUES_EQUAL(command.GetExitCode().GetRef(), 0);
+    }
+} // Y_UNIT_TEST_SUITE(TShellCommandUtf8ArgvTest)
+#endif

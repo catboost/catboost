@@ -28,5 +28,6 @@ target_sources(cpp-containers-absl INTERFACE
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/absl/flat_hash_map_saveload.h
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/absl/flat_hash_set.h
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/absl/flat_hash_set_saveload.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/absl/inlined_vector.h
 )
 

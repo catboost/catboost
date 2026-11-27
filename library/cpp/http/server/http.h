@@ -24,6 +24,13 @@ public:
         struct TFailLogData {
             int failstate;
             TString url;
+            // The first response may already be a protocol error (e.g. 405).
+            unsigned responseCode = 503;
+            TString requestPath = {};
+            // Valid only for the duration of OnFailRequestEx.
+            const THttpHeaders* requestHeaders = nullptr;
+            // Includes the query for every HTTP method; valid during the callback.
+            TStringBuf requestTarget = {};
         };
 
         virtual ~ICallBack() {
@@ -129,6 +136,7 @@ public:
     bool IsLocal() const;
     bool CheckLoopback();
     void ProcessFailRequest(int failstate);
+    void NotifyFailRequest(int failstate);
 
     void ReleaseConnection();
 

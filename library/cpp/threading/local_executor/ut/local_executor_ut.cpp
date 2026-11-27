@@ -6,6 +6,8 @@
 #include <util/system/rwlock.h>
 #include <util/generic/algorithm.h>
 
+#include <atomic>
+
 using namespace NPar;
 
 class TTestException: public yexception {
@@ -22,11 +24,11 @@ Y_UNIT_TEST_SUITE(ExecRangeWithFutures){
 void AsyncRunAndWaitFuturesReady(int rangeSize, int threads) {
     TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threads);
-    TAtomic signal = 0;
+    std::atomic<bool> signal = false;
     TVector<int> data(rangeSize, 0);
     TVector<NThreading::TFuture<void>> futures = localExecutor.ExecRangeWithFutures([&signal, &data](int i) {
         UNIT_ASSERT(data[i] == 0);
-        while (AtomicGet(signal) == 0)
+        while (!signal.load())
             ;
         data[i] += 1;
     },
@@ -34,7 +36,7 @@ void AsyncRunAndWaitFuturesReady(int rangeSize, int threads) {
     UNIT_ASSERT(AllOf(data, 0));
     for (auto& future : futures)
         UNIT_ASSERT(!future.HasValue());
-    AtomicSet(signal, 1);
+    signal.store(true);
     for (auto& future : futures) {
         future.GetValueSync();
     }
@@ -60,11 +62,11 @@ Y_UNIT_TEST(AsyncRunOneThreadAndWaitFuturesReadyOneExtraThread) {
 Y_UNIT_TEST(AsyncRunTwoRangesAndWaitFuturesReady) {
     TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(DefaultThreadsCount);
-    TAtomic signal = 0;
+    std::atomic<bool> signal = false;
     TVector<int> data1(DefaultRangeSize, 0);
     TVector<NThreading::TFuture<void>> futures1 = localExecutor.ExecRangeWithFutures([&signal, &data1](int i) {
         UNIT_ASSERT(data1[i] == 0);
-        while (AtomicGet(signal) == 0)
+        while (!signal.load())
             ;
         data1[i] += 1;
     },
@@ -72,14 +74,14 @@ Y_UNIT_TEST(AsyncRunTwoRangesAndWaitFuturesReady) {
     TVector<int> data2(DefaultRangeSize, 0);
     TVector<NThreading::TFuture<void>> futures2 = localExecutor.ExecRangeWithFutures([&signal, &data2](int i) {
         UNIT_ASSERT(data2[i] == 0);
-        while (AtomicGet(signal) == 0)
+        while (!signal.load())
             ;
         data2[i] += 2;
     },
                                                                                      0, DefaultRangeSize, TLocalExecutor::HIGH_PRIORITY);
     UNIT_ASSERT(AllOf(data1, 0));
     UNIT_ASSERT(AllOf(data2, 0));
-    AtomicSet(signal, 1);
+    signal.store(true);
     for (int i = 0; i < DefaultRangeSize; ++i) {
         futures1[i].GetValueSync();
         futures2[i].GetValueSync();
@@ -91,11 +93,11 @@ Y_UNIT_TEST(AsyncRunTwoRangesAndWaitFuturesReady) {
 void AsyncRunRangeAndWaitExceptions(int rangeSize, int threadsCount) {
     TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadsCount);
-    TAtomic signal = 0;
+    std::atomic<bool> signal = false;
     TVector<int> data(rangeSize, 0);
     TVector<NThreading::TFuture<void>> futures = localExecutor.ExecRangeWithFutures([&signal, &data](int i) {
         UNIT_ASSERT(data[i] == 0);
-        while (AtomicGet(signal) == 0)
+        while (!signal.load())
             ;
         data[i] += 1;
         throw 10000 + i;
@@ -103,7 +105,7 @@ void AsyncRunRangeAndWaitExceptions(int rangeSize, int threadsCount) {
                                                                                     0, rangeSize, TLocalExecutor::HIGH_PRIORITY);
     UNIT_ASSERT(AllOf(data, 0));
     UNIT_ASSERT(futures.ysize() == rangeSize);
-    AtomicSet(signal, 1);
+    signal.store(true);
     int exceptionsCaught = 0;
     for (int i = 0; i < rangeSize; ++i) {
         try {
@@ -137,11 +139,11 @@ Y_UNIT_TEST(AsyncRunOneTaskAndWaitExceptionsOneExtraThread) {
 Y_UNIT_TEST(AsyncRunTwoRangesAndWaitExceptions) {
     TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(DefaultThreadsCount);
-    TAtomic signal = 0;
+    std::atomic<bool> signal = false;
     TVector<int> data1(DefaultRangeSize, 0);
     TVector<NThreading::TFuture<void>> futures1 = localExecutor.ExecRangeWithFutures([&signal, &data1](int i) {
         UNIT_ASSERT(data1[i] == 0);
-        while (AtomicGet(signal) == 0)
+        while (!signal.load())
             ;
         data1[i] += 1;
         throw 15000 + i;
@@ -150,7 +152,7 @@ Y_UNIT_TEST(AsyncRunTwoRangesAndWaitExceptions) {
     TVector<int> data2(DefaultRangeSize, 0);
     TVector<NThreading::TFuture<void>> futures2 = localExecutor.ExecRangeWithFutures([&signal, &data2](int i) {
         UNIT_ASSERT(data2[i] == 0);
-        while (AtomicGet(signal) == 0)
+        while (!signal.load())
             ;
         data2[i] += 2;
         throw 16000 + i;
@@ -161,7 +163,7 @@ Y_UNIT_TEST(AsyncRunTwoRangesAndWaitExceptions) {
     UNIT_ASSERT(AllOf(data2, 0));
     UNIT_ASSERT(futures1.size() == DefaultRangeSize);
     UNIT_ASSERT(futures2.size() == DefaultRangeSize);
-    AtomicSet(signal, 1);
+    signal.store(true);
     int exceptionsCaught = 0;
     for (int i = 0; i < DefaultRangeSize; ++i) {
         try {
@@ -235,32 +237,32 @@ Y_UNIT_TEST(RunOneAndCheckExceptionsWithWaitCompleteZeroExtraThreads) {
 }
 
 Y_UNIT_TEST_SUITE(ExecRangeWithThrow){
-    void RunParallelWhichThrowsTTestException(int rangeStart, int rangeSize, int threadsCount, int flags, TAtomic& processed){
-        AtomicSet(processed, 0);
+    void RunParallelWhichThrowsTTestException(int rangeStart, int rangeSize, int threadsCount, int flags, std::atomic<int>& processed){
+        processed.store(0);
 TLocalExecutor localExecutor;
 localExecutor.RunAdditionalThreads(threadsCount);
 localExecutor.ExecRangeWithThrow([&processed](int) {
-    AtomicAdd(processed, 1);
+    ++processed;
     throw TTestException();
 },
                                  rangeStart, rangeStart + rangeSize, flags);
 }
 
 Y_UNIT_TEST(RunParallelWhichThrowsTTestException) {
-    TAtomic processed = 0;
+    std::atomic<int> processed = 0;
     UNIT_ASSERT_EXCEPTION(
         RunParallelWhichThrowsTTestException(10, 40, DefaultThreadsCount,
                                              TLocalExecutor::EFlags::WAIT_COMPLETE, processed),
         TTestException);
-    UNIT_ASSERT(AtomicGet(processed) == 40);
+    UNIT_ASSERT(processed.load() == 40);
 }
 
 void ThrowAndCatchTTestException(int rangeSize, int threadsCount, int flags) {
-    TAtomic processed = 0;
+    std::atomic<int> processed = 0;
     UNIT_ASSERT_EXCEPTION(
         RunParallelWhichThrowsTTestException(0, rangeSize, threadsCount, flags, processed),
         TTestException);
-    UNIT_ASSERT(AtomicGet(processed) == rangeSize);
+    UNIT_ASSERT(processed.load() == rangeSize);
 }
 
 Y_UNIT_TEST(ThrowAndCatchTTestExceptionLowPriority) {
@@ -300,26 +302,26 @@ void ThrowsTTestExceptionFromNested(TLocalExecutor& localExecutor) {
                                      0, 10, TLocalExecutor::EFlags::WAIT_COMPLETE);
 }
 
-void CatchTTestExceptionFromNested(TAtomic& processed1, TAtomic& processed2) {
+void CatchTTestExceptionFromNested(std::atomic<int>& processed1, std::atomic<int>& processed2) {
     TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(DefaultThreadsCount);
     localExecutor.ExecRangeWithThrow([&processed1, &processed2, &localExecutor](int) {
-        AtomicAdd(processed1, 1);
+        ++processed1;
         UNIT_ASSERT_EXCEPTION(
             ThrowsTTestExceptionFromNested(localExecutor),
             TTestException);
-        AtomicAdd(processed2, 1);
+        ++processed2;
     },
                                      0, DefaultRangeSize, TLocalExecutor::EFlags::WAIT_COMPLETE);
 }
 
 Y_UNIT_TEST(NestedParallelExceptionsDoNotLeak) {
-    TAtomic processed1 = 0;
-    TAtomic processed2 = 0;
+    std::atomic<int> processed1 = 0;
+    std::atomic<int> processed2 = 0;
     UNIT_ASSERT_NO_EXCEPTION(
         CatchTTestExceptionFromNested(processed1, processed2));
-    UNIT_ASSERT_EQUAL(AtomicGet(processed1), DefaultRangeSize);
-    UNIT_ASSERT_EQUAL(AtomicGet(processed2), DefaultRangeSize);
+    UNIT_ASSERT_EQUAL(processed1.load(), DefaultRangeSize);
+    UNIT_ASSERT_EQUAL(processed2.load(), DefaultRangeSize);
 }
 }
 

@@ -1,0 +1,115 @@
+- source_filter: "^contrib/libs/pthreads_win32"
+  includes:
+  - pthread.h:     contrib/libs/pthreads_win32/include/pthread.h
+  - sched.h:       contrib/libs/pthreads_win32/include/sched.h
+
+- source_filter: "^contrib/libs/ImageMagick"
+  includes:
+  - pthread.h:     contrib/libs/pthreads_win32/include/pthread.h
+
+- source_filter: "^contrib/restricted/ImageMagickMDS"
+  includes:
+  - pthread.h:     contrib/libs/pthreads_win32/include/pthread.h
+
+- source_filter: "^contrib/libs/jemalloc"
+  includes:
+  - strings.h:     contrib/libs/jemalloc/include/msvc_compat/strings.h
+
+- source_filter: "^contrib/libs/libpq/src"
+  includes:
+  - arpa/inet.h:   contrib/libs/libpq/src/include/port/win32/arpa/inet.h
+  - dlfcn.h:       contrib/libs/libpq/src/include/port/win32/dlfcn.h
+  - netdb.h:       contrib/libs/libpq/src/include/port/win32/netdb.h
+  - netinet/in.h:  contrib/libs/libpq/src/include/port/win32/netinet/in.h
+  - netinet/tcp.h: contrib/libs/libpq/src/include/port/win32/netinet/tcp.h
+  - pwd.h:         contrib/libs/libpq/src/include/port/win32/pwd.h
+  - sys/file.h:    contrib/libs/libpq/src/include/port/win32_msvc/sys/file.h
+  - sys/param.h:   contrib/libs/libpq/src/include/port/win32_msvc/sys/param.h
+  - sys/select.h:  contrib/libs/libpq/src/include/port/win32/sys/select.h
+  - sys/socket.h:  contrib/libs/libpq/src/include/port/win32/sys/socket.h
+  - sys/time.h:    contrib/libs/libpq/src/include/port/win32_msvc/sys/time.h
+  - sys/un.h:      contrib/libs/libpq/src/include/port/win32/sys/un.h
+  - unistd.h:      contrib/libs/libpq/src/include/port/win32_msvc/unistd.h
+
+- source_filter: "^contrib/libs/postgresql/src"
+  includes:
+  - arpa/inet.h:   contrib/libs/postgresql/src/include/port/win32/arpa/inet.h
+  - dirent.h:      contrib/libs/postgresql/src/include/port/win32_msvc/dirent.h
+  - dlfcn.h:       contrib/libs/postgresql/src/include/port/win32/dlfcn.h
+  - grp.h:         contrib/libs/postgresql/src/include/port/win32/grp.h
+  - netdb.h:       contrib/libs/postgresql/src/include/port/win32/netdb.h
+  - netinet/in.h:  contrib/libs/postgresql/src/include/port/win32/netinet/in.h
+  - pwd.h:         contrib/libs/postgresql/src/include/port/win32/pwd.h
+  - sys/file.h:    contrib/libs/postgresql/src/include/port/win32_msvc/sys/file.h
+  - sys/param.h:   contrib/libs/postgresql/src/include/port/win32_msvc/sys/param.h
+  - sys/socket.h:  contrib/libs/postgresql/src/include/port/win32/sys/socket.h
+  - sys/time.h:    contrib/libs/postgresql/src/include/port/win32_msvc/sys/time.h
+  - sys/wait.h:    contrib/libs/postgresql/src/include/port/win32/sys/wait.h
+  - unistd.h:      contrib/libs/postgresql/src/include/port/win32_msvc/unistd.h
+  - utime.h:       contrib/libs/postgresql/src/include/port/win32_msvc/utime.h
+
+- source_filter: "^yql/essentials/parser/pg_wrapper/postgresql/src"
+  includes:
+  - arpa/inet.h:   yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32/arpa/inet.h
+  - dirent.h:      yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32_msvc/dirent.h
+  - grp.h:         yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32/grp.h
+  - netdb.h:       yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32/netdb.h
+  - netinet/in.h:  yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32/netinet/in.h
+  - pwd.h:         yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32/pwd.h
+  - sys/file.h:    yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32_msvc/sys/file.h
+  - sys/param.h:   yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32_msvc/sys/param.h
+  - sys/socket.h:  yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32/sys/socket.h
+  - sys/time.h:    yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32_msvc/sys/time.h
+  - sys/wait.h:    yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32/sys/wait.h
+  - unistd.h:      yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32_msvc/unistd.h
+  - utime.h:       yql/essentials/parser/pg_wrapper/postgresql/src/include/port/win32_msvc/utime.h
+  - dl.h
+
+- source_filter: "^contrib/restricted/libx264"
+  includes:
+  - inttypes.h:    contrib/restricted/libx264/extras/inttypes.h
+  - stdint.h:      contrib/restricted/libx264/extras/stdint.h
+
+- source_filter: "^contrib/tools/bison/"
+  includes:
+  - alloca.h:      contrib/tools/bison/lib/platform/win64/alloca.h
+  - getopt.h:      contrib/tools/bison/lib/platform/win64/getopt.h
+  - fcntl.h:       contrib/tools/bison/lib/platform/win64/fcntl.h
+  - sched.h:       contrib/tools/bison/lib/platform/win64/sched.h
+  - signal.h:      contrib/tools/bison/lib/platform/win64/signal.h
+  - spawn.h:       contrib/tools/bison/lib/platform/win64/spawn.h
+  - sys/ioctl.h:   contrib/tools/bison/lib/platform/win64/sys/ioctl.h
+  - sys/stat.h:    contrib/tools/bison/lib/platform/win64/sys/stat.h
+  - sys/wait.h:    contrib/tools/bison/lib/platform/win64/sys/wait.h
+  - termios.h:     contrib/tools/bison/lib/platform/win64/termios.h
+  - unistd.h:      contrib/tools/bison/lib/platform/win64/unistd.h
+
+- source_filter: "^contrib/tools/m4/"
+  includes:
+  - alloca.h:      contrib/tools/m4/lib/platform/win64/alloca.h
+  - getopt.h:      contrib/tools/m4/lib/platform/win64/getopt.h
+  - fcntl.h:       contrib/tools/m4/lib/platform/win64/fcntl.h
+  - langinfo.h:    contrib/tools/m4/lib/platform/win64/langinfo.h
+  - locale.h:      contrib/tools/m4/lib/platform/win64/locale.h
+  - sched.h:       contrib/tools/m4/lib/platform/win64/sched.h
+  - signal.h:      contrib/tools/m4/lib/platform/win64/signal.h
+  - spawn.h:       contrib/tools/m4/lib/platform/win64/spawn.h
+  - sys/stat.h:    contrib/tools/m4/lib/platform/win64/sys/stat.h
+  - sys/time.h:    contrib/tools/m4/lib/platform/win64/sys/time.h
+  - sys/wait.h:    contrib/tools/m4/lib/platform/win64/sys/wait.h
+  - unistd.h:      contrib/tools/m4/lib/platform/win64/unistd.h
+
+- source_filter: "^contrib/libs/libpq"
+  includes:
+  - dirent.h:      contrib/libs/libpq/src/include/port/win32_msvc/dirent.h
+  - sys/wait.h:    contrib/libs/libpq/src/include/port/win32/sys/wait.h
+  - win32.h:       contrib/libs/libpq/src/include/port/win32.h
+
+- source_filter: "contrib/libs/librsvg"
+  includes:
+  - cairo.h
+  - gdk-pixbuf/gdk-pixbuf.h
+
+- includes:
+    - sys/queue.h:   contrib/libs/libc_compat/queue/sys/queue.h
+    - sys/uio.h:     contrib/libs/libc_compat/include/windows/sys/uio.h

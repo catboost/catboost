@@ -31,11 +31,13 @@ namespace grpc_python_generator {
 // that may be used internally at Google.
 struct GeneratorConfiguration {
   GeneratorConfiguration();
+  GeneratorConfiguration(TString version);
   TString grpc_package_root;
   // TODO(https://github.com/grpc/grpc/issues/8622): Drop this.
   TString beta_package_root;
   // TODO(https://github.com/protocolbuffers/protobuf/issues/888): Drop this.
   TString import_prefix;
+  TString grpc_tools_version;
   std::vector<TString> prefixes_to_filter;
 };
 
@@ -44,7 +46,22 @@ class PythonGrpcGenerator : public grpc::protobuf::compiler::CodeGenerator {
   PythonGrpcGenerator(const GeneratorConfiguration& config);
   ~PythonGrpcGenerator();
 
-  uint64_t GetSupportedFeatures() const override;
+  uint64_t GetSupportedFeatures() const override {
+    return FEATURE_PROTO3_OPTIONAL
+#ifdef GRPC_PROTOBUF_EDITION_SUPPORT
+           | FEATURE_SUPPORTS_EDITIONS
+#endif
+        ;
+  }
+
+#ifdef GRPC_PROTOBUF_EDITION_SUPPORT
+  grpc::protobuf::Edition GetMinimumEdition() const override {
+    return grpc::protobuf::Edition::EDITION_PROTO2;
+  }
+  grpc::protobuf::Edition GetMaximumEdition() const override {
+    return grpc::protobuf::Edition::EDITION_2023;
+  }
+#endif
 
   bool Generate(const grpc::protobuf::FileDescriptor* file,
                 const TString& parameter,

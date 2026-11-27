@@ -14,7 +14,7 @@ from typing import Generator
 
 from devtools.ya.test.programs.test_tool.lib.migrations_config import load_yaml_config, MigrationsConfig
 from library.python.testing.custom_linter_util import linter_params, reporter
-from build.plugins.lib.test_const import FLAKE8_PY2_RESOURCE, FLAKE8_PY3_RESOURCE
+from build.plugins.lib.test_const import FLAKE8_PY3_RESOURCE
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +26,7 @@ MIGRATIONS_CONFIG_INDEX = 1
 
 
 def get_flake8_bin(params) -> str:
-    if params.lint_name == "py2_flake8":
-        flake8_root = params.global_resources[FLAKE8_PY2_RESOURCE]
-    elif params.lint_name == "flake8":
+    if params.lint_name == "flake8":
         flake8_root = params.global_resources[FLAKE8_PY3_RESOURCE]
     else:
         raise RuntimeError("Unexpected lint name: {}".format(params.lint_name))

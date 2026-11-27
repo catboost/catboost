@@ -116,9 +116,9 @@ TFileHandle::TFileHandle(const std::filesystem::path& path, EOpenMode oMode) noe
         faMode |= GENERIC_WRITE;
     }
     if (oMode & ::ForAppend) {
-        faMode |= GENERIC_WRITE;
-        faMode |= FILE_APPEND_DATA;
-        faMode &= ~FILE_WRITE_DATA;
+        // GENERIC_WRITE expands to FILE_WRITE_DATA, defeating append-only writes.
+        faMode &= ~GENERIC_WRITE;
+        faMode |= FILE_GENERIC_WRITE & ~FILE_WRITE_DATA;
     }
 
     ui32 shMode = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;

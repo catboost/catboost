@@ -669,15 +669,15 @@ public:
     }
 
     template <class OtherValue>
-    std::pair<iterator, bool> insert_unique(const OtherValue& obj) {
+    std::pair<iterator, bool> insert_unique(OtherValue&& obj) {
         reserve(num_elements + 1);
-        return insert_unique_noresize(obj);
+        return insert_unique_noresize(std::forward<OtherValue>(obj));
     }
 
     template <class OtherValue>
-    iterator insert_equal(const OtherValue& obj) {
+    iterator insert_equal(OtherValue&& obj) {
         reserve(num_elements + 1);
-        return emplace_equal_noresize(obj);
+        return emplace_equal_noresize(std::forward<OtherValue>(obj));
     }
 
     template <typename... Args>
@@ -687,8 +687,8 @@ public:
     }
 
     template <class OtherValue>
-    iterator insert_direct(const OtherValue& obj, insert_ctx ins) {
-        return emplace_direct(ins, obj);
+    iterator insert_direct(OtherValue&& obj, insert_ctx ins) {
+        return emplace_direct(ins, std::forward<OtherValue>(obj));
     }
 
     template <typename... Args>
@@ -714,7 +714,7 @@ public:
     std::pair<iterator, bool> emplace_unique_noresize(Args&&... args);
 
     template <class OtherValue>
-    std::pair<iterator, bool> insert_unique_noresize(const OtherValue& obj);
+    std::pair<iterator, bool> insert_unique_noresize(OtherValue&& obj);
 
     template <typename... Args>
     iterator emplace_equal_noresize(Args&&... args);
@@ -1038,7 +1038,7 @@ std::pair<typename THashTable<V, K, HF, Ex, Eq, A>::iterator, bool> THashTable<V
 
 template <class V, class K, class HF, class Ex, class Eq, class A>
 template <class OtherValue>
-std::pair<typename THashTable<V, K, HF, Ex, Eq, A>::iterator, bool> THashTable<V, K, HF, Ex, Eq, A>::insert_unique_noresize(const OtherValue& obj) {
+std::pair<typename THashTable<V, K, HF, Ex, Eq, A>::iterator, bool> THashTable<V, K, HF, Ex, Eq, A>::insert_unique_noresize(OtherValue&& obj) {
     const size_type n = bkt_num(obj);
     node* first = buckets[n];
 
@@ -1050,7 +1050,7 @@ std::pair<typename THashTable<V, K, HF, Ex, Eq, A>::iterator, bool> THashTable<V
         }
     }
 
-    node* tmp = new_node(obj);
+    node* tmp = new_node(std::forward<OtherValue>(obj));
     tmp->next = first ? first : (node*)((uintptr_t)&buckets[n + 1] | 1); /*y*/
     buckets[n] = tmp;
     ++num_elements;

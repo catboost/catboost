@@ -1,0 +1,6 @@
+- includes:
+  - jni.h: contrib/libs/jdk/include/jni.h
+  - jni_md.h:
+    - contrib/libs/jdk/include/darwin/jni_md.h
+    - contrib/libs/jdk/include/linux/jni_md.h
+    - contrib/libs/jdk/include/win32/jni_md.h
