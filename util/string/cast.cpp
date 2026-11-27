@@ -654,11 +654,24 @@ double StrToD(const char* b, char** se) {
 }
 
 namespace {
+    static_assert(NPrivate::MaxFixedDigitsBeforePoint == DoubleToStringConverter::kMaxFixedDigitsBeforePoint);
+    static_assert(NPrivate::MaxFixedDigitsAfterPoint == DoubleToStringConverter::kMaxFixedDigitsAfterPoint);
+    static_assert(NPrivate::MaxPrecisionDigits == DoubleToStringConverter::kMaxPrecisionDigits);
+
+    constexpr int ShortestDecimalLow = -10;
+    constexpr int ShortestDecimalHigh = 21;
+
+    // Shortest decimal: sign, "0.", padding, significant digits, and '\0'.
+    static_assert(1 + 2 + (-ShortestDecimalLow - 1) + DoubleToStringConverter::kBase10MaximalLength + 1 <= NPrivate::ShortFloatBufferSize);
+    // An integral decimal in PREC_AUTO_KEEP_FLOAT can add a ".0" suffix.
+    static_assert(1 + ShortestDecimalHigh + 2 + 1 <= NPrivate::ShortFloatBufferSize);
+    static_assert(DoubleToStringConverter::kBase10MaximalLength + NPrivate::PrecisionFloatBufferOverhead <= NPrivate::ShortFloatBufferSize);
+
     template <int ExtraFlags = DoubleToStringConverter::NO_FLAGS>
     static inline const DoubleToStringConverter& ToStringConverter() noexcept {
         struct TCvt: public DoubleToStringConverter {
             inline TCvt() noexcept
-                : DoubleToStringConverter(EMIT_POSITIVE_EXPONENT_SIGN | ExtraFlags, "inf", "nan", 'e', -10, 21, 4, 0)
+                : DoubleToStringConverter(EMIT_POSITIVE_EXPONENT_SIGN | ExtraFlags, "inf", "nan", 'e', ShortestDecimalLow, ShortestDecimalHigh, 4, 0)
             {
             }
         };

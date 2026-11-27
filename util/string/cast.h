@@ -9,6 +9,9 @@
 #include <util/generic/typetraits.h>
 #include <util/generic/yexception.h>
 
+#include <algorithm>
+#include <limits>
+
 /*
  * specialized for all arithmetic types
  */
@@ -55,18 +58,44 @@ enum EFloatToStringMode {
 size_t FloatToString(float t, char* buf, size_t len, EFloatToStringMode mode = PREC_AUTO, int ndigits = 0);
 size_t FloatToString(double t, char* buf, size_t len, EFloatToStringMode mode = PREC_AUTO, int ndigits = 0);
 
-template <typename T>
-inline TString FloatToString(const T& t, EFloatToStringMode mode = PREC_AUTO, int ndigits = 0) {
-    char buf[512]; // Max<double>() with mode = PREC_POINT_DIGITS has 309 digits before the decimal point
-    size_t count = FloatToString(t, buf, sizeof(buf), mode, ndigits);
-    return TString(buf, count);
-}
-
 namespace NPrivate {
+    // Checked against DoubleToStringConverter in cast.cpp.
+    inline constexpr int MaxFixedDigitsBeforePoint = 60;
+    inline constexpr int MaxFixedDigitsAfterPoint = 100;
+    inline constexpr int MaxPrecisionDigits = 120;
+    inline constexpr int ShortFloatBufferSize = 32; // Shortest output needs at most 30 bytes including '\0'.
+
+    inline constexpr int FixedFloatBufferOverhead = 3;     // Sign, point and '\0'.
+    inline constexpr int PrecisionFloatBufferOverhead = 8; // Sign, point, exponent (e+NNN) and '\0'.
+
+    // FloatToString also accepts types convertible to float or double. For
+    // those, keep the converter's full fixed-format limit.
+    template <typename T>
+    inline constexpr int MaxFixedIntegerDigits = std::is_floating_point_v<T>
+                                                     ? std::min(MaxFixedDigitsBeforePoint, std::numeric_limits<T>::max_exponent10 + 1)
+                                                     : MaxFixedDigitsBeforePoint;
+
+    template <typename T>
+    constexpr int FloatBufferSize(EFloatToStringMode mode, int ndigits) noexcept {
+        if (mode == PREC_NDIGITS) {
+            return std::max(ShortFloatBufferSize, std::min(ndigits, MaxPrecisionDigits) + PrecisionFloatBufferOverhead);
+        }
+        if ((mode == PREC_POINT_DIGITS || mode == PREC_POINT_DIGITS_STRIP_ZEROES) && ndigits <= MaxFixedDigitsAfterPoint) {
+            return std::max(ShortFloatBufferSize, MaxFixedIntegerDigits<T> + ndigits + FixedFloatBufferOverhead);
+        }
+        // FloatToString falls back to shortest when ToFixed rejects the precision.
+        return ShortFloatBufferSize;
+    }
+
+    template <typename T>
+    inline constexpr int MaxFloatBufferSize = std::max(
+        FloatBufferSize<T>(PREC_POINT_DIGITS, MaxFixedDigitsAfterPoint),
+        FloatBufferSize<T>(PREC_NDIGITS, MaxPrecisionDigits));
+
     template <class T, bool isSimple>
     struct TToString {
         static inline TString Cvt(const T& t) {
-            char buf[512];
+            char buf[(std::is_same_v<T, float> || std::is_same_v<T, double>) ? ShortFloatBufferSize : 512];
 
             return TString(buf, ToString<T>(t, buf, sizeof(buf)));
         }
@@ -82,6 +111,13 @@ namespace NPrivate {
         }
     };
 } // namespace NPrivate
+
+template <typename T>
+inline TString FloatToString(const T& t, EFloatToStringMode mode = PREC_AUTO, int ndigits = 0) {
+    char buf[NPrivate::MaxFloatBufferSize<T>];
+    size_t count = FloatToString(t, buf, sizeof(buf), mode, ndigits);
+    return TString(buf, count);
+}
 
 /*
  * some clever implementations...
@@ -428,7 +464,7 @@ public:
         }
     }
 
-    constexpr operator TStringBuf() const noexcept {
+    constexpr operator TStringBuf() const noexcept Y_LIFETIME_BOUND {
         return TStringBuf(Buf_, Size_);
     }
 
@@ -478,4 +514,41 @@ private:
     }
     ui32 Size_;
     TChar Buf_[bufferSize];
+};
+
+// Formats a float or double into inline storage.
+// With no mode, matches ToString(value); with a mode, matches FloatToString.
+// TODO: Support constexpr when a library formatter can preserve the same output.
+template <typename T, auto Mode = nullptr, int NDigits = 0>
+class TFloatStringBuf {
+    static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>);
+    static_assert(std::is_same_v<decltype(Mode), std::nullptr_t> || std::is_same_v<decltype(Mode), EFloatToStringMode>);
+
+public:
+    explicit TFloatStringBuf(T value) {
+        if constexpr (std::is_same_v<decltype(Mode), std::nullptr_t>) {
+            Size_ = ToString(value, Buf_, sizeof(Buf_));
+        } else {
+            Size_ = FloatToString(value, Buf_, sizeof(Buf_), Mode, NDigits);
+        }
+    }
+
+    operator TStringBuf() const noexcept Y_LIFETIME_BOUND {
+        return TStringBuf(Buf_, Size_);
+    }
+
+private:
+    static constexpr size_t BufferSize = [] {
+        if constexpr (std::is_same_v<decltype(Mode), EFloatToStringMode>) {
+            constexpr bool fixed = Mode == PREC_POINT_DIGITS || Mode == PREC_POINT_DIGITS_STRIP_ZEROES;
+            static_assert(fixed || Mode == PREC_NDIGITS || Mode == PREC_AUTO || Mode == PREC_AUTO_KEEP_FLOAT);
+            static_assert(!fixed || NDigits >= 0);
+            return NPrivate::FloatBufferSize<T>(Mode, NDigits);
+        }
+
+        return NPrivate::FloatBufferSize<T>(PREC_AUTO, 0);
+    }();
+
+    char Buf_[BufferSize];
+    size_t Size_;
 };
