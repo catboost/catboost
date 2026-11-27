@@ -98,14 +98,6 @@ jobs:
             3.10
           update-environment: false
 
-      # Python 3.14 is not included in standard Windows images yet
-      - if: inputs.os == 'windows'
-        name: Install python 3.14
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.14'
-          update-environment: false
-
       - if: inputs.os == 'macos'
         name: Get python_versions_macos_x86_64 from cache
         uses: actions/cache/restore@v6

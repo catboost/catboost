@@ -6,7 +6,7 @@ import shutil
 import subprocess
 from ..Utils import safe_makedirs, cached_function
 import zipfile
-from .. import __version__
+from .. import __version__, _ResourceFiles
 
 try:
     import zlib
@@ -36,7 +36,11 @@ def file_hash(filename):
     path = os.path.normpath(filename)
     prefix = ("%d:%s" % (len(path), path)).encode("UTF-8")
     m = hashlib.sha256(prefix)
-    with open(path, "rb") as f:
+    if _ResourceFiles.is_resource_path(path):
+        source = _ResourceFiles.open_resource(path)
+    else:
+        source = open(path, "rb")
+    with source as f:
         data = f.read(65000)
         while data:
             m.update(data)

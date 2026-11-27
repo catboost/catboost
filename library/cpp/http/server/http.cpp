@@ -311,6 +311,7 @@ public:
 
             bool Reply(void*) override {
                 if (!ProcessHeaders()) {
+                    NotifyFailRequest(0);
                     return true;
                 }
 
@@ -803,6 +804,11 @@ void TClientRequest::ProcessFailRequest(int failstate) {
                 "\r\n"
                 "Service Unavailable\r\n";
 
+    NotifyFailRequest(failstate);
+    Output().Flush();
+}
+
+void TClientRequest::NotifyFailRequest(int failstate) {
     TString url;
 
     if (!strnicmp(RequestString.data(), "GET ", 4)) {
@@ -830,11 +836,14 @@ void TClientRequest::ProcessFailRequest(int failstate) {
     const THttpServer::ICallBack::TFailLogData d = {
         failstate,
         url,
+        ParseHttpRetCode(Output().FirstLine()),
+        TString(TStringBuf(RequestString).After(' ').Before(' ').Before('?')),
+        &Input().Headers(),
+        TStringBuf(RequestString).After(' ').Before(' '),
     };
 
     // Handling failure...
     Conn_->HttpServ_->Cb_->OnFailRequestEx(d);
-    Output().Flush();
 }
 
 THttpServer* TClientRequest::HttpServ() const noexcept {

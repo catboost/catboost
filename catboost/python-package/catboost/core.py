@@ -6804,7 +6804,7 @@ class CatBoostRanker(CatBoost):
         denominator : str
             NDCG, Denominator type: 'LogPosition' or 'Position'
         group_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series
-            Group weights.
+            Group weights. If X is a Pool and group_weight is not specified, group weights from X are used.
         thread_count : int, optional (default=-1)
             Number of threads to work with.
         Returns
@@ -6824,6 +6824,8 @@ class CatBoostRanker(CatBoost):
             if group_id is not None:
                 raise CatBoostError("Wrong initializing group_id: X is catboost.Pool object, group_id must be initialized inside catboost.Pool.")
             group_id = X.get_group_id_hash()
+            if group_weight is None:
+                group_weight = X.get_group_weight()
 
         if y is None:
             raise CatBoostError("y must be initialized.")

@@ -95,7 +95,7 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         TNetworkAddress addr("localhost", port);
         TSocket s(addr);
 
-        //TDebugOutput dbg;
+        // TDebugOutput dbg;
         TNullOutput dbg;
 
         {
@@ -141,7 +141,7 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         TNetworkAddress addr("localhost", port);
         TSocket s(addr);
 
-        //TDebugOutput dbg;
+        // TDebugOutput dbg;
         TNullOutput dbg;
 
         {
@@ -285,6 +285,31 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         TString reply = input.ReadAll();
         UNIT_ASSERT_VALUES_EQUAL(reply, res);
         server.Stop();
+    }
+
+    Y_UNIT_TEST(WriteRequestWithExtraHeaders) {
+        const THttpHeaders extraHeaders({{"X-Tag", "first"}, {"X-Tag", "last"}});
+        const TStringBuf body("\0\r\n\r\n", 5);
+        for (const TStringBuf eol : {TStringBuf("\r\n"), TStringBuf("\n")}) {
+            const TString prefix = TString::Join("POST / HTTP/1.1", eol, "X-Tag: original", eol);
+            const TString request = TString::Join(prefix, eol, body);
+            TString result;
+            TStringOutput out(result);
+
+            UNIT_ASSERT(WriteHttpRequestWithExtraHeaders(out, request, extraHeaders));
+            UNIT_ASSERT_VALUES_EQUAL(result, TString::Join(prefix, "X-Tag: first\r\nX-Tag: last\r\n", eol, body));
+        }
+    }
+
+    Y_UNIT_TEST(WriteRequestWithExtraHeadersRequiresCompleteTerminator) {
+        const THttpHeaders extraHeaders({{"X-Tag", "extra"}});
+        for (const TStringBuf request : {TStringBuf("GET / HTTP/1.1\r\nHost: localhost\r\n"), TStringBuf("GET / HTTP/1.1\r\n\r")}) {
+            TString result;
+            TStringOutput out(result);
+
+            UNIT_ASSERT(!WriteHttpRequestWithExtraHeaders(out, request, extraHeaders));
+            UNIT_ASSERT(result.empty());
+        }
     }
 
     Y_UNIT_TEST(TestOutputFlush) {
@@ -469,7 +494,8 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         if (contentEncoding) {
             httpOutput << "Content-Encoding: " << contentEncoding << "\r\n";
         }
-        httpOutput << "\r\n" << body;
+        httpOutput << "\r\n"
+                   << body;
         httpOutput.Finish();
         return result;
     }
@@ -662,7 +688,7 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
             "HTTP/1.1 200 OK\r\n"
             "Content-Encoding: gzip\r\n"
             "Content-Length: ", contentLength, "\r\n"
-            "\r\n",
+                                               "\r\n",
             compressed);
     }
 
@@ -940,8 +966,9 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
             THttpOutput httpOutput(&output, &httpInput);
             httpOutput.EnableCompressionHeader(false);
             httpOutput << "HTTP/1.1 200 OK\r\n"
-                   "content-encoding: gzip\r\n"
-                   "\r\n" + data;
+                          "content-encoding: gzip\r\n"
+                          "\r\n" +
+                              data;
             httpOutput.Finish();
         }
 
@@ -956,8 +983,8 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         const ui16 port = pm.GetPort();
         THttpServer server(&serverImpl,
                            THttpServer::TOptions(port)
-                                .EnableKeepAlive(true)
-                                .EnableCompression(enableCompession));
+                               .EnableKeepAlive(true)
+                               .EnableCompression(enableCompession));
         UNIT_ASSERT(server.Start());
 
         TNetworkAddress addr("localhost", port);
@@ -992,4 +1019,4 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         UNIT_ASSERT_VALUES_EQUAL(res.size(), DoTestHttpOutputSize(res, false));
         UNIT_ASSERT_VALUES_UNEQUAL(res.size(), DoTestHttpOutputSize(res, true));
     }
-} // THttpStreamTest suite
+} // Y_UNIT_TEST_SUITE(THttpStreamTest)

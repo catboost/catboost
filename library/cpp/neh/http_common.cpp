@@ -88,6 +88,7 @@ namespace {
     const TStringBuf schemePost2 = "post2";
     const TStringBuf schemeFull = "full";
     const TStringBuf schemeFulls = "fulls";
+    const TStringBuf schemeFullUnix = "full+unix";
     const TStringBuf schemeHttpUnix = "http+unix";
     const TStringBuf schemePostUnix = "post+unix";
 
@@ -200,17 +201,11 @@ namespace NNeh {
                 msg.Addr = proxy;
             }
 
-            TString schemePostfix = "";
-            if (loc.Scheme.EndsWith("+unix")) {
-                schemePostfix = "+unix";
-            }
-
             // ugly but still... https2 will break it :(
-            if ('s' == loc.Scheme[loc.Scheme.size() - 1]) {
-                msg.Addr.replace(0, loc.Scheme.size(), schemeFulls + schemePostfix);
-            } else {
-                msg.Addr.replace(0, loc.Scheme.size(), schemeFull + schemePostfix);
-            }
+            const TStringBuf newScheme = loc.Scheme.EndsWith("+unix")
+                ? schemeFullUnix
+                : (loc.Scheme.EndsWith('s') ? schemeFulls : schemeFull);
+            msg.Addr.replace(0, loc.Scheme.size(), newScheme);
 
             return true;
         }
