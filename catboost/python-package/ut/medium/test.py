@@ -2093,10 +2093,14 @@ def test_onnx_import_optional_tree_attributes(classifier, routing, mode):
     path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
     onnx.save(proto, path)
     model = CatBoost().load_model(path, format='onnx')
-    features = np.array([[np.nan], [0.], [1.]], dtype=np.float32)
+    border = np.float32(0.5)
+    features = np.array([np.nan, np.nextafter(border, np.float32(-np.inf)), border,
+                         np.nextafter(border, np.float32(np.inf))], dtype=np.float32).reshape(-1, 1)
     result = model.predict(features, prediction_type='RawFormulaVal')
-    expected = [2. if routing == 'true' else 1.]
-    expected += [2., 1.] if mode in ('BRANCH_LT', 'BRANCH_LEQ') else [1., 2.]
+    compare = {'BRANCH_GT': np.greater, 'BRANCH_GTE': np.greater_equal,
+               'BRANCH_LT': np.less, 'BRANCH_LEQ': np.less_equal}[mode]
+    expected = np.where(compare(features.ravel(), border), 2., 1.)
+    expected[0] = 2. if routing == 'true' else 1.
     if classifier:
         expected = [[-value, value] for value in expected]
     assert np.array_equal(result, expected)
@@ -2104,6 +2108,34 @@ def test_onnx_import_optional_tree_attributes(classifier, routing, mode):
         onnxruntime = pytest.importorskip('onnxruntime')
         session = onnxruntime.InferenceSession(path, providers=['CPUExecutionProvider'])
         assert np.array_equal(result, session.run(['predictions'], {'features': features})[0].ravel())
+
+
+@pytest.mark.parametrize('mode,border', [
+    ('BRANCH_GTE', -np.inf), ('BRANCH_LT', -np.inf), ('BRANCH_GTE', np.inf),
+    ('BRANCH_GT', np.inf), ('BRANCH_LEQ', np.inf), ('BRANCH_LEQ', np.nan),
+])
+@pytest.mark.parametrize('missing_tracks_true', [False, True])
+def test_onnx_import_nonfinite_border(mode, border, missing_tracks_true):
+    onnx = pytest.importorskip('onnx')
+    proto = _make_onnx_tree_for_attribute_tests(classifier=False)
+    attributes = {attr.name: attr for attr in proto.graph.node[0].attribute}
+    attributes['nodes_modes'].strings[0] = mode.encode()
+    attributes['nodes_values'].floats[0] = border
+    attributes['nodes_missing_value_tracks_true'].ints[0] = int(missing_tracks_true)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    onnx.save(proto, path)
+
+    features = np.array([-np.inf, -1., 0., 1., np.inf, np.nan], dtype=np.float32)
+    compare = {'BRANCH_GTE': np.greater_equal, 'BRANCH_LT': np.less,
+               'BRANCH_GT': np.greater, 'BRANCH_LEQ': np.less_equal}[mode]
+    routes = compare(features, border)
+    routes[-1] = missing_tracks_true
+    if np.all(routes[:-1] != missing_tracks_true):
+        with pytest.raises(CatBoostError, match='isolates NaN'):
+            CatBoostRegressor().load_model(path, format='onnx')
+    else:
+        model = CatBoostRegressor().load_model(path, format='onnx')
+        np.testing.assert_array_equal(model.predict(features.reshape(-1, 1)), np.where(routes, 2., 1.))
 
 
 @pytest.mark.parametrize('classifier', [False, True])

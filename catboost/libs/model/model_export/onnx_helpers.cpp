@@ -1141,29 +1141,49 @@ static void PrepareTrees(
                     treesAttributes.nodes_values->floats(idx)
                 );
             } else {
-                const bool swapBranches = nodeMode == TModeNode::BRANCH_LEQ || nodeMode == TModeNode::BRANCH_LT;
+                // CatBoost uses a strict greater-than split on float32 inputs.
+                float border = treesAttributes.nodes_values->floats(idx);
+                const float infinity = std::numeric_limits<float>::infinity();
+                bool swapBranches = nodeMode == TModeNode::BRANCH_LEQ || nodeMode == TModeNode::BRANCH_LT;
+                if (std::isnan(border)) {
+                    // Every ordered comparison with a NaN border is false.
+                    border = infinity;
+                    swapBranches = false;
+                } else if (nodeMode == TModeNode::BRANCH_GTE || nodeMode == TModeNode::BRANCH_LT) {
+                    if (border == -infinity) {
+                        // All numerical inputs satisfy x >= -infinity.
+                        border = infinity;
+                        swapBranches = !swapBranches;
+                    } else {
+                        border = std::nextafter(border, -infinity);
+                    }
+                }
                 if (swapBranches) {
                     std::swap(node.TrueNodeId, node.FalseNodeId);
-                } else {
-                    CB_ENSURE(nodeMode == TModeNode::BRANCH_GTE || nodeMode == TModeNode::BRANCH_GT, "Undefined mode of node " << nodeMode);
                 }
 
                 split.Type = ESplitType::FloatFeature;
                 split.FloatFeature.FloatFeature = perTypeFeatureIdx;
-                split.FloatFeature.Split = treesAttributes.nodes_values->floats(idx);
+                split.FloatFeature.Split = border;
 
                 const bool missingTracksTrue = treesAttributes.nodes_missing_value_tracks_true &&
                     treesAttributes.nodes_missing_value_tracks_true->ints_size() > 0 &&
                     treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1;
                 const auto nanValueTreatment = missingTracksTrue != swapBranches
                     ? ENanValueTreatment::AsTrue : ENanValueTreatment::AsFalse;
-                auto& floatFeature = (*floatFeatures)[perTypeFeatureIdx];
-                CB_ENSURE(
-                    !floatFeature.HasNans || floatFeature.NanValueTreatment == nanValueTreatment,
-                    "ONNX feature # " << flatFeatureIdx << " has inconsistent NaN routing"
-                );
-                floatFeature.HasNans = true;
-                floatFeature.NanValueTreatment = nanValueTreatment;
+                if (border == infinity) {
+                    // Replacing NaN by either infinity still selects the false child here.
+                    CB_ENSURE(nanValueTreatment == ENanValueTreatment::AsFalse,
+                        "ONNX feature # " << flatFeatureIdx << " isolates NaN from all numerical values");
+                } else {
+                    auto& floatFeature = (*floatFeatures)[perTypeFeatureIdx];
+                    CB_ENSURE(
+                        !floatFeature.HasNans || floatFeature.NanValueTreatment == nanValueTreatment,
+                        "ONNX feature # " << flatFeatureIdx << " has inconsistent NaN routing"
+                    );
+                    floatFeature.HasNans = true;
+                    floatFeature.NanValueTreatment = nanValueTreatment;
+                }
                 floatFeatureBorders[split.FloatFeature.FloatFeature].insert(split.FloatFeature.Split);
             }
 
