@@ -797,7 +797,19 @@ namespace {
 #endif
 
                 DBGOUT("parse:");
-                while (!Prs_->Parse(Buff_.Get(), bytes)) {
+                for (;;) {
+                    if (Y_UNLIKELY(bytes == 0)) {
+                        if (!Prs_->TryFinishOnEof()) {
+                            // Keep the same diagnostic as CurrentExceptionMessage() on the legacy path.
+                            static const TString incompleteResponse = FormatExc(THttpException() << THttpParser::IncompleteResponseMessage);
+                            OnError(incompleteResponse);
+                            return;
+                        }
+                        break;
+                    }
+                    if (Prs_->Parse(Buff_.Get(), bytes)) {
+                        break;
+                    }
                     if (BuffSize_ == bytes) {
                         TErrorCode ec;
                         bytes = AS_.ReadSome(Buff_.Get(), BuffSize_, ec);
