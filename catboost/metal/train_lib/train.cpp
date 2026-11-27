@@ -24,6 +24,7 @@
 #include "estimated_features.h"
 #include "estimated_features_checksum.h"
 
+#include <catboost/metal/native/metal_working_set.h>
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/metal/native/metal_trainer.h>
 #include <catboost/metal/native/metal_multiclass.h>
@@ -339,14 +340,14 @@ namespace {
     };
 
     TMetalData PrepareData(const TTrainingDataProviders& trainingData,
-                          const NCatboostOptions::TCatBoostOptions& options,
+                          const NCatboostOptions::TCatBoostOptions& options, bool snapshotEnabled,
                           NPar::ILocalExecutor* executor) {
         const auto& data = *trainingData.Learn;
         const auto& objects = *data.ObjectsData;
         const auto& layout = *objects.GetFeaturesLayout();
         TMetalData result;
         result.Executor = executor;
-        result.Estimated = PrepareMetalEstimatedFeatures(trainingData, options, executor);
+        result.Estimated = PrepareMetalEstimatedFeatures(trainingData, options, snapshotEnabled, executor);
         result.Rows = data.GetObjectCount();
         CB_ENSURE(result.Rows > 0 && result.Rows <= (1u << 24),
                   "Metal supports between 1 and 16777216 training rows");
@@ -365,8 +366,8 @@ namespace {
             const ui32 denseFeature = result.FeatureIndices.size();
             result.FeatureIndices.push_back(i);
             result.BinsPerFeature = Max<ui32>(result.BinsPerFeature, feature.Borders.size() + 1);
-            CB_ENSURE(ui64(result.Bins.size()) + values.size() <= (1ull << 30),
-                      "Metal quantized input exceeds the experimental 1 GiB limit");
+            CB_ENSURE(ui64(result.Bins.size()) + values.size() <= cbm_metal_working_set_limit(),
+                      "Metal quantized input exceeds the Metal training workspace budget");
             for (ui16 value : values) {
                 CB_ENSURE(value <= feature.Borders.size(), "Quantized value is outside feature borders");
                 result.Bins.push_back(static_cast<ui8>(value));
@@ -379,20 +380,31 @@ namespace {
         }
         result.Categorical = PrepareMetalCategoricalPermutations(data, options, executor,
             trainingData.Test.empty() ? nullptr : trainingData.Test.front().Get());
-        const auto& categorical = result.Categorical;
-        const auto& estimated = result.Estimated;
+        auto& categorical = result.Categorical;
+        auto& estimated = result.Estimated;
         const ui32 permutationCount = Max(categorical.GetPermutationCount(), estimated.GetPermutationCount());
         const ui64 matrixSize = ui64(result.Rows) * result.StaticFeatureCount();
-        CB_ENSURE(matrixSize * permutationCount <= (1ull << 30),
-                  "Metal quantized permutation inputs exceed the experimental 1 GiB limit");
-        const auto numericBins = result.Bins;
-        for (ui32 permutation = 0; permutation < permutationCount; ++permutation) {
-            auto& bins = permutation ? result.AdditionalPermutationBins.emplace_back(numericBins) : result.Bins;
-            const auto catBins = categorical.GetPermutationBins(categorical.GetPermutationCount() > 1 ? permutation : 0);
+        CB_ENSURE(matrixSize <= Max<ui32>(), "Metal quantized feature matrix exceeds GPU indexing");
+        CB_ENSURE(matrixSize <= cbm_metal_working_set_limit() / permutationCount,
+                  "Metal quantized permutation inputs exceed the Metal training workspace budget");
+        // Assemble permutation zero last: its existing numeric prefix supplies all
+        // other banks. Release staging columns immediately after their last copy.
+        result.AdditionalPermutationBins.resize(permutationCount - 1);
+        for (ui32 remaining = permutationCount; remaining > 0; --remaining) {
+            const ui32 p = remaining - 1;
+            auto& bins = p ? result.AdditionalPermutationBins[p - 1] : result.Bins;
+            bins.reserve(matrixSize);
+            if (p) bins.insert(bins.end(), result.Bins.begin(), result.Bins.end());
+
+            const ui32 catBank = categorical.GetPermutationCount() > 1 ? p : 0;
+            auto& catBins = catBank ? categorical.AdditionalPermutationBins[catBank - 1] : categorical.Bins;
             bins.insert(bins.end(), catBins.begin(), catBins.end());
+            if (catBank == p) TVector<ui8>().swap(catBins);
             if (estimated.GetFeatureCount()) {
-                const auto& estimatedBins = estimated.BinsByPermutation[estimated.GetPermutationCount() > 1 ? permutation : 0];
+                const ui32 estimatedBank = estimated.GetPermutationCount() > 1 ? p : 0;
+                auto& estimatedBins = estimated.BinsByPermutation[estimatedBank];
                 bins.insert(bins.end(), estimatedBins.begin(), estimatedBins.end());
+                if (estimatedBank == p) TVector<ui8>().swap(estimatedBins);
             }
             CB_ENSURE(bins.size() == matrixSize, "Metal permutation feature matrices differ in shape");
         }
@@ -758,7 +770,7 @@ namespace {
             const bool coupled = options.LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogitPairwise;
             const bool qce = options.LossFunctionDescription->GetLossFunction() == ELossFunction::QueryCrossEntropy;
             EstimateMetalCtrPriors(*trainingData.Learn, &options);
-            TMetalData data = PrepareData(trainingData, options, executor);
+            TMetalData data = PrepareData(trainingData, options, outputOptions.SaveSnapshot(), executor);
             if (modelBased && !modelBased->LoadBaseline) {
                 const ui32 count = Max(data.GetPermutationCount(), modelBased->PermutationCount);
                 CB_ENSURE(data.GetPermutationCount() == 1 || modelBased->PermutationCount == 1 ||
@@ -822,15 +834,15 @@ namespace {
                 (objective == ELossFunction::MultiClass ? approxDimension - 1 : approxDimension) : 0;
             CB_ENSURE(vectorBackend ? (approxDimension >= 2 && approxDimension <= 64) : approxDimension == 1,
                       "Metal supports scalar training and multidimensional models with 2 to 64 outputs");
-            CB_ENSURE(ui64(data.Rows) * approxDimension * sizeof(float) <= (1ull << 30),
-                      "Metal prediction cursor exceeds the experimental 1 GiB limit");
+            CB_ENSURE(ui64(data.Rows) * approxDimension * sizeof(float) <= cbm_metal_working_set_limit(),
+                      "Metal prediction cursor exceeds the Metal training workspace budget");
             TClassificationTargetHelper classificationTargetHelper(labelConverter, options.DataProcessingOptions.Get());
             const auto baselineColumns = GetMetalBaselineColumns(classificationTargetHelper, approxDimension,
                                                                   initModel ? *initModel : nullptr);
             const ui32 iterations = options.BoostingOptions->IterationCount;
             const ui32 depth = options.ObliviousTreeOptions->MaxDepth;
             THolder<TMetalTreeCtrFeatures> treeCtrFeatures;
-            TMaybe<TMetalTreeCtrBatch> restoredTreeCtrBatch;
+            TMaybe<TMetalTreeCtrBatch> restoredTreeCtrLayout;
             if (compoundCtrs) {
                 const ui64 allRows = ui64(data.Rows) +
                     (trainingData.Test.empty() ? 0 : trainingData.Test.front()->GetObjectCount());
@@ -960,9 +972,13 @@ namespace {
                                            permutationCount, optimizerDimension, ordered, featureParallel, signedSimpleWeights);
                     if (compoundCtrs) {
                         TStringInput input(snapshot.TreeCtrState);
-                        restoredTreeCtrBatch = treeCtrFeatures->Restore(&input);
+                        restoredTreeCtrLayout = treeCtrFeatures->PrepareRestore(&input);
                         char trailing;
                         CB_ENSURE(input.Read(&trailing, 1) == 0, "Saved Metal tree CTR registry has trailing data");
+                        if (snapshot.Depths.size() == iterations || (modelBased && modelBased->LoadBaseline)) {
+                            // A completed run needs the inference tables and split descriptors only.
+                            treeCtrFeatures->ReplaySnapshot([](const TMetalTreeCtrBatch&) {});
+                        }
                     }
                     restoredIterations = snapshot.Depths.size();
                     initialPredictions = snapshot.Predictions;
@@ -1097,14 +1113,15 @@ namespace {
                 }
                 if (restoredIterations && !ordered && !greedy) {
                     CB_ENSURE(snapshot.UsedFeatures.size() == data.StaticFeatureCount() +
-                              (treeCtrFeatures ? treeCtrFeatures->GetFeatureCount() : 0),
+                              (restoredTreeCtrLayout ? restoredTreeCtrLayout->GetFeatureCount() : 0),
                               "Metal snapshot feature-use state differs from the prepared features");
                     usedFeatures.assign(snapshot.UsedFeatures.begin(),
                         snapshot.UsedFeatures.begin() + data.StaticFeatureCount());
                 }
             }
-            if (restoredTreeCtrBatch) {
-                ValidateMetalTreeCtrSnapshot(*restoredTreeCtrBatch, ctrUniqueValues, snapshot, ordered, featureWeights);
+            if (restoredTreeCtrLayout) {
+                ValidateMetalTreeCtrSnapshot(*restoredTreeCtrLayout, ctrUniqueValues, snapshot, ordered, featureWeights);
+                restoredTreeCtrLayout.Clear();
             }
             THolder<TMetalYetiRandom> yetiRandom;
             if (stochasticTarget && !featureParallel && !langevin) {
@@ -1454,7 +1471,7 @@ namespace {
                     treeCtrSession = MakeHolder<TMetalTreeCtrSession>(orderedSession ? orderedSession->GetHandle() : session.Handle,
                         ordered, *treeCtrFeatures, data.StaticFeatureCount(), data.BinsPerFeature,
                         data.HasPermutationDependentFeatures());
-                    if (restoredTreeCtrBatch) treeCtrSession->Restore(*restoredTreeCtrBatch, snapshot);
+                    if (!snapshot.TreeCtrState.empty()) treeCtrSession->Restore(snapshot);
                     if (ordered && restoredIterations) {
                         orderedSession->RestoreState({snapshot.OrderedDescriptors, snapshot.OrderedCursors});
                         if (!stochasticTarget && !langevin) orderedSession->RestoreRandomState({snapshot.OrderedRandomDrawCount,

@@ -459,6 +459,70 @@ def append_block(session, matrices, features, borders, types, counts, weights, f
         feature_weights=weights[first:last])
 
 
+@pytest.mark.parametrize("permutations", [1, 4])
+def test_packed_appends_match_dense_search_and_permutation_replay(metal_device, permutations):
+    # Each appended column needs a different encoding width. 259 rows puts the
+    # last row in a partial byte for 1-, 2- and 4-bit bins.
+    rows = 259
+    idx = np.arange(rows, dtype=np.uint32)
+    bits = ((idx[None, :] >> np.arange(5, dtype=np.uint32)[:, None]) & 1).astype(np.uint8)
+    low_bits = (idx >> 5).astype(np.uint8)
+    bins = np.stack((bits[0], bits[1], 2 * bits[2] + low_bits % 2,
+                     8 * bits[3] + low_bits % 8, np.where(bits[4], 254, 255 - low_bits * 2)))
+    matrices = np.stack([np.roll(bins, 11 * p, axis=1) for p in range(permutations)])
+    targets = np.dot(np.array([1, 2, 4, 8, 16], dtype=np.float32), bits)
+    features = np.arange(5, dtype=np.uint32)
+    borders = np.array([0, 0, 1, 7, 254], dtype=np.uint32)
+    types = np.array([0, 0, 0, 0, 1], dtype=np.uint8)
+    config = dict(iterations=1, depth=5, learning_rate=0.25, l2_leaf_reg=0,
+                  bias=0, score_function="L2")
+
+    def train(appended):
+        initial = 1 if appended else features.size
+        with _native.Session(bins[:initial], targets, features[:initial], borders[:initial],
+                             candidate_types=types[:initial], **config) as session:
+            session.configure_permutations(matrices[:, :initial])
+            if appended:
+                for f in range(1, features.size):
+                    assert session.append_features(matrices[:, f:f + 1], [0], borders[f:f + 1],
+                                                   candidate_types=types[f:f + 1]) == f
+            session.set_feature_activity(np.ones(features.size, np.uint8))
+            session.select_permutation(permutations - 1)
+            session.begin_tree()
+            for f in (1, 3, 0, 4, 2):
+                session.set_feature_activity((features == f).astype(np.uint8))
+                split = session.grow_tree()
+                assert split["has_split"] and split["feature"] == f
+            session.finish_tree()
+            return session.result(), session.permutation_state["predictions"]
+
+    dense, dense_cursors = train(False)
+    packed, packed_cursors = train(True)
+    assert_result_equal(packed, dense)
+    np.testing.assert_array_equal(packed_cursors, dense_cursors)
+
+
+def test_packed_append_workspace_reflects_observed_permutation_bins(metal_device):
+    rows = 16387
+    binary = (np.arange(rows, dtype=np.uint32) % 2).astype(np.uint8)[None, :]
+    targets = binary[0].astype(np.float32)
+    count, columns = 4, 8
+
+    def peak(high_bin):
+        appended = np.tile(binary, (count, columns, 1))
+        # Identical dimensions, candidate grid and histogram budget. Only the
+        # last element of the final permutation needs the larger encoding.
+        appended[-1, -1, -1] = high_bin
+        with _native.Session(binary, targets, [0], [0], iterations=1, depth=1,
+                             learning_rate=0.2, l2_leaf_reg=1, bias=0, score_function="L2") as session:
+            session.configure_permutations(np.tile(binary, (count, 1, 1)))
+            session.append_features(appended, np.arange(columns, dtype=np.uint32),
+                                    np.zeros(columns, dtype=np.uint32), bins_per_feature=256)
+            return session.workspace["estimated_peak_gpu_bytes"]
+
+    assert peak(1) < peak(255)
+
+
 def assert_growth_matches_oracle(actual, expected):
     assert expected is not None
     for name in ("depth", "has_split", "feature", "bin", "type"):

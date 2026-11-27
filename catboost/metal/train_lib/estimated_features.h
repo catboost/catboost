@@ -33,5 +33,6 @@ namespace NCB {
     TMetalEstimatedFeatures PrepareMetalEstimatedFeatures(
         const TTrainingDataProviders& trainingData,
         const NCatboostOptions::TCatBoostOptions& options,
+        bool snapshotEnabled,
         NPar::ILocalExecutor* executor);
 }

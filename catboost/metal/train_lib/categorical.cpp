@@ -4,6 +4,7 @@
 #include "categorical.h"
 #include "tree_ctr_permutations.h"
 
+#include <catboost/metal/native/metal_working_set.h>
 #include <catboost/cuda/ctrs/prior_estimator.h>
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/cpu_random.h>
@@ -24,15 +25,14 @@
 
 namespace NCB {
 namespace {
-    constexpr ui64 MaxInputBytes = ui64(1) << 30;
 
     void AppendFeature(TConstArrayRef<ui8> bins, TVector<TModelSplit>&& splits,
                        ui8 type, ui32 binCount, TMetalCategoricalData* result,
                        ui32 ctrUniqueValues = 0, const TModelCtr* modelCtr = nullptr,
                        const NCatboostOptions::TBinarizationOptions* ctrBinarization = nullptr,
                        ui32 uniqueValuesOnAll = 0, ui32 catFeatureIndex = ui32(-1)) {
-        CB_ENSURE(ui64(result->Bins.size()) + bins.size() <= MaxInputBytes,
-                  "Metal categorical input exceeds the experimental 1 GiB limit");
+        CB_ENSURE(ui64(result->Bins.size()) + bins.size() <= cbm_metal_working_set_limit(),
+                  "Metal categorical input exceeds the Metal training workspace budget");
         const ui32 feature = result->SplitCandidates.size();
         result->Bins.insert(result->Bins.end(), bins.begin(), bins.end());
         for (ui32 bin = 0; bin < splits.size(); ++bin) {
@@ -254,8 +254,8 @@ namespace {
                 : type == ECtrType::Buckets ? targetBorders.size() + 1 : 1;
             if (!paramsCount) continue;
             result->HasPermutationDependentCtrs |= type != ECtrType::FeatureFreq;
-            CB_ENSURE(ui64(column.Hashes.size()) * (paramsCount + 1) * sizeof(float) <= MaxInputBytes,
-                      "Metal final CTR statistics exceed the experimental 1 GiB table limit");
+            CB_ENSURE(ui64(column.Hashes.size()) * (paramsCount + 1) * sizeof(float) <= cbm_metal_working_set_limit(),
+                      "Metal final CTR statistics exceed the Metal training workspace budget");
             const auto& priors = description.GetPriors();
             CB_ENSURE(!priors.empty(), "Metal CTR configuration requires at least one prior");
             TModelCtrBase base;
@@ -415,8 +415,8 @@ void EstimateMetalCtrPriors(const TTrainingDataProvider& data,
                     const auto& values = **holder;
                     const ui32 unique = data.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(
                         TCatFeatureIdx(index)).OnAll;
-                    CB_ENSURE(ui64(unique) * 2 * sizeof(double) <= MaxInputBytes,
-                              "Metal prior estimator category statistics exceed the experimental 1 GiB limit");
+                    CB_ENSURE(ui64(unique) * 2 * sizeof(double) <= cbm_metal_working_set_limit(),
+                              "Metal prior estimator category statistics exceed the Metal training workspace budget");
                     estimated = TBetaPriorEstimator::EstimateBetaPrior(
                         classes.data(), values.GetBlockIterator(), values.GetSize(), unique);
                     CB_ENSURE(std::isfinite(estimated->Alpha) && std::isfinite(estimated->Beta) &&
@@ -577,8 +577,8 @@ TMetalCategoricalData PrepareMetalCategoricalPermutations(const TTrainingDataPro
     const ui32 permutationCount = !result.CtrProvider || preserveOrder
         ? 1 : options.BoostingOptions->PermutationCount.Get();
     CB_ENSURE(permutationCount >= 1, "Metal CTR permutation count must be positive");
-    CB_ENSURE(ui64(result.Bins.size()) * permutationCount <= MaxInputBytes,
-              "Metal categorical permutation inputs exceed the experimental 1 GiB limit");
+    CB_ENSURE(result.Bins.size() <= cbm_metal_working_set_limit() / permutationCount,
+              "Metal categorical permutation inputs exceed the Metal training workspace budget");
     result.AdditionalPermutationBins.reserve(permutationCount - 1);
     for (ui32 permutation = 1; permutation < permutationCount; ++permutation) {
         auto current = PrepareCategoricalPermutation(data, options, executor, permutation, &result, evaluation);

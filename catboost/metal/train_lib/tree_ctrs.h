@@ -5,6 +5,8 @@
 #include <util/generic/ptr.h>
 #include <util/stream/fwd.h>
 
+#include <functional>
+
 namespace NCB {
     struct TMetalTreeCtrScoringFeature {
         ui32 AbsoluteFeature = 0;
@@ -66,7 +68,7 @@ namespace NCB {
         // config (including binarization ID) becomes bound to this grid/ID.
         void MarkSelected(ui32 absoluteFeature);
 
-        const TModelSplit& GetSplit(ui32 absoluteFeature, ui32 bin) const;
+        TModelSplit GetSplit(ui32 absoluteFeature, ui32 bin) const;
         ui32 GetFeatureCount() const;
         ui32 GetPermutationCount() const;
         // Absolute IDs of registered configurations, including inactive ones;
@@ -89,6 +91,11 @@ namespace NCB {
         // tree is restored.
         void Save(IOutputStream* output) const;
         TMetalTreeCtrBatch Restore(IInputStream* input);
+        // Decode descriptors and recover counts and registration before opening a
+        // runtime. Replay later rebuilds inference tables and emits one projection
+        // at a time. Without a sink ReplaySnapshot returns a contiguous byte bank.
+        TMetalTreeCtrBatch PrepareRestore(IInputStream* input);
+        TMetalTreeCtrBatch ReplaySnapshot(const std::function<void(const TMetalTreeCtrBatch&)>& sink = {});
 
     private:
         class TImpl;

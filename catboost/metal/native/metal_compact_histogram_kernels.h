@@ -1,7 +1,7 @@
 #pragma once
 
 // Self-contained MSL source; may be appended to the other training sources.
-// The host mirrors CompactHistogramParams (32 bytes) and validates:
+// The host mirrors CompactHistogramParams (40 bytes) and validates:
 //   0 < rows <= 2^24; leaves is a power of two <= 65536;
 //   reuse is 0 or 1, and reuse implies leaves >= 2;
 //   features > 0; feature_begin+features fits the input feature matrix;
@@ -79,7 +79,7 @@ inline void HistogramAtomicAdd(threadgroup atomic_uint* high,
 
 struct CompactHistogramParams {
     uint rows, features, leaves, total_bins;
-    uint feature_begin, tile_rows, job_capacity, reuse;
+    uint feature_begin, tile_rows, job_capacity, reuse, offset_begin, pack_shift;
 };
 
 // Threads: 1. Reset independently of histogram clearing so full and reuse
@@ -196,25 +196,29 @@ kernel void ComputeCompactHistograms(
     if (atomic_load_explicit(state + 2, memory_order_relaxed) != 0 ||
         group.x >= atomic_load_explicit(state, memory_order_relaxed) ||
         group.x >= p.job_capacity || group.y >= p.features) return;
-    const uint first_bin = feature_offsets[group.y];
-    const uint bin_count = feature_offsets[group.y + 1] - first_bin;
+    const uint first_bin = feature_offsets[p.offset_begin + group.y];
+    const uint bin_count = feature_offsets[p.offset_begin + group.y + 1] - first_bin;
     if (bin_count == 0) return;
     const uint tid = local.x;
     const uint4 job = jobs[group.x];
     threadgroup atomic_uint local_sums[1024];
     threadgroup atomic_uint local_weights[1024];
     threadgroup atomic_uint sum_errors[1024], weight_errors[1024];
-    for (uint cell = tid; cell < 1024; cell += 256) {
-        atomic_store_explicit(local_sums + cell, 0u, memory_order_relaxed);
-        atomic_store_explicit(local_weights + cell, 0u, memory_order_relaxed);
-        atomic_store_explicit(sum_errors + cell, 0u, memory_order_relaxed);
-        atomic_store_explicit(weight_errors + cell, 0u, memory_order_relaxed);
+    // The four banks use the same active bin range. One-border text
+    // features need only one counter per bank.
+    if (tid < bin_count) {
+        for (uint cell = tid; cell < 1024; cell += 256) {
+            atomic_store_explicit(local_sums + cell, 0u, memory_order_relaxed);
+            atomic_store_explicit(local_weights + cell, 0u, memory_order_relaxed);
+            atomic_store_explicit(sum_errors + cell, 0u, memory_order_relaxed);
+            atomic_store_explicit(weight_errors + cell, 0u, memory_order_relaxed);
+        }
     }
     threadgroup_barrier(mem_flags::mem_threadgroup);
     const uint bank = ((tid >> 5) & 3u) * 256;
     for (uint position = job.x + tid; position < job.y; position += 256) {
         const uint row = row_indices[position];
-        const uint bin = uint(bins[(ulong(p.feature_begin) + group.y) * p.rows + row]);
+        const uint bin = MetalReadPackedBin(bins, (ulong(p.feature_begin) + group.y) * p.rows + row, p.pack_shift);
         // Out-of-span bins do not belong to any candidate histogram. In
         // particular, never fold a numeric overflow bin into the last border.
         if (bin < bin_count) {
@@ -260,7 +264,7 @@ kernel void ScanCompactHistograms(
         group.y >= p.features || feature_types[p.feature_begin + group.y] != 0) return;
     const uint first_bin = feature_offsets[group.y];
     const uint bin_count = feature_offsets[group.y + 1] - first_bin;
-    if (bin_count == 0) return;
+    if (bin_count <= 1) return;  // A one-border numeric prefix is already complete.
     const uint tid = local.x;
     const uint leaf = active[group.x] + (p.reuse ? p.leaves / 2 : 0);
     const ulong cell = ulong(leaf) * p.total_bins + first_bin + tid;

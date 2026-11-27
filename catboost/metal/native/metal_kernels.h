@@ -242,6 +242,24 @@ kernel void FindSplitWinners(const device float* sums [[buffer(0)]],
     }
 }
 
+// The dense byte layout is shift 0. Appended CTR segments may pack
+// 2, 4 or 8 logical bins per byte, including across column boundaries.
+inline uint MetalReadPackedBin(const device uchar* bins, ulong cell, uint shift) {
+    if (!shift) return uint(bins[cell]);
+    const uint bits = 8u >> shift;
+    const uint lane = uint(cell) & ((1u << shift) - 1u);
+    return (uint(bins[cell >> shift]) >> (bits * lane)) & ((1u << bits) - 1u);
+}
+struct PackedPermutationSplitParams { uint rows, level, feature, bin, type, pack_shift; };
+kernel void UpdatePackedPermutationSplit(const device uchar* bins [[buffer(0)]],
+    device uint* leaf_ids [[buffer(1)]], constant PackedPermutationSplitParams& p [[buffer(2)]],
+    uint row [[thread_position_in_grid]]) {
+    if (row < p.rows) {
+        const uint value = MetalReadPackedBin(bins, ulong(p.feature) * p.rows + row, p.pack_shift);
+        leaf_ids[row] |= uint(p.type ? value == p.bin : value > p.bin) << p.level;
+    }
+}
+
 // Apply a supplied shared structure one split at a time to another CTR
 // permutation, preserving original target/cursor row order and leaf bit order.
 kernel void UpdateFixedPermutationSplit(const device uchar* bins [[buffer(0)]],

@@ -5,6 +5,7 @@
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/metal/native/metal_projection.h>
+#include <catboost/metal/native/metal_working_set.h>
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/ctr_description/ctr_config.h>
 #include <catboost/private/libs/quantization/utils.h>
@@ -19,7 +20,6 @@
 
 namespace NCB {
 namespace {
-    constexpr ui64 MaxInputBytes = ui64(1) << 30;
     constexpr ui32 SnapshotVersion = 3;
 
     struct TVariantState {
@@ -33,6 +33,11 @@ namespace {
     // Standard TModelCtr drops the training binarization ID. Keep TCtrConfig
     // in this identity so equal model CTRs with different grids stay distinct.
     using TConfigIdentity = std::pair<TFeatureCombination, TCtrConfig>;
+
+    struct TSavedTreeCtrRegistry {
+        TVector<TVariantState> Variants;
+        TMap<TConfigIdentity, ui32> Registered;
+    };
 
     struct TProjectionInput {
         TVector<ui32> Categories;
@@ -119,6 +124,7 @@ public:
         , Executor(executor)
         , Rows(data.GetObjectCount())
         , FirstFeature(firstFeature)
+        , WorkingSetLimit(cbm_metal_working_set_limit())
         , MaximumUniqueValues(Max(Rows, learnAndFirstEvalRows))
         , RandomSeed(static_cast<ui32>(options.RandomSeed.Get()))
         , BorderCacheComplexity(options.ObliviousTreeOptions->MaxCtrComplexityForBordersCaching.Get())
@@ -166,8 +172,8 @@ public:
         Scheduler = MakeHolder<TMetalTreeCtrTensorScheduler>(eligible, categorical.MaxTensorComplexity.Get());
         // Preflight the caller's views before making potentially large copies.
         const ui64 bytesPerHistory = ui64(Rows) * sizeof(ui32) + sizeof(TVector<ui32>);
-        CB_ENSURE(historyOrders.size() <= MaxInputBytes / bytesPerHistory,
-                  "Metal tree CTR history orders exceed the 1 GiB limit");
+        CB_ENSURE(historyOrders.size() <= WorkingSetLimit / bytesPerHistory,
+                  "Metal tree CTR history orders exceed the working-set limit of " << WorkingSetLimit << " bytes");
         for (const auto& order : historyOrders)
             CB_ENSURE(order.size() == Rows, "Metal tree CTR history row count differs");
         HistoryOrders.assign(historyOrders.begin(), historyOrders.end());
@@ -243,7 +249,9 @@ public:
         TProjectionInput result;
         const ui64 inputBytes = ui64(projection.CatFeatures.size()) * Rows * sizeof(ui32) +
             ui64(projection.BinFeatures.size() + projection.OneHotFeatures.size()) * Rows;
-        CB_ENSURE(inputBytes <= MaxInputBytes, "Metal tree CTR projection input exceeds the 1 GiB limit");
+        CB_ENSURE(inputBytes <= WorkingSetLimit,
+                  "Metal tree CTR projection input requires " << inputBytes
+                  << " bytes, exceeding the working-set limit of " << WorkingSetLimit << " bytes");
         for (int index : projection.CatFeatures) {
             const auto& column = Category(index);
             result.Types.push_back(0);
@@ -348,8 +356,16 @@ public:
                   TConstArrayRef<TVariantState> saved = {}) {
         CB_ENSURE(borderPermutation < HistoryOrders.size(), "Metal tree CTR border permutation is out of range");
         CB_ENSURE(saved.empty() || saved.size() == configIndices.size(), "Saved Metal tree CTR variant count differs");
-        CB_ENSURE((ui64(FirstFeature) + Splits.size() + configIndices.size()) * Rows * HistoryOrders.size() <= MaxInputBytes,
-                  "Metal dynamic feature banks exceed the experimental 1 GiB limit");
+        CB_ENSURE(configIndices.size() <= Max<ui32>() - FirstFeature - Registry.size(),
+                  "Metal tree CTR feature IDs exceed uint32 capacity");
+        // This batch stages newly generated columns in CPU byte matrices.
+        // The runtime owns the earlier banks and accounts for their actual
+        // allocation layout when admitting an append.
+        const ui64 batchFeatures = ui64(batch->GetFeatureCount()) + configIndices.size();
+        const ui64 bytesPerColumn = ui64(Rows) * HistoryOrders.size();
+        CB_ENSURE(batchFeatures <= WorkingSetLimit / bytesPerColumn,
+                  "Metal dynamic CTR staging batch exceeds the working-set limit of " << WorkingSetLimit <<
+                  " bytes (" << batchFeatures << " features, " << Rows << " rows, " << HistoryOrders.size() << " histories)");
         TVector<int> requested(Configs.size(), -1);
         for (ui32 index = 0; index < configIndices.size(); ++index) {
             const ui32 config = configIndices[index];
@@ -362,7 +378,6 @@ public:
             requested[config] = index;
         }
         const auto input = ProjectionInput(projection);
-        const ui32 localStart = Splits.size();
         TVector<TVariantState> states(configIndices.size());
         const ui32 uniqueValues = UniqueUpperBound(projection);
         const bool buildTables = !TablesBuilt.contains(projection);
@@ -396,8 +411,8 @@ public:
                     auto& final = finalStatistics[config.Type];
                     const ui32 count = config.Type == ECtrType::Borders ? TargetBorderCount
                         : config.Type == ECtrType::Buckets ? TargetBorderCount + 1 : 1;
-                    CB_ENSURE(ui64(count + 1) * groups.Hashes.size() * sizeof(float) <= MaxInputBytes,
-                              "Metal compound CTR statistics exceed the 1 GiB limit");
+                    CB_ENSURE(ui64(count + 1) * groups.Hashes.size() * sizeof(float) <= WorkingSetLimit,
+                              "Metal compound CTR statistics exceed the working-set limit of " << WorkingSetLimit << " bytes");
                     final.Sums.resize(count);
                     final.Sums[config.ParamId] = std::move(sums);
                     final.Counts = std::move(counts);
@@ -429,11 +444,10 @@ public:
                     } else {
                         feature.Borders = BuildBorders(values, RandomSeed, Binarizations[config.CtrBinarizationConfigId]);
                     }
-                    const ui32 absoluteFeature = FirstFeature + Splits.size();
-                    const ui32 batchFeature = absoluteFeature - batch->FirstFeature;
-                    TVector<TModelSplit> splits;
+                    const ui32 batchFeature = batch->GetFeatureCount();
+                    CB_ENSURE(batch->CandidateFeatures.size() <= Max<ui32>() - feature.Borders.size(),
+                              "Metal tree CTR batch candidate count exceeds uint32 capacity");
                     for (ui32 border = 0; border < feature.Borders.size(); ++border) {
-                        splits.emplace_back(TModelCtrSplit{feature.Ctr, feature.Borders[border]});
                         batch->CandidateFeatures.push_back(batchFeature);
                         batch->CandidateBins.push_back(border);
                         batch->CandidateTypes.push_back(0);
@@ -441,7 +455,6 @@ public:
                     batch->CtrUniqueValues.push_back(uniqueValues);
                     batch->RegisteredCtrFlags.push_back(EagerlyRegisters(projection));
                     batch->BinsPerFeature = Max<ui32>(batch->BinsPerFeature, feature.Borders.size() + 1);
-                    Splits.push_back(std::move(splits));
                 }
                 const auto bins = BinarizeLine<ui8>(values, ENanMode::Forbidden, state.Feature.Borders);
                 batch->PermutationBins[permutation].insert(batch->PermutationBins[permutation].end(), bins.begin(), bins.end());
@@ -456,7 +469,6 @@ public:
             AddTable(projection, type, tableHashes, statistics, Rows, Provider.Get());
         }
         TablesBuilt.insert(projection);
-        CB_ENSURE(Splits.size() - localStart == states.size(), "Metal tree CTR feature registration differs");
         for (auto& state : states) {
             const ui32 feature = FirstFeature + Registry.size();
             const auto identity = Identity(state);
@@ -470,7 +482,7 @@ public:
                               TMetalTreeCtrBatch* batch) {
         TVector<ui32> result(Configs.size());
         TVector<ui32> missing;
-        const ui32 firstNew = FirstFeature + Splits.size();
+        const ui32 firstNew = FirstFeature + Registry.size();
         for (ui32 config = 0; config < Configs.size(); ++config) {
             const TConfigIdentity identity{projection, Configs[config]};
             const auto known = KnownFeatures.find(identity);
@@ -525,7 +537,7 @@ public:
 
     TMetalTreeCtrBatch NewBatch() const {
         TMetalTreeCtrBatch result;
-        result.FirstFeature = FirstFeature + Splits.size();
+        result.FirstFeature = FirstFeature + Registry.size();
         result.PermutationBins.resize(HistoryOrders.size());
         return result;
     }
@@ -556,6 +568,7 @@ public:
     NPar::ILocalExecutor* Executor;
     ui32 Rows;
     ui32 FirstFeature;
+    const ui64 WorkingSetLimit;
     ui32 MaximumUniqueValues;
     ui32 RandomSeed;
     ui32 BorderCacheComplexity;
@@ -577,8 +590,8 @@ public:
     TMap<TConfigIdentity, TMap<ui32, ui32>> Variants;
     TMap<TConfigIdentity, ui32> KnownFeatures;
     TSet<TFeatureCombination> TablesBuilt;
-    TVector<TVector<TModelSplit>> Splits;
     TVector<TVariantState> Registry;
+    THolder<TSavedTreeCtrRegistry> PendingRestore;
 };
 
 TMetalTreeCtrFeatures::TMetalTreeCtrFeatures(const TTrainingDataProvider& data,
@@ -597,16 +610,18 @@ TVector<TMetalTreeCtrScoringPack> TMetalTreeCtrFeatures::GetActiveScoringPacks()
 TMetalTreeCtrBatch TMetalTreeCtrFeatures::AddSplit(const TModelSplit& split, ui32 borderPermutation) {
     return Impl->AddSplit(split, borderPermutation);
 }
-ui32 TMetalTreeCtrFeatures::GetFeatureCount() const { return Impl->Splits.size(); }
+ui32 TMetalTreeCtrFeatures::GetFeatureCount() const { return Impl->Registry.size(); }
 ui32 TMetalTreeCtrFeatures::GetPermutationCount() const { return Impl->HistoryOrders.size(); }
 TIntrusivePtr<TStaticCtrProvider> TMetalTreeCtrFeatures::GetCtrProvider() const { return Impl->Provider; }
 
-const TModelSplit& TMetalTreeCtrFeatures::GetSplit(ui32 feature, ui32 bin) const {
-    CB_ENSURE(feature >= Impl->FirstFeature && feature - Impl->FirstFeature < Impl->Splits.size(),
+TModelSplit TMetalTreeCtrFeatures::GetSplit(ui32 feature, ui32 bin) const {
+    CB_ENSURE(feature >= Impl->FirstFeature && feature - Impl->FirstFeature < Impl->Registry.size(),
               "Metal returned an invalid tree CTR feature");
-    const auto& splits = Impl->Splits[feature - Impl->FirstFeature];
-    CB_ENSURE(bin < splits.size(), "Metal returned an invalid tree CTR border");
-    return splits[bin];
+    // Share one descriptor across all thresholds. Only selected splits need
+    // their own copies of the projection for the exported model.
+    const auto& ctr = Impl->Registry[feature - Impl->FirstFeature].Feature;
+    CB_ENSURE(bin < ctr.Borders.size(), "Metal returned an invalid tree CTR border");
+    return TModelSplit(TModelCtrSplit{ctr.Ctr, ctr.Borders[bin]});
 }
 
 void TMetalTreeCtrFeatures::Save(IOutputStream* output) const {
@@ -618,7 +633,12 @@ void TMetalTreeCtrFeatures::Save(IOutputStream* output) const {
 }
 
 TMetalTreeCtrBatch TMetalTreeCtrFeatures::Restore(IInputStream* input) {
-    CB_ENSURE(Impl->Registry.empty() && Impl->Splits.empty(), "Metal tree CTR restore requires a fresh helper");
+    PrepareRestore(input);
+    return ReplaySnapshot();
+}
+
+TMetalTreeCtrBatch TMetalTreeCtrFeatures::PrepareRestore(IInputStream* input) {
+    CB_ENSURE(Impl->Registry.empty() && !Impl->PendingRestore, "Metal tree CTR restore requires a fresh helper");
     ui32 version, firstFeature, rows, permutations, borderCacheComplexity;
     TVector<TCtrConfig> configs;
     TVector<ui64> historyHashes;
@@ -642,6 +662,8 @@ TMetalTreeCtrBatch TMetalTreeCtrFeatures::Restore(IInputStream* input) {
               configs == Impl->Configs && binarizations == Impl->BinarizationState() &&
               borderCacheComplexity == Impl->BorderCacheComplexity,
               "Saved Metal tree CTR options or feature layout differ");
+    CB_ENSURE(registry.size() <= Max<ui32>() - firstFeature,
+              "Saved Metal tree CTR features exceed the absolute feature index range");
     TMap<TConfigIdentity, ui32> known;
     for (ui32 feature : knownFeatures) {
         CB_ENSURE(feature >= firstFeature && feature - firstFeature < registry.size(),
@@ -649,28 +671,54 @@ TMetalTreeCtrBatch TMetalTreeCtrFeatures::Restore(IInputStream* input) {
         CB_ENSURE(known.emplace(Impl->Identity(registry[feature - firstFeature]), feature).second,
                   "Saved Metal tree CTR registers multiple variants of one config");
     }
-    auto batch = Impl->NewBatch();
+    TMetalTreeCtrBatch layout;
+    layout.FirstFeature = firstFeature;
+    for (ui32 index = 0; index < registry.size(); ++index) {
+        const auto& state = registry[index];
+        const auto found = known.find(Impl->Identity(state));
+        CB_ENSURE(!Impl->EagerlyRegisters(state.Projection) || found != known.end(),
+                  "Saved Metal tree CTR eager registration is missing");
+        layout.RegisteredCtrFlags.push_back(found != known.end() && found->second == firstFeature + index);
+        layout.CtrUniqueValues.push_back(Impl->UniqueUpperBound(state.Projection));
+    }
+    Impl->PendingRestore = MakeHolder<TSavedTreeCtrRegistry>();
+    Impl->PendingRestore->Variants = std::move(registry);
+    Impl->PendingRestore->Registered = std::move(known);
+    return layout;
+}
+
+TMetalTreeCtrBatch TMetalTreeCtrFeatures::ReplaySnapshot(const std::function<void(const TMetalTreeCtrBatch&)>& sink) {
+    CB_ENSURE(Impl->PendingRestore && Impl->Registry.empty(), "Metal tree CTR replay requires a prepared snapshot");
+    auto pending = std::move(Impl->PendingRestore);
+    const auto& registry = pending->Variants;
+    const auto& known = pending->Registered;
+    const ui64 maxColumns = Impl->WorkingSetLimit / (ui64(Impl->Rows) * Impl->HistoryOrders.size());
+    CB_ENSURE(registry.empty() || (maxColumns && (sink || registry.size() <= maxColumns)),
+              "Metal dynamic CTR staging batch exceeds the working-set limit of " << Impl->WorkingSetLimit << " bytes");
+    auto contiguous = Impl->NewBatch();
     for (ui32 start = 0; start < registry.size();) {
         const auto& first = registry[start];
         ui32 end = start + 1;
-        while (end < registry.size() && registry[end].Projection == first.Projection &&
+        while (end < registry.size() && end - start < maxColumns && registry[end].Projection == first.Projection &&
                registry[end].History == first.History && registry[end - 1].ConfigIndex < registry[end].ConfigIndex)
             ++end;
+        auto part = Impl->NewBatch();
+        auto& batch = sink ? part : contiguous;
+        const ui32 offset = batch.GetFeatureCount();
         TVector<ui32> indices;
         for (ui32 i = start; i < end; ++i) indices.push_back(registry[i].ConfigIndex);
         Impl->Generate(first.Projection, indices, first.History, &batch,
                        TConstArrayRef<TVariantState>(registry).Slice(start, end - start));
+        for (ui32 index = start; index < end; ++index) {
+            const auto found = known.find(Impl->Identity(registry[index]));
+            batch.RegisteredCtrFlags[offset + (index - start)] =
+                found != known.end() && found->second == Impl->FirstFeature + index;
+        }
+        if (sink) sink(part);
         start = end;
     }
-    Impl->KnownFeatures = std::move(known);
-    for (ui32 index = 0; index < Impl->Registry.size(); ++index) {
-        const auto& state = Impl->Registry[index];
-        const auto found = Impl->KnownFeatures.find(Impl->Identity(state));
-        batch.RegisteredCtrFlags[index] = found != Impl->KnownFeatures.end() && found->second == firstFeature + index;
-        CB_ENSURE(!Impl->EagerlyRegisters(state.Projection) || found != Impl->KnownFeatures.end(),
-                  "Saved Metal tree CTR eager registration is missing");
-    }
+    Impl->KnownFeatures = std::move(pending->Registered);
     Impl->BeginTree();
-    return batch;
+    return contiguous;
 }
 }

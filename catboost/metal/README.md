@@ -205,6 +205,12 @@ prediction remains rejected like CUDA, while ordinary CPU model application
 uses the exported calcers without CPU training. Prequantized prediction and
 initial-model continuation for those processing collections remain restricted.
 
+With this checkout's adapter and native Metal extension, pass `text_features`
+to the standalone estimator or its `fit` method, or supply a typed `Pool`.
+For example, use `CatBoostMetalRegressor(text_features=[2])` when the third
+column contains text. Native text-processing options apply. Save text models
+as CBM and use ordinary prediction to apply their calcers.
+
 ## Validation and examples
 
 From the repository root with the standalone package on `PYTHONPATH`:
@@ -246,8 +252,14 @@ grouped objectives. Symmetric Plain and Ordered FeatureParallel support scalar
 losses, QueryRMSE, QuerySoftMax, PairLogit, classic YetiRank, Combination and
 custom per-object shaders. Numeric/one-hot/simple CTR Depthwise, Lossguide and
 Region cover the CUDA-registered scalar/vector/query objectives, now including
-classic YetiRank. Working buffers are capped at 1 GiB, outputs at 512 MiB and
-rows at 2²⁴; numeric features support up to 255 borders. These are software caps.
+classic YetiRank. In the development source, the scalar training workspace and
+native input preparation use half the device's recommended working set, with a
+1 GiB fallback when Metal supplies no recommendation. Each allocation must
+also fit the device's maximum buffer length. Other trainers retain their own
+limits. Plain FeatureParallel stores new dynamic CTR columns in packed segments
+for each permutation. Capacity therefore depends on the encoded columns, their
+bin counts and the number of histories. The existing 512 MiB output limit,
+2²⁴-row bound and 255-border numeric limit still apply.
 
 Native and standalone Ordered retain complete prefix cursors and whole-group
 histories for the supported scalar/query/ranking objectives. Public

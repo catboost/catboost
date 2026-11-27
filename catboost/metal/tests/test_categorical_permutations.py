@@ -120,6 +120,21 @@ def _exclusive_reference(hashes, targets, order):
 
 
 @METAL
+def test_permutation_preparation_uses_device_budget(monkeypatch):
+    from catboost_metal import _native
+
+    raw, targets = _data()
+    # Three original columns plus one CTR column, stored in four banks.
+    required = 4 * 4 * len(targets)
+    monkeypatch.setattr(_native, "training_working_set_limit", lambda: required - 1)
+    with pytest.raises(ValueError, match=rf"require {required} bytes.*budget of {required - 1} bytes"):
+        _prepare(raw, targets)
+    monkeypatch.setattr(_native, "training_working_set_limit", lambda: required)
+    layout, *_ = _prepare(raw, targets)
+    assert sum(bank.nbytes for bank in layout.permutation_bins) == required
+
+
+@METAL
 def test_four_datasets_share_grid_candidates_and_common_row_order():
     raw, targets = _data()
     layout, bins, features, thresholds, types = _prepare(raw, targets)

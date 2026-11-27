@@ -1,6 +1,7 @@
 #include "estimated_features.h"
 #include "tree_ctr_permutations.h"
 
+#include <catboost/metal/native/metal_working_set.h>
 #include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/model/model_build_helper.h>
 #include <catboost/private/libs/algo/full_model_saver.h>
@@ -14,7 +15,6 @@
 
 namespace NCB {
 namespace {
-    constexpr ui64 MaxInputBytes = ui64(1) << 30;
 
     TVector<TVector<ui32>> MakeHistoryOrders(const TTrainingDataProvider& data,
             const NCatboostOptions::TCatBoostOptions& options, bool online) {
@@ -58,7 +58,7 @@ void TMetalEstimatedFeatures::FinalizeModel(TFullModel* model, NPar::ILocalExecu
 }
 
 TMetalEstimatedFeatures PrepareMetalEstimatedFeatures(const TTrainingDataProviders& trainingData,
-        const NCatboostOptions::TCatBoostOptions& options, NPar::ILocalExecutor* executor) {
+        const NCatboostOptions::TCatBoostOptions& options, bool snapshotEnabled, NPar::ILocalExecutor* executor) {
     TMetalEstimatedFeatures result;
     const auto& learn = *trainingData.Learn;
     const auto& objects = *learn.ObjectsData;
@@ -86,10 +86,13 @@ TMetalEstimatedFeatures PrepareMetalEstimatedFeatures(const TTrainingDataProvide
     });
     if (result.Features.empty()) return result;
     const auto orders = MakeHistoryOrders(learn, options, result.HasOnlineFeatures);
-    CB_ENSURE(ui64(rows) * result.Features.size() * orders.size() <= MaxInputBytes,
-        "Metal estimated-feature permutation inputs exceed the experimental 1 GiB limit");
+    CB_ENSURE(result.Features.size() <= cbm_metal_working_set_limit() / rows / orders.size(),
+        "Metal estimated-feature permutation inputs exceed the Metal training workspace budget");
     result.Borders.resize(result.Features.size());
-    result.BinsByPermutation.resize(orders.size(), TVector<ui8>(ui64(rows) * result.Features.size()));
+    result.BinsByPermutation.resize(orders.size());
+    for (auto& bank : result.BinsByPermutation) {
+        bank.resize(ui64(rows) * result.Features.size());
+    }
     const auto& binarization = objects.GetQuantizedFeaturesInfo()->GetFloatFeatureBinarization(Max<ui32>());
     CB_ENSURE(binarization.BorderCount <= 255, "Metal estimated features require at most 255 borders");
     TOnCpuGridBuilderFactory gridFactory;
@@ -125,14 +128,14 @@ TMetalEstimatedFeatures PrepareMetalEstimatedFeatures(const TTrainingDataProvide
                     }
                     CB_ENSURE(borders.size() <= 255, "Metal estimated features require at most 255 borders");
                     result.BinsPerFeature = Max<ui32>(result.BinsPerFeature, borders.size() + 1);
-                    result.Checksum = UpdateCheckSum(result.Checksum, id.Id, id.IsOnline, local, borders);
+                    if (snapshotEnabled) result.Checksum = UpdateCheckSum(result.Checksum, id.Id, id.IsOnline, local, borders);
                 }
                 CB_ENSURE(!borders.empty(), "Metal estimated-feature borders must be computed from learn first");
                 const auto bins = BinarizeLine<ui8>(values, ENanMode::Forbidden, borders);
                 // GUIDs are intentionally excluded: shared estimators generate
                 // fresh GUIDs on a snapshot retry. Their stable ids, borders,
                 // values and configured processing definitions identify data.
-                if (!test || !permutation) result.Checksum = UpdateCheckSum(result.Checksum,
+                if (snapshotEnabled && (!test || !permutation)) result.Checksum = UpdateCheckSum(result.Checksum,
                     permutation, test ? *test + 1 : 0u, column, values, bins);
                 if (!test) {
                     CB_ENSURE(!seen[local], "Shared estimated feature was emitted twice");
@@ -144,6 +147,22 @@ TMetalEstimatedFeatures PrepareMetalEstimatedFeatures(const TTrainingDataProvide
                 if (packed) return TCalculatedFeatureVisitor(TCalculatedFeatureVisitor::TPackedFeatureWriter(
                     [&, test](TConstArrayRef<ui32> ids, TConstArrayRef<ui32> values) {
                         CB_ENSURE(ids.size() <= 32, "Shared estimated-feature pack exceeds 32 bits");
+                        // Without a snapshot the shared BoW bits are already
+                        // exactly the learner's binary bins (border 0.5).
+                        if (!snapshotEnabled) {
+                            CB_ENSURE(!test && values.size() == rows, "Unexpected Metal BoW training pack");
+                            for (ui32 bit = 0; bit < ids.size(); ++bit) {
+                                const ui32 local = ids[bit];
+                                CB_ENSURE(local < seen.size() && !seen[local], "Invalid or repeated BoW feature");
+                                seen[local] = 1;
+                                const ui32 column = columns.at({id, local});
+                                result.Borders[column] = {0.5f};
+                                ui8* bins = result.BinsByPermutation[permutation].data() + ui64(column) * rows;
+                                for (ui32 row = 0; row < rows; ++row) bins[row] = (values[row] >> bit) & 1u;
+                            }
+                            result.BinsPerFeature = Max<ui32>(result.BinsPerFeature, 2);
+                            return;
+                        }
                         TVector<float> unpacked(values.size());
                         for (ui32 bit = 0; bit < ids.size(); ++bit) {
                             for (ui32 row = 0; row < values.size(); ++row) unpacked[row] = (values[row] >> bit) & 1u;
@@ -154,7 +173,11 @@ TMetalEstimatedFeatures PrepareMetalEstimatedFeatures(const TTrainingDataProvide
                     [&, test](ui32 local, TConstArrayRef<float> values) { save(local, values, test); }));
             };
             TVector<TCalculatedFeatureVisitor> testVisitors;
-            for (ui32 test = 0; test < trainingData.Test.size(); ++test) testVisitors.push_back(visitor(test));
+            // Evaluation applies the final model calcers. Only the snapshot
+            // fingerprint consumes the preparation-time test values, once.
+            if (snapshotEnabled && !permutation) {
+                for (ui32 test = 0; test < trainingData.Test.size(); ++test) testVisitors.push_back(visitor(test));
+            }
             if (id.IsOnline) result.Estimators->GetOnlineFeatureEstimator(id.Id)->ComputeOnlineFeatures(
                 orders[permutation], visitor(Nothing()), testVisitors, executor);
             else estimator->ComputeFeatures(visitor(Nothing()), testVisitors, executor);

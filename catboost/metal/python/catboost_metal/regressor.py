@@ -181,7 +181,12 @@ def _training_metadata(*, iterations, depth, learning_rate, l2_leaf_reg, border_
 
 
 class CatBoostMetalRegressor:
-    """Metal training with standard CatBoost model serialization and prediction."""
+    """Metal training with standard CatBoost model serialization and prediction.
+
+    Declare text columns with text_features or pass a typed CatBoost Pool.
+    Text training uses the fork's native Metal extension and accepts CatBoost
+    text_processing settings. Save models that use text calcers in CBM format.
+    """
 
     _classifier = False
 
@@ -189,6 +194,8 @@ class CatBoostMetalRegressor:
                  border_count=32, score_function=None, loss_function=None,
                  leaf_estimation_iterations=None, leaf_estimation_backtracking="No", leaf_estimation_method=None,
                  boost_from_average=None, nan_mode="Forbidden", cat_features=None,
+                 text_features=None, text_processing=None, tokenizers=None,
+                 dictionaries=None, feature_calcers=None,
                  one_hot_max_size=255, class_weights=None, ctr_type="Borders", ctr_prior=0.5,
                  ctr_target_border=None, ctr_border_count=15, ctr_history_unit="Sample", random_seed=0, eval_metric=None,
                  permutation_count=None, model_size_reg=0.5, feature_weights=None,
@@ -255,9 +262,14 @@ class CatBoostMetalRegressor:
         self._native_feature_parallel = self.data_partition == "FeatureParallel" and (
             boosting_type == "Plain" or self.max_ctr_complexity > 1 or simple_ctr is not None or combinations_ctr is not None
             or leaf_estimation_method == "Simple" or ctr_target_border_count != 1 or counter_calc_method != "SkipTest")
+        self.text_features = text_features
+        self._text_options = {name: value for name, value in (
+            ("text_processing", text_processing), ("tokenizers", tokenizers),
+            ("dictionaries", dictionaries), ("feature_calcers", feature_calcers)) if value is not None}
         self._native_adapter = self._native_feature_parallel or bool(fixed_binary_splits) or self.rsm != 1 or (
             add_ridge_penalty_to_loss_function or self.meta_l2_exponent != 1 or self.meta_l2_frequency != 0
             or langevin or self.diffusion_temperature != 0
+            or (text_features is not None and len(text_features) > 0) or bool(self._text_options)
             or one_hot_max_size == 256 or counter_calc_method == "Full"
             or (grow_policy == "SymmetricTree" and leaf_estimation_method == "Simple")
             or (boosting_type == "Plain" and fold_size_loss_normalization))
@@ -496,7 +508,13 @@ class CatBoostMetalRegressor:
             encoded[feature] = weights[ctr.source_feature]
         return encoded
 
-    def fit(self, X, y=None, sample_weight=None, *, eval_set=None, cat_features=None,
+    def _use_native_fit(self, X, text_features):
+        if self._native_adapter or (text_features is not None and len(text_features) > 0):
+            return True
+        from catboost import Pool
+        return isinstance(X, Pool) and bool(X.get_text_feature_indices())
+
+    def fit(self, X, y=None, sample_weight=None, *, eval_set=None, cat_features=None, text_features=None,
             early_stopping_rounds=None, use_best_model=None, save_snapshot=False,
             snapshot_file=None, snapshot_interval=600.0, resume=True, callback=None,
             group_id=None, group_weight=None, eval_group_id=None, eval_group_weight=None, init_model=None):
@@ -521,9 +539,10 @@ class CatBoostMetalRegressor:
                     self.leaf_estimation_iterations = 40 if self.leaf_estimation_method == "Gradient" else 10
             elif self._objective in _MULTIOUTPUT:
                 self.loss_function = self._objective = "Logloss"
-        if self._native_adapter:
+        if self._use_native_fit(X, text_features):
             from ._feature_parallel_frontend import fit_feature_parallel
             return fit_feature_parallel(self, X, y, sample_weight, eval_set=eval_set, cat_features=cat_features,
+                text_features=text_features,
                 group_id=group_id, group_weight=group_weight, eval_group_id=eval_group_id, eval_group_weight=eval_group_weight,
                 early_stopping_rounds=early_stopping_rounds, use_best_model=use_best_model,
                 save_snapshot=save_snapshot, snapshot_file=snapshot_file, snapshot_interval=snapshot_interval,

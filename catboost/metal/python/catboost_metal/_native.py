@@ -236,6 +236,20 @@ def _stats(value):
             "kernel_dispatches": int(value.kernel_dispatches), "gpu_seconds": float(value.gpu_seconds)}
 
 
+@functools.lru_cache(maxsize=1)
+def training_working_set_limit():
+    # Keep host-side input validation usable on machines without a Metal runtime.
+    if platform.system() != "Darwin" or platform.machine() != "arm64":
+        return 1 << 30
+    lib = _load(build_library())
+    query = getattr(lib, "cbm_metal_working_set_limit", None)
+    if query is None:  # An explicitly selected older runtime enforces 1 GiB.
+        return 1 << 30
+    query.argtypes = []
+    query.restype = ct.c_uint64
+    return query()
+
+
 def device_info():
     lib = _load(build_library())
     name, error = ct.create_string_buffer(256), ct.create_string_buffer(2048)
@@ -466,9 +480,12 @@ def _prepare(bins, targets, candidate_features, candidate_bins, *, iterations, d
         working_bytes += rows * 4 + (group_offsets.size - 1) * 12 + 8 + min((rows + 255) // 256, 4096) * 8
     if paired:
         working_bytes += pair_winners.size * 44 + rows * 8 + 12 + min((rows + 255) // 256, 4096) * 8 + ((leaf_count + 255) // 256) * 8
+    workspace_limit = training_working_set_limit()
+    if _full_matrix:
+        workspace_limit = min(workspace_limit, 1 << 30)
     if depth > 8:
         base_bytes = working_bytes - histogram_cells * 8 + features * 8 + 32
-        budget = min(256 * 1024 * 1024, 1024 * 1024 * 1024 - base_bytes)
+        budget = min(256 * 1024 * 1024, workspace_limit - base_bytes)
         bin_capacity = budget // (leaf_count * 8)
         if budget <= 0 or int(compact_spans.max()) > bin_capacity:
             raise ValueError("One feature histogram exceeds the available GPU memory budget.")
@@ -481,8 +498,9 @@ def _prepare(bins, targets, candidate_features, candidate_bins, *, iterations, d
             tile_bins += span
         maximum_tile = max(maximum_tile, tile_bins, 1)
         working_bytes = base_bytes + leaf_count * maximum_tile * 8
-    if working_bytes > 1024 * 1024 * 1024:
-        raise ValueError("Training exceeds the experimental 1 GiB GPU memory limit.")
+    if working_bytes > workspace_limit:
+        raise ValueError(f"Training requires {working_bytes} bytes, exceeding the Metal training "
+                         f"workspace budget of {workspace_limit} bytes.")
     params = SessionParams(TrainParams(rows, features, len(candidate_features), max_bins,
                                       iterations, depth, {"L2": 0, "Cosine": 1, "NewtonL2": 2, "NewtonCosine": 3, "SolarL2": 4, "LOOL2": 5, "SatL2": 6}[score_function],
                                       learning_rate, l2_leaf_reg, bias),

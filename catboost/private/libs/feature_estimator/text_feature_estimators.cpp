@@ -105,7 +105,10 @@ namespace {
                              TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
                              NPar::ILocalExecutor* executor) const override {
             Calc(*executor, MakeConstArrayRef(LearnTexts), {learnVisitor});
-            Calc(*executor, MakeConstArrayRef(TestTexts), testVisitors);
+            if (!testVisitors.empty()) {
+                CB_ENSURE(testVisitors.size() == TestTexts.size(), "BoW visitor count must match test sets");
+                Calc(*executor, MakeConstArrayRef(TestTexts), testVisitors);
+            }
         }
 
         EFeatureType GetSourceType() const override {

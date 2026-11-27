@@ -13,18 +13,24 @@ import time
 import numpy as np
 
 
-def _pool(data, label=None, *, cats=None, weight=None, groups=None, group_weight=None,
+def _check_pool_indices(pool, supplied, expected, option):
+    if supplied is not None:
+        names = pool.get_feature_names()
+        indices = [names.index(feature) if isinstance(feature, str) else feature for feature in supplied]
+        if sorted(indices) != sorted(expected):
+            kind = "categorical" if option == "cat_features" else "text"
+            raise ValueError(f"{option} disagrees with the Pool's {kind} features.")
+
+
+def _pool(data, label=None, *, cats=None, texts=None, weight=None, groups=None, group_weight=None,
           subgroups=None, pairs=None, pairs_weight=None):
     from catboost import Pool
     if isinstance(data, Pool):
         supplied = (label, weight, groups, group_weight, subgroups, pairs, pairs_weight)
         if any(value is not None for value in supplied):
             raise ValueError("Supply labels, weights, groups and pairs inside the Pool, or use array inputs.")
-        if cats is not None:
-            names = data.get_feature_names()
-            indices = [names.index(feature) if isinstance(feature, str) else feature for feature in cats]
-            if sorted(indices) != sorted(data.get_cat_feature_indices()):
-                raise ValueError("cat_features disagrees with the Pool's categorical features.")
+        _check_pool_indices(data, cats, data.get_cat_feature_indices(), "cat_features")
+        _check_pool_indices(data, texts, data.get_text_feature_indices(), "text_features")
         return data
     if weight is not None and group_weight is not None:
         from ._query_data import prepare_groups
@@ -32,15 +38,15 @@ def _pool(data, label=None, *, cats=None, weight=None, groups=None, group_weight
         # Pool's constructor excludes simultaneous weights, but the public
         # setter preserves both. Query metrics need the original group mass
         # as well as the effective object mass used by target derivatives.
-        result = Pool(data, label=label, cat_features=cats, weight=weight, group_id=groups,
+        result = Pool(data, label=label, cat_features=cats, text_features=texts, weight=weight, group_id=groups,
                       subgroup_id=subgroups, pairs=pairs, pairs_weight=pairs_weight)
         result.set_group_weight(np.asarray(group_weight, dtype=np.float32))
         return result
-    return Pool(data, label=label, cat_features=cats, weight=weight, group_id=groups,
+    return Pool(data, label=label, cat_features=cats, text_features=texts, weight=weight, group_id=groups,
                 group_weight=group_weight, subgroup_id=subgroups, pairs=pairs, pairs_weight=pairs_weight)
 
 
-def _evaluation_pool(eval_set, *, ranker, cats, groups, weight, group_weight, subgroups, pairs, pairs_weight):
+def _evaluation_pool(eval_set, *, ranker, cats, texts=None, groups, weight, group_weight, subgroups, pairs, pairs_weight):
     from catboost import Pool
     extras = [groups, weight, group_weight, subgroups]
     if eval_set is None:
@@ -48,7 +54,7 @@ def _evaluation_pool(eval_set, *, ranker, cats, groups, weight, group_weight, su
             raise ValueError("Evaluation groups, weights and pairs require eval_set.")
         return None
     if isinstance(eval_set, Pool):
-        return _pool(eval_set, cats=cats, groups=groups, weight=weight, group_weight=group_weight,
+        return _pool(eval_set, cats=cats, texts=texts, groups=groups, weight=weight, group_weight=group_weight,
                      subgroups=subgroups, pairs=pairs, pairs_weight=pairs_weight)
     maximum = 6 if ranker else 3
     if not isinstance(eval_set, tuple) or not 2 <= len(eval_set) <= maximum:
@@ -59,7 +65,7 @@ def _evaluation_pool(eval_set, *, ranker, cats, groups, weight, group_weight, su
         if extras[destination] is not None:
             raise ValueError("Supply evaluation groups and weights in the tuple or keywords, not both.")
         extras[destination] = value
-    return _pool(eval_set[0], eval_set[1], cats=cats, groups=extras[0], weight=extras[1],
+    return _pool(eval_set[0], eval_set[1], cats=cats, texts=texts, groups=extras[0], weight=extras[1],
                  group_weight=extras[2], subgroups=extras[3], pairs=pairs, pairs_weight=pairs_weight)
 
 
@@ -115,6 +121,7 @@ def native_parameters(estimator):
         ctr_target_border_count=estimator.ctr_target_border_count,
         ctr_history_unit=estimator.ctr_history_unit, counter_calc_method=estimator.counter_calc_method,
         model_size_reg=estimator.model_size_reg, metric_period=1, verbose=False, allow_writing_files=False)
+    result.update(getattr(estimator, "_text_options", {}))
     if estimator.eval_metric is not None:
         result["eval_metric"] = estimator.eval_metric
     if estimator.fixed_binary_splits is not None:
@@ -157,7 +164,7 @@ class _Callback:
 
 
 def fit_feature_parallel(estimator, X, y=None, sample_weight=None, *, ranker=False, eval_set=None,
-        cat_features=None, group_id=None, group_weight=None, subgroup_id=None, pairs=None, pairs_weight=None,
+        cat_features=None, text_features=None, group_id=None, group_weight=None, subgroup_id=None, pairs=None, pairs_weight=None,
         eval_group_id=None, eval_sample_weight=None, eval_group_weight=None, eval_subgroup_id=None,
         eval_pairs=None, eval_pairs_weight=None, early_stopping_rounds=None, use_best_model=None,
         save_snapshot=False, snapshot_file=None, snapshot_interval=600., resume=True, callback=None, init_model=None):
@@ -185,8 +192,12 @@ def fit_feature_parallel(estimator, X, y=None, sample_weight=None, *, ranker=Fal
     if isinstance(snapshot_interval, bool) or not isinstance(snapshot_interval, (int, float)) or not math.isfinite(snapshot_interval) or snapshot_interval < 0:
         raise ValueError("snapshot_interval must be finite and nonnegative.")
     cats = estimator.cat_features if cat_features is None else cat_features
-    train = _pool(X, y, cats=cats, weight=sample_weight, groups=group_id, group_weight=group_weight,
+    configured_texts = getattr(estimator, "text_features", None)
+    texts = configured_texts if text_features is None else text_features
+    train = _pool(X, y, cats=cats, texts=texts, weight=sample_weight, groups=group_id, group_weight=group_weight,
                   subgroups=subgroup_id, pairs=pairs, pairs_weight=pairs_weight)
+    if text_features is not None and configured_texts is not None:
+        _check_pool_indices(train, configured_texts, train.get_text_feature_indices(), "text_features")
     if estimator._default_boost_from_average and (init_model is not None or train.get_baseline().size):
         model.set_params(boost_from_average=False)
     names = _feature_names(train)
@@ -202,6 +213,7 @@ def fit_feature_parallel(estimator, X, y=None, sample_weight=None, *, ranker=Fal
         if estimator._objective != "CrossEntropy":
             model.set_params(class_names=estimator.classes_.tolist())
     validation = _evaluation_pool(eval_set, ranker=ranker, cats=train.get_cat_feature_indices(),
+        texts=train.get_text_feature_indices(),
         groups=eval_group_id, weight=eval_sample_weight, group_weight=eval_group_weight, subgroups=eval_subgroup_id,
         pairs=eval_pairs, pairs_weight=eval_pairs_weight)
     if ranker:

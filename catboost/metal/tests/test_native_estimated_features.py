@@ -357,3 +357,25 @@ def test_estimated_buckets_shift_onehot_predicates_in_compound_ctr_tables(tmp_pa
     model.save_model(path)
     restored = CatBoost().load_model(path)
     np.testing.assert_array_equal(restored.predict(pool, prediction_type="RawFormulaVal"), raw)
+
+
+def test_deep_bow_packed_columns_match_snapshot_path(tmp_path):
+    # Exercise several packs and a final partial pack alongside a many-border
+    # numeric column. Snapshots retain the original float-to-bin fingerprint.
+    rng = np.random.default_rng(281)
+    tokens = rng.integers(0, 37, (383, 12))
+    numeric = rng.integers(0, 64, len(tokens))
+    labels = (tokens == 12).sum(axis=1) + (tokens == 9).sum(axis=1) + numeric / 256.
+    data = [[float(n), " ".join(f"w{t}" for t in doc)] for n, doc in zip(numeric, tokens)]
+    learn = Pool(data[:256], labels[:256], text_features=[1])
+    tests = [Pool(data[a:b], labels[a:b], text_features=[1]) for a, b in [(256, 320), (320, 383)]]
+    config = options(count=1, iterations=4, depth=10, loss_function="RMSE",
+                     text_processing=text_processing(["BoW:top_tokens_count=37"]))
+    ordinary = fit(config, learn, tests)
+    saved = fit(config | dict(save_snapshot=True, snapshot_interval=0, snapshot_file="bow.snapshot",
+                              train_dir=str(tmp_path), allow_writing_files=True), learn, tests)
+    assert ordinary.get_evals_result() == saved.get_evals_result()
+    assert ordinary.get_feature_importance()[1] > 0
+    for test in tests:
+        np.testing.assert_array_equal(ordinary.predict(test, prediction_type="RawFormulaVal"),
+                                      saved.predict(test, prediction_type="RawFormulaVal"))

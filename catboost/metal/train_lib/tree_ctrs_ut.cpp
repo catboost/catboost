@@ -398,6 +398,90 @@ namespace {
 }
 
 Y_UNIT_TEST_SUITE(TMetalTreeCtrFeatures) {
+    Y_UNIT_TEST(TestProjectionReplayMatchesContiguousSnapshot) {
+        TFixture fixture;
+        NPar::TLocalExecutor executor;
+        const auto options = Options(ECtrType::FloatTargetMeanValue);
+        const auto histories = fixture.Histories();
+        TMetalTreeCtrFeatures source(fixture.Data, options, &executor, FirstFeature, 70, {}, histories);
+        const auto first = source.AddSplit(TModelSplit(TFloatSplit(0, 0.5f)), 2);
+        UNIT_ASSERT(!first.CandidateFeatures.empty());
+        source.MarkSelected(first.FirstFeature + first.CandidateFeatures.front());
+        source.AddSplit(SimpleCtrSplit(), 2);
+        TStringStream saved;
+        source.Save(&saved);
+        TMetalTreeCtrFeatures dense(fixture.Data, options, &executor, FirstFeature, 70, {}, histories);
+        const auto expected = dense.Restore(&saved);
+
+        TMetalTreeCtrFeatures restored(fixture.Data, options, &executor, FirstFeature, 70, {}, histories);
+        TStringInput input(saved.Str());
+        const auto layout = restored.PrepareRestore(&input);
+        UNIT_ASSERT_VALUES_EQUAL(layout.CtrUniqueValues, expected.CtrUniqueValues);
+        UNIT_ASSERT_VALUES_EQUAL(layout.RegisteredCtrFlags, expected.RegisteredCtrFlags);
+        UNIT_ASSERT(layout.PermutationBins.empty());
+        UNIT_ASSERT_VALUES_EQUAL(restored.GetFeatureCount(), 0);
+        ui32 parts = 0, features = 0, candidates = 0, maxBins = 1;
+        const auto remainder = restored.ReplaySnapshot([&](const TMetalTreeCtrBatch& part) {
+            UNIT_ASSERT_VALUES_EQUAL(part.FirstFeature, FirstFeature + features);
+            UNIT_ASSERT(part.GetFeatureCount() && part.GetFeatureCount() < expected.GetFeatureCount());
+            for (size_t index = 0; index < part.GetFeatureCount(); ++index) {
+                UNIT_ASSERT_VALUES_EQUAL(part.CtrUniqueValues[index], expected.CtrUniqueValues[features + index]);
+                UNIT_ASSERT_VALUES_EQUAL(part.RegisteredCtrFlags[index], expected.RegisteredCtrFlags[features + index]);
+            }
+            for (size_t perm = 0; perm < histories.size(); ++perm) {
+                const size_t rows = histories[perm].size();
+                const auto& bins = part.PermutationBins[perm];
+                UNIT_ASSERT_VALUES_EQUAL(bins.size(), rows * part.GetFeatureCount());
+                UNIT_ASSERT(std::equal(bins.begin(), bins.end(), expected.PermutationBins[perm].begin() + rows * features));
+            }
+            for (size_t index = 0; index < part.CandidateFeatures.size(); ++index, ++candidates) {
+                UNIT_ASSERT_VALUES_EQUAL(features + part.CandidateFeatures[index], expected.CandidateFeatures[candidates]);
+                UNIT_ASSERT_VALUES_EQUAL(part.CandidateBins[index], expected.CandidateBins[candidates]);
+                UNIT_ASSERT_VALUES_EQUAL(part.CandidateTypes[index], expected.CandidateTypes[candidates]);
+            }
+            features += part.GetFeatureCount();
+            maxBins = Max(maxBins, part.BinsPerFeature);
+            ++parts;
+        });
+        UNIT_ASSERT(parts > 1);
+        UNIT_ASSERT_VALUES_EQUAL(features, expected.GetFeatureCount());
+        UNIT_ASSERT_VALUES_EQUAL(candidates, expected.CandidateFeatures.size());
+        UNIT_ASSERT_VALUES_EQUAL(maxBins, expected.BinsPerFeature);
+        for (const auto& bins : remainder.PermutationBins) UNIT_ASSERT(bins.empty());
+        UNIT_ASSERT_VALUES_EQUAL(restored.GetRegisteredFeatures(), dense.GetRegisteredFeatures());
+        TStringStream replayed;
+        restored.Save(&replayed);
+        UNIT_ASSERT_VALUES_EQUAL(replayed.Str(), saved.Str());
+        CheckInference(fixture, &restored, expected);
+    }
+
+    Y_UNIT_TEST(TestHostBatchBudgetDependsOnNewColumnsAndPreservesAbsoluteIds) {
+        TFixture fixture;
+        NPar::TLocalExecutor executor;
+        const auto options = Options(ECtrType::FeatureFreq);
+        const auto histories = fixture.Histories();
+        // Exercise the host staging boundary independently of GPU capacity.
+        // No storage for preceding runtime-owned feature IDs is allocated here.
+        constexpr ui32 first = 1u << 29;
+        TMetalTreeCtrFeatures helper(fixture.Data, options, &executor, first, 70, {}, histories);
+        const auto expected = helper.AddSplit(SimpleCtrSplit(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(expected.FirstFeature, first);
+        UNIT_ASSERT(!expected.CandidateFeatures.empty());
+        TStringStream snapshot;
+        helper.Save(&snapshot);
+        TMetalTreeCtrFeatures restored(fixture.Data, options, &executor, first, 70, {}, histories);
+        const auto actual = restored.Restore(&snapshot);
+        UNIT_ASSERT_VALUES_EQUAL(actual.FirstFeature, first);
+        UNIT_ASSERT_VALUES_EQUAL(actual.CandidateFeatures, expected.CandidateFeatures);
+        UNIT_ASSERT_VALUES_EQUAL(actual.PermutationBins, expected.PermutationBins);
+        for (size_t i = 0; i < actual.CandidateFeatures.size(); ++i) {
+            const ui32 feature = first + actual.CandidateFeatures[i], border = actual.CandidateBins[i];
+            UNIT_ASSERT(restored.GetSplit(feature, border) == helper.GetSplit(feature, border));
+        }
+        TMetalTreeCtrFeatures overflowing(fixture.Data, options, &executor, Max<ui32>(), 70, {}, histories);
+        UNIT_ASSERT_EXCEPTION(overflowing.AddSplit(SimpleCtrSplit(), 2), TCatBoostException);
+    }
+
     Y_UNIT_TEST(TestScoringPackMetadataUsesBaseHashAndConfiguredPolicyMask) {
         TFixture fixture;
         NPar::TLocalExecutor executor;

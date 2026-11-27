@@ -2,6 +2,7 @@
 #import <Metal/Metal.h>
 
 #include "metal_trainer.h"
+#include "metal_working_set.h"
 #include "metal_exception.h"
 #include "metal_kernels.h"
 #include "metal_objective_kernels.h"
@@ -43,8 +44,18 @@
 #include <unordered_map>
 #include <vector>
 
+extern "C" uint64_t cbm_metal_working_set_limit(void) {
+    static const uint64_t limit = []() {
+        @autoreleasepool {
+            id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+            return CBMTrainingWorkingSetLimit(device.recommendedMaxWorkingSetSize);
+        }
+    }();
+    return limit;
+}
+
 namespace {
-constexpr uint64_t MaxWorkingBytes = uint64_t(1) << 30;
+constexpr uint64_t FullMatrixWorkingLimit = uint64_t(1) << 30;
 constexpr uint64_t MaxOutputBytes = uint64_t(1) << 29;
 constexpr uint32_t MaxRows = uint32_t(1) << 24;
 using KernelParams = CBMMetalKernelParams;
@@ -55,7 +66,8 @@ struct NativeBootstrapParams {
     float Temperature, Subsample, MVSLambda, NoiseScale;
 };
 struct NativeScoreTileParams { uint32_t Begin, End, Bins, Reserved[5]; };
-struct NativeCompactParams { uint32_t Rows, Features, Leaves, TotalBins, FeatureBegin, TileRows, JobCapacity, Reuse; };
+struct NativeCompactParams { uint32_t Rows, Features, Leaves, TotalBins, FeatureBegin, TileRows, JobCapacity, Reuse, OffsetBegin = 0, PackShift = 0; };
+static_assert(sizeof(NativeCompactParams) == 40);
 struct NativeScoreRegularizationParams { uint32_t Normalize; float MetaExponent; uint32_t PerFeature, Reserved; };
 struct NativeBacktrackingParams { float Step; uint32_t Type, AddRidge, Normalize; };
 struct NativeQueryParams {
@@ -117,8 +129,8 @@ uint64_t FullMatrixCoreBytes(const CBMSessionParams& options) {
 
 uint64_t FullMatrixTargetBudget(const CBMSessionParams& options) {
     const uint64_t coreBytes = FullMatrixCoreBytes(options);
-    Require(coreBytes < MaxWorkingBytes, "Full-matrix core exceeds the 1 GiB GPU memory limit");
-    return MaxWorkingBytes - coreBytes;
+    Require(coreBytes < FullMatrixWorkingLimit, "Full-matrix core exceeds the 1 GiB GPU memory limit");
+    return FullMatrixWorkingLimit - coreBytes;
 }
 
 static const char* SimpleLeafSource = R"METAL(
@@ -224,7 +236,7 @@ struct Runtime {
             "BuildCompactHistogramJobs", "BuildCompactHistogramDispatchArguments", "ClearCompactHistograms",
             "ComputeCompactHistograms", "ScanCompactHistograms", "SubtractCompactSiblingHistograms",
             "PrepareExactResiduals", "MakeExactLeafKeys", "BuildExactLeafOffsets", "ReduceExactLeafPartials",
-            "PrefixExactLeafTiles", "SelectExactLeafQuantile", "FinalizeExactLeafValues", "UpdateFixedPermutationSplit", "FindTileSplitWinners", "MergeTileSplitWinner",
+            "PrefixExactLeafTiles", "SelectExactLeafQuantile", "FinalizeExactLeafValues", "UpdateFixedPermutationSplit", "UpdatePackedPermutationSplit", "FindTileSplitWinners", "MergeTileSplitWinner",
             "PrepareQuerywisePoint", "QueryRmseDerivatives", "QuerySoftMaxDerivatives",
             "ReduceQuerywiseLeafPartials", "ReduceQuerywiseObjective", "ResetQuerywiseLeafIds",
             "ValidateQuerywiseStructureCurvature", "FindDynamicTileSplitWinners",
@@ -247,7 +259,7 @@ struct Runtime {
     }
     id<MTLBuffer> Buffer(uint64_t bytes, const void* source = nullptr) {
         const uint64_t length = std::max<uint64_t>(bytes, 1);
-        Require(length <= Device.maxBufferLength && length <= MaxWorkingBytes,
+        Require(length <= Device.maxBufferLength && length <= cbm_metal_working_set_limit(),
                 "Requested buffer exceeds the Metal memory limit");
         id<MTLBuffer> result = source && bytes
             ? [Device newBufferWithBytes:source length:static_cast<NSUInteger>(length)
@@ -339,6 +351,8 @@ public:
         Pairwise = std::move(pairwise);
         Yeti = std::move(yeti);
         Coupled = std::move(coupled); CoupledNonDiag = coupledNonDiag;
+        WorkspaceLimit = Coupled ? std::min(FullMatrixWorkingLimit, cbm_metal_working_set_limit())
+                                 : cbm_metal_working_set_limit();
         Combination = std::move(combination);
         Require(std::isfinite(coupledNonDiag) && coupledNonDiag >= 0, "Invalid pairwise non-diagonal regularization");
         if (objectiveOptions) {
@@ -396,6 +410,9 @@ public:
         Require(p.candidates == 0 || (candidateFeatures && candidateBins),
                 "Candidate input buffers are required");
         DataCells = CheckedProduct(p.rows, p.features, "Input data");
+        Require(p.features < std::numeric_limits<uint32_t>::max() && DataCells <= std::numeric_limits<uint32_t>::max(),
+                "Dataset exceeds the GPU indexing limit");
+        Require(DataCells + 13ull * p.features <= WorkspaceLimit, "Input data and feature metadata exceed the Metal training budget");
         MaxLeaves = uint32_t(1) << p.depth;
         std::vector<uint32_t> featureOffsets(p.features + 1, 0);
         for (uint32_t candidate = 0; candidate < p.candidates; ++candidate) {
@@ -415,8 +432,7 @@ public:
             : CheckedProduct(CheckedProduct(MaxLeaves, p.features, "Histogram"), p.bins_per_feature, "Histogram");
         Require(p.candidates <= CheckedProduct(p.features, p.bins_per_feature, "Candidate count"),
                 "Candidate count exceeds feature/border combinations");
-        Require(DataCells <= std::numeric_limits<uint32_t>::max()
-                && (Deep || HistogramCells <= std::numeric_limits<uint32_t>::max()),
+        Require(Deep || HistogramCells <= std::numeric_limits<uint32_t>::max(),
                 "Dataset or histogram exceeds the GPU indexing limit");
         const uint32_t partitionTiles = (p.rows + 4095) / 4096;
         const uint32_t histogramTiles = std::min<uint32_t>(partitionTiles, 32);
@@ -450,8 +466,8 @@ public:
             const uint64_t baseBytes = WorkingBytes - 8ull * HistogramCells + 8ull * p.features + 32;
             const uint64_t exactReserve = objectiveOptions && objectiveOptions->leaf_estimation_method == 2
                 ? 50ull * p.rows + 8ull * MaxLeaves * histogramTiles + 12ull * MaxLeaves : 0;
-            Require(baseBytes + exactReserve < MaxWorkingBytes, "Non-histogram workspace exceeds the GPU memory limit");
-            const uint64_t budget = std::min<uint64_t>(uint64_t(256) << 20, MaxWorkingBytes - baseBytes - exactReserve);
+            Require(baseBytes + exactReserve < WorkspaceLimit, "Non-histogram workspace exceeds the GPU memory limit");
+            const uint64_t budget = std::min<uint64_t>(uint64_t(256) << 20, WorkspaceLimit - baseBytes - exactReserve);
             const uint64_t capacityBins = budget / (8ull * MaxLeaves);
             uint32_t begin = 0, tileBins = 0, maximumTileBins = 0;
             for (uint32_t feature = 0; feature < p.features; ++feature) {
@@ -469,8 +485,8 @@ public:
             HistogramCells = CheckedProduct(MaxLeaves, std::max<uint32_t>(maximumTileBins, 1), "Tiled histograms");
             WorkingBytes = baseBytes + 8ull * HistogramCells;
         }
-        Require(WorkingBytes <= MaxWorkingBytes,
-                "Training exceeds the 1 GiB experimental GPU memory limit");
+        Require(WorkingBytes <= WorkspaceLimit,
+                "Training exceeds the Metal training workspace budget");
         const uint64_t splitCount = CheckedProduct(p.iterations, p.depth, "Tree splits");
         const uint64_t leafCount = CheckedProduct(p.iterations, MaxLeaves, "Tree leaves");
         const uint64_t outputBytes = 4ull * p.iterations + 9ull * splitCount + 8ull * leafCount
@@ -679,8 +695,8 @@ public:
             const uint64_t exactBytes = 50ull * K.Rows + 8ull * MaxLeaves * K.HistogramTiles + 12ull * MaxLeaves;
             const uint64_t bootstrapBytes = BootstrapOptions.bootstrap_type
                 ? 8ull * K.Rows + 8ull * LossGroups + 4ull * ((K.Rows + 8191) / 8192) : 0;
-            Require(WorkingBytes + LangevinBytes + PermutationBytes + exactBytes + bootstrapBytes + (NoiseStatistics ? 4ull * LossGroups : 0) <= MaxWorkingBytes,
-                    "Exact leaf workspace exceeds the 1 GiB GPU memory limit");
+            Require(WorkingBytes + LangevinBytes + PermutationBytes + exactBytes + bootstrapBytes + (NoiseStatistics ? 4ull * LossGroups : 0) <= WorkspaceLimit,
+                    "Exact leaf workspace exceeds the Metal training workspace budget");
             // Publish the workspace only after every allocation succeeds. A
             // rejected configuration must leave this session usable.
             auto residuals = Context->Buffer(4ull * K.Rows);
@@ -762,8 +778,8 @@ public:
                 "QueryCrossEntropy supports No or Bernoulli query bootstrap only");
         if (options->bootstrap_type != 0 && !Coupled) {
             const uint64_t extra = 8ull * K.Rows + 8ull * LossGroups + 4ull * ((K.Rows + 8191) / 8192);
-            Require(WorkingBytes + LangevinBytes + PermutationBytes + ExactBytes + extra + (NoiseStatistics ? 4ull * LossGroups : 0) <= MaxWorkingBytes,
-                    "Bootstrap workspace exceeds the 1 GiB experimental GPU memory limit");
+            Require(WorkingBytes + LangevinBytes + PermutationBytes + ExactBytes + extra + (NoiseStatistics ? 4ull * LossGroups : 0) <= WorkspaceLimit,
+                    "Bootstrap workspace exceeds the Metal training workspace budget");
             auto structureWeight = Context->Buffer(4ull * K.Rows);
             auto multipliers = Context->Buffer(4ull * K.Rows);
             auto statistics = Context->Buffer(8ull * LossGroups);
@@ -786,7 +802,7 @@ public:
         Require(std::isfinite(temperature) && temperature >= 0,
                 "Langevin diffusion temperature must be finite and nonnegative");
         if (!BacktrackingLoss) {
-            Require(WorkspaceBytes() + 8ull * LossGroups <= MaxWorkingBytes,
+            Require(WorkspaceBytes() + 8ull * LossGroups <= WorkspaceLimit,
                     "Langevin objective workspace exceeds the GPU memory limit");
             BacktrackingLoss = Context->Buffer(8ull * LossGroups);
             LangevinBytes = 8ull * LossGroups;
@@ -820,8 +836,8 @@ public:
         if (!Coupled && options->random_strength > 0 && (K.ScoreFunction == 1 || K.ScoreFunction == 3)) {
             const uint64_t extra = BootstrapOptions.bootstrap_type
                 ? 8ull * K.Rows + 8ull * LossGroups + 4ull * ((K.Rows + 8191) / 8192) : 0;
-            Require(WorkingBytes + LangevinBytes + PermutationBytes + ExactBytes + extra + 4ull * LossGroups <= MaxWorkingBytes,
-                    "Score noise workspace exceeds the 1 GiB GPU memory limit");
+            Require(WorkingBytes + LangevinBytes + PermutationBytes + ExactBytes + extra + 4ull * LossGroups <= WorkspaceLimit,
+                    "Score noise workspace exceeds the Metal training workspace budget");
             NoiseStatistics = Context->Buffer(4ull * LossGroups);
         } else {
             NoiseStatistics = nil;
@@ -836,31 +852,46 @@ public:
         Require(count >= 1 && count <= 64 && bins, "Permutation count must be in [1, 64] with matrices supplied");
         Require(!Yeti || YetiSeeds.empty(), "Configure YetiRank permutations before supplying oracle seeds");
         Require((lambdas == nullptr) == (valid == nullptr), "MVS permutation values and validity flags must be supplied together");
+        // Callers can configure permutations after appending columns. They
+        // supply complete byte matrices, so replace these segments as a unit.
+        const uint64_t cells = uint64_t(K.Features) * K.Rows;
+        Require(cells <= std::numeric_limits<uint32_t>::max(), "Permutation matrix exceeds GPU index range");
+        const uint64_t extra = uint64_t(count - 1) * (cells + 4ull * K.Rows) + 32ull * Options.train.depth;
+        const uint64_t requiredBytes = WorkspaceBytes() + extra + (BinSegments.empty() ? 0 : cells);
+        if (requiredBytes > WorkspaceLimit) {
+            throw std::runtime_error("Permutation matrices and cursors require " + std::to_string(requiredBytes)
+                + " bytes, exceeding the Metal training workspace budget of " + std::to_string(WorkspaceLimit) + " bytes");
+        }
         for (uint32_t permutation = 0; permutation < count; ++permutation) {
             Require(bins[permutation] != nullptr, "Every permutation matrix is required");
-            for (uint64_t cell = 0; cell < DataCells; ++cell)
+            for (uint64_t cell = 0; cell < cells; ++cell)
                 Require(bins[permutation][cell] < K.Bins, "Permutation bin exceeds the original bin dimension");
             if (cursors && cursors[permutation]) for (uint32_t row = 0; row < K.Rows; ++row)
                 Require(std::isfinite(cursors[permutation][row]), "Permutation raw cursors must be finite");
             if (valid) Require(valid[permutation] <= 1 && (!valid[permutation] ||
                 (std::isfinite(lambdas[permutation]) && lambdas[permutation] >= 0)), "Invalid permutation MVS state");
         }
-        const uint64_t extra = uint64_t(count - 1) * (DataCells + 4ull * K.Rows) + 32ull * Options.train.depth;
-        const uint64_t bootstrapBytes = !Coupled && BootstrapOptions.bootstrap_type
-            ? 8ull * K.Rows + 8ull * LossGroups + 4ull * ((K.Rows + 8191) / 8192) : 0;
-        Require(WorkingBytes + LangevinBytes + ExactBytes + extra + bootstrapBytes + (NoiseStatistics ? 4ull * LossGroups : 0) <= MaxWorkingBytes,
-                "Permutation matrices and cursors exceed the 1 GiB GPU memory limit");
         std::vector<PermutationData> states(count);
         for (uint32_t permutation = 0; permutation < count; ++permutation) {
-            states[permutation].Bins = permutation == 0 ? Data : Context->Buffer(DataCells, bins[permutation]);
+            states[permutation].Bins = !permutation && BinSegments.empty() ? Data : Context->Buffer(cells, bins[permutation]);
             states[permutation].Cursor = permutation == 0 ? Prediction : Context->Buffer(4ull * K.Rows,
                 cursors && cursors[permutation] ? cursors[permutation] : Prediction.contents);
             states[permutation].Lambda = lambdas ? lambdas[permutation] : MVSLambda;
             states[permutation].HasLambda = valid ? valid[permutation] != 0 : HasMVSLambda;
         }
-        std::memcpy(Data.contents, bins[0], DataCells);
+        // Stage every buffer before changing the currently usable permutation.
+        // Allocation failure must leave its bins and cursor intact for retry.
+        auto fixedPermutationSplits = Context->Buffer(32ull * Options.train.depth);
+        if (BinSegments.empty()) {
+            std::memcpy(Data.contents, bins[0], DataCells);
+        } else {
+            WorkingBytes += cells - DataCells;
+            for (const auto& segment : BinSegments) WorkingBytes -= segment.Banks.front().length;
+            BinSegments.clear();
+            DataCells = cells;
+        }
         if (cursors && cursors[0]) std::memcpy(Prediction.contents, cursors[0], 4ull * K.Rows);
-        FixedPermutationSplits = Context->Buffer(32ull * Options.train.depth);
+        FixedPermutationSplits = fixedPermutationSplits;
         Permutations = std::move(states);
         PermutationBytes = extra;
         Data = Permutations.back().Bins; Prediction = Permutations.back().Cursor;
@@ -965,21 +996,25 @@ public:
         const uint64_t fullCandidates = uint64_t(K.Candidates) + options->candidates;
         Require(fullFeatures < std::numeric_limits<uint32_t>::max()
                 && fullCandidates <= std::numeric_limits<uint32_t>::max(), "Appended feature/candidate counts overflow");
-        const uint64_t cells = CheckedProduct(fullFeatures, K.Rows, "Appended feature bank");
-        Require(cells <= std::numeric_limits<uint32_t>::max() && cells <= MaxWorkingBytes,
-                "Appended feature bank exceeds the GPU index or memory limit");
-        Require(uint64_t(PermutationCount()) * cells + 10ull * fullCandidates + 21ull * fullFeatures <= MaxWorkingBytes,
-                "Appended data and metadata exceed the 1 GiB GPU memory limit");
+        const uint64_t addedCells = CheckedProduct(options->features, K.Rows, "Appended bin segment");
+        Require(addedCells <= std::numeric_limits<uint32_t>::max(),
+                "Appended bin segment exceeds the GPU index limit");
+        Require(addedCells <= WorkspaceLimit && 10ull * fullCandidates + 21ull * fullFeatures <= WorkspaceLimit,
+                "Appended input or metadata exceeds the Metal training workspace budget");
         Require(!options->features || matrices, "Every appended permutation bank is required");
         Require(!options->candidates || (features && bins), "Appended candidate vectors are required");
         Require(options->candidates <= uint64_t(options->features) * options->bins_per_feature,
                 "Appended candidate count exceeds feature/bin combinations");
-        const uint64_t addedCells = uint64_t(options->features) * K.Rows;
+        uint8_t maximumBin = 0;
         for (uint32_t permutation = 0; options->features && permutation < PermutationCount(); ++permutation) {
             Require(matrices[permutation] != nullptr, "Every appended permutation bank is required");
-            for (uint64_t cell = 0; cell < addedCells; ++cell)
-                Require(matrices[permutation][cell] < options->bins_per_feature, "Appended bin exceeds the new grid");
+            const auto* data = matrices[permutation];
+            maximumBin = std::max(maximumBin, *std::max_element(data, data + addedCells));
         }
+        Require(maximumBin < options->bins_per_feature, "Appended bin exceeds the new grid");
+        const uint32_t packShift = maximumBin < 2 ? 3 : maximumBin < 4 ? 2 : maximumBin < 16 ? 1 : 0;
+        const uint32_t cellsPerByte = 1u << packShift;
+        const uint64_t packedBytes = (addedCells + cellsPerByte - 1) >> packShift;
         const uint32_t newF = static_cast<uint32_t>(fullFeatures), newC = static_cast<uint32_t>(fullCandidates);
         std::vector<uint8_t> newFeatureTypes(newF, 0), seen(options->features, 0);
         std::memcpy(newFeatureTypes.data(), FeatureType.contents, K.Features);
@@ -1038,17 +1073,17 @@ public:
         }
         const uint32_t scoreGroups = std::max<uint32_t>(1, std::min<uint32_t>((uint64_t(newC) + 255) / 256, 64));
         const uint64_t jobBytes = Compact ? 0 : 16ull * HistogramJobCapacity + 4ull * MaxLeaves + 52;
-        const uint64_t replaceData = options->features ? uint64_t(PermutationCount()) * cells : 0;
+        const uint64_t addedData = uint64_t(PermutationCount()) * packedBytes;
         // Replacements are allocated transactionally while the previous banks,
         // histograms and metadata still exist. Include that overlap, not just
         // the steady-state footprint, before allocating anything on the GPU.
-        const uint64_t newNonHistogram = replaceData + 10ull * newC + 13ull * newF
+        const uint64_t newNonHistogram = addedData + 10ull * newC + 13ull * newF
             + 4ull * (newF + 1) + 8ull * newF + 32 + 32ull * scoreGroups + jobBytes;
         const uint64_t currentPeak = WorkspaceBytes();
-        Require(currentPeak + newNonHistogram + 8ull * MaxLeaves <= MaxWorkingBytes,
-                "Dynamic append peak exceeds the 1 GiB GPU memory limit");
+        Require(currentPeak + newNonHistogram + 8ull * MaxLeaves <= WorkspaceLimit,
+                "Dynamic append peak exceeds the Metal training workspace budget");
         const uint64_t histogramBudget = std::min<uint64_t>(uint64_t(256) << 20,
-            MaxWorkingBytes - currentPeak - newNonHistogram);
+            WorkspaceLimit - currentPeak - newNonHistogram);
         const uint64_t capacityBins = histogramBudget / (8ull * MaxLeaves);
         std::vector<HistogramTile> tiles;
         uint32_t begin = 0, tileBins = 0, maxTileBins = 0;
@@ -1063,18 +1098,28 @@ public:
         }
         tiles.push_back({begin, newF, tileBins, nil}); maxTileBins = std::max(maxTileBins, tileBins);
         const uint64_t histogramCells = uint64_t(MaxLeaves) * std::max<uint32_t>(maxTileBins, 1);
-        const uint64_t oldLayout = DataCells + 9ull * K.Candidates + 13ull * K.Features
+        const uint64_t oldLayout = 9ull * K.Candidates + 13ull * K.Features
             + 4ull * (K.Features + 1) + 8ull * HistogramCells + 32ull * K.ScoreGroups
             + (Compact ? 8ull * K.Features + 32 : 0) + (Dynamic ? K.Candidates : 0);
-        const uint64_t newLayout = cells + 10ull * newC + 13ull * newF + 4ull * (newF + 1)
+        const uint64_t newLayout = packedBytes + 10ull * newC + 13ull * newF + 4ull * (newF + 1)
             + 8ull * histogramCells + 32ull * scoreGroups + 8ull * newF + 32;
-        std::vector<id<MTLBuffer>> newData;
+        BinSegment segment{K.Features, newF, packShift, {}};
         if (options->features) {
-            newData.resize(PermutationCount());
+            segment.Banks.reserve(PermutationCount());
+            const uint32_t bits = 8u >> packShift;
             for (uint32_t permutation = 0; permutation < PermutationCount(); ++permutation) {
-                newData[permutation] = Context->Buffer(cells);
-                std::memcpy(static_cast<uint8_t*>(newData[permutation].contents) + DataCells,
-                            matrices[permutation], addedCells);
+                const auto* source = matrices[permutation];
+                auto buffer = Context->Buffer(packedBytes, packShift ? nullptr : source);
+                if (packShift) {
+                    auto* output = static_cast<uint8_t*>(buffer.contents);
+                    for (uint64_t cell = 0; cell < addedCells; cell += cellsPerByte) {
+                        uint8_t value = 0;
+                        for (uint32_t j = 0; j < cellsPerByte && cell + j < addedCells; ++j)
+                            value |= source[cell + j] << (j * bits);
+                        output[cell >> packShift] = value;
+                    }
+                }
+                segment.Banks.push_back(buffer);
             }
         }
         auto candidateFeature = Context->Buffer(4ull * newC, newFeatures.data());
@@ -1100,31 +1145,14 @@ public:
                 local[feature - tile.Begin] = offsets[feature] - offsets[tile.Begin];
             tile.Offsets = Context->Buffer(4ull * local.size(), local.data());
         }
-        if (!newData.empty()) {
-            Command command(*Context, Stats);
-            id<MTLBlitCommandEncoder> encoder = [command.Buffer blitCommandEncoder];
-            Require(encoder != nil, "Could not create feature-bank copy encoder");
-            for (uint32_t permutation = 0; permutation < PermutationCount(); ++permutation)
-                [encoder copyFromBuffer:Permutations.empty() ? Data : Permutations[permutation].Bins
-                           sourceOffset:0 toBuffer:newData[permutation] destinationOffset:0 size:DataCells];
-            [encoder endEncoding];
-            try { command.Wait(); } catch (...) { Failed = true; throw; }
-        }
-        // Only completed copies are published; caller mistakes and allocation
-        // failures above leave all existing tree/search state usable.
+        // Existing banks are immutable. Publish the new segment only after
+        // all buffers and replacement metadata have been allocated.
+        if (options->features) BinSegments.push_back(std::move(segment));
         *first = K.Features;
-        if (!newData.empty()) {
-            if (Permutations.empty()) Data = newData[0];
-            else {
-                for (uint32_t permutation = 0; permutation < PermutationCount(); ++permutation)
-                    Permutations[permutation].Bins = newData[permutation];
-                Data = Permutations[Pending.Active ? SearchPermutation : PermutationCount() - 1].Bins;
-            }
-        }
         WorkingBytes = WorkingBytes - oldLayout + newLayout + jobBytes;
         DynamicPeakBytes = std::max(DynamicPeakBytes, currentPeak + newNonHistogram + 8ull * histogramCells);
-        PermutationBytes += uint64_t(PermutationCount() - 1) * (cells - DataCells);
-        DataCells = cells; HistogramCells = histogramCells; CompactBins = static_cast<uint32_t>(totalBins);
+        PermutationBytes += uint64_t(PermutationCount() - 1) * packedBytes;
+        HistogramCells = histogramCells; CompactBins = static_cast<uint32_t>(totalBins);
         K.Features = Options.train.features = newF; K.Candidates = Options.train.candidates = newC;
         K.Bins = Options.train.bins_per_feature = options->bins_per_feature; K.ScoreGroups = scoreGroups;
         CandidateFeature = candidateFeature; CandidateBin = candidateBin; CandidateType = candidateType;
@@ -1266,11 +1294,18 @@ private:
     Runtime* Context = nullptr;
     KernelParams K = {};
     uint64_t DataCells = 0, HistogramCells = 0;
-    uint64_t WorkingBytes = 0;
+    uint64_t WorkingBytes = 0, WorkspaceLimit = 0;
     uint32_t MaxLeaves = 0, LossGroups = 0;
     double TotalWeight = 0;
     bool Failed = false, Deep = false, Compact = false, Dynamic = false;
     bool SimpleLeavesRequested = false;
+    // A segment holds only the columns introduced by one append. Feature IDs
+    // and candidate order stay global; rows retain their source order.
+    struct BinSegment {
+        uint32_t Begin, End, PackShift;
+        std::vector<id<MTLBuffer>> Banks;
+    };
+    std::vector<BinSegment> BinSegments;
     uint64_t DynamicPeakBytes = 0;
     uint64_t WorkspaceBytes() const {
         const uint64_t bootstrapBytes = !Coupled && BootstrapOptions.bootstrap_type
@@ -1760,6 +1795,21 @@ private:
                          K, K.Rows);
         std::swap(RowIndices, NextRowIndices);
     }
+    const BinSegment* FindBinSegment(uint32_t column) const {
+        const auto i = std::lower_bound(BinSegments.begin(), BinSegments.end(), column,
+            [](const BinSegment& segment, uint32_t feature) { return segment.End <= feature; });
+        return i != BinSegments.end() && column >= i->Begin ? &*i : nullptr;
+    }
+    void EncodeSelectedSplit(Command& command, const SplitState& split, uint32_t permutation,
+                             bool fixed, id<MTLBuffer> selection) {
+        if (const auto* segment = FindBinSegment(split.Feature)) {
+            struct { uint32_t Rows, Level, Feature, Bin, Type, PackShift; } params = {
+                K.Rows, K.SplitLevel, split.Feature - segment->Begin, split.Bin, split.Type, segment->PackShift};
+            command.Dispatch("UpdatePackedPermutationSplit", {segment->Banks[permutation], LeafIds}, params, K.Rows);
+        } else {
+            command.Dispatch(fixed ? "UpdateFixedPermutationSplit" : "UpdateLeafBins", {Data, LeafIds, selection}, K, K.Rows);
+        }
+    }
     void EncodeCompactHistograms(Command& command, bool reuse, const HistogramTile& tile) {
         NativeCompactParams h = {K.Rows, tile.End - tile.Begin, K.Leaves, tile.Bins, tile.Begin, 8192,
                                  HistogramJobCapacity, uint32_t(reuse)};
@@ -1769,8 +1819,26 @@ private:
         command.Dispatch("BuildCompactHistogramDispatchArguments", {HistogramState, HistogramArguments}, h, 1);
         command.Dispatch("ClearCompactHistograms", {HistogramSums, HistogramWeights}, h,
                          uint64_t(reuse ? K.Leaves / 2 : K.Leaves) * tile.Bins);
-        command.DispatchIndirect("ComputeCompactHistograms", {Data, Gradient, StructureWeight, RowIndices,
-            tile.Offsets, HistogramJobs, HistogramState, HistogramSums, HistogramWeights}, h, HistogramArguments, 0);
+        // Different banks can intersect the same histogram tile. Keep its
+        // offsets, accumulation and reuse rules identical to a dense matrix.
+        uint32_t column = tile.Begin;
+        while (column < tile.End) {
+            const auto* segment = FindBinSegment(column);
+            const uint32_t end = std::min(tile.End, segment ? segment->End : uint32_t(DataCells / K.Rows));
+            auto read = h;
+            read.FeatureBegin = segment ? column - segment->Begin : column;
+            read.OffsetBegin = column - tile.Begin;
+            read.Features = end - column;
+            read.PackShift = segment ? segment->PackShift : 0;
+            if (read.Features != h.Features)
+                command.Dispatch("BuildCompactHistogramDispatchArguments", {HistogramState, HistogramArguments}, read, 1);
+            command.DispatchIndirect("ComputeCompactHistograms", {
+                segment ? segment->Banks[SearchPermutation] : Data, Gradient, StructureWeight, RowIndices,
+                tile.Offsets, HistogramJobs, HistogramState, HistogramSums, HistogramWeights}, read, HistogramArguments, 0);
+            column = end;
+        }
+        if (!BinSegments.empty() && FindBinSegment(tile.Begin) != FindBinSegment(tile.End - 1))
+            command.Dispatch("BuildCompactHistogramDispatchArguments", {HistogramState, HistogramArguments}, h, 1);
         command.DispatchIndirect("ScanCompactHistograms", {HistogramSums, HistogramWeights, FeatureType, tile.Offsets,
             HistogramActive, HistogramState}, h, HistogramArguments, 12);
         if (reuse) command.DispatchIndirect("SubtractCompactSiblingHistograms", {HistogramSums, HistogramWeights,
@@ -1979,7 +2047,7 @@ private:
             Pending.PartitionsValid = false;
         }
         if (Pending.SplitPending) {
-            command.Dispatch("UpdateLeafBins", {Data, LeafIds, Winner}, K, p.rows);
+            EncodeSelectedSplit(command, Pending.Selected.back(), SearchPermutation, false, Winner);
             Pending.SplitPending = false;
             Pending.PartitionsValid = false;
         }
@@ -2131,8 +2199,8 @@ private:
         const uint32_t count = PermutationCount(), leaves = K.Leaves;
         const uint64_t extra = uint64_t(count) * (16ull * K.Rows + (LangevinLeaves() ? 44ull : 28ull) * leaves + 4)
             + 32ull * Pending.Depth;
-        Require(WorkspaceBytes() + extra <= MaxWorkingBytes,
-            "FeatureParallel Combination leaf tasks exceed the 1 GiB GPU memory limit");
+        Require(WorkspaceBytes() + extra <= WorkspaceLimit,
+            "FeatureParallel Combination leaf tasks exceed the Metal training workspace budget");
         DynamicPeakBytes = std::max(DynamicPeakBytes, WorkspaceBytes() + extra);
         std::vector<Task> tasks(count);
         auto fixedSplits = Context->Buffer(32ull * Pending.Depth, Pending.Selected.data());
@@ -2151,7 +2219,7 @@ private:
             K.Leaves = 1; EncodePartitions(layout);
             for (uint32_t level = 0; level < Pending.Depth; ++level) {
                 K.SplitLevel = level;
-                layout.Dispatch("UpdateFixedPermutationSplit", {Data, LeafIds, fixedSplits}, K, K.Rows);
+                EncodeSelectedSplit(layout, Pending.Selected[level], i, true, fixedSplits);
                 K.Leaves = uint32_t(1) << (level + 1); EncodePartitions(layout);
             }
             layout.Dispatch("InitializeLeafValues", {t.Raw, t.Weights}, K, leaves);
@@ -2437,7 +2505,7 @@ private:
                 K.Leaves = 1; EncodePartitions(other);
                 for (uint32_t level = 0; level < actualDepth; ++level) {
                     K.SplitLevel = level;
-                    other.Dispatch("UpdateFixedPermutationSplit", {Data, LeafIds, FixedPermutationSplits}, K, K.Rows);
+                    EncodeSelectedSplit(other, selected[level], permutation, true, FixedPermutationSplits);
                     K.Leaves = uint32_t(1) << (level + 1);
                     EncodePartitions(other);
                 }

@@ -468,8 +468,12 @@ def prepare_features(raw, border_count, nan_mode, categorical_indices, names, on
     permutation_bins = None
     permutation_stats = []
     if pending_ctrs:
-        if (raw.shape[1] + len(pending_ctrs)) * raw.shape[0] * permutation_count > (1 << 30):
-            raise ValueError("Categorical permutation feature matrices exceed the 1 GiB limit.")
+        from ._native import training_working_set_limit
+        required_bytes = (raw.shape[1] + len(pending_ctrs)) * raw.shape[0] * permutation_count
+        workspace_limit = training_working_set_limit()
+        if required_bytes > workspace_limit:
+            raise ValueError(f"Categorical permutation feature matrices require {required_bytes} bytes, "
+                             f"exceeding the Metal training workspace budget of {workspace_limit} bytes.")
         from catboost.utils import calculate_quantization_grid
         from ._ctrs import compute_ctr
         target_border = None

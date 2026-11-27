@@ -39,7 +39,7 @@ constexpr uint64_t MemoryLimit = 1ull << 30;
 constexpr uint32_t Missing = std::numeric_limits<uint32_t>::max();
 static_assert(CBMMetalKernelAbiVersion == 2, "Review shared Metal objective parameter ABI changes");
 using KernelParams = CBMMetalKernelParams;
-struct CompactParams { uint32_t Rows, Features, Leaves, TotalBins, FeatureBegin, TileRows, JobCapacity, Reuse; };
+struct CompactParams { uint32_t Rows, Features, Leaves, TotalBins, FeatureBegin, TileRows, JobCapacity, Reuse, OffsetBegin = 0, PackShift = 0; };
 struct EvaluationParams { uint32_t Rows, Features, MaxDepth, Reserved; };
 struct QueryParams { uint32_t Rows, Groups, Objective, ApplyLeafValues; float Beta, Lambda; uint32_t Leaves, Reserved; };
 struct QueryProjectionParams { uint32_t Rows, Leaves, Tiles, LeafMethod; };
@@ -50,7 +50,7 @@ struct BootstrapParams {
     float Temperature, Subsample, MVSLambda, NoiseScale;
 };
 static_assert(sizeof(BootstrapParams) == 48);
-static_assert(sizeof(KernelParams) == 96 && sizeof(CompactParams) == 32);
+static_assert(sizeof(KernelParams) == 96 && sizeof(CompactParams) == 40);
 static_assert(sizeof(CBMGreedyTrainParams) == 80 && sizeof(CBMGreedyNode) == 24);
 
 static const char* GreedyEvaluationSource = R"METAL(

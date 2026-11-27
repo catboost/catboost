@@ -151,19 +151,20 @@ class CatBoostMetalRanker(CatBoostMetalRegressor):
     def fit(self, X, y=None, sample_weight=None, *, group_id=None, group_weight=None, subgroup_id=None,
             eval_set=None, eval_group_id=None, eval_group_weight=None, eval_sample_weight=None, eval_subgroup_id=None,
             pairs=None, pairs_weight=None, eval_pairs=None, eval_pairs_weight=None,
-            cat_features=None, early_stopping_rounds=None, use_best_model=None,
+            cat_features=None, text_features=None, early_stopping_rounds=None, use_best_model=None,
             save_snapshot=False, snapshot_file=None, snapshot_interval=600.0, resume=True, callback=None, init_model=None):
         if init_model is self:
             init_model = self.to_catboost()
         self._model = None
         self._native_bridge_fitted = False
-        if self._native_adapter:
+        if self._use_native_fit(X, text_features):
             from ._feature_parallel_frontend import fit_feature_parallel
             return fit_feature_parallel(self, X, y, sample_weight, group_id=group_id, group_weight=group_weight,
                 subgroup_id=subgroup_id, pairs=pairs, pairs_weight=pairs_weight,
                 eval_set=eval_set, eval_group_id=eval_group_id, eval_group_weight=eval_group_weight,
                 eval_sample_weight=eval_sample_weight, eval_subgroup_id=eval_subgroup_id,
                 eval_pairs=eval_pairs, eval_pairs_weight=eval_pairs_weight, cat_features=cat_features,
+                text_features=text_features,
                 early_stopping_rounds=early_stopping_rounds, use_best_model=use_best_model,
                 save_snapshot=save_snapshot, snapshot_file=snapshot_file, snapshot_interval=snapshot_interval,
                 resume=resume, callback=callback, init_model=init_model, ranker=True)

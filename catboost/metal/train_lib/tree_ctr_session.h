@@ -84,10 +84,11 @@ namespace NCB {
             SetActivity(batch.ActiveFeatures);
         }
 
-        void Restore(const TMetalTreeCtrBatch& batch, const TMetalSnapshot& snapshot) {
+        void Restore(const TMetalSnapshot& snapshot) {
             CB_ENSURE(Ordered || snapshot.UsedFeatures == snapshot.TreeCtrUsed,
                       "Saved Metal tree CTR feature-use payloads disagree");
-            Append(batch);
+            if (Ordered) Append(Features.ReplaySnapshot());
+            else Features.ReplaySnapshot([&](const TMetalTreeCtrBatch& batch) { Append(batch); });
             TVector<ui32> counts(FeatureCount);
             TVector<float> weights(FeatureCount);
             TVector<ui8> flags(FeatureCount), used(FeatureCount), active(FeatureCount);
