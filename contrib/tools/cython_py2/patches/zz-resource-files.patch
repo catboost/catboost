@@ -1,0 +1,146 @@
+--- a/Cython/Compiler/Main.py
++++ b/Cython/Compiler/Main.py
+@@ -28,7 +28,7 @@
+ from .Scanning import PyrexScanner, FileSourceDescriptor
+ from .Errors import PyrexError, CompileError, error, warning
+ from .Symtab import ModuleScope
+-from .. import Utils
++from .. import Utils, _ResourceFiles
+ from . import Options
+ from .Options import CompilationOptions, default_options
+ from .CmdLine import parse_command_line
+@@ -50,8 +50,7 @@
+ module_name_pattern = re.compile(u"{0}(\\.{0})*$".format(module_name_pattern))
+ 
+ 
+-standard_include_path = os.path.abspath(
+-    os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Includes'))
++standard_include_path = _ResourceFiles.data_root('Includes')
+ 
+ 
+ class Context(object):
+@@ -257,7 +256,8 @@
+                     rel_path = module_name.replace('.', os.sep) + os.path.splitext(pxd_pathname)[1]
+                     if not pxd_pathname.endswith(rel_path):
+                         rel_path = pxd_pathname  # safety measure to prevent printing incorrect paths
+-                    if Options.source_root:
++                    # Builtin paths are virtual and independent of the physical checkout.
++                    if Options.source_root and not _ResourceFiles.is_resource_path(pxd_pathname):
+                         rel_path = os.path.relpath(pxd_pathname, Options.source_root)
+                     source_desc = FileSourceDescriptor(pxd_pathname, rel_path)
+                     err, result = self.process_pxd(source_desc, scope, qualified_name)
+@@ -709,8 +709,9 @@
+         package_filename = "__init__" + suffix
+ 
+     for dirname in dirs:
++        dirname = _ResourceFiles.include_root(dirname, Options.source_root)
+         path = os.path.join(dirname, dotted_filename)
+-        if os.path.exists(path):
++        if Utils.path_exists(path):
+             return path
+ 
+         # Arcadia-specific lookup: search for packages in include paths,
+@@ -719,11 +720,11 @@
+         if not include:
+             package_dir = os.path.join(dirname, *package_names)
+             path = os.path.join(package_dir, module_filename)
+-            if os.path.exists(path):
++            if Utils.path_exists(path):
+                 return path
+             path = os.path.join(dirname, package_dir, module_name,
+                                 package_filename)
+-            if os.path.exists(path):
++            if Utils.path_exists(path):
+                 return path
+ 
+     return None
+--- a/Cython/Compiler/Code.py
++++ b/Cython/Compiler/Code.py
+@@ -200,8 +200,8 @@
+ def get_utility_dir():
+     # make this a function and not global variables:
+     # http://trac.cython.org/cython_trac/ticket/475
+-    Cython_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+-    return os.path.join(Cython_dir, "Utility")
++    from .. import _ResourceFiles
++    return _ResourceFiles.data_root("Utility")
+ 
+ read_utilities_hook = None
+ """
+--- a/Cython/Utils.py
++++ b/Cython/Utils.py
+@@ -33,6 +33,10 @@
+ import tempfile
+ from functools import wraps
+ 
++if getattr(sys, "is_standalone_binary", False):
++    import __res as resource
++
++from . import _ResourceFiles
+ from . import __version__ as cython_version
+ 
+ PACKAGE_FILES = ("__init__.py", "__init__.pyc", "__init__.pyx", "__init__.pxd")
+@@ -276,6 +280,8 @@
+ 
+ @cached_function
+ def path_exists(path):
++    if _ResourceFiles.is_resource_path(path):
++        return _ResourceFiles.resource_exists(path)
+     # try on the filesystem first
+     if os.path.exists(path):
+         return True
+@@ -388,6 +394,14 @@
+ 
+ 
+ def open_source_file(source_filename, encoding=None, error_handling=None):
++    if _ResourceFiles.is_resource_path(source_filename):
++        data = _ResourceFiles.open_resource(source_filename)
++        if encoding is None:
++            encoding = detect_opened_file_encoding(data)
++            data.seek(0)
++        stream = io.TextIOWrapper(data, encoding=encoding, errors=error_handling)
++        skip_bom(stream)
++        return stream
+     stream = None
+     try:
+         if encoding is None:
+@@ -659,8 +673,13 @@
+     if not src_base_dir.endswith(os.sep):
+         src_base_dir += os.sep
+     # paths below the base_dir are relative, otherwise absolute
++    # Embedded declarations change with the compiler binary.
++    dependencies = {
++        sys.executable if _ResourceFiles.is_resource_path(name) else name
++        for name in dependencies
++    }
+     paths = []
+-    for fname in dependencies:
++    for fname in sorted(dependencies):
+         if fname.startswith(src_base_dir):
+             try:
+                 newpath = os.path.relpath(fname, cwd)
+@@ -739,10 +758,9 @@
+             self.file = open(os.path.join(self.build_root, self.filename), self.mode)
+             return self.file
+         elif self.is_standalone:
+-            import library.python.resource
+-            from six import StringIO
+-
+-            content = library.python.resource.resfs_read(self.filename, builtin=True)
++            from io import StringIO
++
++            content = resource.resfs_read(self.filename, builtin=True)
+             assert content, (self.filename, os.environ.items())
+             return StringIO(content.decode())
+         else:
+@@ -759,8 +777,8 @@
+     if build_root:
+         filename = os.path.join(build_root, filename)
+     elif is_standalone:
+-        import library.python.resource
+-        return library.python.resource.resfs_src(filename, resfs_file=True)
++        import __res
++        return __res.resfs_src(filename, resfs_file=True)
+ 
+     return os.path.exists(filename)
+ 

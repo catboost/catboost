@@ -26,12 +26,13 @@ public:
 
     // Resolving some ambiguity between TStringBase and std::basic_string_view
     // for typenames
-    using typename TStringView::const_iterator;
+    // String buffer iterators are pointers regardless of the standard library.
+    using typename TBase::const_iterator;
+    using typename TBase::const_reverse_iterator;
+    using iterator = const_iterator;
+    using reverse_iterator = const_reverse_iterator;
     using typename TStringView::const_reference;
-    using typename TStringView::const_reverse_iterator;
-    using typename TStringView::iterator;
     using typename TStringView::reference;
-    using typename TStringView::reverse_iterator;
     using typename TStringView::size_type;
     using typename TStringView::value_type;
 
@@ -39,14 +40,14 @@ public:
     using TStringView::npos;
 
     // for methods and operators
-    using TStringView::begin;
-    using TStringView::cbegin;
-    using TStringView::cend;
-    using TStringView::crbegin;
-    using TStringView::crend;
-    using TStringView::end;
-    using TStringView::rbegin;
-    using TStringView::rend;
+    using TBase::begin;
+    using TBase::cbegin;
+    using TBase::cend;
+    using TBase::crbegin;
+    using TBase::crend;
+    using TBase::end;
+    using TBase::rbegin;
+    using TBase::rend;
 
     using TStringView::data;
     using TStringView::empty;

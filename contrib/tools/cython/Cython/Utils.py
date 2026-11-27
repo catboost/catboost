@@ -19,6 +19,9 @@ import glob
 import shutil
 import tempfile
 
+if getattr(sys, "is_standalone_binary", False):
+    import __res as resource
+
 
 
 if sys.version_info < (3, 9):
@@ -43,6 +46,7 @@ else:
     from functools import wraps
 
 
+from . import _ResourceFiles
 from . import __version__ as cython_version
 
 PACKAGE_FILES = ("__init__.py", "__init__.pyc", "__init__.pyx", "__init__.pxd")
@@ -280,6 +284,8 @@ def is_package_dir(dir_path):
 
 @cached_function
 def path_exists(path):
+    if _ResourceFiles.is_resource_path(path):
+        return _ResourceFiles.resource_exists(path)
     # try on the filesystem first
     if os.path.exists(path):
         return True
@@ -389,6 +395,14 @@ def skip_bom(f):
 
 
 def open_source_file(source_filename, encoding=None, error_handling=None):
+    if _ResourceFiles.is_resource_path(source_filename):
+        data = _ResourceFiles.open_resource(source_filename)
+        if encoding is None:
+            encoding = detect_opened_file_encoding(data)
+            data.seek(0)
+        stream = io.TextIOWrapper(data, encoding=encoding, errors=error_handling)
+        skip_bom(stream)
+        return stream
     stream = None
     try:
         if encoding is None:
@@ -626,8 +640,13 @@ def write_depfile(target, source, dependencies):
     if not src_base_dir.endswith(os.sep):
         src_base_dir += os.sep
     # paths below the base_dir are relative, otherwise absolute
+    # Embedded declarations change with the compiler binary.
+    dependencies = {
+        sys.executable if _ResourceFiles.is_resource_path(name) else name
+        for name in dependencies
+    }
     paths = []
-    for fname in dependencies:
+    for fname in sorted(dependencies):
         try:
             newpath = os.path.relpath(fname, cwd)
         except ValueError:
@@ -706,10 +725,9 @@ class OpenFile(object):
             self.file = open(os.path.join(self.build_root, self.filename), self.mode)
             return self.file
         elif self.is_standalone:
-            import library.python.resource
-            from six import StringIO
+            from io import StringIO
 
-            content = library.python.resource.resfs_read(self.filename, builtin=True)
+            content = resource.resfs_read(self.filename, builtin=True)
             assert content, (self.filename, os.environ.items())
             return StringIO(content.decode())
         else:
@@ -726,8 +744,8 @@ def generated_file_exists(filename, is_standalone=False):
     if build_root:
         filename = os.path.join(build_root, filename)
     elif is_standalone:
-        import library.python.resource
-        return library.python.resource.resfs_src(filename, resfs_file=True)
+        import __res
+        return __res.resfs_src(filename, resfs_file=True)
 
     return os.path.exists(filename)
 

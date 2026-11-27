@@ -1,0 +1,8 @@
+# We have lots of ADDINCLs to contrib/libs/libiconv all around the repo
+# so we need to add it to sysincl for consistent resolving.
+# We can go the other way here and remove iconv.h from all sysincl configs
+# and try to fix all places where we really need iconv.h from libc
+# Btw: seems that this ADDINCL should be made global and removed from projects
+# that use this header
+- includes:
+  - iconv.h:       contrib/libs/libiconv/include/iconv.h

@@ -16,11 +16,12 @@ ci:
     add-cython-fakeid-issue:
       jobs:
         cython-fakeid-issue:
-          title: Cython FakeID issue
+          title: Cython dependency tracking
           task: projects/devtools/write_pr_comment/write_pr_comment
           input:
             config:
-              data: Любые правки в Cython должны также менять CYTHON_FAKEID для тестирования зависимостей от Cython!
+              data: |-
+                При правке компилятора проверьте инвалидацию генерации: legacy-команда должна получить новый маркер в cython.py своей поставки, а ресурсный tool — учитывать изменённые исходники и данные через собственный UID. Проверьте induced dependencies и SYSINCL этой поставки; общий CYTHON_FAKEID для независимых поставок не требуется.
               pr_id: ${context.launch_pull_request_info.pull_request.id}
               issue: true
               once: true

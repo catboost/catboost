@@ -4,6 +4,7 @@
 #include "sigset.h"
 
 #include <util/folder/dirut.h>
+#include <util/charset/wide.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/buffer.h>
 #include <util/generic/vector.h>
@@ -533,10 +534,11 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
     TString cmd = Options_.UseShell ? "cmd /A /Q /S /C \"" + qcmd + "\"" : qcmd;
     // winapi can modify command text, copy it
 
-    Y_ENSURE_EX(cmd.size() < MAX_COMMAND_LINE, yexception() << "Command is too long (length=" << cmd.size() << ")");
+    const auto wideCommand = UTF8ToWide(cmd);
+    Y_ENSURE_EX(wideCommand.size() < MAX_COMMAND_LINE, yexception() << "Command is too long (length=" << wideCommand.size() << ")");
     TTempArray<wchar_t> cmdcopy(MAX_COMMAND_LINE);
-    Copy(cmd.data(), cmd.data() + cmd.size(), cmdcopy.Data());
-    *(cmdcopy.Data() + cmd.size()) = 0;
+    Copy(wideCommand.begin(), wideCommand.end(), cmdcopy.Data());
+    *(cmdcopy.Data() + wideCommand.size()) = 0;
 
     const wchar_t* cwd = NULL;
     std::wstring cwdBuff;

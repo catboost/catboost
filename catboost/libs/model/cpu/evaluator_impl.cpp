@@ -1,4 +1,6 @@
 #include "evaluator.h"
+#include "simd.h"
+#include "leaf_add_simd.h"
 
 #include <library/cpp/sse/sse.h>
 
@@ -10,16 +12,55 @@
 
 namespace NCB::NModelEvaluation {
 
+#ifdef _sse3_
+    // Prefetch four future shallow-tree tables sixteen trees ahead.
+    constexpr size_t LeafPrefetchTreeDistance = 16;
+#endif
+
+    template <size_t Distance>
+    Y_FORCE_INLINE void PrefetchFutureTreeLeaves(
+        const TModelTrees& trees, const double* leaves, const size_t* firstLeafOffsets,
+        size_t treeId, size_t treeEnd) {
+        if constexpr (Distance > 0) {
+            for (size_t futureTree = treeId + Distance;
+                 futureTree < Min(treeId + Distance + 4, treeEnd); ++futureTree) {
+                const size_t leafCount = size_t(1) << trees.GetModelTreeData()->GetTreeSizes()[futureTree];
+                if (leafCount < 32) {
+                    continue;
+                }
+                for (size_t leaf = 0; leaf < leafCount; leaf += 64 / sizeof(double)) {
+#if defined(__GNUC__) || defined(__clang__)
+                    __builtin_prefetch(leaves + firstLeafOffsets[futureTree] + leaf, 0, 3);
+#else
+                    Y_PREFETCH_READ(leaves + firstLeafOffsets[futureTree] + leaf, 3);
+#endif
+                }
+            }
+        }
+    }
+
+    Y_FORCE_INLINE bool HasDiverseLeafIndexes(const ui8* indexes, size_t docCount) {
+        for (size_t tree = 0; tree < 4; ++tree) {
+            const auto* ids = indexes + tree * docCount;
+            ui64 sample;
+            std::memcpy(&sample, ids, sizeof(sample));
+            if (sample != ui64(ids[0]) * 0x0101010101010101ull) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     constexpr size_t SSE_BLOCK_SIZE = 16;
     static_assert(SSE_BLOCK_SIZE * 8 == FORMULA_EVALUATION_BLOCK_SIZE);
 
     template <bool NeedXorMask, size_t START_BLOCK, typename TIndexType>
     Y_FORCE_INLINE void CalcIndexesBasic(
-            const ui8* __restrict binFeatures,
-            size_t docCountInBlock,
-            TIndexType* __restrict indexesVec,
-            const TRepackedBin* __restrict treeSplitsCurPtr,
-            int curTreeSize) {
+        const ui8* __restrict binFeatures,
+        size_t docCountInBlock,
+        TIndexType* __restrict indexesVec,
+        const TRepackedBin* __restrict treeSplitsCurPtr,
+        int curTreeSize) {
         if (START_BLOCK * SSE_BLOCK_SIZE >= docCountInBlock) {
             return;
         }
@@ -32,18 +73,18 @@ namespace NCB::NModelEvaluation {
             if constexpr (NeedXorMask) {
                 Y_PREFETCH_READ(binFeaturePtr, 3);
                 Y_PREFETCH_WRITE(indexesVec, 3);
-                #if defined(__clang__) && !defined(_ubsan_enabled_)
-                #pragma clang loop vectorize_width(16)
-                #endif
+#if defined(__clang__) && !defined(_ubsan_enabled_)
+    #pragma clang loop vectorize_width(16)
+#endif
                 for (size_t docId = START_BLOCK * SSE_BLOCK_SIZE; docId < docCountInBlock; ++docId) {
                     indexesVec[docId] |= ((binFeaturePtr[docId] ^ xorMask) >= borderVal) << depth;
                 }
             } else {
                 Y_PREFETCH_READ(binFeaturePtr, 3);
                 Y_PREFETCH_WRITE(indexesVec, 3);
-                #if defined(__clang__) && !defined(_ubsan_enabled_)
-                #pragma clang loop vectorize_width(16)
-                #endif
+#if defined(__clang__) && !defined(_ubsan_enabled_)
+    #pragma clang loop vectorize_width(16)
+#endif
                 for (size_t docId = START_BLOCK * SSE_BLOCK_SIZE; docId < docCountInBlock; ++docId) {
                     indexesVec[docId] |= ((binFeaturePtr[docId]) >= borderVal) << depth;
                 }
@@ -51,34 +92,89 @@ namespace NCB::NModelEvaluation {
         }
     }
 
-    #ifdef _sse3_
+#ifdef _sse3_
+
+    template <bool NeedXorMask, size_t Width, int TreeDepth>
+    Y_FORCE_INLINE __m128i CalcPartialIndexesSse(
+        const ui8* binFeatures, size_t docCount, size_t doc,
+        const TRepackedBin* splits) {
+        __m128i result = _mm_setzero_si128();
+        __m128i mask = _mm_set1_epi8(1);
+        for (int depth = 0; depth < TreeDepth; ++depth) {
+            const auto* source = binFeatures + splits[depth].FeatureIndex * docCount + doc;
+            __m128i values;
+            if constexpr (Width == 8) {
+                values = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(source));
+            } else {
+                ui32 packed;
+                std::memcpy(&packed, source, sizeof(packed));
+                values = _mm_cvtsi32_si128(packed);
+            }
+            if constexpr (NeedXorMask) {
+                values = _mm_xor_si128(values, _mm_set1_epi8(splits[depth].XorMask));
+            }
+            const auto border = _mm_set1_epi8(splits[depth].SplitIdx);
+            const auto ge = _mm_cmpeq_epi8(_mm_max_epu8(values, border), values);
+            result = _mm_or_si128(result, _mm_and_si128(ge, mask));
+            mask = _mm_slli_epi16(mask, 1);
+        }
+        return result;
+    }
+
+    template <bool NeedXorMask, size_t StartDoc, int TreeDepth>
+    Y_FORCE_INLINE void CalcByteIndexesTailSse(
+        const ui8* binFeatures, size_t docCount, ui8* indexes,
+        const TRepackedBin* splits) {
+        size_t doc = StartDoc;
+        if (doc + 8 <= docCount) {
+            const auto result = CalcPartialIndexesSse<NeedXorMask, 8, TreeDepth>(binFeatures, docCount, doc, splits);
+            _mm_storel_epi64(reinterpret_cast<__m128i*>(indexes + doc), result);
+            doc += 8;
+        }
+        if (doc + 4 <= docCount) {
+            const ui32 result = _mm_cvtsi128_si32(CalcPartialIndexesSse<NeedXorMask, 4, TreeDepth>(binFeatures, docCount, doc, splits));
+            std::memcpy(indexes + doc, &result, sizeof(result));
+            doc += 4;
+        }
+        for (; doc < docCount; ++doc) {
+            ui8 index = 0;
+            for (int depth = 0; depth < TreeDepth; ++depth) {
+                ui8 value = binFeatures[splits[depth].FeatureIndex * docCount + doc];
+                if constexpr (NeedXorMask) {
+                    value ^= splits[depth].XorMask;
+                }
+                index |= ui8(value >= ui8(splits[depth].SplitIdx)) << depth;
+            }
+            indexes[doc] = index;
+        }
+    }
 
     template <bool NeedXorMask, size_t SSEBlockCount, int curTreeSize>
     Y_FORCE_INLINE void CalcIndexesSseDepthed(
-            const ui8* __restrict binFeatures,
-            size_t docCountInBlock,
-            ui8* __restrict indexesVec,
-            const TRepackedBin* __restrict treeSplitsCurPtr) {
+        const ui8* __restrict binFeatures,
+        size_t docCountInBlock,
+        ui8* __restrict indexesVec,
+        const TRepackedBin* __restrict treeSplitsCurPtr) {
         if constexpr (SSEBlockCount == 0) {
-            CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
+            CalcByteIndexesTailSse<NeedXorMask, 0, curTreeSize>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
             return;
         }
     #define _mm_cmpge_epu8(a, b) _mm_cmpeq_epi8(_mm_max_epu8((a), (b)), (a))
     #define LOAD_16_DOC_HISTS(reg, binFeaturesPtr16) \
-            const __m128i val##reg = _mm_lddqu_si128((const __m128i *)(binFeaturesPtr16));
+        const __m128i val##reg = _mm_lddqu_si128((const __m128i*)(binFeaturesPtr16));
     #define UPDATE_16_DOC_BINS(reg) \
-            reg = _mm_or_si128(reg, _mm_and_si128(_mm_cmpge_epu8(val##reg, borderValVec), mask));
+        reg = _mm_or_si128(reg, _mm_and_si128(_mm_cmpge_epu8(val##reg, borderValVec), mask));
 
     #define LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(reg, binFeaturesPtr16) \
-            LOAD_16_DOC_HISTS(reg, binFeaturesPtr16);\
-            reg = _mm_or_si128(reg, _mm_and_si128(_mm_cmpge_epu8(_mm_xor_si128(val##reg, xorMaskVec), borderValVec), mask));
+        LOAD_16_DOC_HISTS(reg, binFeaturesPtr16);                         \
+        reg = _mm_or_si128(reg, _mm_and_si128(_mm_cmpge_epu8(_mm_xor_si128(val##reg, xorMaskVec), borderValVec), mask));
     #define STORE_16_DOCS_RESULT(reg, addr) ((addr), reg);
         for (size_t regId = 0; regId < SSEBlockCount; regId += 2) {
             __m128i v0 = _mm_setzero_si128();
             __m128i v1 = _mm_setzero_si128();
             __m128i mask = _mm_set1_epi8(0x01);
             for (int depth = 0; depth < curTreeSize; ++depth) {
-                const ui8 *__restrict binFeaturePtr = binFeatures + treeSplitsCurPtr[depth].FeatureIndex * docCountInBlock + SSE_BLOCK_SIZE * regId;
+                const ui8* __restrict binFeaturePtr = binFeatures + treeSplitsCurPtr[depth].FeatureIndex * docCountInBlock + SSE_BLOCK_SIZE * regId;
                 const __m128i borderValVec = _mm_set1_epi8(treeSplitsCurPtr[depth].SplitIdx);
                 if constexpr (!NeedXorMask) {
                     LOAD_16_DOC_HISTS(v0, binFeaturePtr);
@@ -96,13 +192,13 @@ namespace NCB::NModelEvaluation {
                 }
                 mask = _mm_slli_epi16(mask, 1);
             }
-            _mm_storeu_si128((__m128i *)(indexesVec + SSE_BLOCK_SIZE * regId), v0);
+            _mm_storeu_si128((__m128i*)(indexesVec + SSE_BLOCK_SIZE * regId), v0);
             if (regId + 1 < SSEBlockCount) {
-                _mm_storeu_si128((__m128i *)(indexesVec + SSE_BLOCK_SIZE * regId + SSE_BLOCK_SIZE), v1);
+                _mm_storeu_si128((__m128i*)(indexesVec + SSE_BLOCK_SIZE * regId + SSE_BLOCK_SIZE), v1);
             }
         }
         if constexpr (SSEBlockCount != 8) {
-            CalcIndexesBasic<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
+            CalcByteIndexesTailSse<NeedXorMask, SSEBlockCount * SSE_BLOCK_SIZE, curTreeSize>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
         }
     #undef _mm_cmpge_epu8
     #undef LOAD_16_DOC_HISTS
@@ -111,48 +207,67 @@ namespace NCB::NModelEvaluation {
     #undef STORE_16_DOCS_RESULT
     }
 
-    template <bool NeedXorMask, size_t SSEBlockCount>
+    template <bool NeedXorMask, size_t SSEBlockCount, bool UseWideKernels = false>
     static void CalcIndexesSse(
         const ui8* __restrict binFeatures,
         size_t docCountInBlock,
         ui8* __restrict indexesVec,
         const TRepackedBin* __restrict treeSplitsCurPtr,
         const int curTreeSize) {
+        if constexpr (UseWideKernels && SSEBlockCount >= 4) {
+            if (curTreeSize >= 5) {
+                if (auto kernel = NDetail::GetWideTreeIndexes8()) {
+                    kernel(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize, NeedXorMask);
+                    return;
+                }
+            }
+        }
         switch (curTreeSize)
         {
-        case 1:
-            CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 1>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
-            break;
-        case 2:
-            CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 2>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
-            break;
-        case 3:
-            CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 3>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
-            break;
-        case 4:
-            CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 4>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
-            break;
-        case 5:
-            CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 5>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
-            break;
-        case 6:
-            CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 6>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
-            break;
-        case 7:
-            CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 7>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
-            break;
-        case 8:
-            CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 8>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
-            break;
-        default:
-            break;
+            case 1:
+                CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 1>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+                break;
+            case 2:
+                CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 2>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+                break;
+            case 3:
+                CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 3>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+                break;
+            case 4:
+                CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 4>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+                break;
+            case 5:
+                CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 5>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+                break;
+            case 6:
+                CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 6>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+                break;
+            case 7:
+                CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 7>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+                break;
+            case 8:
+                CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 8>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+                break;
+            default:
+                break;
         }
     }
 
-    #endif
+#endif
 
-    template <typename TIndexType>
+    template <typename TIndexType, bool UseWideKernels = false>
     Y_FORCE_INLINE void CalculateLeafValues(const size_t docCountInBlock, const double* __restrict treeLeafPtr, const TIndexType* __restrict indexesPtr, double* __restrict writePtr) {
+        if constexpr (UseWideKernels) {
+            const auto kernel = [] {
+                if constexpr (std::is_same_v<TIndexType, ui8>) {
+                    return NDetail::GetWideAddLeaf8();
+                } else {
+                    return NDetail::GetWideAddLeaf32();
+                }
+            }();
+            kernel(docCountInBlock, treeLeafPtr, indexesPtr, writePtr);
+            return;
+        }
         Y_PREFETCH_READ(treeLeafPtr, 3);
         Y_PREFETCH_READ(treeLeafPtr + 128, 3);
         const auto docCountInBlock4 = (docCountInBlock | 0x3) ^ 0x3;
@@ -171,7 +286,7 @@ namespace NCB::NModelEvaluation {
         }
     }
 
-    #ifdef _sse3_
+#ifdef _sse3_
     template <int SSEBlockCount>
     Y_FORCE_INLINE static void GatherAddLeafSSE(const double* __restrict treeLeafPtr, const ui8* __restrict indexesPtr, __m128d* __restrict writePtr) {
         _mm_prefetch((const char*)(treeLeafPtr + 64), _MM_HINT_T2);
@@ -204,7 +319,7 @@ namespace NCB::NModelEvaluation {
     #undef ADD_LEAFS
     }
 
-    template <int SSEBlockCount>
+    template <int SSEBlockCount, bool UseWideKernels>
     Y_FORCE_INLINE void CalculateLeafValues4(
         const size_t docCountInBlock,
         const double* __restrict treeLeafPtr0,
@@ -219,11 +334,21 @@ namespace NCB::NModelEvaluation {
     {
         const auto docCountInBlock16 = SSEBlockCount * 16;
         if constexpr (SSEBlockCount > 0) {
-            _mm_prefetch((const char*)(writePtr), _MM_HINT_T2);
-            GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr0, indexesPtr0, (__m128d*)writePtr);
-            GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr1, indexesPtr1, (__m128d*)writePtr);
-            GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr2, indexesPtr2, (__m128d*)writePtr);
-            GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr3, indexesPtr3, (__m128d*)writePtr);
+            if constexpr (!UseWideKernels && SSEBlockCount == 1) {
+                Y_PREFETCH_WRITE(writePtr, 3);
+            } else {
+                _mm_prefetch((const char*)(writePtr), _MM_HINT_T2);
+            }
+            if constexpr (UseWideKernels && SSEBlockCount >= 4) {
+                const double* leafValues[] = {treeLeafPtr0, treeLeafPtr1, treeLeafPtr2, treeLeafPtr3};
+                const ui8* indexes[] = {indexesPtr0, indexesPtr1, indexesPtr2, indexesPtr3};
+                NDetail::GetWideLeafValues4()(docCountInBlock16, leafValues, indexes, writePtr);
+            } else {
+                GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr0, indexesPtr0, (__m128d*)writePtr);
+                GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr1, indexesPtr1, (__m128d*)writePtr);
+                GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr2, indexesPtr2, (__m128d*)writePtr);
+                GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr3, indexesPtr3, (__m128d*)writePtr);
+            }
         }
         if constexpr (SSEBlockCount != 8) {
             indexesPtr0 += SSE_BLOCK_SIZE * SSEBlockCount;
@@ -241,9 +366,9 @@ namespace NCB::NModelEvaluation {
             }
         }
     }
-    #endif
+#endif
 
-    template <typename TIndexType>
+    template <typename TIndexType, bool UseWideKernels = false>
     Y_FORCE_INLINE void CalculateLeafValuesMulti(const size_t docCountInBlock, const double* __restrict leafPtr, const TIndexType* __restrict indexesVec, const int approxDimension, double* __restrict writePtr) {
         for (size_t docId = 0; docId < docCountInBlock; ++docId) {
             const double* __restrict leafValuePtr = leafPtr + indexesVec[docId] * approxDimension;
@@ -254,7 +379,7 @@ namespace NCB::NModelEvaluation {
         }
     }
 
-    template <bool IsSingleClassModel, bool NeedXorMask, int SSEBlockCount, bool CalcLeafIndexesOnly = false>
+    template <bool IsSingleClassModel, bool NeedXorMask, int SSEBlockCount, bool CalcLeafIndexesOnly = false, bool UseWideKernels = false>
     Y_FORCE_INLINE void CalcTreesBlockedImpl(
         const TModelTrees& trees,
         const TModelTrees::TForApplyData& applyData,
@@ -264,18 +389,18 @@ namespace NCB::NModelEvaluation {
         size_t treeStart,
         const size_t treeEnd,
         double* __restrict resultsPtr) {
+        const auto treeSizes = trees.GetModelTreeData()->GetTreeSizes();
         const TRepackedBin* __restrict treeSplitsCurPtr =
             trees.GetRepackedBins().data() + trees.GetModelTreeData()->GetTreeStartOffsets()[treeStart];
 
         ui8* __restrict indexesVec = (ui8*)indexesVecUI32;
         const double* __restrict treeLeafPtr = trees.GetModelTreeData()->GetLeafValues().data();
         const size_t* __restrict firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
-    #ifdef _sse3_
+#ifdef _sse3_
         bool allTreesAreShallow = AllOf(
-            trees.GetModelTreeData()->GetTreeSizes().begin() + treeStart,
-            trees.GetModelTreeData()->GetTreeSizes().begin() + treeEnd,
-            [](int depth) { return depth <= 8; }
-        );
+            treeSizes.begin() + treeStart,
+            treeSizes.begin() + treeEnd,
+            [](int depth) { return depth <= 8; });
         if (IsSingleClassModel && !CalcLeafIndexesOnly && allTreesAreShallow) {
             auto alignedResultsPtr = resultsPtr;
             TVector<double> resultsTmpArray;
@@ -292,20 +417,26 @@ namespace NCB::NModelEvaluation {
             auto treeEnd4 = treeStart + (((treeEnd - treeStart) | 0x3) ^ 0x3);
             for (size_t treeId = treeStart; treeId < treeEnd4; treeId += 4) {
                 memset(indexesVec, 0, sizeof(ui32) * docCountInBlock);
-                CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec + docCountInBlock * 0,
-                                                           treeSplitsCurPtr, trees.GetModelTreeData()->GetTreeSizes()[treeId]);
-                treeSplitsCurPtr += trees.GetModelTreeData()->GetTreeSizes()[treeId];
-                CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec + docCountInBlock * 1,
-                                                           treeSplitsCurPtr, trees.GetModelTreeData()->GetTreeSizes()[treeId + 1]);
-                treeSplitsCurPtr += trees.GetModelTreeData()->GetTreeSizes()[treeId + 1];
-                CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec + docCountInBlock * 2,
-                                                           treeSplitsCurPtr, trees.GetModelTreeData()->GetTreeSizes()[treeId + 2]);
-                treeSplitsCurPtr += trees.GetModelTreeData()->GetTreeSizes()[treeId + 2];
-                CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec + docCountInBlock * 3,
-                                                           treeSplitsCurPtr, trees.GetModelTreeData()->GetTreeSizes()[treeId + 3]);
-                treeSplitsCurPtr += trees.GetModelTreeData()->GetTreeSizes()[treeId + 3];
+                CalcIndexesSse<NeedXorMask, SSEBlockCount, UseWideKernels>(binFeatures, docCountInBlock, indexesVec + docCountInBlock * 0,
+                                                                           treeSplitsCurPtr, treeSizes[treeId]);
+                treeSplitsCurPtr += treeSizes[treeId];
+                CalcIndexesSse<NeedXorMask, SSEBlockCount, UseWideKernels>(binFeatures, docCountInBlock, indexesVec + docCountInBlock * 1,
+                                                                           treeSplitsCurPtr, treeSizes[treeId + 1]);
+                treeSplitsCurPtr += treeSizes[treeId + 1];
+                CalcIndexesSse<NeedXorMask, SSEBlockCount, UseWideKernels>(binFeatures, docCountInBlock, indexesVec + docCountInBlock * 2,
+                                                                           treeSplitsCurPtr, treeSizes[treeId + 2]);
+                treeSplitsCurPtr += treeSizes[treeId + 2];
+                CalcIndexesSse<NeedXorMask, SSEBlockCount, UseWideKernels>(binFeatures, docCountInBlock, indexesVec + docCountInBlock * 3,
+                                                                           treeSplitsCurPtr, treeSizes[treeId + 3]);
+                treeSplitsCurPtr += treeSizes[treeId + 3];
 
-                CalculateLeafValues4<SSEBlockCount>(
+                if constexpr (UseWideKernels && SSEBlockCount >= 4 && LeafPrefetchTreeDistance > 0) {
+                    if (HasDiverseLeafIndexes(indexesVec, docCountInBlock)) {
+                        PrefetchFutureTreeLeaves<LeafPrefetchTreeDistance>(trees, treeLeafPtr, firstLeafOffsetsPtr, treeId, treeEnd);
+                    }
+                }
+
+                CalculateLeafValues4<SSEBlockCount, UseWideKernels>(
                     docCountInBlock,
                     treeLeafPtr + firstLeafOffsetsPtr[treeId + 0],
                     treeLeafPtr + firstLeafOffsetsPtr[treeId + 1],
@@ -315,8 +446,7 @@ namespace NCB::NModelEvaluation {
                     indexesVec + docCountInBlock * 1,
                     indexesVec + docCountInBlock * 2,
                     indexesVec + docCountInBlock * 3,
-                    alignedResultsPtr
-                );
+                    alignedResultsPtr);
             }
             if (alignedResultsPtr != resultsPtr) {
                 memcpy(resultsPtr, alignedResultsPtr, neededMemory);
@@ -325,34 +455,39 @@ namespace NCB::NModelEvaluation {
         }
 #endif
         for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
-            auto curTreeSize = trees.GetModelTreeData()->GetTreeSizes()[treeId];
+            auto curTreeSize = treeSizes[treeId];
             memset(indexesVec, 0, sizeof(ui32) * docCountInBlock);
 #ifdef _sse3_
             if (!CalcLeafIndexesOnly && curTreeSize <= 8) {
-                CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr,
-                                                           curTreeSize);
+                CalcIndexesSse<NeedXorMask, SSEBlockCount, UseWideKernels>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr,
+                                                                           curTreeSize);
                 if constexpr (IsSingleClassModel) { // single class model
-                    CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec, resultsPtr);
+                    CalculateLeafValues<ui8, UseWideKernels>(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec, resultsPtr);
                 } else { // multiclass model
-                    CalculateLeafValuesMulti(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec,
-                                             trees.GetDimensionsCount(), resultsPtr);
+                    CalculateLeafValuesMulti<ui8, UseWideKernels>(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec,
+                                                                  trees.GetDimensionsCount(), resultsPtr);
                 }
             } else {
 #else
             {
 #endif
-                CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVecUI32, treeSplitsCurPtr,
-                                                 curTreeSize);
+                if constexpr (UseWideKernels) {
+                    NDetail::GetWideTreeIndexes32()(binFeatures, docCountInBlock, indexesVecUI32,
+                                                    treeSplitsCurPtr, curTreeSize, NeedXorMask);
+                } else {
+                    CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVecUI32, treeSplitsCurPtr,
+                                                     curTreeSize);
+                }
                 if constexpr (CalcLeafIndexesOnly) {
                     indexesVecUI32 += docCountInBlock;
                     indexesVec += sizeof(ui32) * docCountInBlock;
                 } else {
                     if constexpr (IsSingleClassModel) { // single class model
-                        CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId],
-                                            indexesVecUI32, resultsPtr);
+                        CalculateLeafValues<TCalcerIndexType, UseWideKernels>(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId],
+                                                                              indexesVecUI32, resultsPtr);
                     } else { // multiclass model
-                        CalculateLeafValuesMulti(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId],
-                                                 indexesVecUI32, trees.GetDimensionsCount(), resultsPtr);
+                        CalculateLeafValuesMulti<TCalcerIndexType, UseWideKernels>(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId],
+                                                                                   indexesVecUI32, trees.GetDimensionsCount(), resultsPtr);
                     }
                 }
             }
@@ -360,8 +495,12 @@ namespace NCB::NModelEvaluation {
         }
     }
 
-    template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
-    Y_FORCE_INLINE void CalcTreesBlocked(
+    template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false, bool UseWideKernels = false>
+#if defined(__GNUC__) && defined(_x86_64_)
+    __attribute__((aligned(64)))
+#endif
+    Y_FORCE_INLINE void
+    CalcTreesBlocked(
         const TModelTrees& trees,
         const TModelTrees::TForApplyData& applyData,
         const TCPUEvaluatorQuantizedData* quantizedData,
@@ -373,39 +512,39 @@ namespace NCB::NModelEvaluation {
         const ui8* __restrict binFeatures = quantizedData->QuantizedData.data();
         switch (docCountInBlock / SSE_BLOCK_SIZE) {
             case 0:
-                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 0, CalcLeafIndexesOnly>(
+                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 0, CalcLeafIndexesOnly, false>(
                     trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 1:
-                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 1, CalcLeafIndexesOnly>(
+                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 1, CalcLeafIndexesOnly, false>(
                     trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 2:
-                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 2, CalcLeafIndexesOnly>(
+                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 2, CalcLeafIndexesOnly, false>(
                     trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 3:
-                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 3, CalcLeafIndexesOnly>(
+                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 3, CalcLeafIndexesOnly, false>(
                     trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 4:
-                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 4, CalcLeafIndexesOnly>(
+                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 4, CalcLeafIndexesOnly, UseWideKernels>(
                     trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 5:
-                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 5, CalcLeafIndexesOnly>(
+                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 5, CalcLeafIndexesOnly, UseWideKernels>(
                     trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 6:
-                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 6, CalcLeafIndexesOnly>(
+                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 6, CalcLeafIndexesOnly, UseWideKernels>(
                     trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 7:
-                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 7, CalcLeafIndexesOnly>(
+                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 7, CalcLeafIndexesOnly, UseWideKernels>(
                     trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             case 8:
-                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 8, CalcLeafIndexesOnly>(
+                CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 8, CalcLeafIndexesOnly, UseWideKernels>(
                     trees, applyData, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
                 break;
             default:
@@ -416,13 +555,14 @@ namespace NCB::NModelEvaluation {
     template <bool IsSingleClassModel, bool NeedXorMask, bool calcIndexesOnly = false>
     inline void CalcTreesSingleDocImpl(
         const TModelTrees& trees,
-        const TModelTrees::TForApplyData& ,
+        const TModelTrees::TForApplyData&,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t,
         TCalcerIndexType* __restrict indexesVec,
         size_t treeStart,
         size_t treeEnd,
         double* __restrict results) {
+        const auto treeSizes = trees.GetModelTreeData()->GetTreeSizes();
         const ui8* __restrict binFeatures = quantizedData->QuantizedData.data();
         Y_ASSERT(calcIndexesOnly || (results && AllOf(results, results + trees.GetDimensionsCount(),
                                                       [](double value) { return value == 0.0; })));
@@ -430,7 +570,7 @@ namespace NCB::NModelEvaluation {
             trees.GetRepackedBins().data() + trees.GetModelTreeData()->GetTreeStartOffsets()[treeStart];
         const double* __restrict treeLeafPtr = trees.GetFirstLeafPtrForTree(treeStart);
         for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
-            const auto curTreeSize = trees.GetModelTreeData()->GetTreeSizes()[treeId];
+            const auto curTreeSize = treeSizes[treeId];
             TCalcerIndexType index = 0;
             for (int depth = 0; depth < curTreeSize; ++depth) {
                 const ui8 borderVal = (ui8)(treeSplitsCurPtr[depth].SplitIdx);
@@ -466,8 +606,7 @@ namespace NCB::NModelEvaluation {
         const size_t firstDocId,
         const size_t docCountInBlock,
         const size_t treeId,
-        TCalcerIndexType* __restrict indexesVec
-    ) {
+        TCalcerIndexType* __restrict indexesVec) {
         const TRepackedBin* __restrict treeSplitsPtr = trees.GetRepackedBins().data();
         const TNonSymmetricTreeStepNode* __restrict treeStepNodes = trees.GetModelTreeData()->GetNonSymmetricStepNodes().data();
         std::fill(indexesVec + firstDocId, indexesVec + docCountInBlock, trees.GetModelTreeData()->GetTreeStartOffsets()[treeId]);
@@ -501,8 +640,7 @@ namespace NCB::NModelEvaluation {
         TCalcerIndexType* __restrict indexes,
         size_t treeStart,
         size_t treeEnd,
-        double* __restrict resultsPtr
-    ) {
+        double* __restrict resultsPtr) {
         const ui8* __restrict binFeaturesI = quantizedData->QuantizedData.data();
         const TRepackedBin* __restrict treeSplitsPtr = trees.GetRepackedBins().data();
         const i32* __restrict treeStepNodes = reinterpret_cast<const i32*>(trees.GetModelTreeData()->GetNonSymmetricStepNodes().data());
@@ -513,7 +651,7 @@ namespace NCB::NModelEvaluation {
             __m128i* indexesVec = reinterpret_cast<__m128i*>(indexes);
             size_t docId = 0;
             // handle special case of model containing only empty splits
-            for (; binFeaturesI != nullptr && docId + 8 <= docCountInBlock; docId += 8, indexesVec+=2) {
+            for (; binFeaturesI != nullptr && docId + 8 <= docCountInBlock; docId += 8, indexesVec += 2) {
                 const ui8* __restrict binFeatures = binFeaturesI + docId;
                 __m128i index0 = _mm_set1_epi32(treeStartIndex);
                 __m128i index1 = _mm_set1_epi32(treeStartIndex);
@@ -527,8 +665,7 @@ namespace NCB::NModelEvaluation {
                         treeSplitsPtr[_mm_extract_epi32(index1, 0)],
                         treeSplitsPtr[_mm_extract_epi32(index1, 1)],
                         treeSplitsPtr[_mm_extract_epi32(index1, 2)],
-                        treeSplitsPtr[_mm_extract_epi32(index1, 3)]
-                    };
+                        treeSplitsPtr[_mm_extract_epi32(index1, 3)]};
                     const __m128i zeroes = _mm_setzero_si128();
                     diffs0 = _mm_unpacklo_epi16(
                         _mm_hadd_epi16(
@@ -540,35 +677,25 @@ namespace NCB::NModelEvaluation {
                                                 binFeatures[splits[0].FeatureIndex * docCountInBlock + 0],
                                                 binFeatures[splits[1].FeatureIndex * docCountInBlock + 1],
                                                 binFeatures[splits[2].FeatureIndex * docCountInBlock + 2],
-                                                binFeatures[splits[3].FeatureIndex * docCountInBlock + 3]
-                                            ),
+                                                binFeatures[splits[3].FeatureIndex * docCountInBlock + 3]),
                                             _mm_setr_epi32(
                                                 splits[0].XorMask,
                                                 splits[1].XorMask,
                                                 splits[2].XorMask,
-                                                splits[3].XorMask
-                                            )
-                                        ),
+                                                splits[3].XorMask)),
                                         _mm_setr_epi32(
                                             splits[0].SplitIdx,
                                             splits[1].SplitIdx,
                                             splits[2].SplitIdx,
-                                            splits[3].SplitIdx
-                                        )
-                                   ),
-                                   _mm_set1_epi32(0xffff0000)
-                               ),
+                                            splits[3].SplitIdx)),
+                                    _mm_set1_epi32(0xffff0000)),
                                 _mm_setr_epi32(
                                     treeStepNodes[_mm_extract_epi32(index0, 0)],
                                     treeStepNodes[_mm_extract_epi32(index0, 1)],
                                     treeStepNodes[_mm_extract_epi32(index0, 2)],
-                                    treeStepNodes[_mm_extract_epi32(index0, 3)]
-                                )
-                            ),
-                            zeroes
-                        ),
-                        zeroes
-                    );
+                                    treeStepNodes[_mm_extract_epi32(index0, 3)])),
+                            zeroes),
+                        zeroes);
                     diffs1 = _mm_unpacklo_epi16(
                         _mm_hadd_epi16(
                             _mm_and_si128(
@@ -579,43 +706,31 @@ namespace NCB::NModelEvaluation {
                                                 binFeatures[splits[4].FeatureIndex * docCountInBlock + 4],
                                                 binFeatures[splits[5].FeatureIndex * docCountInBlock + 5],
                                                 binFeatures[splits[6].FeatureIndex * docCountInBlock + 6],
-                                                binFeatures[splits[7].FeatureIndex * docCountInBlock + 7]
-                                            ),
+                                                binFeatures[splits[7].FeatureIndex * docCountInBlock + 7]),
                                             _mm_setr_epi32(
                                                 splits[4].XorMask,
                                                 splits[5].XorMask,
                                                 splits[6].XorMask,
-                                                splits[7].XorMask
-                                            )
-                                        ),
+                                                splits[7].XorMask)),
                                         _mm_setr_epi32(
                                             splits[4].SplitIdx,
                                             splits[5].SplitIdx,
                                             splits[6].SplitIdx,
-                                            splits[7].SplitIdx
-                                        )
-                                    ),
-                                    _mm_set1_epi32(0xffff0000)
-                                ),
+                                            splits[7].SplitIdx)),
+                                    _mm_set1_epi32(0xffff0000)),
                                 _mm_setr_epi32(
                                     treeStepNodes[_mm_extract_epi32(index1, 0)],
                                     treeStepNodes[_mm_extract_epi32(index1, 1)],
                                     treeStepNodes[_mm_extract_epi32(index1, 2)],
-                                    treeStepNodes[_mm_extract_epi32(index1, 3)]
-                                )
-                            ),
-                            zeroes
-                        ),
-                        zeroes
-                    );
+                                    treeStepNodes[_mm_extract_epi32(index1, 3)])),
+                            zeroes),
+                        zeroes);
                     index0 = _mm_add_epi32(
                         index0,
-                        diffs0
-                    );
+                        diffs0);
                     index1 = _mm_add_epi32(
                         index1,
-                        diffs1
-                    );
+                        diffs1);
                 } while (!_mm_testz_si128(diffs0, _mm_cmpeq_epi32(diffs0, diffs0)) || !_mm_testz_si128(diffs1, _mm_cmpeq_epi32(diffs1, diffs1)));
                 _mm_storeu_si128(indexesVec, index0);
                 _mm_storeu_si128(indexesVec + 1, index1);
@@ -632,7 +747,7 @@ namespace NCB::NModelEvaluation {
                 }
                 indexes += docCountInBlock;
             } else if constexpr (IsSingleClassModel) {
-                for (docId = 0; docId + 8 <= docCountInBlock; docId+=8) {
+                for (docId = 0; docId + 8 <= docCountInBlock; docId += 8) {
                     resultsPtr[docId + 0] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 0]]];
                     resultsPtr[docId + 1] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 1]]];
                     resultsPtr[docId + 2] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 2]]];
@@ -668,8 +783,7 @@ namespace NCB::NModelEvaluation {
         TCalcerIndexType* __restrict indexesVec,
         size_t treeStart,
         size_t treeEnd,
-        double* __restrict resultsPtr
-    ) {
+        double* __restrict resultsPtr) {
         const ui8* __restrict binFeatures = quantizedData->QuantizedData.data();
         for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
             CalcIndexesNonSymmetric<NeedXorMask>(trees, binFeatures, 0, docCountInBlock, treeId, indexesVec);
@@ -704,7 +818,6 @@ namespace NCB::NModelEvaluation {
     }
 #endif
 
-
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcIndexesOnly>
     inline void CalcNonSymmetricTreesSingle(
         const TModelTrees& trees,
@@ -714,8 +827,7 @@ namespace NCB::NModelEvaluation {
         TCalcerIndexType* __restrict indexesVec,
         size_t treeStart,
         size_t treeEnd,
-        double* __restrict resultsPtr
-    ) {
+        double* __restrict resultsPtr) {
         const ui8* __restrict binFeatures = quantizedData->QuantizedData.data();
         TCalcerIndexType index;
         const TRepackedBin* __restrict treeSplitsPtr = trees.GetRepackedBins().data();
@@ -755,16 +867,16 @@ namespace NCB::NModelEvaluation {
         }
     }
 
-
     template <bool AreTreesOblivious, bool IsSingleDoc, bool IsSingleClassModel, bool NeedXorMask,
-        bool CalcLeafIndexesOnly>
+              bool CalcLeafIndexesOnly, bool UseWideKernels>
     struct CalcTreeFunctionInstantiationGetter {
         TTreeCalcFunction operator()() const {
             if constexpr (AreTreesOblivious) {
                 if constexpr (IsSingleDoc) {
                     return CalcTreesSingleDocImpl<IsSingleClassModel, NeedXorMask, CalcLeafIndexesOnly>;
                 } else {
-                    return CalcTreesBlocked<IsSingleClassModel, NeedXorMask, CalcLeafIndexesOnly>;
+                    constexpr bool useWideKernels = UseWideKernels;
+                    return CalcTreesBlocked<IsSingleClassModel, NeedXorMask, CalcLeafIndexesOnly, useWideKernels>;
                 }
             } else {
                 if constexpr (IsSingleDoc) {
@@ -795,13 +907,18 @@ namespace NCB::NModelEvaluation {
     TTreeCalcFunction GetCalcTreesFunction(
         const TModelTrees& trees,
         size_t docCountInBlock,
-        bool calcIndexesOnly
-    ) {
+        bool calcIndexesOnly) {
         const bool areTreesOblivious = trees.IsOblivious();
         const bool isSingleDoc = (docCountInBlock == 1);
         const bool isSingleClassModel = (trees.GetDimensionsCount() == 1);
         const bool needXorMask = !trees.GetOneHotFeatures().empty();
+        // Keep the original evaluator specialization for small batches and fallback CPUs.
+        // The out-of-line SIMD kernel is worthwhile only from 64 documents per block.
+        const bool eligibleDimensions = isSingleClassModel || calcIndexesOnly;
+        const bool useWideKernels = docCountInBlock >= 64 && areTreesOblivious && eligibleDimensions &&
+                                    AnyOf(trees.GetModelTreeData()->GetTreeSizes(), [](int depth) { return depth >= 5; }) &&
+                                    NDetail::GetWideTreeIndexes32() && NDetail::GetWideLeafValues4();
         return FunctorTemplateParamsSubstitutor<CalcTreeFunctionInstantiationGetter>::Call(
-            areTreesOblivious, isSingleDoc, isSingleClassModel, needXorMask, calcIndexesOnly);
+            areTreesOblivious, isSingleDoc, isSingleClassModel, needXorMask, calcIndexesOnly, useWideKernels);
     }
-}
+} // namespace NCB::NModelEvaluation

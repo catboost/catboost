@@ -1,5 +1,7 @@
 import os
 
+from Cython import _ResourceFiles
+
 from Cython.Compiler import (
     MemoryView, Code, Options, Pipeline, Errors, Main, Symtab
 )
@@ -28,7 +30,7 @@ def create_shared_library_pipeline(context, scope, options, result):
     def generate_c_utilities(module_node):
         UtilityCode = Code.UtilityCode
         match_special = UtilityCode.get_special_comment_matcher('/')
-        for c_utility_file in os.listdir(Code.get_utility_dir()):
+        for c_utility_file in _ResourceFiles.list_directory(Code.get_utility_dir()):
             if not c_utility_file.endswith('.c'):
                 continue
             for line in Code.read_utilities_hook(c_utility_file):

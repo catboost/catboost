@@ -1,0 +1,9 @@
+- source_filter: "^(?!contrib/libs/libuv/)"
+  includes:
+  - idn-free.h
+  - idn-int.h
+  - idna.h
+  - pr29.h
+  - punycode.h
+  - stringprep.h
+  - tld.h
