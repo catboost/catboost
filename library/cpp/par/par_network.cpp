@@ -17,7 +17,6 @@
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
-#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/mutex.h>
 #include <util/thread/factory.h>
 

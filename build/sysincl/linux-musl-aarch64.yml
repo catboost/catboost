@@ -1,0 +1,12 @@
+- includes:
+  - bits/alltypes.h: contrib/libs/musl/arch/aarch64/bits/alltypes.h
+  - bits/errno.h:    contrib/libs/musl/arch/generic/bits/errno.h
+  - bits/fenv.h:     contrib/libs/musl/arch/aarch64/bits/fenv.h
+  - bits/limits.h:   contrib/libs/musl/arch/generic/bits/limits.h
+  - bits/posix.h:    contrib/libs/musl/arch/aarch64/bits/posix.h
+  - bits/reg.h:      contrib/libs/musl/arch/aarch64/bits/reg.h
+  - bits/stat.h:     contrib/libs/musl/arch/aarch64/bits/stat.h
+  - bits/stdint.h:   contrib/libs/musl/arch/aarch64/bits/stdint.h
+  - sys/cdefs.h:     contrib/libs/musl/extra/sys/cdefs.h
+  - sys/sysctl.h:    contrib/libs/musl/extra/sys/sysctl.h
+  - xlocale.h:       contrib/libs/musl/extra/xlocale.h

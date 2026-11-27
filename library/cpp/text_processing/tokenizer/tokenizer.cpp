@@ -103,12 +103,14 @@ namespace {
             TVector<TString>* tokens,
             TVector<NTokenizer::ETokenType>* tokenTypes,
             const NTokenizer::TTokenizerOptions& options,
-            ILemmerImplementation* lemmer
+            ILemmerImplementation* lemmer,
+            size_t maxTokens
         )
             : Tokens(tokens)
             , TokenTypes(tokenTypes)
             , Options(options)
             , Lemmer(lemmer)
+            , MaxTokens(maxTokens)
         {
         }
 
@@ -163,12 +165,16 @@ namespace {
             if (TokenTypes) {
                 TokenTypes->emplace_back(tokenType);
             }
+            if (MaxTokens != 0 && Tokens->size() >= MaxTokens) {
+                throw ITokenHandler::TAllDoneException();
+            }
         }
 
         TVector<TString>* Tokens;
         TVector<NTokenizer::ETokenType>* TokenTypes;
-        NTokenizer::TTokenizerOptions Options;
+        const NTokenizer::TTokenizerOptions& Options;
         ILemmerImplementation* Lemmer;
+        const size_t MaxTokens;
     };
 
 }
@@ -178,9 +184,10 @@ static void SplitBySense(
     const NTokenizer::TTokenizerOptions& options,
     ILemmerImplementation* lemmer,
     TVector<TString>* tokens,
-    TVector<NTokenizer::ETokenType>* tokenTypes
+    TVector<NTokenizer::ETokenType>* tokenTypes,
+    size_t maxTokens = 0
 ) {
-    TTokenHandler handler(tokens, tokenTypes, options, lemmer);
+    TTokenHandler handler(tokens, tokenTypes, options, lemmer, maxTokens);
     TNlpTokenizer tokenizer(handler);
     tokenizer.Tokenize(UTF8ToWide(inputString));
 }
@@ -305,6 +312,19 @@ void NTokenizer::TTokenizer::Tokenize(
 TVector<TString> NTokenizer::TTokenizer::Tokenize(TStringBuf inputString) const {
     TVector<TString> tokens;
     Tokenize(inputString, &tokens);
+    return tokens;
+}
+
+TVector<TString> NTokenizer::TTokenizer::Tokenize(TStringBuf inputString, size_t maxTokens) const {
+    TVector<TString> tokens;
+    if (Options.SeparatorType == ESeparatorType::BySense) {
+        SplitBySense(inputString, Options, Lemmer.Get(), &tokens, nullptr, maxTokens);
+    } else {
+        Tokenize(inputString, &tokens);
+        if (maxTokens != 0 && tokens.size() > maxTokens) {
+            tokens.resize(maxTokens);
+        }
+    }
     return tokens;
 }
 

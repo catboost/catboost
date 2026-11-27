@@ -17,7 +17,7 @@ namespace NPar {
         THashMap<int, TWBCopyCompInfo>& RequestHash;
         TVector<TVector<char>> Result;
         TSystemEvent Ready;
-        TAtomic ReqCount;
+        std::atomic<size_t> ReqCount;
 
     public:
         TDataCollector(THashMap<int, TWBCopyCompInfo>* req)
@@ -42,7 +42,7 @@ namespace NPar {
             Y_ASSERT(xx.ysize() == info.OriginalPlace.ysize());
             for (int i = 0; i < xx.ysize(); ++i)
                 Result[info.OriginalPlace[i]].swap(xx[i]);
-            if (AtomicAdd(ReqCount, -1) == 0)
+            if (--ReqCount == 0)
                 Ready.Signal();
         }
         void Run(TLocalDataBuffer* writeBuffer, TRemoteQueryProcessor* queryProc,
@@ -51,7 +51,7 @@ namespace NPar {
             Ready.Reset();
 
             int localCompId = queryProc ? queryProc->GetCompId() : -1;
-            AtomicAdd(ReqCount, 1);
+            ++ReqCount;
             for (THashMap<int, TWBCopyCompInfo>::iterator i = RequestHash.begin(); i != RequestHash.end(); ++i) {
                 TWBCopyCompInfo& info = i->second;
                 int compId = i->first;
@@ -62,11 +62,11 @@ namespace NPar {
                 } else {
                     TVector<char> buf;
                     SerializeToMem(&buf, info.Data);
-                    AtomicAdd(ReqCount, 1);
+                    ++ReqCount;
                     queryProc->SendQuery(compId, "wb_copy", &buf, this, compId);
                 }
             }
-            if (AtomicAdd(ReqCount, -1) == 0)
+            if (--ReqCount == 0)
                 Ready.Signal();
             Ready.Wait();
 

@@ -35,12 +35,15 @@ private:
         const TVector<TConstArrayRef<double>>& derivatives,
         const TVector<TVector<TVector<double>>>& leafValues,
         NPar::ILocalExecutor* localExecutor) const;
+    // partitionIndexBuffer is scratch space for partitioning the candidates, it is reused at every
+    // recursion level and must have room for (candidatesEnd - candidatesBegin) elements.
     double CalculateThreshold(
         TVector<double>::iterator candidatesBegin,
         TVector<double>::iterator candidatesEnd,
         double sumSmall,
         ui32 nLarge,
-        double sampleSize) const;
+        double sampleSize,
+        TArrayRef<ui32> partitionIndexBuffer) const;
 
 private:
     ui32 SampleCount;

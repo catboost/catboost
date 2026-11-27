@@ -1,0 +1,24 @@
+- includes:
+  - atrdef.h
+  - dcdef.h
+  - descrip.h
+  - dvsdef.h
+  - fab.h
+  - fibdef.h
+  - gen64def.h
+  - iledef.h
+  - iodef.h
+  - lib$routines.h
+  - libfildef.h
+  - libfisdef.h
+  - lnmdef.h
+  - nam.h
+  - rms.h
+  - rmsdef.h
+  - ssdef.h
+  - starlet.h
+  - str$routines.h
+  - stsdef.h
+  - syidef.h
+  - times.h
+  - unixio.h

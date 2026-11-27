@@ -1,0 +1,48 @@
+- includes:
+  - aaudio/AAudio.h
+  - android/api-level.h
+  - android/asset_manager.h
+  - android/asset_manager_jni.h
+  - android/bitmap.h
+  - android/dlext.h
+  - android/hardware_buffer.h
+  - android/log.h
+  - android/native_window.h
+  - android/native_window_jni.h
+  - android/ndk-version.h
+  - android/set_abort_message.h
+  - android/sharedmem.h
+  - android/sharedmem_jni.h
+  - cpu-features.h: contrib/libs/android_cpufeatures/cpu-features.h
+  - jni.h
+  - EGL/egl.h
+  - EGL/eglext.h
+  - GLES/gl.h
+  - GLES/glext.h
+  - GLES2/gl2.h
+  - GLES2/gl2ext.h
+  - GLES3/gl3.h
+  - GLES3/gl31.h
+  - GLES3/gl32.h
+  - GLES3/gl3ext.h
+  - SLES/OpenSLES.h
+  - SLES/OpenSLES_Android.h
+  - SLES/OpenSLES_AndroidConfiguration.h
+  - SLES/OpenSLES_AndroidMetadata.h
+  - SLES/OpenSLES_Platform.h
+  - linux/ashmem.h
+  - media/NdkImageReader.h
+  - time64.h
+
+- source_filter: "^contrib/libs/breakpad/src"
+  includes:
+    - elf.h:        contrib/libs/breakpad/src/common/android/include/elf.h
+    - link.h:       contrib/libs/breakpad/src/common/android/include/link.h
+    - sys/procfs.h: contrib/libs/breakpad/src/common/android/include/sys/procfs.h
+    - sys/signal.h: contrib/libs/breakpad/src/common/android/include/sys/signal.h
+    - sys/user.h:   contrib/libs/breakpad/src/common/android/include/sys/user.h
+
+- source_filter: "^contrib/libs/android_cpufeatures"
+  includes:
+    - stdint.h: contrib/libs/glibcasm/glibc/include/stdint.h
+    - sys/cdefs.h: contrib/libs/glibcasm/glibc/include/sys/cdefs.h
