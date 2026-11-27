@@ -150,7 +150,7 @@ public:
 
     /**
      * Safe versions of Add*() functions. Behave exactly like as non-safe
-     * version of Add*(), but use exceptions instead returning false
+     * version of Add*(), but use exceptions instead of returning false
      */
     void SafeAdd(IObjectInQueue* obj);
 
@@ -162,7 +162,7 @@ public:
     void SafeAddAndOwn(THolder<IObjectInQueue> obj);
 
     /**
-     * Add object to queue, run obj->Proccess in other threads.
+     * Add object to queue, run obj->Process in other threads.
      * Obj is not deleted after execution
      * @return true of obj is successfully added to queue
      * @return false if queue is full or shutting down
@@ -220,7 +220,7 @@ public:
      * CreateThreadSpecificResource and DestroyThreadSpecificResource
      * called from internals of (TAdaptiveThreadPool, TThreadPool, ...) implementation,
      * not by user of IThreadPool interface.
-     * Created resource is passed to IObjectInQueue::Proccess function.
+     * Created resource is passed to IObjectInQueue::Process function.
      */
     virtual void* CreateThreadSpecificResource() {
         return nullptr;
@@ -237,7 +237,7 @@ private:
 };
 
 /**
- * Single-threaded implementation of IThreadPool, process tasks in same thread when
+ * Single-threaded implementation of IThreadPool, process tasks in the same thread when
  * added.
  * Can be used to remove multithreading.
  */

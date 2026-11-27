@@ -11,6 +11,11 @@ or decompress something and in various ways.
 
 To get a full list of codecs there is a function `NBlockCodecs::ListAllCodecs()`.
 
+Use `NBlockCodecs::GetCodecProperties(name)` from `codecs.h` to query optional
+capabilities by name or alias. If `SupportsStreamingBlockEncode()` returns true,
+`TryMakeStreamingBlockEncoder()` accepts successive writes and emits one block readable
+by the codec's ordinary `Decode()`. This is distinct from the multi-block format in `stream.h`.
+
 Streaming
 =========
 Use `stream.h` to obtain simple streams over block codecs (buffer data, compress them by blocks,

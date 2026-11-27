@@ -289,6 +289,16 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_STRINGS_EQUAL(FloatToString(-std::numeric_limits<float>::infinity()), "-inf");
     }
 
+    Y_UNIT_TEST(TestFloatToStringKeepFloat) {
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(2.0f, PREC_AUTO_KEEP_FLOAT), "2.0");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(-0.0f, PREC_AUTO_KEEP_FLOAT), "-0.0");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(0.12345678f, PREC_AUTO_KEEP_FLOAT), "0.12345678");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(1.0, PREC_AUTO_KEEP_FLOAT), "1.0");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(-0.0, PREC_AUTO_KEEP_FLOAT), "-0.0");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(1.2345678901234567, PREC_AUTO_KEEP_FLOAT), "1.2345678901234567");
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(1e-20, PREC_AUTO_KEEP_FLOAT), "1e-20");
+    }
+
     Y_UNIT_TEST(TestReadFloats) {
         GoodFloatTester<float>("0.0001", 0.0001f, EPS);
         GoodFloatTester<double>("0.0001", 0.0001, EPS);
@@ -615,6 +625,30 @@ Y_UNIT_TEST_SUITE(TCastTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(127)), TStringBuf("1111111"));
         UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(-128)), TStringBuf("-10000000"));
+    }
+
+    Y_UNIT_TEST(TestTFloatStringBuf) {
+        const auto rate = TFloatStringBuf(0.12345678f);
+        const TStringBuf text = rate;
+        UNIT_ASSERT_VALUES_EQUAL(text, "0.123457"sv);
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TFloatStringBuf<float, PREC_AUTO>(0.12345678f)), "0.12345678"sv);
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TFloatStringBuf<double, PREC_AUTO_KEEP_FLOAT>(-0.0)), "-0.0"sv);
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TFloatStringBuf<double, PREC_NDIGITS, 3>(1.2345)), "1.23"sv);
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TFloatStringBuf<double, PREC_POINT_DIGITS_STRIP_ZEROES, 3>(1.25)), "1.25"sv);
+
+        UNIT_ASSERT_VALUES_EQUAL(TString::Join("rate=", TFloatStringBuf<double, PREC_POINT_DIGITS, 3>(1.25)), "rate=1.250");
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TFloatStringBuf<double, PREC_POINT_DIGITS, 3>(1e60)), "1e+60"sv);
+    }
+
+    Y_UNIT_TEST(TestFloatStringBufFixedFormatLimits) {
+        const TString zeros(100, '0');
+        const TString expectedFloat = TString::Join("-170141183460469231731687303715884105728.", zeros);
+        const TString expectedDouble = TString::Join("-803469022129495137770981046170581301261101496891396417650688.", zeros);
+
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(-0x1p127f, PREC_POINT_DIGITS, 100), expectedFloat);
+        UNIT_ASSERT_VALUES_EQUAL(FloatToString(-0x1p199, PREC_POINT_DIGITS, 100), expectedDouble);
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TFloatStringBuf<float, PREC_POINT_DIGITS, 100>(-0x1p127f)), expectedFloat);
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TFloatStringBuf<double, PREC_POINT_DIGITS, 100>(-0x1p199)), expectedDouble);
     }
 
     Y_UNIT_TEST(TestTrivial) {

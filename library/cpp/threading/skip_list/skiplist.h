@@ -3,12 +3,14 @@
 #include "compare.h"
 
 #include <util/generic/algorithm.h>
+#include <util/generic/bitops.h>
 #include <util/generic/noncopyable.h>
 #include <util/generic/typetraits.h>
 #include <util/memory/pool.h>
 #include <util/random/random.h>
 
 #include <atomic>
+#include <bit>
 
 namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
@@ -92,13 +94,14 @@ namespace NThreading {
             }
 
             TNode* GetNext(int height) const {
-                return Next[height].load();
+                return Next[height].load(std::memory_order_acquire);
             }
 
             void Link(const int height, TNode** prev) {
                 for (int i = 0; i < height; ++i) {
-                    Next[i].store(prev[i]->Next[i]);
-                    prev[i]->Next[i] = this;
+                    TNode* successor = prev[i]->Next[i].load(std::memory_order_relaxed);
+                    Next[i].store(successor, std::memory_order_relaxed);
+                    prev[i]->Next[i].store(this, std::memory_order_release);
                 }
             }
         };
@@ -229,17 +232,64 @@ namespace NThreading {
         }
 
     private:
-        static int RandomHeight() {
-            int height = 1;
-            while (height < MaxHeight && (RandomNumber<unsigned int>() % Branching) == 0) {
-                ++height;
+        static constexpr int StepsPerWord() {
+            if constexpr (Branching <= 1) {
+                return 0;
             }
-            return height;
+            int steps = 0;
+            ui64 span = 1;
+            while (span <= (ui64{1} << 32) / static_cast<ui32>(Branching)) {
+                span *= static_cast<ui32>(Branching);
+                ++steps;
+            }
+            return steps;
+        }
+
+        template <int Limit>
+        static int StepsFromLimb(ui32 bits) {
+            if constexpr (IsPowerOf2(Branching)) {
+                constexpr int shift = std::bit_width(static_cast<ui32>(Branching)) - 1;
+                int steps = static_cast<int>(std::countr_zero(bits) / static_cast<ui32>(shift));
+                if (steps > Limit) {
+                    steps = Limit;
+                }
+                return steps;
+            } else {
+                int steps = 0;
+                while (steps < Limit && bits % static_cast<ui32>(Branching) == 0) {
+                    ++steps;
+                    bits /= static_cast<ui32>(Branching);
+                }
+                return steps;
+            }
+        }
+
+        static int RandomHeight() {
+            if constexpr (Branching <= 1) {
+                return 1; // degenerate case, just a regular forward list
+            } else {
+                constexpr int kStepsPerWord = StepsPerWord();
+                constexpr int kStepsNeeded = MaxHeight - 1;
+                constexpr int kFullWords = kStepsNeeded / kStepsPerWord;
+                constexpr int kTail = kStepsNeeded % kStepsPerWord;
+                int extra = 0;
+                for (int word = 0; word < kFullWords; ++word) {
+                    int got = StepsFromLimb<kStepsPerWord>(RandomNumber<ui32>());
+                    extra += got;
+                    if (got < kStepsPerWord) {
+                        return 1 + extra;
+                    }
+                }
+                if constexpr (kTail > 0) {
+                    extra += StepsFromLimb<kTail>(RandomNumber<ui32>());
+                }
+                return 1 + extra;
+            }
         }
 
         void Init() {
             Head = AllocateRootNode();
-            Height = 1;
+            Height.store(1, std::memory_order_relaxed);
             TCounter::Reset();
 
             for (int i = 0; i < MaxHeight; ++i) {
@@ -279,7 +329,7 @@ namespace NThreading {
 
         TNode* FindLast() const {
             TNode* node = Head;
-            int height = Height.load() - 1;
+            int height = Height.load(std::memory_order_relaxed) - 1;
 
             while (true) {
                 TNode* next = node->GetNext(height);
@@ -304,7 +354,7 @@ namespace NThreading {
         template <typename TValue>
         TNode* FindLessThan(const TValue& value, TNode** links) const {
             TNode* node = Head;
-            int height = Height.load() - 1;
+            int height = Height.load(std::memory_order_relaxed) - 1;
 
             TNode* prev = nullptr;
             while (true) {
@@ -334,7 +384,7 @@ namespace NThreading {
         template <typename TValue>
         TNode* FindGreaterThanOrEqual(const TValue& value) const {
             TNode* node = Head;
-            int height = Height.load() - 1;
+            int height = Height.load(std::memory_order_relaxed) - 1;
 
             TNode* prev = nullptr;
             while (true) {
@@ -373,14 +423,14 @@ namespace NThreading {
 
         TNode* DoInsert(T&& value) {
             // choose level to place new node
-            const int currentHeight = Height.load();
+            const int currentHeight = Height.load(std::memory_order_relaxed);
             const int height = RandomHeight();
             if (height > currentHeight) {
                 for (int i = currentHeight; i < height; ++i) {
                     // head should link to all levels
                     Prev[i] = Head;
                 }
-                Height.store(height);
+                Height.store(height, std::memory_order_relaxed);
             }
 
             TNode* node = AllocateNode(std::move(value), height);

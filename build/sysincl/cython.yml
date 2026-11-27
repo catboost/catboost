@@ -1,0 +1,16 @@
+# Resolve Python.h from swig/Lib/python/pyruntime.swg when building non-python .swg
+# since they do not peerdir contrib/libs/python.
+- source_filter: "[.]swg([.](h|c(c|pp|xx)?))?$"
+  includes:
+  - Python.h:        contrib/libs/python/Include/Python.h
+
+# disable checks for Python 3.11-specific files
+# needed to allow to use Arcadia's Cython with non-Arcadia python in open source builds
+- source_filter: "^contrib/tools/cython/Cython/Utility"
+  includes:
+    - internal/pycore_frame.h: contrib/libs/python/Include/internal/pycore_frame.h
+
+# The selected Python supplies optional headers induced by Cython.
+- source_filter: "^contrib/tools/cython(_py2)?/induced_deps[.]h$"
+  includes:
+  - internal/pycore_frame.h: contrib/libs/python/Include/internal/pycore_frame.h

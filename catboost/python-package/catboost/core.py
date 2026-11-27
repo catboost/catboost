@@ -1115,6 +1115,7 @@ class Pool(_PoolBase):
     def _check_transform_tags(self, tags, feature_names):
         if not isinstance(tags, dict):
             raise CatBoostError("Invalid feature_tags type={}: must be dict like.".format(type(tags)))
+        tags = deepcopy(tags)
         for tag_name, tag_features in tags.items():
             if not isinstance(tag_features, dict):
                 raise CatBoostError("Invalid type of value in feature_tags by key {}, value type is {}: must be dict like.".format(tag_name, type(tag_features)))
@@ -1568,7 +1569,7 @@ def _build_train_pool(X, y, cat_features, text_features, embedding_features, pai
         train_pool = Pool(data=X, pairs=pairs, graph=graph, column_description=column_description)
     else:
         if y is None:
-            raise CatBoostError("y has not initialized in fit(): X is not catboost.Pool object, y must be not None in fit().")
+            raise CatBoostError("y has not been initialized in fit(): X is not catboost.Pool object, y must be not None in fit().")
         train_pool = Pool(X, y, cat_features=cat_features, text_features=text_features, embedding_features=embedding_features, pairs=pairs, graph=graph, weight=sample_weight, group_id=group_id,
                           group_weight=group_weight, subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline)
     return train_pool
@@ -3818,6 +3819,7 @@ class CatBoost(_CatBoostBase):
                 * pmml_model_version : string
         pool : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or catboost.FeaturesData
             Training dataset.
+            Required if the model contains categorical features and the format is 'cpp', 'python', 'json' or 'onnx'.
         """
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
@@ -5958,7 +5960,7 @@ class CatBoostClassifier(CatBoost):
                 raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
             y = X.get_label()
             if y is None:
-                raise CatBoostError("Label in X has not initialized.")
+                raise CatBoostError("Label in X has not been initialized.")
         if isinstance(y, pd.DataFrame):
             if len(y.columns) != 1:
                 raise CatBoostError("y is pandas.DataFrame and has {} columns, but must have exactly one.".format(len(y.columns)))
@@ -5970,6 +5972,8 @@ class CatBoostClassifier(CatBoost):
         elif y is None:
             raise CatBoostError("y should be specified.")
         y = np.array(y)
+        if y.ndim == 2 and y.shape[1] == 1:
+            y = y.reshape(-1)
         predicted_classes = self._predict(
             X,
             prediction_type='Class',
@@ -6404,7 +6408,7 @@ class CatBoostRegressor(CatBoost):
                 raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
             y = X.get_label()
             if y is None:
-                raise CatBoostError("Label in X has not initialized.")
+                raise CatBoostError("Label in X has not been initialized.")
         elif y is None:
             raise CatBoostError("y should be specified.")
         y = np.array(y, dtype=np.float64)
@@ -6800,7 +6804,7 @@ class CatBoostRanker(CatBoost):
         denominator : str
             NDCG, Denominator type: 'LogPosition' or 'Position'
         group_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series
-            Group weights.
+            Group weights. If X is a Pool and group_weight is not specified, group weights from X are used.
         thread_count : int, optional (default=-1)
             Number of threads to work with.
         Returns
@@ -6820,6 +6824,8 @@ class CatBoostRanker(CatBoost):
             if group_id is not None:
                 raise CatBoostError("Wrong initializing group_id: X is catboost.Pool object, group_id must be initialized inside catboost.Pool.")
             group_id = X.get_group_id_hash()
+            if group_weight is None:
+                group_weight = X.get_group_weight()
 
         if y is None:
             raise CatBoostError("y must be initialized.")

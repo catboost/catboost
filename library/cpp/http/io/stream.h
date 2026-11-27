@@ -190,6 +190,10 @@ private:
     THolder<TImpl> Impl_;
 };
 
+/// Writes a serialized request with extra headers inserted before the header terminator.
+/// Returns false without writing if the request has no complete header terminator.
+bool WriteHttpRequestWithExtraHeaders(IOutputStream& out, TStringBuf request, const THttpHeaders& extraHeaders);
+
 /// Возвращает код состояния из ответа сервера.
 unsigned ParseHttpRetCode(const TStringBuf& ret);
 

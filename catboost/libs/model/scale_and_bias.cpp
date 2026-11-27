@@ -1,5 +1,6 @@
 #include "model.h"
 #include "scale_and_bias.h"
+#include "cpu/simd.h"
 
 void ApplyScaleAndBias(const TScaleAndBias& scaleAndBias, TArrayRef<double> data, size_t treeStart) {
     if (scaleAndBias.IsIdentity()) {
@@ -9,6 +10,15 @@ void ApplyScaleAndBias(const TScaleAndBias& scaleAndBias, TArrayRef<double> data
     bool isZeroBias = scaleAndBias.IsZeroBias();
     if (biasRef.size() == 1 || isZeroBias) {
         double bias = scaleAndBias.GetOneDimensionalBiasOrZero();
+        if (scaleAndBias.Scale == 1.0 && (isZeroBias || treeStart > 0)) {
+            return;
+        }
+        if (data.size() >= 128) {
+            if (auto kernel = NCB::NModelEvaluation::NDetail::GetWideScaleBias()) {
+                kernel(data.data(), data.size(), scaleAndBias.Scale, bias, !isZeroBias && treeStart == 0);
+                return;
+            }
+        }
         if (scaleAndBias.Scale != 1 || isZeroBias) {
             if (isZeroBias || treeStart > 0) {
                 for (size_t idx = 0; idx < data.size(); ++idx) {

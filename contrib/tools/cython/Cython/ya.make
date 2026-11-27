@@ -16,6 +16,7 @@ PY_SRCS(
     Coverage.py
     Shadow.py
     Utils.py
+    _ResourceFiles.py
 )
 
 PEERDIR(
