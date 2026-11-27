@@ -1,0 +1,16 @@
+- includes:
+  - hostLib.h
+  - ioLib.h
+  - iosLib.h
+  - pipeDrv.h
+  - resolvLib.h
+  - rtpLib.h
+  - selectLib.h
+  - semLib.h
+  - sockLib.h
+  - sockLib.h
+  - sysLib.h
+  - taskLib.h
+  - tickLib.h
+  - vxCpuLib.h
+  - vxWorks.h

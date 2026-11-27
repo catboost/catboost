@@ -55,6 +55,20 @@ namespace {
 } // namespace
 
 Y_UNIT_TEST_SUITE(TFsPathTests) {
+    Y_UNIT_TEST(MkDirPreservesUtf8Names) {
+        TTempDir directory;
+        const auto path = directory.Path().Child("Привет \xF0\x9F\x9A\x80");
+        path.MkDir();
+        UNIT_ASSERT(path.IsDirectory());
+    }
+
+    Y_UNIT_TEST(MkDirsPreservesUtf8Names) {
+        TTempDir directory;
+        const auto path = directory.Path().Child("Привет \xF0\x9F\x9A\x80").Child("nested");
+        path.MkDirs();
+        UNIT_ASSERT(path.IsDirectory());
+    }
+
     Y_UNIT_TEST(TestMkDirs) {
         const TFsPath path = "a/b/c/d/e/f";
         path.ForceDelete();
@@ -260,6 +274,17 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
         const int mask = Umask(0);
         Umask(mask);
         UNIT_ASSERT_VALUES_EQUAL(stat.Mode & MODE0777, mode & ~mask);
+    }
+#endif
+
+#ifdef _linux_
+    Y_UNIT_TEST(MkDirPreservesStickyBit) {
+        TTempDir directory;
+        const auto path = directory.Path().Child("sticky");
+        path.MkDir(S_IRWXU | S_ISVTX);
+        TFileStat stat;
+        UNIT_ASSERT(path.Stat(stat));
+        UNIT_ASSERT(stat.Mode & S_ISVTX);
     }
 #endif
 

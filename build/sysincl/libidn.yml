@@ -1,0 +1,6 @@
+# libidn uses gnulib, allow overriding libc includes
+- source_filter: "^contrib/libs/libidn/"
+  includes:
+    - alloca.h:     contrib/libs/libidn/gl/alloca.h
+    - error.h:      contrib/libs/libidn/gl/error.h
+    - iconv.h:      contrib/libs/libidn/lib/gl/iconv.h

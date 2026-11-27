@@ -1,0 +1,9 @@
+# Though thrust is provided as a part of CUDA HPC SDK,
+# we would like to be updatable independently.
+# Hence we are using it directly from Arcadia.
+# This sysincl enforces such usage.
+- includes:
+  - thrust/iterator/iterator_traits.h: contrib/deprecated/nvidia/thrust/thrust/iterator/iterator_traits.h
+  - thrust/iterator/iterator_facade.h: contrib/deprecated/nvidia/thrust/thrust/iterator/iterator_facade.h
+  - thrust/system/cuda/detail/core/triple_chevron_launch.h: contrib/deprecated/nvidia/thrust/thrust/system/cuda/detail/core/triple_chevron_launch.h
+  - thrust/version.h: contrib/deprecated/nvidia/thrust/thrust/version.h

@@ -126,13 +126,11 @@ namespace NJson::NOrderedJson {
     TString WriteJson(const TJsonValue* value, bool formatOutput, bool sortkeys, bool validateUtf8) {
         TStringStream ss;
         WriteJson(&ss, value, formatOutput, sortkeys, validateUtf8);
-        return ss.Str();
+        return std::move(ss.Str());
     }
 
     TString WriteJson(const TJsonValue& value, bool formatOutput, bool sortkeys, bool validateUtf8) {
-        TStringStream ss;
-        WriteJson(&ss, &value, formatOutput, sortkeys, validateUtf8);
-        return ss.Str();
+        return WriteJson(&value, formatOutput, sortkeys, validateUtf8);
     }
 
     void WriteJson(IOutputStream* out, const TJsonValue* val, bool formatOutput, bool sortkeys, bool validateUtf8) {

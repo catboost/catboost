@@ -14,6 +14,7 @@ class TFileTest: public TTestBase {
     UNIT_TEST(TestRW);
     UNIT_TEST(TestReWrite);
     UNIT_TEST(TestAppend);
+    UNIT_TEST(TestAppendMultipleHandles);
     UNIT_TEST(TestLinkTo);
     UNIT_TEST(TestResize);
     UNIT_TEST(TestLocale);
@@ -73,6 +74,19 @@ public:
         }
 
         UNIT_ASSERT_EQUAL(TUnbufferedFileInput(tmp.Name()).ReadAll(), "123456786789");
+    }
+
+    inline void TestAppendMultipleHandles() {
+        TTempFile tmp("append-multiple-handles");
+        TFile first(tmp.Name(), OpenAlways | WrOnly | ForAppend);
+        TFile second(tmp.Name(), OpenExisting | WrOnly | ForAppend);
+
+        first.Write("first", 5);
+        second.Write("second", 6);
+        first.Seek(0, sSet);
+        first.Write("third", 5);
+
+        UNIT_ASSERT_VALUES_EQUAL(TUnbufferedFileInput(tmp.Name()).ReadAll(), "firstsecondthird");
     }
 
     inline void TestReWrite() {
