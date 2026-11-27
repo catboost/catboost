@@ -4,9 +4,6 @@
 #include <util/random/shuffle.h>
 
 namespace NPar {
-    TAtomic TMRCommandExec::LocalMapWins = 0;
-    TAtomic TMRCommandExec::RemoteMapWins = 0;
-
     static void CheckSchedule(const TJobRequest& src) {
         for (int i = 0; i < src.Descr.ExecList.ysize(); ++i) {
             int compId = src.Descr.ExecList[i].CompId;

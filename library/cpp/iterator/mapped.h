@@ -5,6 +5,7 @@
 #include <util/system/compiler.h>
 
 #include <iterator>
+#include <utility>
 
 
 namespace NIteratorPrivate {
@@ -178,7 +179,7 @@ public:
 
 template <class TIterator, class TMapper>
 TMappedIterator<TIterator, TMapper> MakeMappedIterator(TIterator iter, TMapper mapper) {
-    return {iter, mapper};
+    return {iter, std::move(mapper)};
 }
 
 template <class TIterator, class TMapper>

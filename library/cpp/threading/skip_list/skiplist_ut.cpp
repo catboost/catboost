@@ -164,6 +164,30 @@ namespace NThreading {
             UNIT_ASSERT_EQUAL(it.GetValue(), 100);
         }
 
+        Y_UNIT_TEST(ShouldInsertWhenOneRandomWordIsNotEnough) {
+            auto check = [](auto& list) {
+                for (int i = 0; i < 300; ++i) {
+                    UNIT_ASSERT(list.Insert(i));
+                }
+                int expected = 0;
+                for (auto it = list.SeekToFirst(); it.IsValid(); it.Next()) {
+                    UNIT_ASSERT_EQUAL(it.GetValue(), expected);
+                    ++expected;
+                }
+                UNIT_ASSERT_EQUAL(expected, 300);
+            };
+            TMemoryPool pool(1 << 16);
+            {
+                TSkipList<int, TCompare<int>, TMemoryPool, TSizeCounter, 40, 4> list(pool);
+                check(list);
+            }
+            pool.Clear();
+            {
+                TSkipList<int, TCompare<int>, TMemoryPool, TSizeCounter, 30, 3> list(pool);
+                check(list);
+            }
+        }
+
         Y_UNIT_TEST(ShouldCallDtorsOfNonPodTypes) {
             UNIT_ASSERT(!TTypeTraits<TTestObject>::IsPod);
             UNIT_ASSERT_EQUAL(TTestObject::Count, 0);

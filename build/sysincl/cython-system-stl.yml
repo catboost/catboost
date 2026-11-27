@@ -1,0 +1,11 @@
+# System STL may supply these manifest headers outside Arcadia.
+# The libc++ map adds tracked paths in configurations that use it.
+- source_filter: "^contrib/tools/cython(_py2)?/induced_deps[.]h$"
+  includes:
+    - execution
+- source_filter: "^contrib/tools/cython/induced_deps[.]h$"
+  includes:
+    - barrier
+    - latch
+    - semaphore
+    - stop_token

@@ -1,0 +1,2 @@
+#//// Shared six.py is packaged through a PY_SRCS alias.
+MIT
