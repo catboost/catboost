@@ -12658,3 +12658,118 @@ def test_deepcopy_fit_predict_with_cat_features():
         model_copy.predict(df, prediction_type='Probability'),
         model_from_scratch.predict(df, prediction_type='Probability')
     )
+
+
+@pytest.mark.parametrize('features', ['numeric', 'categorical', 'mixed'])
+@pytest.mark.parametrize('label_kind', ['integer', 'string', 'boolean'])
+@pytest.mark.parametrize('threshold', [0., 0.2, 0.8, 0.9, 1.])
+def test_onnx_binary_probability_threshold(task_type, features, label_kind, threshold):
+    onnx = pytest.importorskip('onnx')
+    ort = pytest.importorskip('onnxruntime')
+    from catboost.utils import convert_to_onnx_object
+    rng = np.random.RandomState(42)
+    categories = rng.randint(0, 3, 80)
+    numbers = rng.randn(80).astype(np.float32)
+    positive = rng.rand(80) < (0.3 + 0.4 * (categories == 0))
+    labels = {'integer': [-7, 19], 'string': ['negative', 'positive'], 'boolean': [False, True]}[label_kind]
+    target = np.array(labels)[positive.astype(int)]
+    data = np.column_stack([categories.astype(str), numbers]).astype(object)
+    cat_indices = [0]
+    names = ['__catboost_output_0', 'number']  # exercise generated tensor-name collisions
+    if features == 'numeric':
+        data, cat_indices, names = numbers.reshape(-1, 1), [], ['number']
+    elif features == 'categorical':
+        data, names = data[:, :1], names[:1]
+    pool = Pool(data, target, cat_features=cat_indices, feature_names=names)
+    model = CatBoostClassifier(iterations=8, depth=3, learning_rate=0.3, one_hot_max_size=255,
+                               verbose=False, thread_count=2, task_type=task_type)
+    model.fit(pool)
+    model.set_scale_and_bias(1, 0.75)
+    model.set_probability_threshold(threshold)
+    proto = convert_to_onnx_object(model, data=pool)
+    onnx.checker.check_model(proto)
+    assert {op.domain: op.version for op in proto.opset_import} == {'': 7, 'ai.onnx.ml': 2}
+    options = ort.SessionOptions()
+    options.intra_op_num_threads = 2
+    session = ort.InferenceSession(proto.SerializeToString(), options, providers=['CPUExecutionProvider'])
+    path = test_output_path('threshold.onnx')
+    model.save_model(path, format='onnx', pool=pool)
+    assert onnx.load(path) == proto
+    imported = CatBoostClassifier().load_model(path, format='onnx')
+    assert imported.get_probability_threshold() == threshold
+    np.testing.assert_array_equal(imported.classes_, model.classes_)
+    test_data = data[:12].copy()
+    if cat_indices:
+        test_data[0, 0] = 'unseen'
+    for batch in [test_data[:1], test_data[:7], test_data]:
+        feed = {}
+        for inp in session.get_inputs():
+            if inp.name in ('features', 'num_features'):
+                feed[inp.name] = batch[:, [i for i in range(batch.shape[1]) if i not in cat_indices]].astype(np.float32)
+            else:
+                index = names.index(inp.name)
+                feed[inp.name] = batch[:, index:index + 1].astype(str)
+        actual = session.run(None, feed)
+        np.testing.assert_array_equal(actual[0], model.predict(batch).ravel())
+        probabilities = [[row[label] for label in model.classes_] for row in actual[1]]
+        np.testing.assert_allclose(probabilities, model.predict_proba(batch), atol=2e-6, rtol=2e-6)
+        # The existing importer follows exported numerical-then-categorical order.
+        imported_pool = Pool(np.column_stack([feed[inp.name] for inp in session.get_inputs()]),
+                             cat_features=imported.get_cat_feature_indices())
+        np.testing.assert_array_equal(imported.predict(imported_pool).ravel(), actual[0])
+        np.testing.assert_allclose(imported.predict_proba(imported_pool), model.predict_proba(batch), atol=2e-6, rtol=2e-6)
+    empty = session.run(None, {name: value[:0] for name, value in feed.items()})
+    assert empty[0].shape == (0,)
+    assert empty[1] == []
+
+
+@pytest.mark.parametrize('threshold', [0., 1., np.nextafter(0., 1.), np.nextafter(1., 0.), 1 / (1 + np.exp(-0.1))])
+@pytest.mark.parametrize('execution_provider', ['CPUExecutionProvider', 'CUDAExecutionProvider'])
+def test_onnx_binary_threshold_extreme_scores(threshold, execution_provider):
+    onnx = pytest.importorskip('onnx')
+    ort = pytest.importorskip('onnxruntime')
+    from catboost.utils import convert_to_onnx_object
+    if execution_provider not in ort.get_available_providers():
+        pytest.skip(execution_provider + ' is unavailable')
+    model = CatBoostClassifier(iterations=1, depth=1, verbose=False, thread_count=2)
+    model.fit([[0], [1], [0], [1]], [0, 1, 0, 1])
+    path = test_output_path('threshold.json')
+    model.save_model(path, format='json')
+    with open(path) as src:
+        model_json = json.load(src)
+    model_json['scale_and_bias'] = [1., [0.]]
+    # float32(0.1) is greater than the double logit threshold, but would tie
+    # with a threshold rounded to float32. Large margins also saturate sigmoid.
+    for leaf_values in [[-1000., 1000.], [float(np.float32(0.1))] * 2]:
+        model_json['oblivious_trees'][0]['leaf_values'] = leaf_values
+        with open(path, 'w') as out:
+            json.dump(model_json, out)
+        model.load_model(path, format='json')
+        model.set_probability_threshold(float(threshold))
+        proto = convert_to_onnx_object(model)
+        onnx.checker.check_model(proto)
+        options = ort.SessionOptions()
+        options.intra_op_num_threads = 2
+        providers = [execution_provider] if execution_provider == 'CPUExecutionProvider' else [execution_provider, 'CPUExecutionProvider']
+        session = ort.InferenceSession(proto.SerializeToString(), options, providers=providers)
+        assert session.get_providers()[0] == execution_provider
+        data = np.array([[0], [1]], dtype=np.float32)
+        np.testing.assert_array_equal(session.run(['label'], {'features': data})[0], model.predict(data).ravel())
+
+
+def test_onnx_binary_threshold_default_graph_unchanged():
+    from catboost.utils import convert_to_onnx_object
+    pytest.importorskip('onnx')
+    model = CatBoostClassifier(iterations=3, verbose=False, thread_count=2).fit([[0], [1], [2], [3]], [0, 1, 0, 1])
+    original = convert_to_onnx_object(model)
+    model.set_probability_threshold(0.9)
+    assert convert_to_onnx_object(model).graph != original.graph
+    model.set_probability_threshold(0.5)
+    explicit_default = convert_to_onnx_object(model)
+    assert explicit_default.graph == original.graph
+    assert explicit_default.opset_import == original.opset_import
+    model.set_probability_threshold(None)
+    reset = convert_to_onnx_object(model)
+    assert reset.graph == original.graph
+    assert reset.opset_import == original.opset_import
+    assert {p.key: p.value for p in reset.metadata_props} == {p.key: p.value for p in original.metadata_props}

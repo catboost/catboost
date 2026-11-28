@@ -44,6 +44,8 @@ const TString TModeNode::BRANCH_EQ = "BRANCH_EQ";
 const TString TModeNode::BRANCH_NEQ = "BRANCH_NEQ";
 const TString TModeNode::LEAF = "LEAF";
 
+static bool HasNonDefaultBinaryThreshold(const TFullModel& model);
+
 void NCB::NOnnx::InitMetadata(
     const TFullModel& model,
     const NJson::TJsonValue& userParameters,
@@ -56,7 +58,7 @@ void NCB::NOnnx::InitMetadata(
     opset->set_domain(onnx::AI_ONNX_ML_DOMAIN);
     opset->set_version(2);
 
-    if (!model.ModelTrees->GetOneHotFeatures().empty()) {
+    if (!model.ModelTrees->GetOneHotFeatures().empty() || HasNonDefaultBinaryThreshold(model)) {
         // Concat belongs to the standard ONNX operator set. ONNX Runtime guarantees
         // backward compatibility starting at standard-domain opset 7.
         auto* standardOpset = onnxModel->add_opset_import();
@@ -124,6 +126,13 @@ static bool IsClassifierModel(const TFullModel& model) {
 }
 
 
+static bool HasNonDefaultBinaryThreshold(const TFullModel& model) {
+    return model.ModelTrees->GetDimensionsCount() == 1
+        && IsClassifierModel(model)
+        && model.GetBinClassProbabilityThreshold() != DEFAULT_BINCLASS_PROBABILITY_THRESHOLD;
+}
+
+
 /*
  * TLabelContainer is either TVector<TJsonValue> or TJsonArray
  * call with non-empty classLabels only
@@ -145,6 +154,12 @@ static void GetClassLabelsImpl(
             classLabelsInt64->reserve(classLabels.size());
             for (const NJson::TJsonValue& classLabel : classLabels) {
                 classLabelsInt64->push_back(classLabel.GetInteger());
+            }
+            break;
+        case NJson::JSON_BOOLEAN:
+            classLabelsInt64->reserve(classLabels.size());
+            for (const NJson::TJsonValue& classLabel : classLabels) {
+                classLabelsInt64->push_back(classLabel.GetBooleanSafe());
             }
             break;
         case NJson::JSON_DOUBLE:
@@ -270,6 +285,129 @@ static void InitProbabilitiesOutput(
     onnx::TypeProto_Map* mapElement = sequenceElementType->mutable_map_type();
     mapElement->set_key_type(mapKeysType);
     mapElement->mutable_value_type()->mutable_tensor_type()->set_elem_type(onnx::TensorProto_DataType_FLOAT);
+}
+
+
+class TOnnxGraphBuilder {
+public:
+    explicit TOnnxGraphBuilder(onnx::GraphProto* graph)
+        : Graph(graph)
+    {
+        for (const auto& input : graph->input()) {
+            Names.insert(input.name());
+        }
+        for (const auto& node : graph->node()) {
+            for (const auto& output : node.output()) {
+                Names.insert(output);
+            }
+        }
+        for (const auto& name : {"predictions", "label", "probabilities", "trees_input", "probability_tensor"}) {
+            Names.insert(name);
+        }
+    }
+
+    TString Node(const TString& op, const TVector<TString>& inputs, const TString& output = {}) {
+        auto* node = Graph->add_node();
+        node->set_op_type(op);
+        for (const auto& input : inputs) {
+            node->add_input(input);
+        }
+        const TString result = output.empty() ? NewName() : output;
+        node->add_output(result);
+        return result;
+    }
+
+    onnx::NodeProto* LastNode() {
+        return Graph->mutable_node(Graph->node_size() - 1);
+    }
+
+    TString Constant(const onnx::TensorProto& tensor) {
+        const auto result = Node("Constant", {});
+        auto* attr = LastNode()->add_attribute();
+        attr->set_name("value");
+        attr->set_type(onnx::AttributeProto_AttributeType_TENSOR);
+        *attr->mutable_t() = tensor;
+        return result;
+    }
+
+    TString Float(float value) {
+        onnx::TensorProto tensor;
+        tensor.set_data_type(onnx::TensorProto_DataType_FLOAT);
+        tensor.add_float_data(value);
+        return Constant(tensor);
+    }
+
+    TString CastToInt(const TString& value) {
+        const auto result = Node("Cast", {value});
+        AddAttribute("to", i64(onnx::TensorProto_DataType_INT64), LastNode());
+        return result;
+    }
+
+    TString NewName() {
+        TString name;
+        do {
+            name = "__catboost_output_" + ToString(NextName++);
+        } while (!Names.insert(name).second);
+        return name;
+    }
+
+private:
+    onnx::GraphProto* Graph;
+    THashSet<TString> Names;
+    size_t NextName = 0;
+};
+
+// Compare raw margins, rather than rounded probabilities: finite margins must
+// still select the positive class at threshold 0 and the negative class at 1.
+static void AddBinaryClassifierOutputs(
+    const TFullModel& model,
+    const TString& margin,
+    onnx::GraphProto* graph) {
+
+    TVector<i64> labelsInt;
+    TVector<TString> labelsString;
+    GetClassLabels(model, &labelsInt, &labelsString);
+    CB_ENSURE(labelsInt.size() + labelsString.size() == 2,
+        "ONNX binary classification requires exactly two class labels");
+    TOnnxGraphBuilder builder(graph);
+    const auto probability = builder.Node("Sigmoid", {margin});
+    const auto probabilities = builder.Node("Concat", {builder.Node("Sub", {builder.Float(1), probability}), probability});
+    AddAttribute("axis", i64(1), builder.LastNode());
+    builder.Node("ZipMap", {probabilities}, "probabilities");
+    builder.LastNode()->set_domain(onnx::AI_ONNX_ML_DOMAIN);
+    AddClassLabelsAttribute(labelsInt, labelsString, builder.LastNode());
+
+    // Rounding the threshold to float could turn a strictly greater margin into
+    // a tie. Avoid the double cast when the threshold is exactly representable.
+    const double logitThreshold = model.GetBinClassLogitThreshold();
+    onnx::TensorProto threshold;
+    auto comparedMargin = margin;
+    if (double(float(logitThreshold)) == logitThreshold) {
+        threshold.set_data_type(onnx::TensorProto_DataType_FLOAT);
+        threshold.add_float_data(logitThreshold);
+    } else {
+        threshold.set_data_type(onnx::TensorProto_DataType_DOUBLE);
+        threshold.add_double_data(logitThreshold);
+        comparedMargin = builder.Node("Cast", {margin});
+        AddAttribute("to", i64(onnx::TensorProto_DataType_DOUBLE), builder.LastNode());
+    }
+    const auto positive = builder.CastToInt(builder.Node("Greater", {comparedMargin, builder.Constant(threshold)}));
+    const auto indices = builder.Node("Squeeze", {positive});
+    AddAttribute("axes", TVector<i64>{1}, builder.LastNode());
+
+    const auto labelType = labelsString.empty() ? onnx::TensorProto_DataType_INT64 : onnx::TensorProto_DataType_STRING;
+    onnx::TensorProto labels;
+    labels.set_data_type(labelType);
+    labels.add_dims(2);
+    for (auto value : labelsInt) {
+        labels.add_int64_data(value);
+    }
+    for (const auto& value : labelsString) {
+        labels.add_string_data(value);
+    }
+    builder.Node("Gather", {builder.Constant(labels), indices}, "label");
+    InitValueInfo("label", labelType, Nothing(), graph->add_output());
+    InitProbabilitiesOutput("probabilities", labelType, graph->add_output());
 }
 
 
@@ -692,7 +830,10 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
     onnx::GraphProto* onnxGraph,
     const THashMap<ui32, TString>* catFeaturesHashToString) {
 
-    const bool isClassifierModel = IsClassifierModel(model);
+    const bool explicitBinaryOutputs = HasNonDefaultBinaryThreshold(model);
+    // A custom binary threshold uses a scalar margin followed by explicit classification.
+    const bool isClassifierModel = IsClassifierModel(model) && !explicitBinaryOutputs;
+    TString margin;
 
     const TModelTrees& trees = *model.ModelTrees;
 
@@ -754,7 +895,12 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
 
         AddAttribute("post_transform", "NONE", treesNode);
         AddAttribute("n_targets", i64(1), treesNode);
+    }
 
+    if (explicitBinaryOutputs) {
+        margin = TOnnxGraphBuilder(onnxGraph).NewName();
+        treesNode->add_output(margin);
+    } else if (!isClassifierModel) {
         InitValueInfo(
             "predictions",
             onnx::TensorProto_DataType_FLOAT,
@@ -784,6 +930,9 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
     }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
         AddTree(trees, treeIdx, isClassifierModel, layout, &treesAttributes);
+    }
+    if (explicitBinaryOutputs) {
+        AddBinaryClassifierOutputs(model, margin, onnxGraph);
     }
 }
 
