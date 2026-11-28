@@ -578,7 +578,8 @@ static void AddTree(
     i64 treeIdx,
     bool isClassifierModel,
     const TOnnxFeaturesLayout& layout,
-    TTreesAttributes* treesAttributes) {
+    TTreesAttributes* treesAttributes,
+    double binaryClassifierBias = 0.0) {
 
     i64 nodeIdx = 0;
 
@@ -660,15 +661,16 @@ static void AddTree(
                     ++leafValue;
                 }
             } else {
+                const float value = (float)(*leafValue + binaryClassifierBias);
                 treesAttributes->class_treeids->add_ints(treeIdx);
                 treesAttributes->class_nodeids->add_ints(nodeIdx);
                 treesAttributes->class_ids->add_ints(0);
-                treesAttributes->class_weights->add_floats(-(float)*leafValue);
+                treesAttributes->class_weights->add_floats(-value);
 
                 treesAttributes->class_treeids->add_ints(treeIdx);
                 treesAttributes->class_nodeids->add_ints(nodeIdx);
                 treesAttributes->class_ids->add_ints(1);
-                treesAttributes->class_weights->add_floats((float)*leafValue);
+                treesAttributes->class_weights->add_floats(value);
 
                 ++leafValue;
             }
@@ -764,9 +766,13 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         treesNode->add_output("predictions");
     }
     auto scaleAndBias = model.GetScaleAndBias();
-    TTreesAttributes treesAttributes(isClassifierModel, !scaleAndBias.IsZeroBias(), treesNode->mutable_attribute());
+    // ONNX Runtime's binary classifier handling of two base_values uses the first class's
+    // score for the second class. Folding the bias into one tree avoids that ambiguity.
+    const bool foldBinaryBias = isClassifierModel && trees.GetDimensionsCount() == 1 && trees.GetTreeCount() > 0;
+    TTreesAttributes treesAttributes(
+        isClassifierModel, !scaleAndBias.IsZeroBias() && !foldBinaryBias, treesNode->mutable_attribute());
 
-    if (!scaleAndBias.IsZeroBias()) {
+    if (!scaleAndBias.IsZeroBias() && !foldBinaryBias) {
         if (isClassifierModel && (trees.GetDimensionsCount() == 1)) {
             const float bias = float(scaleAndBias.GetOneDimensionalBias());
             treesAttributes.base_values->add_floats(-bias);
@@ -783,7 +789,8 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         }
     }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
-        AddTree(trees, treeIdx, isClassifierModel, layout, &treesAttributes);
+        const double binaryClassifierBias = foldBinaryBias && treeIdx == 0 ? scaleAndBias.GetOneDimensionalBiasOrZero() : 0.0;
+        AddTree(trees, treeIdx, isClassifierModel, layout, &treesAttributes, binaryClassifierBias);
     }
 }
 
@@ -1230,6 +1237,64 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
         &catFeatures
     );
 
+    TVector<double> bias;
+    if (treesAttributes.base_values != nullptr) {
+        const auto& baseValues = treesAttributes.base_values->floats();
+        bias.assign(baseValues.begin(), baseValues.end());
+    }
+
+    bool isBinaryLogistic = false;
+    int classCount = 0;
+    if (isClassifierModel && approxDimension == 2) {
+        for (const auto& attribute : treesNode->attribute()) {
+            if (attribute.name() == "post_transform" && attribute.s() == "LOGISTIC") {
+                isBinaryLogistic = true;
+            } else if (attribute.name() == "classlabels_int64s") {
+                classCount += attribute.ints_size();
+            } else if (attribute.name() == "classlabels_strings") {
+                classCount += attribute.strings_size();
+            }
+        }
+    }
+    if (isBinaryLogistic) {
+        CB_ENSURE(classCount == 2, "Binary LOGISTIC model must have exactly two class labels");
+        // CatBoost exports a binary logit as [-logit, logit] with LOGISTIC applied
+        // to each class. Keeping two dimensions would apply softmax after import
+        // and double the logit, changing probabilities even when labels agree.
+        // Attribute rows need not be ordered by class. Reconstruct each pair
+        // using class_ids before reducing it to the positive class's margin.
+        for (auto& tree : trees) {
+            for (auto& [nodeId, node] : tree) {
+                if (node.Type == EType::Leaf) {
+                    node.Values.assign(2, 0.0);
+                }
+            }
+        }
+        for (auto idx : xrange(treesAttributes.class_ids->ints_size())) {
+            const auto classId = treesAttributes.class_ids->ints(idx);
+            CB_ENSURE(classId == 0 || classId == 1, "Binary LOGISTIC class id must be 0 or 1");
+            auto& node = trees.at(treesAttributes.class_treeids->ints(idx)).at(treesAttributes.class_nodeids->ints(idx));
+            CB_ENSURE(node.Type == EType::Leaf, "Binary LOGISTIC class weights must refer to a leaf");
+            node.Values[classId] += treesAttributes.class_weights->floats(idx);
+        }
+        for (auto& tree : trees) {
+            for (auto& [nodeId, node] : tree) {
+                if (node.Type == EType::Leaf) {
+                    CB_ENSURE(
+                        node.Values[0] == -node.Values[1],
+                        "Binary LOGISTIC class weights must be opposite"
+                    );
+                    node.Values = {node.Values[1]};
+                }
+            }
+        }
+        if (!bias.empty()) {
+            CB_ENSURE(bias.size() == 2 && bias[0] == -bias[1], "Binary LOGISTIC base values must be opposite");
+            bias = {bias[1]};
+        }
+        approxDimension = 1;
+    }
+
     TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, catFeatures, {}, {}, approxDimension);
 
     for (const auto& tree : trees) {
@@ -1237,11 +1302,7 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     }
 
     treeBuilder.Build(fullModel->ModelTrees.GetMutable());
-    if (treesAttributes.base_values != nullptr) {
-        TVector<double> bias;
-        for (size_t idx: xrange(treesAttributes.base_values->floats_size())) {
-            bias.push_back(treesAttributes.base_values->floats(idx));
-        }
+    if (!bias.empty()) {
         fullModel->SetScaleAndBias({1., bias});
     }
 
