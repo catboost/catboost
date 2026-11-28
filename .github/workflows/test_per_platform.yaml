@@ -342,8 +342,9 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
 
-          Rscript -e "install.packages('remotes', Ncpus = parallel::detectCores()); remotes::install_local('catboost_R_package/catboost-R-${{ inputs.os }}-${{ inputs.machine }}.tgz', INSTALL_opts = c('--no-multiarch', '--install-tests'))"
-          Rscript -e "install.packages(c('testthat','caret','tibble'), Ncpus = parallel::detectCores()); testthat::test_package('catboost')"
+          Rscript catboost/ci/install_r_packages.R remotes jsonlite testthat caret tibble
+          Rscript -e "remotes::install_local('catboost_R_package/catboost-R-${{ inputs.os }}-${{ inputs.machine }}.tgz', INSTALL_opts = c('--no-multiarch', '--install-tests'))"
+          Rscript -e "testthat::test_package('catboost')"
 
       - if: inputs.os == 'macos'
         name: Check R package
@@ -351,6 +352,7 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
 
-          Rscript -e "install.packages('remotes', Ncpus = parallel::detectCores()); remotes::install_local('catboost_R_package/catboost-R-darwin-universal2.tgz', INSTALL_opts = c('--no-multiarch', '--no-staged-install', '--install-tests'))"
-          Rscript -e "install.packages(c('testthat','caret','tibble'), Ncpus = parallel::detectCores()); testthat::test_package('catboost')"
+          Rscript catboost/ci/install_r_packages.R remotes jsonlite testthat caret tibble
+          Rscript -e "remotes::install_local('catboost_R_package/catboost-R-darwin-universal2.tgz', INSTALL_opts = c('--no-multiarch', '--no-staged-install', '--install-tests'))"
+          Rscript -e "testthat::test_package('catboost')"
 
