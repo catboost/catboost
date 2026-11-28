@@ -30,6 +30,7 @@ target_link_libraries(catboost-private-libs-algo-ut PUBLIC
   private-libs-algo_helpers
   text_features-ut-lib
   catboost-libs-data
+  catboost-libs-fstr
   catboost-libs-helpers
   model-ut-lib
   catboost-libs-train_lib
@@ -58,6 +59,7 @@ target_link_options(catboost-private-libs-algo-ut PRIVATE
 target_sources(catboost-private-libs-algo-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/apply_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/train_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/shap_values_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/pairwise_scoring_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/mvs_gen_weights_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/text_collection_builder_ut.cpp

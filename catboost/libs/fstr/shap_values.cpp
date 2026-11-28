@@ -326,7 +326,9 @@ static void CalcNonObliviousInternalShapValuesForLeafRecursive(
     size_t treeIdx,
     int depth,
     const TVector<TVector<double>>& subtreeWeights,
+    TConstArrayRef<double> leafWeights,
     size_t nodeIdx,
+    bool isLeaf,
     const TVector<TFeaturePathElement>& oldFeaturePath,
     double zeroPathsFraction,
     double onePathsFraction,
@@ -353,19 +355,7 @@ static void CalcNonObliviousInternalShapValuesForLeafRecursive(
 
     const auto& node = forest.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
     const size_t startOffset = forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
-    size_t goNodeIdx;
-    size_t skipNodeIdx;
-    if (mapNodeIdToIsGoRight[nodeIdx - startOffset]) {
-        goNodeIdx = nodeIdx + node.RightSubtreeDiff;
-        skipNodeIdx = nodeIdx + node.LeftSubtreeDiff;
-    } else {
-        goNodeIdx = nodeIdx + node.LeftSubtreeDiff;
-        skipNodeIdx = nodeIdx + node.RightSubtreeDiff;
-    }
-    // goNodeIdx == nodeIdx mean that nodeIdx is a terminal node for
-    // observed object. That's why we should update shap here.
-    // Similary for skipNodeIdx.
-    if (goNodeIdx == nodeIdx || skipNodeIdx == nodeIdx) {
+    if (isLeaf || (node.LeftSubtreeDiff == 0 && node.RightSubtreeDiff == 0)) {
         UpdateShapByFeaturePath(
             featurePath,
             &forest.GetModelTreeData()->GetLeafValues()[0],
@@ -376,6 +366,17 @@ static void CalcNonObliviousInternalShapValuesForLeafRecursive(
             conditionFeatureFraction,
             shapValuesInternal
         );
+        return;
+    }
+
+    size_t goNodeIdx;
+    size_t skipNodeIdx;
+    if (mapNodeIdToIsGoRight[nodeIdx - startOffset]) {
+        goNodeIdx = nodeIdx + node.RightSubtreeDiff;
+        skipNodeIdx = nodeIdx + node.LeftSubtreeDiff;
+    } else {
+        goNodeIdx = nodeIdx + node.LeftSubtreeDiff;
+        skipNodeIdx = nodeIdx + node.RightSubtreeDiff;
     }
     double newZeroPathsFraction = 1.0;
     double newOnePathsFraction = 1.0;
@@ -399,10 +400,15 @@ static void CalcNonObliviousInternalShapValuesForLeafRecursive(
         featurePath = UnwindFeaturePath(featurePath, sameFeatureIndex);
     }
 
-    const double hotCoefficient = goNodeIdx != nodeIdx ?
-        subtreeWeights[0][goNodeIdx - startOffset] / subtreeWeights[0][nodeIdx - startOffset] : -1.0;
-    const double coldCoefficient = skipNodeIdx != nodeIdx ?
-        subtreeWeights[0][skipNodeIdx - startOffset] / subtreeWeights[0][nodeIdx - startOffset] : -1.0;
+    // A zero offset is a terminal child stored in the split node. Its weight
+    // and path fraction belong to that child, not to the entire subtree.
+    const double terminalWeight = goNodeIdx == nodeIdx || skipNodeIdx == nodeIdx
+        ? leafWeights[forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx] / forest.GetDimensionsCount()]
+        : 0.0;
+    const double hotWeight = goNodeIdx == nodeIdx ? terminalWeight : subtreeWeights[0][goNodeIdx - startOffset];
+    const double coldWeight = skipNodeIdx == nodeIdx ? terminalWeight : subtreeWeights[0][skipNodeIdx - startOffset];
+    const double hotCoefficient = hotWeight / subtreeWeights[0][nodeIdx - startOffset];
+    const double coldCoefficient = coldWeight / subtreeWeights[0][nodeIdx - startOffset];
     TConditionsFeatureFraction conditionsFeatureFraction {
         fixedFeatureParams,
         combinationClass,
@@ -411,7 +417,7 @@ static void CalcNonObliviousInternalShapValuesForLeafRecursive(
         coldCoefficient
     };
 
-    if (goNodeIdx != nodeIdx && !FuzzyEquals(1 + subtreeWeights[0][goNodeIdx - startOffset], 1 + 0.0)) {
+    if (!FuzzyEquals(1 + hotWeight, 1 + 0.0)) {
         double newZeroPathsFractionGoNode = newZeroPathsFraction * hotCoefficient;
         CalcNonObliviousInternalShapValuesForLeafRecursive(
             forest,
@@ -420,7 +426,9 @@ static void CalcNonObliviousInternalShapValuesForLeafRecursive(
             treeIdx,
             depth + 1,
             subtreeWeights,
+            leafWeights,
             goNodeIdx,
+            /*isLeaf*/ goNodeIdx == nodeIdx,
             featurePath,
             newZeroPathsFractionGoNode,
             newOnePathsFraction,
@@ -433,7 +441,7 @@ static void CalcNonObliviousInternalShapValuesForLeafRecursive(
         );
     }
 
-    if (skipNodeIdx != nodeIdx && !FuzzyEquals(1 + subtreeWeights[0][skipNodeIdx - startOffset], 1 + 0.0)) {
+    if (!FuzzyEquals(1 + coldWeight, 1 + 0.0)) {
         double newZeroPathsFractionSkipNode = newZeroPathsFraction * coldCoefficient;
         CalcNonObliviousInternalShapValuesForLeafRecursive(
             forest,
@@ -442,7 +450,9 @@ static void CalcNonObliviousInternalShapValuesForLeafRecursive(
             treeIdx,
             depth + 1,
             subtreeWeights,
+            leafWeights,
             skipNodeIdx,
+            /*isLeaf*/ skipNodeIdx == nodeIdx,
             featurePath,
             newZeroPathsFractionSkipNode,
             /*onePathFraction*/ 0,
@@ -665,6 +675,7 @@ static inline void CalcNonObliviousShapValuesForLeaf(
     const TVector<bool>& mapNodeIdToIsGoRight,
     size_t treeIdx,
     const TVector<TVector<double>>& subtreeWeights,
+    TConstArrayRef<double> leafWeights,
     bool calcInternalValues,
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     TVector<TShapValue>* shapValues,
@@ -680,7 +691,9 @@ static inline void CalcNonObliviousShapValuesForLeaf(
             treeIdx,
             /*depth*/ 0,
             subtreeWeights,
+            leafWeights,
             /*nodeIdx*/ forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx],
+            /*isLeaf*/ false,
             /*initialFeaturePath*/ {},
             /*zeroPathFraction*/ 1,
             /*onePathFraction*/ 1,
@@ -700,7 +713,9 @@ static inline void CalcNonObliviousShapValuesForLeaf(
             treeIdx,
             /*depth*/ 0,
             subtreeWeights,
+            leafWeights,
             /*nodeIdx*/ forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx],
+            /*isLeaf*/ false,
             /*initialFeaturePath*/ {},
             /*zeroPathFraction*/ 1,
             /*onePathFraction*/ 1,
@@ -726,14 +741,13 @@ static void CalcNonObliviousApproximateShapValuesForLeafImplementation(
     const size_t approxDimension = forest.GetDimensionsCount();
     const size_t startOffset = forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
     size_t nodeIdx = startOffset;
-    size_t goNodeIdx;
-    auto& node = forest.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
-    if (mapNodeIdToIsGoRight[nodeIdx - startOffset]) {
-        goNodeIdx = nodeIdx + node.RightSubtreeDiff;
-    } else {
-        goNodeIdx = nodeIdx + node.LeftSubtreeDiff;
-    }
-    while (nodeIdx != goNodeIdx) {
+    while (true) {
+        const auto& node = forest.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
+        if (node.LeftSubtreeDiff == 0 && node.RightSubtreeDiff == 0) {
+            break;
+        }
+        const size_t goNodeIdx = nodeIdx + (mapNodeIdToIsGoRight[nodeIdx - startOffset]
+            ? node.RightSubtreeDiff : node.LeftSubtreeDiff);
         const int combinationClass = binFeatureCombinationClass[
             forest.GetModelTreeData()->GetTreeSplits()[nodeIdx]
         ];
@@ -752,17 +766,18 @@ static void CalcNonObliviousApproximateShapValuesForLeafImplementation(
             newFeatureShapValue = FeatureShapValue;
         }
         for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
+            const double childValue = goNodeIdx == nodeIdx
+                ? forest.GetModelTreeData()->GetLeafValues()[
+                    forest.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx] + dimension]
+                : subtreeValues[0][goNodeIdx - startOffset][dimension];
             newFeatureShapValue->Value[dimension] +=
-                subtreeValues[0][goNodeIdx - startOffset][dimension]
+                childValue
                 - subtreeValues[0][nodeIdx - startOffset][dimension];
         }
-        nodeIdx = goNodeIdx;
-        auto& node = forest.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
-        if (mapNodeIdToIsGoRight[nodeIdx - startOffset]) {
-            goNodeIdx = nodeIdx + node.RightSubtreeDiff;
-        } else {
-            goNodeIdx = nodeIdx + node.LeftSubtreeDiff;
+        if (goNodeIdx == nodeIdx) {
+            break;
         }
+        nodeIdx = goNodeIdx;
     }
 }
 
@@ -974,6 +989,7 @@ void CalcShapValuesForDocumentMulti(
                             mapNodeIdToIsGoRight,
                             treeIdx,
                             preparedTrees.SubtreeWeightsForAllTrees[treeIdx],
+                            preparedTrees.LeafWeightsForAllTrees,
                             preparedTrees.CalcInternalValues,
                             fixedFeatureParams,
                             &shapValuesByLeaf,
@@ -1349,6 +1365,7 @@ void CalcShapValuesInternalForFeature(
                                     docPathIndexes,
                                     treeIdx,
                                     preparedTrees.SubtreeWeightsForAllTrees[treeIdx],
+                                    preparedTrees.LeafWeightsForAllTrees,
                                     preparedTrees.CalcInternalValues,
                                     /*fixedFeatureParams*/ Nothing(),
                                     &shapValuesByLeaf,
