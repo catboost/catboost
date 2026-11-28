@@ -85,6 +85,7 @@ _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 FeaturesData = _catboost.FeaturesData
 _have_equal_features = _catboost._have_equal_features
 SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
+SPARSE_ARRAY_TYPE = getattr(scipy.sparse, 'sparray', ())
 MultiTargetCustomMetric = _catboost.MultiTargetCustomMetric
 MultiTargetCustomObjective = _catboost.MultiTargetCustomObjective
 MultiRegressionCustomMetric = _catboost.MultiTargetCustomMetric  # for compatibility
@@ -629,6 +630,23 @@ def plot_features_selection_loss_graphs(summary):
     return result
 
 
+def _sparse_array_to_matrix(data):
+    if data.ndim != 2:
+        raise CatBoostError("Input sparse array must be two-dimensional, got shape {}".format(data.shape))
+    if data.format == 'csc':
+        matrix = scipy.sparse.csc_matrix(data)
+    else:
+        data = data.tocsr()
+        # The CSR matrix constructor selects int32 indices when the shape and offsets fit.
+        matrix = scipy.sparse.csr_matrix((data.data, data.indices, data.indptr), shape=data.shape)
+        if matrix.indices.dtype != np.int32:
+            raise CatBoostError("Sparse CSR input exceeds the supported 32-bit index range")
+    if not matrix.has_canonical_format:
+        matrix = matrix.copy()
+        matrix.sum_duplicates()
+    return matrix
+
+
 class Pool(_PoolBase):
     """
     Pool used in CatBoost as a data structure to train model from.
@@ -668,7 +686,7 @@ class Pool(_PoolBase):
 
         Parameters
         ----------
-        data : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or FeaturesData or string or os.PathLike
+        data : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or scipy.sparse array or matrix or FeaturesData or string or os.PathLike
             Data source of Pool.
             If list or numpy.ndarrays or pandas.DataFrame or pandas.Series or polars.DataFrame,
               giving 2 dimensional array like data.
@@ -802,6 +820,8 @@ class Pool(_PoolBase):
         """
         with log_fixup(log_cout, log_cerr):
             if data is not None:
+                if isinstance(data, SPARSE_ARRAY_TYPE):
+                    data = _sparse_array_to_matrix(data)
                 self._check_data_type(data)
                 self._check_data_empty(data)
                 if pairs is not None and isinstance(data, PATH_TYPES) != isinstance(pairs, PATH_TYPES):
@@ -961,7 +981,7 @@ class Pool(_PoolBase):
         if not isinstance(data, (PATH_TYPES, ARRAY_TYPES, SPARSE_MATRIX_TYPES, FeaturesData)):
             raise CatBoostError(
                 ("Invalid data type={}: must be list, numpy.ndarray, pandas.DataFrame, pandas.Series, polars.DataFrame, catboost.FeaturesData, " +
-                 "scipy.sparse matrix or a path to a file (str or os.PathLike)").format(type(data))
+                 "scipy.sparse array or matrix, or a path to a file (str or os.PathLike)").format(type(data))
             )
 
     def _check_data_empty(self, data):
@@ -2263,12 +2283,8 @@ class _CatBoostBase(object):
                 ' https://github.com/catboost/catboost/issues/2995',
             'check_do_not_raise_errors_in_init_or_set_params':
                 'TODO: https://github.com/catboost/catboost/issues/2997',
-            'check_estimator_sparse_array':
-                'TODO: support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
             'check_estimator_sparse_matrix':
                 'CatBoost does not support scipy.sparse.dia_matrix',
-            'check_estimator_sparse_tag':
-                'support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
             'check_estimators_empty_data_messages':
                 'TODO: raise ValueError instead of generic CatBoostError.'
                 ' https://github.com/catboost/catboost/issues/2996',
@@ -2295,7 +2311,7 @@ class _CatBoostBase(object):
             'check_sample_weight_equivalence_on_dense_data':
                 'TODO: https://github.com/catboost/catboost/issues/3005',
             'check_sample_weight_equivalence_on_sparse_data':
-                'support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
+                'TODO: https://github.com/catboost/catboost/issues/3005',
             'check_sample_weights_shape':
                 'TODO: raise ValueError instead of generic CatBoostError.'
                 ' https://github.com/catboost/catboost/issues/2996',
@@ -2359,6 +2375,8 @@ class _CatBoostBase(object):
                     'check_classifier_data_not_an_array':
                         'TODO: not all array-like data is supported.'
                         ' https://github.com/catboost/catboost/issues/2994',
+                    'check_estimator_sparse_array':
+                        'Multiclass predictions have shape (n_samples, 1)',
                     'check_classifiers_one_label':
                         'TODO: raise ValueError instead of generic CatBoostError.'
                         ' https://github.com/catboost/catboost/issues/2996',
@@ -2557,12 +2575,12 @@ def _params_type_cast(params):
 
 
 def _is_data_single_object(data):
-    if isinstance(data, (Pool, FeaturesData, pd.DataFrame) + SPARSE_MATRIX_TYPES):
+    if isinstance(data, (Pool, FeaturesData, pd.DataFrame, SPARSE_MATRIX_TYPES, SPARSE_ARRAY_TYPE)):
         return False
     if not isinstance(data, ARRAY_TYPES):
         raise CatBoostError(
             "Invalid data type={} : must be list, numpy.ndarray, pandas.Series, pandas.DataFrame, polars.Series, polars.DataFrame"
-            " scipy.sparse matrix, catboost.FeaturesData or catboost.Pool".format(type(data))
+            ", scipy.sparse array or matrix, catboost.FeaturesData or catboost.Pool".format(type(data))
         )
     return len(np.shape(data)) == 1
 
@@ -3491,7 +3509,7 @@ class CatBoost(_CatBoostBase):
                 Dataset specification is needed only in case if the model does not contain leaf weight information (trained with CatBoost v < 0.9).
             If type == 'PredictionDiff' data must contain a matrix of feature values of shape (2, n_features).
                 Possible types are catboost.Pool or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or polars.DataFrame or catboost.FeaturesData or pandas.SparseDataFrame or scipy.sparse.spmatrix
+                or polars.DataFrame or catboost.FeaturesData or pandas.SparseDataFrame or scipy.sparse array or matrix
             If type == 'FeatureImportance'
                 See 'PredictionValuesChange' for non-ranking metrics and 'LossFunctionChange' for ranking metrics.
             If type == 'Interaction'

@@ -9547,6 +9547,51 @@ def test_fit_on_scipy_sparse_spmatrix(features_dtype, features_density):
     return local_canonical_file(preds_path)
 
 
+@pytest.mark.skipif(not hasattr(scipy.sparse, 'sparray'), reason='SciPy sparse arrays are unavailable')
+@pytest.mark.parametrize('array_format', ['bsr', 'coo', 'csc', 'csr', 'dia', 'dok', 'lil'])
+def test_scipy_sparse_array_input(array_format):
+    features = [[0, 2], [1, 0], [0, 3], [4, 0]]
+    labels = [0, 1, 0, 1]
+    matrix = scipy.sparse.csr_matrix(features)
+    array = getattr(scipy.sparse, array_format + '_array')(features)
+    params = dict(iterations=3, thread_count=1, verbose=False, allow_writing_files=False)
+    expected = CatBoostClassifier(**params).fit(matrix, labels).predict_proba(matrix)
+    model = CatBoostClassifier(**params).fit(array, labels)
+
+    np.testing.assert_array_equal(model.predict_proba(array), expected)
+    np.testing.assert_array_equal(model.predict_proba(Pool(array)), expected)
+
+
+@pytest.mark.skipif(not hasattr(scipy.sparse, 'sparray'), reason='SciPy sparse arrays are unavailable')
+def test_scipy_sparse_array_csr_indices():
+    array = scipy.sparse.csr_array([[0, 2], [1, 0]])
+    array.indices = array.indices.astype(np.int64)
+    array.indptr = array.indptr.astype(np.int64)
+    assert Pool(array).shape == array.shape
+    assert array.indices.dtype == np.int64
+
+    too_wide = scipy.sparse.csr_array(([1], ([0], [2**31])), shape=(1, 2**31 + 1))
+    with pytest.raises(CatBoostError, match='32-bit index range'):
+        Pool(too_wide)
+
+
+@pytest.mark.skipif(not hasattr(scipy.sparse, 'sparray'), reason='SciPy sparse arrays are unavailable')
+@pytest.mark.parametrize('array_format', ['csr', 'csc'])
+def test_scipy_sparse_array_duplicate_indices(array_format):
+    constructor = getattr(scipy.sparse, array_format + '_array')
+    array = constructor(([1, 2, 0, 1, 1], [1, 1, 0, 0, 1], [0, 3, 5]), shape=(2, 2))
+    original = array.copy()
+    np.testing.assert_array_equal(Pool(array).get_features(), original.toarray())
+    np.testing.assert_array_equal(array.indices, original.indices)
+    np.testing.assert_array_equal(array.data, original.data)
+
+
+def test_scipy_sparse_array_invalid_dimension():
+    pytest.importorskip('scipy', minversion='1.14')
+    with pytest.raises(CatBoostError, match='two-dimensional'):
+        Pool(scipy.sparse.csr_array([0, 1]))
+
+
 # pandas has NaN value indicating missing values by default,
 # NaNs in categorical values are not supported by CatBoost
 def make_catboost_compatible_categorical_missing_values(src_features_dataframe):
