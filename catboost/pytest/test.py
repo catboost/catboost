@@ -7878,6 +7878,32 @@ def test_shap_verbose():
         assert line_count == expected_line_count
 
 
+@pytest.mark.parametrize('thread_count', [1, 4])
+def test_shap_independent_requires_reference_data(thread_count):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    execute_catboost_fit('CPU', [
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '3',
+        '-T', '4',
+        '-m', output_model_path,
+    ])
+    result = yatest.common.execute([
+        CATBOOST_PATH,
+        'fstr',
+        '-m', output_model_path,
+        '--input-path', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--fstr-type', 'ShapValues',
+        '--shap-calc-type', 'Independent',
+        '-T', str(thread_count),
+        '-o', yatest.common.test_output_path('shapval'),
+    ], check_exit_code=False)
+    assert result.exit_code == 1
+    assert b'require both an explained dataset and a reference dataset' in result.std_err
+
+
 def test_shap_approximate():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_values_path = yatest.common.test_output_path('shapval')

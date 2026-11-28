@@ -29,10 +29,8 @@ __device__ __forceinline__ void GetThreshold(
 ) {
     const ui32 thisBlockSize = min(BLOCK_THREADS * ITEMS_PER_THREAD, size);
     const float sampleSize = thisBlockSize * takenFraction;
-    __shared__ ui32 argMinBorder[BLOCK_THREADS];
-    __shared__ float minBorder[BLOCK_THREADS];
-    argMinBorder[threadIdx.x] = 0;
-    minBorder[threadIdx.x] = thisBlockSize;
+    __shared__ ui32 bestBorder[BLOCK_THREADS];
+    bestBorder[threadIdx.x] = 0;
     __shared__ bool exit;
     if (ITEMS_PER_THREAD * threadIdx.x <= thisBlockSize - 1 &&
     ITEMS_PER_THREAD * (threadIdx.x + 1) > thisBlockSize - 1) {
@@ -62,8 +60,7 @@ __device__ __forceinline__ void GetThreshold(
         if (i < thisBlockSize) {
             const float takenSize = prefixSum[k] / candidates[k] + thisBlockSize - i - 1;
             if (takenSize >= sampleSize) { // takenSize is non-growing function
-                minBorder[threadIdx.x] = takenSize;
-                argMinBorder[threadIdx.x] = i;
+                bestBorder[threadIdx.x] = i;
             }
         }
     }
@@ -73,10 +70,7 @@ __device__ __forceinline__ void GetThreshold(
     for (int s = BLOCK_THREADS >> 1; s >= 32; s >>= 1) {
         if (threadIdx.x < s)
         {
-            if (minBorder[threadIdx.x + s] < minBorder[threadIdx.x]) {
-                argMinBorder[threadIdx.x] = argMinBorder[threadIdx.x + s];
-                minBorder[threadIdx.x] = minBorder[threadIdx.x + s];
-            }
+            bestBorder[threadIdx.x] = max(bestBorder[threadIdx.x], bestBorder[threadIdx.x + s]);
         }
         __syncthreads();
     }
@@ -85,9 +79,8 @@ __device__ __forceinline__ void GetThreshold(
         __syncwarp();
         #pragma unroll
         for (int s = 32 >> 1; s > 0; s >>= 1) {
-            if (minBorder[threadIdx.x + s] < minBorder[threadIdx.x]) {
-                argMinBorder[threadIdx.x] = argMinBorder[threadIdx.x + s];
-                minBorder[threadIdx.x] = minBorder[threadIdx.x + s];
+            if (threadIdx.x < s) {
+                bestBorder[threadIdx.x] = max(bestBorder[threadIdx.x], bestBorder[threadIdx.x + s]);
             }
             __syncwarp();
         }
@@ -95,16 +88,13 @@ __device__ __forceinline__ void GetThreshold(
     __syncthreads();
 
     if (
-        ITEMS_PER_THREAD * threadIdx.x <= argMinBorder[0] &&
-        ITEMS_PER_THREAD * (threadIdx.x + 1) > argMinBorder[0]
+        ITEMS_PER_THREAD * threadIdx.x <= bestBorder[0] &&
+        ITEMS_PER_THREAD * (threadIdx.x + 1) > bestBorder[0]
     ) {
-        const int localId = argMinBorder[0] - threadIdx.x * ITEMS_PER_THREAD;
-        const int denom = sampleSize - (thisBlockSize - argMinBorder[0] - 1);
-        #pragma unroll
-        for (int i = 0; i < ITEMS_PER_THREAD; ++i) {
-            minBorder[i] = prefixSum[i];
-        }
-        *threshold = minBorder[localId] / (denom);
+        // Choose the last admissible border, including ties between equal candidates.
+        const int localId = bestBorder[0] - threadIdx.x * ITEMS_PER_THREAD;
+        const float denom = sampleSize - (thisBlockSize - bestBorder[0] - 1);
+        *threshold = prefixSum[localId] / denom;
     }
 }
 
@@ -201,14 +191,13 @@ __global__ void MvsBootstrapRadixSortImpl(
     float items[ITEMS_PER_THREAD];
     float scanItems[ITEMS_PER_THREAD];
 
-    const int idx = blockOffset + threadIdx.x;
     const float inf = sqrtf(std::numeric_limits<float>::max()) - 2 * lambda;
-    cub::CacheModifiedInputIterator<cub::LOAD_CS, float> inputIterator(ders);
+    cub::CacheModifiedInputIterator<cub::LOAD_CS, float> inputIterator(ders + blockOffset);
     cub::LoadDirectWarpStriped(
-        idx,
+        threadIdx.x,
         inputIterator,
         weightsPerThread,
-        size,
+        size - blockOffset,
         inf
     );
 
@@ -250,12 +239,12 @@ __global__ void MvsBootstrapRadixSortImpl(
             : 0.0f;
     }
 
-    cub::CacheModifiedOutputIterator<cub::STORE_CS, float> outputIterator(weights);
+    cub::CacheModifiedOutputIterator<cub::STORE_CS, float> outputIterator(weights + blockOffset);
     cub::StoreDirectWarpStriped(
-        idx,
+        threadIdx.x,
         outputIterator,
         weightsPerThread,
-        size
+        size - blockOffset
     );
 }
 

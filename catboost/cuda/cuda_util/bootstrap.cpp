@@ -1,4 +1,5 @@
 #include "bootstrap.h"
+#include "fill.h"
 
 #include <catboost/cuda/cuda_util/kernel/bootstrap.cuh>
 #include <catboost/cuda/cuda_util/kernel/mvs.cuh>
@@ -318,6 +319,11 @@ static void MvsBootstrapRadixSortImpl(
     float takenFraction,
     float lambda,
     ui32 stream) {
+
+    if (takenFraction == 1.0f) {
+        FillBuffer(weights, 1.0f, stream);
+        return;
+    }
 
     using TKernel = TMvsBootstrapRadixSortKernel;
     LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, seeds, weights, ders, takenFraction, lambda);
