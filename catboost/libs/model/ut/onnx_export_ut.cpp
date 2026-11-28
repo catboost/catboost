@@ -3,6 +3,7 @@
 #include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/model/static_ctr_provider.h>
 #include <catboost/libs/model/model_export/model_exporter.h>
 #include <catboost/libs/model/model_export/onnx_helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
@@ -337,6 +338,32 @@ Y_UNIT_TEST_SUITE(TestOnnxExport) {
         CheckPredictionsEqual(model, *data->ObjectsData, importedModel, *data->ObjectsData);
     }
 
+    Y_UNIT_TEST(TestBinaryProbabilityThresholdExportImport) {
+        const auto data = MakeDataProvider(
+            {CatColumn({"a", "a", "b", "b", "a", "b"})}, {0, 0, 1, 0, 0, 1});
+        const auto mapping = MergeCatFeaturesHashToString(*data->ObjectsData);
+        NJson::TJsonValue params;
+        params.InsertValue("loss_function", "Logloss");
+        NJson::TJsonValue classNames(NJson::JSON_ARRAY);
+        classNames.AppendValue(0);
+        classNames.AppendValue(1);
+        params.InsertValue("class_names", classNames);
+        auto model = TrainOnDataProvider(data, params);
+        model.SetScaleAndBias({1., {0.75}});
+        for (const TString threshold : {"0", "0.2", "0.9", "1"}) {
+            model.ModelInfo["binclass_probability_threshold"] = threshold;
+            onnx::ModelProto proto;
+            UNIT_ASSERT(proto.ParseFromString(ConvertTreeToOnnxProto(model, "", &mapping)));
+            onnx::checker::check_model(proto);
+            UNIT_ASSERT_VALUES_EQUAL(GetNode(proto, "Greater").input_size(), 2);
+            UNIT_ASSERT_VALUES_EQUAL(GetNode(proto, "TreeEnsembleRegressor").output_size(), 1);
+            const auto imported = ExportToOnnxAndImport(model, &mapping);
+            UNIT_ASSERT_VALUES_EQUAL(imported.GetBinClassProbabilityThreshold(), model.GetBinClassProbabilityThreshold());
+            UNIT_ASSERT_VALUES_EQUAL(imported.GetDimensionsCount(), 1);
+            CheckPredictionsEqual(model, *data->ObjectsData, imported, *data->ObjectsData);
+        }
+    }
+
     Y_UNIT_TEST(TestBinaryClassifierExportImport) {
         const auto data = MakeDataProvider(
             {CatColumn({"a", "a", "b", "b", "a", "b"})}, {0, 0, 1, 0, 0, 1});
@@ -481,7 +508,79 @@ Y_UNIT_TEST_SUITE(TestOnnxExport) {
         UNIT_ASSERT_EXCEPTION_CONTAINS(
             ConvertTreeToOnnxProto(model, "", &catFeaturesHashToString),
             TCatBoostException,
-            "one_hot_max_size"
+            "onnx_cat_features_input_type"
         );
+    }
+}
+
+Y_UNIT_TEST_SUITE(TestOnnxCtrExport) {
+    Y_UNIT_TEST(CtrTableValuesAndUnknownKeys) {
+        for (const auto type : {ECtrType::Borders, ECtrType::Buckets,
+                               ECtrType::BinarizedTargetMeanValue, ECtrType::FloatTargetMeanValue,
+                               ECtrType::Counter, ECtrType::FeatureFreq}) {
+            TModelCtr ctr;
+            ctr.Base.CtrType = type;
+            ctr.PriorNum = 0.5f;
+            ctr.PriorDenom = 2.f;
+            ctr.Shift = -0.25f;
+            ctr.Scale = 7.f;
+            TCtrValueTable table;
+            table.CounterDenominator = 19;
+            table.TargetClassesCount = 3;
+            float numerator;
+            float denominator;
+            if (type == ECtrType::BinarizedTargetMeanValue || type == ECtrType::FloatTargetMeanValue) {
+                auto history = table.AllocateBlobAndGetArrayRef<TCtrMeanHistory>(1);
+                history[0] = {3.5f, 7};
+                numerator = 3.5f;
+                denominator = 7.f;
+            } else if (type == ECtrType::Counter || type == ECtrType::FeatureFreq) {
+                table.AllocateBlobAndGetArrayRef<int>(1)[0] = 7;
+                numerator = 7.f;
+                denominator = 19.f;
+            } else {
+                auto history = table.AllocateBlobAndGetArrayRef<int>(3);
+                history[0] = 2;
+                history[1] = 3;
+                history[2] = 5;
+                ctr.TargetBorderIdx = 1;
+                numerator = type == ECtrType::Borders ? 5.f : 3.f;
+                denominator = 10.f;
+            }
+            TVector<ui64> buckets = {0, NCatboost::TDenseIndexHashView::NotFoundIndex, 0};
+            TVector<float> values(3);
+            CalcCtrValues(ctr, table, buckets, values);
+            UNIT_ASSERT_VALUES_EQUAL(values[0], ((numerator + 0.5f) / (denominator + 2.f) - 0.25f) * 7.f);
+            UNIT_ASSERT_VALUES_EQUAL(values[2], values[0]);
+            const float missingDenominator = (type == ECtrType::Counter || type == ECtrType::FeatureFreq) ? 19.f : 0.f;
+            UNIT_ASSERT_VALUES_EQUAL(values[1], (0.5f / (missingDenominator + 2.f) - 0.25f) * 7.f);
+            CalcCtrValues(ctr, table, {}, {});
+        }
+    }
+
+    Y_UNIT_TEST(HashedCtrSchemaAndMissingTables) {
+        const auto data = MakeDataProvider({CatColumn({"a", "a", "b", "b", "a", "b"})});
+        NJson::TJsonValue params;
+        params.InsertValue("one_hot_max_size", 0);
+        auto model = TrainOnDataProvider(data, params);
+        UNIT_ASSERT(!model.ModelTrees->GetCtrFeatures().empty());
+        const TString exportParams = R"({"onnx_cat_features_input_type":"hashed"})";
+        onnx::ModelProto proto;
+        UNIT_ASSERT(proto.ParseFromString(ConvertTreeToOnnxProto(model, exportParams, nullptr)));
+        onnx::checker::check_model(proto);
+        UNIT_ASSERT_VALUES_EQUAL(proto.graph().input_size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(proto.graph().input(0).type().tensor_type().elem_type(), int(onnx::TensorProto_DataType_INT64));
+        UNIT_ASSERT_VALUES_EQUAL(proto.graph().output(0).type().tensor_type().shape().dim(1).dim_value(), 1);
+        auto* provider = dynamic_cast<TStaticCtrProvider*>(model.CtrProvider.Get());
+        UNIT_ASSERT(provider);
+        auto& table = provider->CtrData.LearnCtrs.begin()->second;
+        // A corrupt bucket must produce an export error, never an out-of-bounds read.
+        auto hashBuilder = table.GetIndexHashBuilder(1);
+        hashBuilder.SetIndex(123, 1000000);
+        UNIT_ASSERT_EXCEPTION_CONTAINS(ConvertTreeToOnnxProto(model, exportParams, nullptr), TCatBoostException, "bucket index");
+        provider->CtrData.LearnCtrs.clear();
+        UNIT_ASSERT_EXCEPTION_CONTAINS(ConvertTreeToOnnxProto(model, exportParams, nullptr), TCatBoostException, "all saved CTR tables");
+        model.CtrProvider.Reset();
+        UNIT_ASSERT_EXCEPTION_CONTAINS(ConvertTreeToOnnxProto(model, exportParams, nullptr), TCatBoostException, "static CTR provider");
     }
 }

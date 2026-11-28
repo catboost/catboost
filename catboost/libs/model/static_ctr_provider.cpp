@@ -11,6 +11,90 @@
 using namespace NCB;
 
 
+void CalcCtrValues(
+    const TModelCtr& ctr,
+    const TCtrValueTable& learnCtr,
+    TConstArrayRef<ui64> buckets,
+    TArrayRef<float> result
+) {
+    CB_ENSURE_INTERNAL(buckets.size() == result.size(), "CTR input and output sizes differ");
+    const size_t samplesCount = buckets.size();
+    const ECtrType ctrType = ctr.Base.CtrType;
+    if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
+        const auto emptyVal = ctr.Calc(0.f, 0.f);
+        auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();
+        for (size_t doc = 0; doc < samplesCount; ++doc) {
+            if (buckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
+                const TCtrMeanHistory& ctrMeanHistory = ctrMean[buckets[doc]];
+                result[doc] = ctr.Calc(ctrMeanHistory.Sum, ctrMeanHistory.Count);
+            } else {
+                result[doc] = emptyVal;
+            }
+        }
+    } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
+        TConstArrayRef<int> ctrTotal = learnCtr.GetTypedArrayRefForBlobData<int>();
+        const int denominator = learnCtr.CounterDenominator;
+        auto emptyVal = ctr.Calc(0, denominator);
+        for (size_t doc = 0; doc < samplesCount; ++doc) {
+            if (buckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
+                result[doc] = ctr.Calc(ctrTotal[buckets[doc]], denominator);
+            } else {
+                result[doc] = emptyVal;
+            }
+        }
+    } else if (ctrType == ECtrType::Buckets) {
+        auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
+        const int targetClassesCount = learnCtr.TargetClassesCount;
+        auto emptyVal = ctr.Calc(0, 0);
+        for (size_t doc = 0; doc < samplesCount; ++doc) {
+            if (buckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
+                int goodCount = 0;
+                int totalCount = 0;
+                auto ctrHistory = MakeArrayRef(ctrIntArray.data() + buckets[doc] * targetClassesCount, targetClassesCount);
+                goodCount = ctrHistory[ctr.TargetBorderIdx];
+                for (int classId = 0; classId < targetClassesCount; ++classId) {
+                    totalCount += ctrHistory[classId];
+                }
+                result[doc] = ctr.Calc(goodCount, totalCount);
+            } else {
+                result[doc] = emptyVal;
+            }
+        }
+    } else {
+        auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
+        const int targetClassesCount = learnCtr.TargetClassesCount;
+
+        auto emptyVal = ctr.Calc(0, 0);
+        if (targetClassesCount > 2) {
+            for (size_t doc = 0; doc < samplesCount; ++doc) {
+                int goodCount = 0;
+                int totalCount = 0;
+                if (buckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
+                    auto ctrHistory = MakeArrayRef(ctrIntArray.data() + buckets[doc] * targetClassesCount, targetClassesCount);
+                    for (int classId = 0; classId < ctr.TargetBorderIdx + 1; ++classId) {
+                        totalCount += ctrHistory[classId];
+                    }
+                    for (int classId = ctr.TargetBorderIdx + 1; classId < targetClassesCount; ++classId) {
+                        goodCount += ctrHistory[classId];
+                    }
+                    totalCount += goodCount;
+                }
+                result[doc] = ctr.Calc(goodCount, totalCount);
+            }
+        } else {
+            for (size_t doc = 0; doc < samplesCount; ++doc) {
+                if (buckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
+                    const int* ctrHistory = &ctrIntArray[buckets[doc] * 2];
+                    result[doc] = ctr.Calc(ctrHistory[1], ctrHistory[0] + ctrHistory[1]);
+                } else {
+                    result[doc] = emptyVal;
+                }
+            }
+        }
+    }
+}
+
+
 void TStaticCtrProvider::CalcCtrs(const TConstArrayRef<TModelCtr> neededCtrs,
                                   const TConstArrayRef<ui8> binarizedFeatures,
                                   const TConstArrayRef<ui32> hashedCatFeatures,
@@ -44,83 +128,10 @@ void TStaticCtrProvider::CalcCtrs(const TConstArrayRef<TModelCtr> neededCtrs,
         for (const auto& ctr: compressedModelCtrs[idx].ModelCtrs) {
             auto& learnCtr = CtrData.LearnCtrs.at(ctr->Base);
             auto hashIndexResolver = learnCtr.GetIndexHashViewer();
-            const ECtrType ctrType = ctr->Base.CtrType;
-            auto ptrBuckets = buckets.data();
             for (size_t docId = 0; docId < samplesCount; ++docId) {
-                ptrBuckets[docId] = hashIndexResolver.GetIndex(ctrHashes[docId]);
+                buckets[docId] = hashIndexResolver.GetIndex(ctrHashes[docId]);
             }
-            if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
-                const auto emptyVal = ctr->Calc(0.f, 0.f);
-                auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();
-                for (size_t doc = 0; doc < samplesCount; ++doc) {
-                    if (ptrBuckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
-                        const TCtrMeanHistory& ctrMeanHistory = ctrMean[ptrBuckets[doc]];
-                        resultPtr[doc + resultIdx] = ctr->Calc(ctrMeanHistory.Sum, ctrMeanHistory.Count);
-                    } else {
-                        resultPtr[doc + resultIdx] = emptyVal;
-                    }
-                }
-            } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
-                TConstArrayRef<int> ctrTotal = learnCtr.GetTypedArrayRefForBlobData<int>();
-                const int denominator = learnCtr.CounterDenominator;
-                auto emptyVal = ctr->Calc(0, denominator);
-                for (size_t doc = 0; doc < samplesCount; ++doc) {
-                    if (ptrBuckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
-                        resultPtr[doc + resultIdx] = ctr->Calc(ctrTotal[ptrBuckets[doc]], denominator);
-                    } else {
-                        resultPtr[doc + resultIdx] = emptyVal;
-                    }
-                }
-            } else if (ctrType == ECtrType::Buckets) {
-                auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
-                const int targetClassesCount = learnCtr.TargetClassesCount;
-                auto emptyVal = ctr->Calc(0, 0);
-                for (size_t doc = 0; doc < samplesCount; ++doc) {
-                    if (ptrBuckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
-                        int goodCount = 0;
-                        int totalCount = 0;
-                        auto ctrHistory = MakeArrayRef(ctrIntArray.data() + ptrBuckets[doc] * targetClassesCount, targetClassesCount);
-                        goodCount = ctrHistory[ctr->TargetBorderIdx];
-                        for (int classId = 0; classId < targetClassesCount; ++classId) {
-                            totalCount += ctrHistory[classId];
-                        }
-                        resultPtr[doc + resultIdx] = ctr->Calc(goodCount, totalCount);
-                    } else {
-                        resultPtr[doc + resultIdx] = emptyVal;
-                    }
-                }
-            } else {
-                auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
-                const int targetClassesCount = learnCtr.TargetClassesCount;
-
-                auto emptyVal = ctr->Calc(0, 0);
-                if (targetClassesCount > 2) {
-                    for (size_t doc = 0; doc < samplesCount; ++doc) {
-                        int goodCount = 0;
-                        int totalCount = 0;
-                        if (ptrBuckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
-                            auto ctrHistory = MakeArrayRef(ctrIntArray.data() + ptrBuckets[doc] * targetClassesCount, targetClassesCount);
-                            for (int classId = 0; classId < ctr->TargetBorderIdx + 1; ++classId) {
-                                totalCount += ctrHistory[classId];
-                            }
-                            for (int classId = ctr->TargetBorderIdx + 1; classId < targetClassesCount; ++classId) {
-                                goodCount += ctrHistory[classId];
-                            }
-                            totalCount += goodCount;
-                        }
-                        resultPtr[doc + resultIdx] = ctr->Calc(goodCount, totalCount);
-                    }
-                } else {
-                    for (size_t doc = 0; doc < samplesCount; ++doc) {
-                        if (ptrBuckets[doc] != NCatboost::TDenseIndexHashView::NotFoundIndex) {
-                            const int* ctrHistory = &ctrIntArray[ptrBuckets[doc] * 2];
-                            resultPtr[doc + resultIdx] = ctr->Calc(ctrHistory[1], ctrHistory[0] + ctrHistory[1]);
-                        } else {
-                            resultPtr[doc + resultIdx] = emptyVal;
-                        }
-                    }
-                }
-            }
+            CalcCtrValues(*ctr, learnCtr, buckets, MakeArrayRef(resultPtr + resultIdx, samplesCount));
             resultIdx += docCount;
         }
     }
