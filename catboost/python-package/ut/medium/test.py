@@ -2041,6 +2041,177 @@ def test_onnx_export_single_categorical_input(feature_name):
     assert np.allclose(imported.predict(data), expected)
 
 
+def _make_onnx_tree_for_attribute_tests(classifier):
+    onnx = pytest.importorskip('onnx')
+    attributes = dict(
+        nodes_treeids=[0, 0, 0], nodes_nodeids=[0, 1, 2], nodes_featureids=[0, 0, 0],
+        nodes_modes=['BRANCH_GT', 'LEAF', 'LEAF'], nodes_values=[0.5, 0., 0.],
+        nodes_truenodeids=[2, 0, 0], nodes_falsenodeids=[1, 0, 0],
+        nodes_missing_value_tracks_true=[0, 0, 0], nodes_hitrates=[1., 1., 1.],
+        post_transform='NONE',
+    )
+    outputs = [onnx.helper.make_tensor_value_info('predictions', onnx.TensorProto.FLOAT, [None, 1])]
+    if classifier:
+        attributes.update(class_treeids=[0, 0, 0, 0], class_nodeids=[1, 1, 2, 2],
+                          class_ids=[0, 1, 0, 1], class_weights=[-1., 1., -2., 2.], classlabels_int64s=[0, 1])
+        outputs = [onnx.helper.make_tensor_value_info('label', onnx.TensorProto.INT64, [None]),
+                   onnx.helper.make_tensor_value_info('scores', onnx.TensorProto.FLOAT, [None, 2])]
+    else:
+        attributes.update(n_targets=1, target_treeids=[0, 0], target_nodeids=[1, 2],
+                          target_ids=[0, 0], target_weights=[1., 2.])
+    node = onnx.helper.make_node(
+        'TreeEnsembleClassifier' if classifier else 'TreeEnsembleRegressor',
+        ['features'], [output.name for output in outputs], domain='ai.onnx.ml', **attributes,
+    )
+    graph = onnx.helper.make_graph(
+        [node], 'attribute_validation',
+        [onnx.helper.make_tensor_value_info('features', onnx.TensorProto.FLOAT, [None, 1])], outputs,
+    )
+    return onnx.helper.make_model(graph, opset_imports=[onnx.helper.make_opsetid('ai.onnx.ml', 2)], ir_version=3)
+
+
+@pytest.mark.parametrize('classifier', [False, True])
+@pytest.mark.parametrize('routing', ['omitted', 'empty', 'false', 'true'])
+@pytest.mark.parametrize('mode', ['BRANCH_GT', 'BRANCH_GTE', 'BRANCH_LT', 'BRANCH_LEQ'])
+def test_onnx_import_optional_tree_attributes(classifier, routing, mode):
+    onnx = pytest.importorskip('onnx')
+    proto = _make_onnx_tree_for_attribute_tests(classifier)
+    node = proto.graph.node[0]
+    attributes = {attribute.name: attribute for attribute in node.attribute}
+    attributes['nodes_modes'].strings[0] = mode.encode()
+    attributes['nodes_missing_value_tracks_true'].ints[0] = int(routing == 'true')
+    removed = ['nodes_hitrates']
+    if routing in ('omitted', 'empty'):
+        removed.append('nodes_missing_value_tracks_true')
+    kept = [attribute for attribute in node.attribute if attribute.name not in removed]
+    del node.attribute[:]
+    node.attribute.extend(kept)
+    if routing == 'empty':
+        node.attribute.append(onnx.helper.make_attribute('nodes_missing_value_tracks_true', [],
+                                                       attr_type=onnx.AttributeProto.INTS))
+    onnx.checker.check_model(proto)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    onnx.save(proto, path)
+    model = CatBoost().load_model(path, format='onnx')
+    border = np.float32(0.5)
+    features = np.array([np.nan, np.nextafter(border, np.float32(-np.inf)), border,
+                         np.nextafter(border, np.float32(np.inf))], dtype=np.float32).reshape(-1, 1)
+    result = model.predict(features, prediction_type='RawFormulaVal')
+    compare = {'BRANCH_GT': np.greater, 'BRANCH_GTE': np.greater_equal,
+               'BRANCH_LT': np.less, 'BRANCH_LEQ': np.less_equal}[mode]
+    expected = np.where(compare(features.ravel(), border), 2., 1.)
+    expected[0] = 2. if routing == 'true' else 1.
+    if classifier:
+        expected = [[-value, value] for value in expected]
+    assert np.array_equal(result, expected)
+    if not classifier:
+        onnxruntime = pytest.importorskip('onnxruntime')
+        session = onnxruntime.InferenceSession(path, providers=['CPUExecutionProvider'])
+        assert np.array_equal(result, session.run(['predictions'], {'features': features})[0].ravel())
+
+
+@pytest.mark.parametrize('mode,border', [
+    ('BRANCH_GTE', -np.inf), ('BRANCH_LT', -np.inf), ('BRANCH_GTE', np.inf),
+    ('BRANCH_GT', np.inf), ('BRANCH_LEQ', np.inf), ('BRANCH_LEQ', np.nan),
+])
+@pytest.mark.parametrize('missing_tracks_true', [False, True])
+def test_onnx_import_nonfinite_border(mode, border, missing_tracks_true):
+    onnx = pytest.importorskip('onnx')
+    proto = _make_onnx_tree_for_attribute_tests(classifier=False)
+    attributes = {attr.name: attr for attr in proto.graph.node[0].attribute}
+    attributes['nodes_modes'].strings[0] = mode.encode()
+    attributes['nodes_values'].floats[0] = border
+    attributes['nodes_missing_value_tracks_true'].ints[0] = int(missing_tracks_true)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    onnx.save(proto, path)
+
+    features = np.array([-np.inf, -1., 0., 1., np.inf, np.nan], dtype=np.float32)
+    compare = {'BRANCH_GTE': np.greater_equal, 'BRANCH_LT': np.less,
+               'BRANCH_GT': np.greater, 'BRANCH_LEQ': np.less_equal}[mode]
+    routes = compare(features, border)
+    routes[-1] = missing_tracks_true
+    if np.all(routes[:-1] != missing_tracks_true):
+        with pytest.raises(CatBoostError, match='isolates NaN'):
+            CatBoostRegressor().load_model(path, format='onnx')
+    else:
+        model = CatBoostRegressor().load_model(path, format='onnx')
+        np.testing.assert_array_equal(model.predict(features.reshape(-1, 1)), np.where(routes, 2., 1.))
+
+
+@pytest.mark.parametrize('classifier', [False, True])
+@pytest.mark.parametrize('consistent', [False, True])
+def test_onnx_import_nan_routing_across_trees(classifier, consistent):
+    onnx = pytest.importorskip('onnx')
+    proto = _make_onnx_tree_for_attribute_tests(classifier)
+    for attribute in proto.graph.node[0].attribute:
+        if attribute.name.startswith(('nodes_', 'class_', 'target_')):
+            values = getattr(attribute, {onnx.AttributeProto.INTS: 'ints', onnx.AttributeProto.FLOATS: 'floats',
+                                         onnx.AttributeProto.STRINGS: 'strings'}[attribute.type])
+            second_tree = list(values)
+            if attribute.name.endswith('_treeids'):
+                second_tree = [1] * len(second_tree)
+            elif attribute.name == 'nodes_missing_value_tracks_true':
+                second_tree[0] = 1
+            elif attribute.name == 'nodes_modes' and consistent:
+                second_tree[0] = b'BRANCH_LEQ'
+            values.extend(second_tree)
+    onnx.checker.check_model(proto)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    onnx.save(proto, path)
+    if consistent:
+        model = CatBoost().load_model(path, format='onnx')
+        result = model.predict(np.array([[np.nan], [0.], [1.]], dtype=np.float32), prediction_type='RawFormulaVal')
+        assert np.array_equal(result, [[-3., 3.]] * 3 if classifier else [3.] * 3)
+    else:
+        with pytest.raises(CatBoostError, match='inconsistent NaN routing'):
+            CatBoost().load_model(path, format='onnx')
+
+
+@pytest.mark.parametrize('classifier', [False, True])
+@pytest.mark.parametrize('name', [
+    'nodes_treeids', 'nodes_modes', 'nodes_values', 'nodes_featureids', 'nodes_nodeids',
+    'nodes_falsenodeids', 'nodes_truenodeids', 'leaf_treeids', 'leaf_nodeids', 'leaf_ids', 'leaf_weights',
+])
+def test_onnx_import_missing_tree_attributes(classifier, name):
+    onnx = pytest.importorskip('onnx')
+    proto = _make_onnx_tree_for_attribute_tests(classifier)
+    name = name.replace('leaf_', 'class_' if classifier else 'target_')
+    node = proto.graph.node[0]
+    kept = [attribute for attribute in node.attribute if attribute.name != name]
+    del node.attribute[:]
+    node.attribute.extend(kept)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    onnx.save(proto, path)
+    with pytest.raises(CatBoostError, match=name):
+        CatBoost().load_model(path, format='onnx')
+
+
+@pytest.mark.parametrize('classifier', [False, True])
+@pytest.mark.parametrize('mutation', ['size', 'type', 'duplicate', 'optional_size', 'optional_value', 'hitrates_size'])
+def test_onnx_import_malformed_tree_attributes(classifier, mutation):
+    onnx = pytest.importorskip('onnx')
+    proto = _make_onnx_tree_for_attribute_tests(classifier)
+    node = proto.graph.node[0]
+    name = 'nodes_missing_value_tracks_true' if mutation.startswith('optional_') else 'nodes_featureids'
+    if mutation == 'hitrates_size':
+        name = 'nodes_hitrates'
+    attribute = next(attribute for attribute in node.attribute if attribute.name == name)
+    if mutation in ('size', 'optional_size'):
+        del attribute.ints[-1]
+    elif mutation == 'optional_value':
+        attribute.ints[0] = 2
+    elif mutation == 'hitrates_size':
+        del attribute.floats[-1]
+    elif mutation == 'type':
+        attribute.type = onnx.AttributeProto.FLOATS
+    else:
+        node.attribute.add().CopyFrom(attribute)
+    path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    onnx.save(proto, path)
+    with pytest.raises(CatBoostError, match=name):
+        CatBoost().load_model(path, format='onnx')
+
+
 @pytest.mark.parametrize('modes', [('BRANCH_GT', 'BRANCH_EQ'), ('BRANCH_EQ', 'BRANCH_GT')])
 def test_onnx_import_conflicting_feature_types(modes):
     onnx = pytest.importorskip('onnx')
